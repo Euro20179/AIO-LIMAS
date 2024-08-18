@@ -14,6 +14,20 @@ In addition, it will contain a myanimelist/letterboxd like experience for all me
 
 Physical content will need to be entered in manually, however metadata should be fetched automatically (similar to how manual entries in jellyfin work)
 
+- [ ] MAL/letterboxd system
+  - [ ] user rating system
+  - [ ] notes
+  - [ ] status (planning, viewing, etc)
+  - [ ] watch dates table
+  - [ ] ability to plan, start, stop shows
+- [ ] Library features
+  - [ ] automatic metadata
+  - [ ] scanning folders
+  - [ ] search
+    - [ ] search filters
+- [ ] Ability to act as a proxy for the given {location} of an entry, and stream it
+  - [ ] reencoding?
+
 ---
 
 # Project layout
@@ -28,35 +42,41 @@ Each title will have a randomly generated id
 The user should be able to put items into collections
 And search by that collection
 
-```markdown
 # User General Info table
 
 | ID  | Title        | Format  | Location | Purchase price | Collection   |
 | --- | ------------ | ------- | -------- | -------------- | ------------ |
 | Fx  | Friends s01  | DVD     | Library  | $xx.xx         | Friends      |
 | xx  | Erased Vol 1 | Manga   | Library  | $xx.xx         | Erased:Anime |
-| xx  | Your Name    | Digital | {link}   | $xx.xx         | Anime        |
+| Yx  | Your Name    | Digital | {link}   | $xx.xx         | Anime        |
 
 # Generated Metadata table
 
-| ID  | Rating | Description |
-| --- | ------ | ----------- |
-| Fx  | 80     | ...         |
+| ID  | Rating | Description | Length (seconds) |
+| --- | ------ | ----------- | ---------------- |
+| Fx  | 80     | ...         | ...              |
 
-| Title     | ViewCount | Start date | End date | User Rating |
-| --------- | --------- | ---------- | -------- | ----------- |
-| your name | 3         | unixtime   | unixtime | 94          |
-```
+# User Viewing Info
+
+<!--the user will be displayed the title, instead of the id-->
+
+| ID  | Status   | ViewCount | Start date | End date | User Rating |
+| --- | -------- | --------- | ---------- | -------- | ----------- |
+| Yx  | Finished | 3         | unixtime   | unixtime | 94          |
+
+---
 
 # Format NUM Table
 
-| Format   | INT |
-| -------- | --- |
-| VHS      | 0   |
-| CD       | 1   |
-| DVD      | 2   |
-| BLURAY   | 3   |
-| 4KBLURAY | 4   |
-| MANGA    | 5   |
-| BOOK     | 6   |
-| DIGITAL  | 7   |
+| Format     | INT |
+| ---------- | --- |
+| VHS        | 0   |
+| CD         | 1   |
+| DVD        | 2   |
+| BLURAY     | 3   |
+| 4KBLURAY   | 4   |
+| MANGA      | 5   |
+| BOOK       | 6   |
+| DIGITAL    | 7   |
+| VIDEO GAME | 8   |
+| BOARD GAME | 9   |
