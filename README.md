@@ -1,4 +1,4 @@
-# The **A**ll **I**n **O**ne **Li**brary **Ma**agement **S**ystem
+# The **A**ll **I**n **O**ne **Li**brary **Ma**gement **S**ystem
 
 ### AIO LIMAS For short
 
