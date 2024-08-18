@@ -20,10 +20,6 @@ Physical content will need to be entered in manually, however metadata should be
 
 All data will be stored in one big database
 
-The mal/letterboxd data will be stored in one sqlite database,
-
-The library will be stored in another sqlite database
-
 Maybe containing the following tables
 
 Below is an example table for the library
@@ -46,12 +42,21 @@ And search by that collection
 | ID  | Rating | Description |
 | --- | ------ | ----------- |
 | Fx  | 80     | ...         |
+
+| Title     | ViewCount | Start date | End date | User Rating |
+| --------- | --------- | ---------- | -------- | ----------- |
+| your name | 3         | unixtime   | unixtime | 94          |
 ```
 
-MAL/letterboxd database
+# Format NUM Table
 
-```markdown
-| Title     | ViewCount | Start date | End date | Overall Rating |
-| --------- | --------- | ---------- | -------- | -------------- |
-| your name | 3         | unixtime   | unixtime | 94             |
-```
+| Format   | INT |
+| -------- | --- |
+| VHS      | 0   |
+| CD       | 1   |
+| DVD      | 2   |
+| BLURAY   | 3   |
+| 4KBLURAY | 4   |
+| MANGA    | 5   |
+| BOOK     | 6   |
+| DIGITAL  | 7   |
