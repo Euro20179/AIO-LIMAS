@@ -15,6 +15,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("No title provided\n"))
 		return
 	}
+
 	id := rand.Uint64()
 
 	query := fmt.Sprintf("INSERT INTO entryInfo (itemId, title, format, location, purchasePrice, collection) VALUES (%d, '%s', 'digital', 'test', 0, 'test')", id, title)
@@ -37,3 +38,8 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 // scans a folder and adds all items to the library as best it can
 // it will not add it to any collections
 func ScanFolder() {}
+
+//engagement endpoints
+func BeginMedia(w http.ResponseWriter, req *http.Request) {
+
+}

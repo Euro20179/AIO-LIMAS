@@ -14,13 +14,15 @@ func InitDb(dbPath string) {
 	if err != nil {
 		panic(err)
 	}
+	//parent is for somethign like a season of a show
 	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS entryInfo (
 			 itemId INTEGER,
 			 title TEXT,
 			 format INTEGER,
 			 location TEXT,
 			 purchasePrice NUMERIC,
-			 collection TEXT
+			 collection TEXT,
+			 parentId INTEGER
 		)`)
 	if err != nil {
 		panic("Failed to create general info table\n" + err.Error())

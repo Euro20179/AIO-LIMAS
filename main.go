@@ -4,36 +4,53 @@ import (
 	"flag"
 	"net/http"
 
-	globals "aiolimas/globals"
 	api "aiolimas/api"
+	globals "aiolimas/globals"
 )
+
+type Format int
 
 const (
-	F_VHS       = iota // 0
-	F_CD        = iota // 1
-	F_DVD       = iota // 2
-	F_BLURAY    = iota // 3
-	F_4KBLURAY  = iota // 4
-	F_MANGA     = iota // 5
-	F_BOOK      = iota // 6
-	F_DIGITAL   = iota // 7
-	F_VIDEOGAME = iota // 8
-	F_BOARDGAME = iota // 9
+	F_VHS       Format = iota // 0
+	F_CD        Format = iota // 1
+	F_DVD       Format = iota // 2
+	F_BLURAY    Format = iota // 3
+	F_4KBLURAY  Format = iota // 4
+	F_MANGA     Format = iota // 5
+	F_BOOK      Format = iota // 6
+	F_DIGITAL   Format = iota // 7
+	F_VIDEOGAME Format = iota // 8
+	F_BOARDGAME Format = iota // 9
 )
 
+func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *http.Request)) {
+	for name, fn := range endPoints {
+		http.HandleFunc(root+"/"+name, fn)
+	}
+}
 
 func main() {
 	dbPathPtr := flag.String("db-path", "./all.db", "Path to the database file")
 	flag.Parse()
 	globals.InitDb(*dbPathPtr)
 
-	v1 := "/api/v1"
-	endPoints := map[string]func(http.ResponseWriter, *http.Request) {
+	//paths
+	//<root> general database stuff
+	//
+
+	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
+
+	apiRoot := "/api/v1"
+	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry": api.AddEntry,
-		"query": api.QueryEntries,
-	}
-	for name, fn := range endPoints {
-		http.HandleFunc(v1 + "/" + name, fn)
-	}
+		"query":     api.QueryEntries,
+	})
+	//for stuff relating to user viewing info
+	//such as user rating, user beginning/ending a media, etc
+	//stuff that would normally be managed by strack
+	makeEndpoints(apiRoot + "/engagement", EndPointMap {
+		"begin-media": api.BeginMedia,
+	})
+
 	http.ListenAndServe(":8080", nil)
 }
