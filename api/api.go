@@ -1,27 +1,10 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
-	"math/rand/v2"
 	"net/http"
 
-	globals "aiolimas/globals"
+	db "aiolimas/db"
 )
-
-type EntryInfo struct {
-	ItemId        int64
-	Title         string
-	Format        string
-	Location      string
-	PurchasePrice float64
-	Collection    string
-	Parent        int64
-}
-
-func (self *EntryInfo) ToJson() ([]byte, error) {
-	return json.Marshal(self)
-}
 
 // lets the user add an item in their library
 func AddEntry(w http.ResponseWriter, req *http.Request) {
@@ -32,16 +15,13 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id := rand.Int64()
-	if id == 0 {
-		w.WriteHeader(500)
-		w.Write([]byte("Failed to generate an id"))
-		return
-	}
+	var entryInfo db.InfoEntry
+	entryInfo.Title = title
 
-	query := fmt.Sprintf("INSERT INTO entryInfo (itemId, title, format, location, purchasePrice, collection) VALUES (%d, '%s', 'digital', 'test', 0, 'test')", id, title)
-	_, err := globals.Db.Exec(query)
-	if err != nil {
+	var metadata db.MetadataEntry
+	var userEntry db.UserViewingEntry
+
+	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into entryInfo table\n" + err.Error()))
 		return
@@ -53,7 +33,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 
 // simply will list all entries as a json from the entryInfo table
 func ListEntries(w http.ResponseWriter, req *http.Request) {
-	items, err := globals.Db.Query("SELECT * FROM entryInfo;")
+	items, err := db.Db.Query("SELECT * FROM entryInfo;")
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
@@ -61,7 +41,7 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(200)
 	for items.Next() {
-		var row EntryInfo
+		var row db.InfoEntry
 		items.Scan(&row.ItemId, &row.Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Parent)
 		j, err := row.ToJson()
 		if err != nil{
@@ -79,7 +59,9 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 
 // scans a folder and adds all items to the library as best it can
 // it will not add it to any collections
-func ScanFolder() {}
+func ScanFolder(w http.ResponseWriter, req *http.Request) {
+
+}
 
 // engagement endpoints
 func BeginMedia(w http.ResponseWriter, req *http.Request) {

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	api "aiolimas/api"
-	globals "aiolimas/globals"
+	db "aiolimas/db"
 )
 
 type Format int
@@ -32,7 +32,7 @@ func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *
 func main() {
 	dbPathPtr := flag.String("db-path", "./all.db", "Path to the database file")
 	flag.Parse()
-	globals.InitDb(*dbPathPtr)
+	db.InitDb(*dbPathPtr)
 
 	//paths
 	//<root> general database stuff
@@ -42,14 +42,14 @@ func main() {
 
 	apiRoot := "/api/v1"
 	makeEndpoints(apiRoot, EndPointMap{
-		"add-entry": api.AddEntry,
-		"query":     api.QueryEntries,
+		"add-entry":    api.AddEntry,
+		"query":        api.QueryEntries,
 		"list-entries": api.ListEntries,
 	})
-	//for stuff relating to user viewing info
-	//such as user rating, user beginning/ending a media, etc
-	//stuff that would normally be managed by strack
-	makeEndpoints(apiRoot + "/engagement", EndPointMap {
+	// for stuff relating to user viewing info
+	// such as user rating, user beginning/ending a media, etc
+	// stuff that would normally be managed by strack
+	makeEndpoints(apiRoot+"/engagement", EndPointMap{
 		"begin-media": api.BeginMedia,
 	})
 
