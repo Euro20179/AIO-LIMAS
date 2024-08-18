@@ -44,6 +44,7 @@ func main() {
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry": api.AddEntry,
 		"query":     api.QueryEntries,
+		"list-entries": api.ListEntries,
 	})
 	//for stuff relating to user viewing info
 	//such as user rating, user beginning/ending a media, etc
