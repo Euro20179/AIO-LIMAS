@@ -30,12 +30,13 @@ func main() {
 		"add-entry":    api.AddEntry,
 		"query":        api.QueryEntries,
 		"list-entries": api.ListEntries,
+		"scan-folder":  api.ScanFolder,
 	})
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
-		"begin-media": api.BeginMedia,
+		"begin-media":  api.BeginMedia,
 		"finish-media": api.FinishMedia,
 	})
 

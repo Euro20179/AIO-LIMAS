@@ -125,11 +125,6 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 func QueryEntries(w http.ResponseWriter, req *http.Request) {
 }
 
-// Scans a folder, and makes each item in it part of a collection named the same as the folder
-// all items in it will be passed to the ScanFolderAsEntry db function
-func ScanFolderAsCollection(w http.ResponseWriter, req *http.Request) {
-}
-
 // Scans a folder as an entry, all folders within will be treated as children
 // this will work well because even if a folder structure exists as:
 // Friends -> S01 -> E01 -> 01.mkv
@@ -142,7 +137,27 @@ func ScanFolderAsCollection(w http.ResponseWriter, req *http.Request) {
 // **ONLY entryInfo rows will be deleted, as the user may have random userViewingEntries that are not part of their library**
 // metadata also stays because it can be used to display the userViewingEntries nicer
 // also on rescan, we can check if the title exists in entryInfo or metadata, if it does, we can reuse that id
-func ScanFolderAsEntry(w http.ResponseWriter, req *http.Request) {
+func ScanFolder(w http.ResponseWriter, req *http.Request) {
+	path := req.URL.Query().Get("path")
+	if path == "" {
+		wError(w, 400, "No path given\n")
+		return
+	}
+
+	collection := req.URL.Query().Get("collection")
+
+	errs := db.ScanFolder(path, collection)
+
+	if len(errs) != 0 {
+		w.WriteHeader(500)
+		for _, err := range errs {
+			fmt.Fprintf(w, "%s\n", err.Error())
+		}
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
 }
 
 func verifyIdQueryParam(req *http.Request) (int64, error){

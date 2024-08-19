@@ -2,7 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"math/rand/v2"
+	"os"
+	"path/filepath"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -181,6 +184,56 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	}
 
 	return nil
+}
+
+func ScanFolderAsWithParent(path string, collection string, parent int64) []error{
+	stat, err := os.Stat(path)
+	if err != nil {
+		return []error{err}
+	}
+	if !stat.IsDir() {
+		return []error{fmt.Errorf("%s is not a directory\n", path)}
+	}
+
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return []error{err}
+	}
+
+	var errors []error
+	for _, entry := range entries {
+		var info InfoEntry
+		var userEntry UserViewingEntry
+		var metadata MetadataEntry
+		name := entry.Name()
+
+		fullPath := filepath.Join(path, entry.Name())
+		info.Title = name
+		info.Parent = parent
+		info.Format = F_DIGITAL
+		info.Location = fullPath
+		info.Collection = collection
+
+		err := AddEntry(&info, &metadata, &userEntry)
+		if err != nil {
+			errors = append(errors, err)
+		}
+
+		if entry.IsDir() {
+			newErrors := ScanFolderAsWithParent(fullPath, collection, info.ItemId)
+			errors = append(errors, newErrors...)
+		}
+	}
+
+	if len(errors) > 0 {
+		return errors
+	}
+
+	return nil
+}
+
+func ScanFolder(path string, collection string) []error {
+	return ScanFolderAsWithParent(path, collection, 0)
 }
 
 func UpdateUserViewingEntry(entry *UserViewingEntry) error {
