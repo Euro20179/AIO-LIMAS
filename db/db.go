@@ -24,7 +24,7 @@ func InitDb(dbPath string) {
 			 location TEXT,
 			 purchasePrice NUMERIC,
 			 collection TEXT,
-			 parentId INTEGER
+			 parentId INTEGER,
 		)`)
 	if err != nil {
 		panic("Failed to create general info table\n" + err.Error())

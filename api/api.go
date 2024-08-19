@@ -111,9 +111,20 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 func QueryEntries(w http.ResponseWriter, req *http.Request) {
 }
 
-// scans a folder and adds all items to the library as best it can
-// it will not add it to any collections
-func ScanFolder(w http.ResponseWriter, req *http.Request) {
+// Scans a folder, and makes each item in it part of a collection named the same as the folder
+//all items in it will be passed to the ScanFolderAsEntry db function
+func ScanFolderAsCollection(w http.ResponseWriter, req *http.Request) {
+
+}
+
+//Scans a folder as an entry, all folders within will be treated as children
+//this will work well because even if a folder structure exists as:
+//Friends -> S01 -> E01 -> 01.mkv
+//               -> E02 -> 02.mkv
+//We will end up with the following entries, Friends -> S01(Friends) -> E01(S01) -> 01.mkv(E01)
+//despite what seems as duplication is actually fine, as the user may want some extra stuff associated with E01, if they structure it this way
+//on rescan, we can check if the location doesn't exist, or is empty, if either is true, it will be deleted from the database
+func ScanFolderAsEntry(w http.ResponseWriter, req *http.Request) {
 
 }
 

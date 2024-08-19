@@ -14,4 +14,5 @@ const (
 
 //entryType is used as a hint for where to get the metadata from
 func GetMetadata(entryType EntryType) {
+
 }
