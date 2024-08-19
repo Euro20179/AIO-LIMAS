@@ -8,21 +8,6 @@ import (
 	db "aiolimas/db"
 )
 
-type Format int
-
-const (
-	F_VHS       Format = iota // 0
-	F_CD        Format = iota // 1
-	F_DVD       Format = iota // 2
-	F_BLURAY    Format = iota // 3
-	F_4KBLURAY  Format = iota // 4
-	F_MANGA     Format = iota // 5
-	F_BOOK      Format = iota // 6
-	F_DIGITAL   Format = iota // 7
-	F_VIDEOGAME Format = iota // 8
-	F_BOARDGAME Format = iota // 9
-)
-
 func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *http.Request)) {
 	for name, fn := range endPoints {
 		http.HandleFunc(root+"/"+name, fn)

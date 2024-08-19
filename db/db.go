@@ -59,7 +59,21 @@ func InitDb(dbPath string) {
 	Db = conn
 }
 
-//**WILL ASSIGN THE ENTRYINFO.ID**
+func GetItemById(id int64) (InfoEntry, error) {
+	var res InfoEntry
+	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
+	rows, err := Db.Query(query)
+	if err != nil {
+		return res, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	rows.Scan(&res.ItemId, &res.Title, &res.Format, &res.Location, &res.PurchasePrice, &res.Collection, &res.Parent)
+	return res, nil
+}
+
+// **WILL ASSIGN THE ENTRYINFO.ID**
 func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEntry *UserViewingEntry) error {
 	id := rand.Int64()
 
@@ -68,14 +82,15 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 
 	entryQuery := fmt.Sprintf(
 		`INSERT INTO entryInfo (
-			itemId, title, format, location, purchasePrice, collection
-		) VALUES (%d, '%s', '%s', '%s', %f, '%s')`,
+			itemId, title, format, location, purchasePrice, collection, parentId
+		) VALUES (%d, '%s', %d, '%s', %f, '%s', %d)`,
 		id,
 		entryInfo.Title,
 		entryInfo.Format,
 		entryInfo.Location,
 		entryInfo.PurchasePrice,
 		entryInfo.Collection,
+		entryInfo.Parent,
 	)
 	_, err := Db.Exec(entryQuery)
 	if err != nil {
@@ -89,14 +104,14 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			length,
 			releaseYear
 		) VALUES (%d, %f, '%s', %d, %d)`,
-			metadataEntry.ItemId,
-			metadataEntry.Rating,
-			metadataEntry.Description,
-			metadataEntry.Length,
-			metadataEntry.ReleaseYear,
-		)
+		metadataEntry.ItemId,
+		metadataEntry.Rating,
+		metadataEntry.Description,
+		metadataEntry.Length,
+		metadataEntry.ReleaseYear,
+	)
 	_, err = Db.Exec(metadataQuery)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -108,15 +123,15 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			endDate,
 			userRating
 		) VALUES (%d, '%s', %d, '%s', '%s', %f)`,
-			userViewingEntry.ItemId,
-			userViewingEntry.Status,
-			userViewingEntry.ViewCount,
-			userViewingEntry.StartDate,
-			userViewingEntry.EndDate,
-			userViewingEntry.UserRating,
-		)
+		userViewingEntry.ItemId,
+		userViewingEntry.Status,
+		userViewingEntry.ViewCount,
+		userViewingEntry.StartDate,
+		userViewingEntry.EndDate,
+		userViewingEntry.UserRating,
+	)
 	_, err = Db.Exec(userViewingQuery)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
