@@ -186,7 +186,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	return nil
 }
 
-func ScanFolderAsWithParent(path string, collection string, parent int64) []error{
+func ScanFolderWithParent(path string, collection string, parent int64) []error{
 	stat, err := os.Stat(path)
 	if err != nil {
 		return []error{err}
@@ -220,7 +220,7 @@ func ScanFolderAsWithParent(path string, collection string, parent int64) []erro
 		}
 
 		if entry.IsDir() {
-			newErrors := ScanFolderAsWithParent(fullPath, collection, info.ItemId)
+			newErrors := ScanFolderWithParent(fullPath, collection, info.ItemId)
 			errors = append(errors, newErrors...)
 		}
 	}
@@ -233,7 +233,7 @@ func ScanFolderAsWithParent(path string, collection string, parent int64) []erro
 }
 
 func ScanFolder(path string, collection string) []error {
-	return ScanFolderAsWithParent(path, collection, 0)
+	return ScanFolderWithParent(path, collection, 0)
 }
 
 func UpdateUserViewingEntry(entry *UserViewingEntry) error {
