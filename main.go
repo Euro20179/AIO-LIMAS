@@ -38,6 +38,7 @@ func main() {
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
 		"begin-media":  api.BeginMedia,
 		"finish-media": api.FinishMedia,
+		"plan-media": api.PlanMedia,
 	})
 
 	http.ListenAndServe(":8080", nil)

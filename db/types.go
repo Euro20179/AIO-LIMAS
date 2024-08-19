@@ -152,6 +152,17 @@ func (self *UserViewingEntry) Finish() error {
 	}
 
 	self.Status = S_FINISHED
+	self.ViewCount += 1
+
+	return nil
+}
+
+func (self *UserViewingEntry) CanPlan() bool {
+	return self.Status == S_DROPPED || self.Status == ""
+}
+
+func (self *UserViewingEntry) Plan() error {
+	self.Status = S_PLANNED
 
 	return nil
 }

@@ -65,7 +65,7 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 	rating := req.URL.Query().Get("rating")
 	ratingN, err := strconv.ParseFloat(rating, 64)
 	if err != nil{
-		wError(w, 400, "Not a number %s\n", rating)
+		wError(w, 400, "Not a number %s Be sure to provide a rating\n", rating)
 		return
 	}
 	entry.UserRating = ratingN
@@ -83,4 +83,28 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%d finished\n", id)
+}
+
+func PlanMedia(w http.ResponseWriter, req *http.Request) {
+	id, err := verifyIdQueryParam(req)
+	if err != nil{
+		wError(w, 400, err.Error())
+	}
+
+	entry, err := db.GetUserViewEntryById(id)
+	if err != nil {
+		wError(w, 400, "There is no entry with id %d\n", id)
+		return
+	}
+
+	if !entry.CanPlan() {
+		wError(w, 400, "%d can not be planned\n", entry.ItemId)
+		return
+	}
+
+	entry.Plan()
+	db.UpdateUserViewingEntry(&entry)
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
 }
