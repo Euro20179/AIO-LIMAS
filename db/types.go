@@ -125,11 +125,11 @@ func (self *UserViewingEntry) Begin() error {
 	return nil
 }
 
-func (self *UserViewingEntry) CanEnd() bool {
+func (self *UserViewingEntry) CanFinish() bool {
 	return self.Status == S_VIEWING || self.Status == S_REVIEWING
 }
 
-func (self *UserViewingEntry) End() error {
+func (self *UserViewingEntry) Finish() error {
 	startTimes, endTimes, err := self.unmarshallTimes()
 	if err != nil{
 		return err
@@ -141,6 +141,8 @@ func (self *UserViewingEntry) End() error {
 	if err := self.marshallTimes(startTimes, endTimes); err != nil {
 		return err
 	}
+
+	self.Status = S_FINISHED
 
 	return nil
 }

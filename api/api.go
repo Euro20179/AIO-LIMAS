@@ -184,3 +184,37 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%d started\n", id)
 }
+
+func FinishMedia(w http.ResponseWriter, req *http.Request) {
+	id, err := verifyIdQueryParam(req)
+	if err != nil{
+		wError(w, 400, err.Error())
+	}
+
+	entry, err := db.GetUserViewEntryById(id)
+	if err != nil {
+		w.WriteHeader(400)
+		fmt.Fprintf(w, "There is no entry with id %d\n", id)
+		return
+	}
+
+	if !entry.CanFinish() {
+		w.WriteHeader(405)
+		fmt.Fprintf(w, "This media is not currently being viewed, cannot finish it\n")
+		return
+	}
+
+	if err := entry.Finish(); err != nil {
+		wError(w, 500, "Could not finish media\n%s", err.Error())
+		return
+	}
+
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%d finished\n", id)
+}

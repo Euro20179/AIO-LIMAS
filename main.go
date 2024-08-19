@@ -36,6 +36,7 @@ func main() {
 	// stuff that would normally be managed by strack
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
 		"begin-media": api.BeginMedia,
+		"finish-media": api.FinishMedia,
 	})
 
 	http.ListenAndServe(":8080", nil)
