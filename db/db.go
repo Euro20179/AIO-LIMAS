@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"math/rand/v2"
 
 	"github.com/mattn/go-sqlite3"
@@ -65,8 +64,8 @@ func InitDb(dbPath string) {
 
 func GetInfoEntryById(id int64) (InfoEntry, error) {
 	var res InfoEntry
-	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
-	rows, err := Db.Query(query)
+	query := "SELECT * FROM entryInfo WHERE itemId == ?;"
+	rows, err := Db.Query(query, id)
 	if err != nil {
 		return res, err
 	}
@@ -79,8 +78,8 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 
 func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	var res UserViewingEntry
-	query := fmt.Sprintf("SELECT * FROM userViewingInfo WHERE itemId == %d;", id)
-	rows, err := Db.Query(query)
+	query := "SELECT * FROM userViewingInfo WHERE itemId == ?;"
+	rows, err := Db.Query(query, id)
 	if err != nil {
 		return res, err
 	}
@@ -93,8 +92,8 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 
 func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	var res MetadataEntry
-	query := fmt.Sprintf("SELECT * FROM metadata WHERE itemId == %d;", id)
-	rows, err := Db.Query(query)
+	query := "SELECT * FROM metadata WHERE itemId == ?;"
+	rows, err := Db.Query(query, id)
 	if err != nil {
 		return res, err
 	}
@@ -113,60 +112,63 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	metadataEntry.ItemId = id
 	userViewingEntry.ItemId = id
 
-	entryQuery := fmt.Sprintf(
-		`INSERT INTO entryInfo (
+	entryQuery := `INSERT INTO entryInfo (
 			itemId, title, format, location, purchasePrice, collection, parentId
-		) VALUES (%d, '%s', %d, '%s', %f, '%s', %d)`,
-		id,
+		) VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+	_, err := Db.Exec(entryQuery, id,
 		entryInfo.Title,
 		entryInfo.Format,
 		entryInfo.Location,
 		entryInfo.PurchasePrice,
 		entryInfo.Collection,
-		entryInfo.Parent,
-	)
-	_, err := Db.Exec(entryQuery)
+		entryInfo.Parent)
 	if err != nil {
 		return err
 	}
 
-	metadataQuery := fmt.Sprintf(`INSERT INTO metadata (
+	metadataQuery := `INSERT INTO metadata (
 			itemId,
 			rating,
 			description,
 			length,
+			volumes,
+			chapters,
 			releaseYear,
 			thumbnail,
 			dataPoints
-		) VALUES (%d, %f, '%s', %d, %d, '%s', '%s')`,
-		metadataEntry.ItemId,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
 		metadataEntry.Description,
 		metadataEntry.Length,
+		metadataEntry.Volumes,
+		metadataEntry.Chapters,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
-		metadataEntry.Datapoints,
-	)
-	_, err = Db.Exec(metadataQuery)
+		metadataEntry.Datapoints)
 	if err != nil {
 		return err
 	}
 
 	if userViewingEntry.StartDate == "" {
 		userViewingEntry.StartDate = "[]"
-	} 
+	}
 	if userViewingEntry.EndDate == "" {
 		userViewingEntry.EndDate = "[]"
 	}
 
-	userViewingQuery := fmt.Sprintf(`INSERT INTO userViewingInfo (
+	userViewingQuery := `INSERT INTO userViewingInfo (
 			itemId,
 			status,
 			viewCount,
 			startDate,
 			endDate,
 			userRating
-		) VALUES (%d, '%s', %d, '%s', '%s', %f)`,
+		) VALUES (?, ?, ?, ?, ?, ?)`
+
+	_, err = Db.Exec(userViewingQuery,
 		userViewingEntry.ItemId,
 		userViewingEntry.Status,
 		userViewingEntry.ViewCount,
@@ -174,7 +176,6 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		userViewingEntry.EndDate,
 		userViewingEntry.UserRating,
 	)
-	_, err = Db.Exec(userViewingQuery)
 	if err != nil {
 		return err
 	}
@@ -182,18 +183,38 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	return nil
 }
 
-func UpdateUserViewingEntry(entry *UserViewingEntry) error{
-	Db.Exec(fmt.Sprintf(`
+func UpdateUserViewingEntry(entry *UserViewingEntry) error {
+	Db.Exec(`
 		UPDATE userViewingInfo
 		SET
-			status = '%s',
-			viewCount = %d,
-			startDate = '%s',
-			endDate = '%s',
-			userRating = %f
+			status = ?,
+			viewCount = ?,
+			startDate = ?,
+			endDate = ?,
+			userRating = ?
 		WHERE
-			itemId = %d
-	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.ItemId))
+			itemId = ?
+	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.ItemId)
+
+	return nil
+}
+
+func UpdateMetadataEntry(entry *MetadataEntry) error {
+	Db.Exec(`
+		UPDATE metadata
+		SET
+			rating = ?,
+			description = ?,
+			length = ?,
+			volumes = ?,
+			chapters = ?,
+			releaseYear = ?,
+			thumbnail = ?,
+			dataPoints = ?,
+		WHERE
+			itemId = ?
+	`, entry.Rating, entry.Description, entry.Length, entry.Volumes, entry.Chapters,
+		entry.ReleaseYear, entry.Thumbnail, entry.Datapoints, entry.ItemId)
 
 	return nil
 }
