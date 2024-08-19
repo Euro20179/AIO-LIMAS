@@ -77,7 +77,7 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 
 func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	var res UserViewingEntry
-	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
+	query := fmt.Sprintf("SELECT * FROM userViewingInfo WHERE itemId == %d;", id)
 	rows, err := Db.Query(query)
 	if err != nil {
 		return res, err
@@ -91,7 +91,7 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 
 func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	var res MetadataEntry
-	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
+	query := fmt.Sprintf("SELECT * FROM metadata WHERE itemId == %d;", id)
 	rows, err := Db.Query(query)
 	if err != nil {
 		return res, err
@@ -184,8 +184,14 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error{
 	Db.Exec(fmt.Sprintf(`
 		UPDATE userViewingInfo
 		SET
-
-	`))
+			status = '%s',
+			viewCount = %d,
+			startDate = '%s',
+			endDate = '%s',
+			userRating = %f
+		WHERE
+			itemId = %d
+	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.ItemId))
 
 	return nil
 }

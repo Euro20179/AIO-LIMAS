@@ -116,6 +116,11 @@ func (self *UserViewingEntry) Begin() error {
 	if err := self.marshallTimes(startTimes, endTimes); err != nil {
 		return err
 	}
+	if self.Status != S_FINISHED {
+		self.Status = S_VIEWING
+	} else {
+		self.Status = S_REVIEWING
+	}
 
 	return nil
 }

@@ -1,11 +1,10 @@
 package api
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	db "aiolimas/db"
 )
@@ -134,42 +133,40 @@ func ScanFolderAsCollection(w http.ResponseWriter, req *http.Request) {
 // on rescan, we can check if the location doesn't exist, or is empty, if either is true, it will be deleted from the database
 // **ONLY entryInfo rows will be deleted, as the user may have random userViewingEntries that are not part of their library**
 // metadata also stays because it can be used to display the userViewingEntries nicer
+// also on rescan, we can check if the title exists in entryInfo or metadata, if it does, we can reuse that id
 func ScanFolderAsEntry(w http.ResponseWriter, req *http.Request) {
 }
 
-// engagement endpoints
-func BeginMedia(w http.ResponseWriter, req *http.Request) {
+func verifyIdQueryParam(req *http.Request) (int64, error){
 	id := req.URL.Query().Get("id")
 	if id == "" {
-		w.WriteHeader(400)
-		w.Write([]byte("No id given\n"))
-		return
+		return 0, errors.New("No id given\n")
 	}
 
 	idInt, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprintf(w, "%s is not an int", id)
-		return
+		return 0, fmt.Errorf("%s is not an int\n", id)
+	}
+	return idInt, nil
+}
+
+// engagement endpoints
+func BeginMedia(w http.ResponseWriter, req *http.Request) {
+	id, err := verifyIdQueryParam(req)
+	if err != nil{
+		wError(w, 400, err.Error())
 	}
 
-	entry, err := db.GetUserViewEntryById(int64(idInt))
+	entry, err := db.GetUserViewEntryById(id)
 	if err != nil {
 		w.WriteHeader(400)
-		fmt.Fprintf(w, "There is no entry with id %s\n", id)
+		fmt.Fprintf(w, "There is no entry with id %d\n", id)
 		return
 	}
 
-	if entry.CanBegin() {
+	if !entry.CanBegin() {
 		w.WriteHeader(405)
 		fmt.Fprintf(w, "This media is already being viewed, cannot start again\n")
-		return
-	}
-
-	var startTimes []uint64
-	err = json.Unmarshal([]byte(entry.StartDate), &startTimes)
-	if err != nil {
-		wError(w, 500, "Could not decode start times into int[], %d may be corrupted\n", idInt)
 		return
 	}
 
@@ -177,7 +174,13 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 		wError(w, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
+
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%d started\n", id)
 }
-
-
-
