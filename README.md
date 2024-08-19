@@ -39,11 +39,10 @@ Physical content will need to be entered in manually, however metadata should be
         - [ ] description
         - [ ] thumbnail
         - [ ] media dependant metadata
-    - [ ] scanning folders
+    - [x] scanning folders
     - [ ] search
         - [ ] search filters
     - [x] Store purchace price
-    
 - [ ] Ability to act as a proxy for the given {location} of an entry, and stream it
   - [ ] reencoding?
 

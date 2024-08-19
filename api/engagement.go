@@ -182,3 +182,23 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))
 }
+
+func SetNote(w http.ResponseWriter, req *http.Request) {
+	note := req.URL.Query().Get("note")
+
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+
+	entry.Notes = note
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
+}
