@@ -9,12 +9,13 @@ import (
 type Status string
 
 const (
-	S_VIEWING   Status = "Viewing"
-	S_FINISHED  Status = "Finished"
-	S_DROPPED   Status = "Dropped"
-	S_PLANNED   Status = "Planned"
-	S_REVIEWING Status = "ReViewing"
-	S_PAUSED    Status = "Paused"
+	S_VIEWING   Status = "Viewing"   // first viewing experience
+	S_FINISHED  Status = "Finished"  // when the user has finished viewing/reviewing
+	S_DROPPED   Status = "Dropped"   // if the user stops viewing, and does not plan to continue
+	S_PAUSED    Status = "Paused"    // if the user stopes viewing, but does plan to continue
+	S_PLANNED   Status = "Planned"   // plans to view or review at some point
+	S_REVIEWING Status = "ReViewing" // the user has already finished or dropped, but is viewing again
+	                                 // or if the user has unpaused
 )
 
 func IsValidStatus(status string) bool {
@@ -22,23 +23,42 @@ func IsValidStatus(status string) bool {
 	return slices.Contains(validStatuses, status)
 }
 
-type Format int
+type Format uint64
 
+//the digital modifier can be applied to any format
+
+//This way the user has 2 options, they can say either that the item is F_DIGITAL
+//or they can be more specific and say it's F_VHS that's been digitized with F_MOD_DIGITAL
+//another use case is for console versions, eg: F_NIN_SWITCH refers to the cartridge,
+//but F_NIN_SWITCH & F_MOD_DIGITAL would be the store version
+
+//F_DIGITAL & F_MOD_DIGITAL has undefined meaning
 const (
-	F_VHS           Format = iota // 0
-	F_CD            Format = iota // 1
-	F_DVD           Format = iota // 2
-	F_BLURAY        Format = iota // 3
-	F_4KBLURAY      Format = iota // 4
-	F_MANGA         Format = iota // 5
-	F_BOOK          Format = iota // 6
-	F_DIGITAL       Format = iota // 7
-	F_BOARDGAME     Format = iota // 8
-	F_STEAM         Format = iota // 9
-	F_NINTENDO      Format = iota
-	F_XBOX360_DISC  Format = iota // 10
-	F_NINTENDO_DISC Format = iota // 11
+	F_VHS             Format = iota // 0
+	F_CD              Format = iota // 1
+	F_DVD             Format = iota // 2
+	F_BLURAY          Format = iota // 3
+	F_4KBLURAY        Format = iota // 4
+	F_MANGA           Format = iota // 5
+	F_BOOK            Format = iota // 6
+	F_DIGITAL         Format = iota // 7
+	F_BOARDGAME       Format = iota // 8
+	F_STEAM           Format = iota // 9
+	F_NIN_SWITCH      Format = iota
+	F_XBOXONE         Format = iota
+	F_XBOX360         Format = iota // 10
+	F_OTHER           Format = iota
+
+	F_MOD_DIGITAL Format = 0xFFFFFFFF - 1
 )
+
+func (self *Format) MkDigital() Format {
+	return *self & F_MOD_DIGITAL
+}
+
+func (self *Format) IsDigital() bool {
+	return (*self & F_MOD_DIGITAL) == 1
+}
 
 func IsValidFormat(format int64) bool {
 	return format < 10 && format > -1
@@ -48,8 +68,8 @@ type MetadataEntry struct {
 	ItemId      int64
 	Rating      float64
 	Description string
-	//all 3 length indicators dont have to be used
-	//eg: for a movie, only length would be used
+	// all 3 length indicators dont have to be used
+	// eg: for a movie, only length would be used
 	Length      int64
 	Volumes     int64
 	Chapters    int64
@@ -109,6 +129,10 @@ func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint
 	return nil
 }
 
+func (self *UserViewingEntry) IsViewing() bool {
+	return self.Status == S_VIEWING || self.Status == S_REVIEWING
+}
+
 func (self *UserViewingEntry) CanBegin() bool {
 	return self.Status == S_PLANNED || self.Status == S_FINISHED || self.Status == S_DROPPED
 }
@@ -135,7 +159,7 @@ func (self *UserViewingEntry) Begin() error {
 }
 
 func (self *UserViewingEntry) CanFinish() bool {
-	return self.Status == S_VIEWING || self.Status == S_REVIEWING
+	return self.IsViewing()
 }
 
 func (self *UserViewingEntry) Finish() error {
@@ -168,11 +192,30 @@ func (self *UserViewingEntry) Plan() error {
 }
 
 func (self *UserViewingEntry) CanDrop() bool {
-	return self.Status == S_VIEWING || self.Status == S_REVIEWING
+	return self.IsViewing()
 }
 
 func (self *UserViewingEntry) Drop() error {
 	self.Status = S_DROPPED
 
+	return nil
+}
+
+func (self *UserViewingEntry) CanPause() bool {
+	return self.IsViewing()
+}
+
+func (self *UserViewingEntry) Pause() error {
+	self.Status = S_PAUSED 
+
+	return nil
+}
+
+func (self *UserViewingEntry) CanResume() bool {
+	return self.Status == S_PAUSED
+}
+
+func (self *UserViewingEntry) Resume() error {
+	self.Status = S_REVIEWING
 	return nil
 }

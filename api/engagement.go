@@ -11,7 +11,7 @@ import (
 // engagement endpoints
 func BeginMedia(w http.ResponseWriter, req *http.Request) {
 	id, err := verifyIdQueryParam(req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, err.Error())
 	}
 
@@ -34,7 +34,7 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -45,7 +45,7 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 
 func FinishMedia(w http.ResponseWriter, req *http.Request) {
 	id, err := verifyIdQueryParam(req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, err.Error())
 	}
 
@@ -64,7 +64,7 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 
 	rating := req.URL.Query().Get("rating")
 	ratingN, err := strconv.ParseFloat(rating, 64)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Not a number %s Be sure to provide a rating\n", rating)
 		return
 	}
@@ -76,7 +76,7 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -87,7 +87,7 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 
 func PlanMedia(w http.ResponseWriter, req *http.Request) {
 	id, err := verifyIdQueryParam(req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, err.Error())
 	}
 
@@ -104,7 +104,7 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 
 	entry.Plan()
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -114,15 +114,9 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 }
 
 func DropMedia(w http.ResponseWriter, req *http.Request) {
-	id, err := verifyIdQueryParam(req)
-	if err != nil{
-		wError(w, 400, err.Error())
-		return
-	}
-
-	entry, err := db.GetUserViewEntryById(id)
-	if err != nil{
-		wError(w, 400, "There is no entry with id %d\n", id)
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil {
+		wError(w, 400, "Could not find entry\n")
 		return
 	}
 
@@ -132,6 +126,53 @@ func DropMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	entry.Plan()
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil {
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
+}
+
+func PauseMedia(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil {
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+
+	if !entry.CanPause() {
+		wError(w, 400, "%d cannot be dropped\n", entry.ItemId)
+		return
+	}
+
+	entry.Drop()
+
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
+}
+
+func ResumeMedia(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+
+	if !entry.CanResume() {
+		wError(w, 400, "%d cannot be resumed\n", entry.ItemId)
+		return
+	}
+
+	entry.Resume()
 	err = db.UpdateUserViewingEntry(&entry)
 	if err != nil{
 		wError(w, 500, "Could not update entry\n%s", err.Error())

@@ -172,3 +172,18 @@ func verifyIdQueryParam(req *http.Request) (int64, error){
 	}
 	return idInt, nil
 }
+
+func verifyIdAndGetUserEntry(w http.ResponseWriter, req *http.Request) (db.UserViewingEntry, error) {
+	var out db.UserViewingEntry
+	id, err := verifyIdQueryParam(req)
+	if err != nil{
+		return out, err
+	}
+	entry, err := db.GetUserViewEntryById(id)
+	if err != nil {
+		wError(w, 400, "There is no entry with id %d\n", id)
+		return out, err
+	}
+
+	return entry, nil
+}
