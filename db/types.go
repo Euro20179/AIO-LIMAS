@@ -110,7 +110,7 @@ func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint
 }
 
 func (self *UserViewingEntry) CanBegin() bool {
-	return self.Status != S_VIEWING && self.Status != S_REVIEWING
+	return self.Status == S_PLANNED || self.Status == S_FINISHED || self.Status == S_DROPPED
 }
 
 func (self *UserViewingEntry) Begin() error {
