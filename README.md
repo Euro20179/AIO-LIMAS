@@ -15,16 +15,24 @@ In addition, it will contain a myanimelist/letterboxd like experience for all me
 Physical content will need to be entered in manually, however metadata should be fetched automatically (similar to how manual entries in jellyfin work)
 
 - [ ] MAL/letterboxd system
-  - [ ] user rating system
-  - [ ] notes
-  - [ ] status (planning, viewing, etc)
-  - [ ] watch dates table
-  - [ ] ability to plan, start, stop shows
+    - [ ] user rating system
+    - [ ] notes
+    - [x] watch dates table
+    - [ ] ability to plan, start, stop shows
+        - [x] status (planning, viewing, etc)
+        - [x] start
+        - [x] finish
+        - [ ] plan
+        - [ ] drop
+        - [ ] pause
+        - [ ] continue
 - [ ] Library features
-  - [ ] automatic metadata
-  - [ ] scanning folders
-  - [ ] search
-    - [ ] search filters
+    - [ ] automatic metadata
+    - [ ] scanning folders
+    - [ ] search
+        - [ ] search filters
+    - [x] Store purchace price
+    
 - [ ] Ability to act as a proxy for the given {location} of an entry, and stream it
   - [ ] reencoding?
 
