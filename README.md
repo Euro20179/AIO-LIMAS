@@ -15,19 +15,30 @@ In addition, it will contain a myanimelist/letterboxd like experience for all me
 Physical content will need to be entered in manually, however metadata should be fetched automatically (similar to how manual entries in jellyfin work)
 
 - [ ] MAL/letterboxd system
-    - [ ] user rating system
+    - [x] user rating system
     - [ ] notes
     - [x] watch dates table
-    - [ ] ability to plan, start, stop shows
+    - [x] ability to plan, start, stop shows
         - [x] status (planning, viewing, etc)
         - [x] start
         - [x] finish
-        - [ ] plan
-        - [ ] drop
-        - [ ] pause
-        - [ ] continue
+        - [x] plan
+        - [x] drop
+        - [x] pause
+        - [x] continue
 - [ ] Library features
+    - [ ] media dependant metadata
+        - [ ] lyrics (song)
+        - [ ] length (time) (book)
+        - [ ] chapters (book/manga)
+        - [ ] volumes (book/manga)
+        - [ ] author (book/manga)
+        - [ ] actors (movie/show)
+        - [ ] director(s) (movie/show)
     - [ ] automatic metadata
+        - [ ] description
+        - [ ] thumbnail
+        - [ ] media dependant metadata
     - [ ] scanning folders
     - [ ] search
         - [ ] search filters

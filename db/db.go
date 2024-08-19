@@ -36,11 +36,10 @@ func InitDb(dbPath string) {
 			itemId INTEGER,
 			rating NUMERIC,
 			description TEXT,
-			length NUEMERIC,
-			volumes INTEGER,
-			chapters INTEGER,
 			releaseYear INTEGER,
 			thumbnail TEXT,
+			type TEXT,
+			mediaDependant TEXT,
 			dataPoints TEXT
 		)
 `)
@@ -57,6 +56,7 @@ func InitDb(dbPath string) {
 			startDate TEXT,
 			endDate TEXT,
 			userRating NUMERIC
+			notes TEXT,
 		)
 	`)
 	if err != nil {
@@ -89,7 +89,7 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Status, &res.ViewCount, &res.StartDate, &res.EndDate, &res.UserRating)
+	rows.Scan(&res.ItemId, &res.Status, &res.ViewCount, &res.StartDate, &res.EndDate, &res.UserRating, &res.Notes)
 	return res, nil
 }
 
@@ -103,7 +103,7 @@ func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.Length, &res.ReleaseYear)
+	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.ReleaseYear, &res.Thumbnail, &res.Type, &res.MediaDependant, &res.Datapoints)
 	return res, nil
 }
 
@@ -134,9 +134,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			itemId,
 			rating,
 			description,
-			length,
-			volumes,
-			chapters,
+			type,
+			mediaDependant,
 			releaseYear,
 			thumbnail,
 			dataPoints
@@ -145,9 +144,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
 		metadataEntry.Description,
-		metadataEntry.Length,
-		metadataEntry.Volumes,
-		metadataEntry.Chapters,
+		metadataEntry.Type,
+		metadataEntry.MediaDependant,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
 		metadataEntry.Datapoints)
@@ -186,7 +184,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	return nil
 }
 
-func ScanFolderWithParent(path string, collection string, parent int64) []error{
+func ScanFolderWithParent(path string, collection string, parent int64) []error {
 	stat, err := os.Stat(path)
 	if err != nil {
 		return []error{err}
@@ -244,10 +242,11 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 			viewCount = ?,
 			startDate = ?,
 			endDate = ?,
-			userRating = ?
+			userRating = ?,
+			notes = ?
 		WHERE
 			itemId = ?
-	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.ItemId)
+	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.Notes, entry.ItemId)
 
 	return nil
 }
@@ -258,16 +257,17 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 		SET
 			rating = ?,
 			description = ?,
-			length = ?,
-			volumes = ?,
-			chapters = ?,
 			releaseYear = ?,
 			thumbnail = ?,
+			type = ?,
+			mediaDependant = ?,
 			dataPoints = ?,
 		WHERE
 			itemId = ?
-	`, entry.Rating, entry.Description, entry.Length, entry.Volumes, entry.Chapters,
-		entry.ReleaseYear, entry.Thumbnail, entry.Datapoints, entry.ItemId)
+	`, entry.Rating, entry.Description,
+		entry.ReleaseYear, entry.Thumbnail,
+		entry.Type, entry.MediaDependant,
+		entry.Datapoints, entry.ItemId)
 
 	return nil
 }

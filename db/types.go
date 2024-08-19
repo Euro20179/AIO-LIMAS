@@ -15,7 +15,7 @@ const (
 	S_PAUSED    Status = "Paused"    // if the user stopes viewing, but does plan to continue
 	S_PLANNED   Status = "Planned"   // plans to view or review at some point
 	S_REVIEWING Status = "ReViewing" // the user has already finished or dropped, but is viewing again
-	                                 // or if the user has unpaused
+	// or if the user has unpaused
 )
 
 func IsValidStatus(status string) bool {
@@ -25,29 +25,29 @@ func IsValidStatus(status string) bool {
 
 type Format uint64
 
-//the digital modifier can be applied to any format
+// the digital modifier can be applied to any format
 
-//This way the user has 2 options, they can say either that the item is F_DIGITAL
-//or they can be more specific and say it's F_VHS that's been digitized with F_MOD_DIGITAL
-//another use case is for console versions, eg: F_NIN_SWITCH refers to the cartridge,
-//but F_NIN_SWITCH & F_MOD_DIGITAL would be the store version
+// This way the user has 2 options, they can say either that the item is F_DIGITAL
+// or they can be more specific and say it's F_VHS that's been digitized with F_MOD_DIGITAL
+// another use case is for console versions, eg: F_NIN_SWITCH refers to the cartridge,
+// but F_NIN_SWITCH & F_MOD_DIGITAL would be the store version
 
-//F_DIGITAL & F_MOD_DIGITAL has undefined meaning
+// F_DIGITAL & F_MOD_DIGITAL has undefined meaning
 const (
-	F_VHS             Format = iota // 0
-	F_CD              Format = iota // 1
-	F_DVD             Format = iota // 2
-	F_BLURAY          Format = iota // 3
-	F_4KBLURAY        Format = iota // 4
-	F_MANGA           Format = iota // 5
-	F_BOOK            Format = iota // 6
-	F_DIGITAL         Format = iota // 7
-	F_BOARDGAME       Format = iota // 8
-	F_STEAM           Format = iota // 9
-	F_NIN_SWITCH      Format = iota
-	F_XBOXONE         Format = iota
-	F_XBOX360         Format = iota // 10
-	F_OTHER           Format = iota
+	F_VHS        Format = iota // 0
+	F_CD         Format = iota // 1
+	F_DVD        Format = iota // 2
+	F_BLURAY     Format = iota // 3
+	F_4KBLURAY   Format = iota // 4
+	F_MANGA      Format = iota // 5
+	F_BOOK       Format = iota // 6
+	F_DIGITAL    Format = iota // 7
+	F_BOARDGAME  Format = iota // 8
+	F_STEAM      Format = iota // 9
+	F_NIN_SWITCH Format = iota
+	F_XBOXONE    Format = iota
+	F_XBOX360    Format = iota // 10
+	F_OTHER      Format = iota
 
 	F_MOD_DIGITAL Format = 0xFFFFFFFF - 1
 )
@@ -64,18 +64,26 @@ func IsValidFormat(format int64) bool {
 	return format < 10 && format > -1
 }
 
+type MediaTypes string
+
+const (
+	TY_SHOW  MediaTypes = "Show"
+	TY_MOVIE MediaTypes = "Movie"
+	TY_GAME  MediaTypes = "Game"
+	TY_SONG  MediaTypes = "Song"
+	TY_BOOK  MediaTypes = "Book"
+	TY_MANGA MediaTypes = "Manga"
+)
+
 type MetadataEntry struct {
-	ItemId      int64
-	Rating      float64
-	Description string
-	// all 3 length indicators dont have to be used
-	// eg: for a movie, only length would be used
-	Length      int64
-	Volumes     int64
-	Chapters    int64
-	ReleaseYear int64
-	Thumbnail   string
-	Datapoints  string // JSON {string: string} as a string
+	ItemId         int64
+	Rating         float64
+	Description    string
+	ReleaseYear    int64
+	Thumbnail      string
+	Type           MediaTypes
+	MediaDependant string // see docs/types.md
+	Datapoints     string // JSON {string: string} as a string
 }
 
 type InfoEntry struct {
@@ -99,6 +107,7 @@ type UserViewingEntry struct {
 	StartDate  string
 	EndDate    string
 	UserRating float64
+	Notes string
 }
 
 func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {
@@ -206,7 +215,7 @@ func (self *UserViewingEntry) CanPause() bool {
 }
 
 func (self *UserViewingEntry) Pause() error {
-	self.Status = S_PAUSED 
+	self.Status = S_PAUSED
 
 	return nil
 }
