@@ -1,6 +1,24 @@
 package db
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"slices"
+	"time"
+)
+
+type Status string
+const (
+	S_VIEWING Status = "Viewing"
+	S_FINISHED Status = "Finished"
+	S_DROPPED Status = "Dropped"
+	S_PLANNED Status = "Planned"
+	S_REVIEWING Status = "ReViewing"
+)
+
+func IsValidStatus(status string) bool {
+	validStatuses := []string{"Viewing", "Finished", "Dropped", "Planned", "ReViewing"}
+	return slices.Contains(validStatuses, status)
+}
 
 type Format int
 
@@ -27,6 +45,8 @@ type MetadataEntry struct {
 	Description string
 	Length      int64
 	ReleaseYear int64
+	Thumbnail string
+	Datapoints string //JSON {string: string} as a string
 }
 
 type InfoEntry struct {
@@ -45,9 +65,77 @@ func (self *InfoEntry) ToJson() ([]byte, error) {
 
 type UserViewingEntry struct {
 	ItemId int64
-	Status string
+	Status Status
 	ViewCount int64
 	StartDate string
 	EndDate string
 	UserRating float64
+}
+
+func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {
+	var startTimes []uint64
+	err := json.Unmarshal([]byte(self.StartDate), &startTimes)
+	if err != nil{
+		return nil, nil, err
+	}
+	var endTimes []uint64
+	err = json.Unmarshal([]byte(self.EndDate), &endTimes)
+	if err != nil {
+		return nil, nil, err
+	}
+	return startTimes, endTimes, nil
+}
+
+func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint64) error{
+	marshalledStart, err := json.Marshal(startTimes)
+	if err != nil{
+		return err
+	}
+	marshalledEnd, err := json.Marshal(endTimes)
+	if err != nil{
+		return err
+	}
+	self.StartDate = string(marshalledStart)
+	self.EndDate = string(marshalledEnd)
+	return nil
+}
+
+func (self *UserViewingEntry) CanBegin() bool {
+	return self.Status != S_VIEWING && self.Status != S_REVIEWING
+}
+
+func (self *UserViewingEntry) Begin() error {
+	startTimes, endTimes, err := self.unmarshallTimes()
+	if err != nil{
+		return err
+	}
+	startTimes = append(startTimes, uint64(time.Now().UnixMilli()))
+	// start times and end times array must be same length
+	endTimes = append(endTimes, 0)
+
+	if err := self.marshallTimes(startTimes, endTimes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *UserViewingEntry) CanEnd() bool {
+	return self.Status == S_VIEWING || self.Status == S_REVIEWING
+}
+
+func (self *UserViewingEntry) End() error {
+	startTimes, endTimes, err := self.unmarshallTimes()
+	if err != nil{
+		return err
+	}
+
+	//this should be 0, overwrite it to the current time
+	endTimes[len(endTimes) - 1] = uint64(time.Now().UnixMilli())
+
+	if err := self.marshallTimes(startTimes, endTimes); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -24,7 +24,7 @@ func InitDb(dbPath string) {
 			 location TEXT,
 			 purchasePrice NUMERIC,
 			 collection TEXT,
-			 parentId INTEGER,
+			 parentId INTEGER
 		)`)
 	if err != nil {
 		panic("Failed to create general info table\n" + err.Error())
@@ -35,7 +35,9 @@ func InitDb(dbPath string) {
 			rating NUMERIC,
 			description TEXT,
 			length NUEMERIC,
-			releaseYear INTEGER
+			releaseYear INTEGER,
+			thumbnail TEXT,
+			dataPoints TEXT
 		)
 `)
 	if err != nil {
@@ -59,7 +61,7 @@ func InitDb(dbPath string) {
 	Db = conn
 }
 
-func GetItemById(id int64) (InfoEntry, error) {
+func GetInfoEntryById(id int64) (InfoEntry, error) {
 	var res InfoEntry
 	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
 	rows, err := Db.Query(query)
@@ -73,12 +75,41 @@ func GetItemById(id int64) (InfoEntry, error) {
 	return res, nil
 }
 
+func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
+	var res UserViewingEntry
+	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
+	rows, err := Db.Query(query)
+	if err != nil {
+		return res, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	rows.Scan(&res.ItemId, &res.Status, &res.ViewCount, &res.StartDate, &res.EndDate, &res.UserRating)
+	return res, nil
+}
+
+func GetMetadataEntryById(id int64) (MetadataEntry, error) {
+	var res MetadataEntry
+	query := fmt.Sprintf("SELECT * FROM entryInfo WHERE itemId == %d;", id)
+	rows, err := Db.Query(query)
+	if err != nil {
+		return res, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.Length, &res.ReleaseYear)
+	return res, nil
+}
+
 // **WILL ASSIGN THE ENTRYINFO.ID**
 func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEntry *UserViewingEntry) error {
 	id := rand.Int64()
 
 	entryInfo.ItemId = id
 	metadataEntry.ItemId = id
+	userViewingEntry.ItemId = id
 
 	entryQuery := fmt.Sprintf(
 		`INSERT INTO entryInfo (
@@ -102,17 +133,28 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			rating,
 			description,
 			length,
-			releaseYear
-		) VALUES (%d, %f, '%s', %d, %d)`,
+			releaseYear,
+			thumbnail,
+			dataPoints
+		) VALUES (%d, %f, '%s', %d, %d, '%s', '%s')`,
 		metadataEntry.ItemId,
 		metadataEntry.Rating,
 		metadataEntry.Description,
 		metadataEntry.Length,
 		metadataEntry.ReleaseYear,
+		metadataEntry.Thumbnail,
+		metadataEntry.Datapoints,
 	)
 	_, err = Db.Exec(metadataQuery)
 	if err != nil {
 		return err
+	}
+
+	if userViewingEntry.StartDate == "" {
+		userViewingEntry.StartDate = "[]"
+	} 
+	if userViewingEntry.EndDate == "" {
+		userViewingEntry.EndDate = "[]"
 	}
 
 	userViewingQuery := fmt.Sprintf(`INSERT INTO userViewingInfo (
@@ -134,6 +176,16 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func UpdateUserViewingEntry(entry *UserViewingEntry) error{
+	Db.Exec(fmt.Sprintf(`
+		UPDATE userViewingInfo
+		SET
+
+	`))
 
 	return nil
 }
