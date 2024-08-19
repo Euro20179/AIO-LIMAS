@@ -166,3 +166,13 @@ func (self *UserViewingEntry) Plan() error {
 
 	return nil
 }
+
+func (self *UserViewingEntry) CanDrop() bool {
+	return self.Status == S_VIEWING || self.Status == S_REVIEWING
+}
+
+func (self *UserViewingEntry) Drop() error {
+	self.Status = S_DROPPED
+
+	return nil
+}

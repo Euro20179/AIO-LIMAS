@@ -103,7 +103,40 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	entry.Plan()
-	db.UpdateUserViewingEntry(&entry)
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
+}
+
+func DropMedia(w http.ResponseWriter, req *http.Request) {
+	id, err := verifyIdQueryParam(req)
+	if err != nil{
+		wError(w, 400, err.Error())
+		return
+	}
+
+	entry, err := db.GetUserViewEntryById(id)
+	if err != nil{
+		wError(w, 400, "There is no entry with id %d\n", id)
+		return
+	}
+
+	if !entry.CanDrop() {
+		wError(w, 400, "%d cannot be planned\n", entry.ItemId)
+		return
+	}
+
+	entry.Plan()
+	err = db.UpdateUserViewingEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
 
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))
