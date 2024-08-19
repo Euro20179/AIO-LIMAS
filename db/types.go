@@ -7,35 +7,40 @@ import (
 )
 
 type Status string
+
 const (
-	S_VIEWING Status = "Viewing"
-	S_FINISHED Status = "Finished"
-	S_DROPPED Status = "Dropped"
-	S_PLANNED Status = "Planned"
+	S_VIEWING   Status = "Viewing"
+	S_FINISHED  Status = "Finished"
+	S_DROPPED   Status = "Dropped"
+	S_PLANNED   Status = "Planned"
 	S_REVIEWING Status = "ReViewing"
+	S_PAUSED    Status = "Paused"
 )
 
 func IsValidStatus(status string) bool {
-	validStatuses := []string{"Viewing", "Finished", "Dropped", "Planned", "ReViewing"}
+	validStatuses := []string{"Viewing", "Finished", "Dropped", "Planned", "ReViewing", "Paused"}
 	return slices.Contains(validStatuses, status)
 }
 
 type Format int
 
 const (
-	F_VHS       Format = iota // 0
-	F_CD        Format = iota // 1
-	F_DVD       Format = iota // 2
-	F_BLURAY    Format = iota // 3
-	F_4KBLURAY  Format = iota // 4
-	F_MANGA     Format = iota // 5
-	F_BOOK      Format = iota // 6
-	F_DIGITAL   Format = iota // 7
-	F_VIDEOGAME Format = iota // 8
-	F_BOARDGAME Format = iota // 9
+	F_VHS           Format = iota // 0
+	F_CD            Format = iota // 1
+	F_DVD           Format = iota // 2
+	F_BLURAY        Format = iota // 3
+	F_4KBLURAY      Format = iota // 4
+	F_MANGA         Format = iota // 5
+	F_BOOK          Format = iota // 6
+	F_DIGITAL       Format = iota // 7
+	F_BOARDGAME     Format = iota // 8
+	F_STEAM         Format = iota // 9
+	F_NINTENDO      Format = iota
+	F_XBOX360_DISC  Format = iota // 10
+	F_NINTENDO_DISC Format = iota // 11
 )
 
-func IsValidFormat(format int64) bool{
+func IsValidFormat(format int64) bool {
 	return format < 10 && format > -1
 }
 
@@ -43,10 +48,14 @@ type MetadataEntry struct {
 	ItemId      int64
 	Rating      float64
 	Description string
+	//all 3 length indicators dont have to be used
+	//eg: for a movie, only length would be used
 	Length      int64
+	Volumes     int64
+	Chapters    int64
 	ReleaseYear int64
-	Thumbnail string
-	Datapoints string //JSON {string: string} as a string
+	Thumbnail   string
+	Datapoints  string // JSON {string: string} as a string
 }
 
 type InfoEntry struct {
@@ -64,18 +73,18 @@ func (self *InfoEntry) ToJson() ([]byte, error) {
 }
 
 type UserViewingEntry struct {
-	ItemId int64
-	Status Status
-	ViewCount int64
-	StartDate string
-	EndDate string
+	ItemId     int64
+	Status     Status
+	ViewCount  int64
+	StartDate  string
+	EndDate    string
 	UserRating float64
 }
 
 func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {
 	var startTimes []uint64
 	err := json.Unmarshal([]byte(self.StartDate), &startTimes)
-	if err != nil{
+	if err != nil {
 		return nil, nil, err
 	}
 	var endTimes []uint64
@@ -86,13 +95,13 @@ func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {
 	return startTimes, endTimes, nil
 }
 
-func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint64) error{
+func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint64) error {
 	marshalledStart, err := json.Marshal(startTimes)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	marshalledEnd, err := json.Marshal(endTimes)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	self.StartDate = string(marshalledStart)
@@ -106,7 +115,7 @@ func (self *UserViewingEntry) CanBegin() bool {
 
 func (self *UserViewingEntry) Begin() error {
 	startTimes, endTimes, err := self.unmarshallTimes()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	startTimes = append(startTimes, uint64(time.Now().UnixMilli()))
@@ -131,12 +140,12 @@ func (self *UserViewingEntry) CanFinish() bool {
 
 func (self *UserViewingEntry) Finish() error {
 	startTimes, endTimes, err := self.unmarshallTimes()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	//this should be 0, overwrite it to the current time
-	endTimes[len(endTimes) - 1] = uint64(time.Now().UnixMilli())
+	// this should be 0, overwrite it to the current time
+	endTimes[len(endTimes)-1] = uint64(time.Now().UnixMilli())
 
 	if err := self.marshallTimes(startTimes, endTimes); err != nil {
 		return err

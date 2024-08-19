@@ -35,6 +35,8 @@ func InitDb(dbPath string) {
 			rating NUMERIC,
 			description TEXT,
 			length NUEMERIC,
+			volumes INTEGER,
+			chapters INTEGER,
 			releaseYear INTEGER,
 			thumbnail TEXT,
 			dataPoints TEXT

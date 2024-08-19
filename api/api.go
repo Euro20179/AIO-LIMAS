@@ -15,6 +15,14 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 }
 
 // lets the user add an item in their library
+/*
+PARAMETERS:
+title: string
+price: float64
+location: string
+parentId: int64
+format: Format
+*/
 func AddEntry(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 
@@ -203,6 +211,14 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "This media is not currently being viewed, cannot finish it\n")
 		return
 	}
+
+	rating := req.URL.Query().Get("rating")
+	ratingN, err := strconv.ParseFloat(rating, 64)
+	if err != nil{
+		wError(w, 400, "Not a number %s\n", rating)
+		return
+	}
+	entry.UserRating = ratingN
 
 	if err := entry.Finish(); err != nil {
 		wError(w, 500, "Could not finish media\n%s", err.Error())
