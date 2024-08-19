@@ -79,14 +79,21 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		parentId = p.ItemId
 	}
 
+	ty := req.URL.Query().Get("type")
+
+
 	var entryInfo db.InfoEntry
 	entryInfo.Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Location = req.URL.Query().Get("location")
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
+	if db.IsValidType(ty) {
+		entryInfo.Type = db.MediaTypes(ty)
+	}
 
 	var metadata db.MetadataEntry
+
 	var userEntry db.UserViewingEntry
 
 	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {

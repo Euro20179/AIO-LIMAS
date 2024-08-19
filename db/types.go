@@ -75,13 +75,23 @@ const (
 	TY_MANGA MediaTypes = "Manga"
 )
 
+func IsValidType(ty string) bool {
+	return slices.Contains([]string{
+		string(TY_SHOW),
+		string(TY_MOVIE),
+		string(TY_GAME),
+		string(TY_SONG),
+		string(TY_BOOK),
+		string(TY_MANGA),
+	}, ty)
+}
+
 type MetadataEntry struct {
 	ItemId         int64
 	Rating         float64
 	Description    string
 	ReleaseYear    int64
 	Thumbnail      string
-	Type           MediaTypes
 	MediaDependant string // see docs/types.md
 	Datapoints     string // JSON {string: string} as a string
 }
@@ -94,6 +104,7 @@ type InfoEntry struct {
 	PurchasePrice float64
 	Collection    string
 	Parent        int64
+	Type MediaTypes
 }
 
 func (self *InfoEntry) ToJson() ([]byte, error) {

@@ -1,5 +1,7 @@
 package metadata
 
+import "aiolimas/db"
+
 type EntryType string
 
 const (
@@ -13,5 +15,5 @@ const (
 )
 
 // entryType is used as a hint for where to get the metadata from
-func GetMetadata(entryType EntryType) {
+func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) {
 }

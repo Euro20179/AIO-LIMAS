@@ -38,7 +38,6 @@ func InitDb(dbPath string) {
 			description TEXT,
 			releaseYear INTEGER,
 			thumbnail TEXT,
-			type TEXT,
 			mediaDependant TEXT,
 			dataPoints TEXT
 		)
@@ -103,7 +102,7 @@ func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.ReleaseYear, &res.Thumbnail, &res.Type, &res.MediaDependant, &res.Datapoints)
+	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.ReleaseYear, &res.Thumbnail, &res.MediaDependant, &res.Datapoints)
 	return res, nil
 }
 
@@ -134,7 +133,6 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			itemId,
 			rating,
 			description,
-			type,
 			mediaDependant,
 			releaseYear,
 			thumbnail,
@@ -144,7 +142,6 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
 		metadataEntry.Description,
-		metadataEntry.Type,
 		metadataEntry.MediaDependant,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
@@ -259,14 +256,12 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 			description = ?,
 			releaseYear = ?,
 			thumbnail = ?,
-			type = ?,
 			mediaDependant = ?,
 			dataPoints = ?,
 		WHERE
 			itemId = ?
 	`, entry.Rating, entry.Description,
-		entry.ReleaseYear, entry.Thumbnail,
-		entry.Type, entry.MediaDependant,
+		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
 		entry.Datapoints, entry.ItemId)
 
 	return nil
