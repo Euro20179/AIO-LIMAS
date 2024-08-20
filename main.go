@@ -26,6 +26,7 @@ func main() {
 	//for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":    api.AddEntry,
+		"mod-entry":    api.ModEntry,
 		"query":        api.QueryEntries,
 		"list-entries": api.ListEntries,
 		"scan-folder":  api.ScanFolder,

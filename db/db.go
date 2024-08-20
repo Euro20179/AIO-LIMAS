@@ -205,7 +205,7 @@ func ScanFolderWithParent(path string, collection string, parent int64) []error 
 		name := entry.Name()
 
 		fullPath := filepath.Join(path, entry.Name())
-		info.Title = name
+		info.En_Title = name
 		info.Parent = parent
 		info.Format = F_DIGITAL
 		info.Location = fullPath
@@ -267,4 +267,33 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 		entry.Datapoints, entry.ItemId)
 
 	return nil
+}
+
+func UpdateInfoEntry(entry *InfoEntry) error {
+	/*
+	itemId INTEGER,
+	en_title TEXT,
+	native_title TEXT,
+	format INTEGER,
+	location TEXT,
+	purchasePrice NUMERIC,
+	collection TEXT,
+	parentId INTEGER
+*/
+	_, err := Db.Exec(`
+		UPDATE entryInfo
+		SET
+			en_title = ?,
+			native_title = ?,
+			format = ?,
+			locaiton = ?
+			purchasePrice = ?,
+			collection = ?,
+			parentId = ?
+		WHERE
+			itemId = ?
+	`, entry.En_Title, entry.Native_Title, entry.Format,
+		entry.Location, entry.PurchasePrice, entry.Collection,
+		entry.Parent, entry.ItemId)
+	return err
 }

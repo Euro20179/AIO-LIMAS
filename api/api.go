@@ -15,6 +15,90 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 	fmt.Fprintf(w, format, args...)
 }
 
+func ModEntry(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+
+	info, err := db.GetInfoEntryById(entry.ItemId)
+	if err != nil{
+		wError(w, 500, "%s\n", err.Error())
+		return
+	}
+
+	query := req.URL.Query()
+
+	title := query.Get("en-title")
+	if title != "" {
+		info.En_Title = title
+	}
+
+	nativeTitle := query.Get("native-title")
+	if nativeTitle != "" {
+		info.Native_Title = nativeTitle
+	}
+
+	format := query.Get("format")
+	if format != "" {
+		formatI, err := strconv.ParseInt(format, 10, 64)
+		if err != nil{
+			wError(w, 400, "Invalid format %s\n%s", format, err.Error())
+			return
+		}
+		if !db.IsValidFormat(formatI) {
+			wError(w, 400, "Invalid format %d\n", formatI)
+			return
+		}
+
+		info.Format = db.Format(formatI)
+	}
+
+	parentId := query.Get("parent-id")
+	if parentId != "" {
+		parentIdI, err := strconv.ParseInt(parentId, 10, 64)
+		if err != nil{
+			wError(w, 400, "Invalid parent id %s\n%s", parentId, err.Error())
+			return
+		}
+
+		if _, err := db.GetInfoEntryById(parentIdI); err != nil {
+			wError(w, 400, "Non existant parent %d\n%s", parentIdI, err.Error())
+			return
+		}
+		info.Parent = parentIdI
+	}
+
+	price := query.Get("price")
+	if price != "" {
+		priceF, err := strconv.ParseFloat(price, 64)
+		if err != nil{
+			wError(w, 400, "Invalid price %s\n%s", price, err.Error())
+			return
+		}
+		info.PurchasePrice = priceF
+	}
+
+	location := query.Get("location")
+	if location != "" {
+		info.Location = location
+	}
+
+	collection := query.Get("collection")
+	if collection != "" {
+		info.Collection = collection
+	}
+
+	err = db.UpdateInfoEntry(&info)
+	if err != nil{
+		wError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
+}
+
 // lets the user add an item in their library
 /*
 PARAMETERS:
@@ -25,15 +109,18 @@ parentId: int64
 format: Format
 */
 func AddEntry(w http.ResponseWriter, req *http.Request) {
-	title := req.URL.Query().Get("title")
+	query := req.URL.Query()
 
+	title := query.Get("title")
 	if title == "" {
 		w.WriteHeader(400)
 		w.Write([]byte("No title provided\n"))
 		return
 	}
 
-	price := req.URL.Query().Get("price")
+
+
+	price := query.Get("price")
 	priceNum := 0.0
 	if price != "" {
 		var err error
@@ -45,7 +132,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	format := req.URL.Query().Get("format")
+	format := query.Get("format")
 	formatInt := int64(-1)
 	if format != "" {
 		var err error
@@ -62,7 +149,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	parentQuery := req.URL.Query().Get("parentId")
+	parentQuery := query.Get("parentId")
 	var parentId int64 = 0
 	if parentQuery != "" {
 		i, err := strconv.Atoi(parentQuery)
@@ -80,13 +167,15 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		parentId = p.ItemId
 	}
 
-	ty := req.URL.Query().Get("type")
+	ty := query.Get("type")
 
 
 	var entryInfo db.InfoEntry
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
-	entryInfo.Location = req.URL.Query().Get("location")
+	entryInfo.Native_Title = query.Get("native-title")
+	entryInfo.Collection = query.Get("collection")
+	entryInfo.Location = query.Get("location")
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
 	if db.IsValidType(ty) {
@@ -106,8 +195,8 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if req.URL.Query().Get("get-metadata") == "true" {
-		providerOverride := req.URL.Query().Get("metadata-provider")
+	if query.Get("get-metadata") == "true" {
+		providerOverride := query.Get("metadata-provider")
 		if !meta.IsValidProvider(providerOverride) {
 			providerOverride = ""
 		}
