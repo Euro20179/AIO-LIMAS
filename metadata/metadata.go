@@ -5,15 +5,14 @@ import (
 )
 
 // entryType is used as a hint for where to get the metadata from
-func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) {
+func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) error{
 	switch entry.Type {
 	case db.TY_ANIME:
-		AnilistShow(entry, metadataEntry)
-		break
+		return AnilistShow(entry, metadataEntry)
 	case db.TY_MANGA:
-		AnilistManga(entry, metadataEntry)
-		break
+		return AnilistManga(entry, metadataEntry)
 	}
+	return nil
 }
 
 func ListMetadataProviders() []string{
@@ -22,6 +21,11 @@ func ListMetadataProviders() []string{
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func IsValidProvider(name string) bool {
+	 _, contains := Providers[name]
+	return contains
 }
 
 type ProviderMap map[string]func(*db.InfoEntry, *db.MetadataEntry) error

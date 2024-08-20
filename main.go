@@ -32,6 +32,11 @@ func main() {
 		"list-entries": api.ListEntries,
 		"scan-folder":  api.ScanFolder,
 	})
+
+	//for metadata stuff
+	makeEndpoints(apiRoot+"/metadata", EndPointMap {
+		"fetch": api.FetchMetadataForEntry,
+	})
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
