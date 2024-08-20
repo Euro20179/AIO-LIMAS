@@ -19,13 +19,11 @@ func main() {
 	flag.Parse()
 	db.InitDb(*dbPathPtr)
 
-	//paths
-	//<root> general database stuff
-	//
-
 	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 
 	apiRoot := "/api/v1"
+
+	//for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":    api.AddEntry,
 		"query":        api.QueryEntries,
@@ -38,6 +36,7 @@ func main() {
 		"fetch": api.FetchMetadataForEntry,
 		"retrieve": api.RetrieveMetadataForEntry,
 	})
+
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack

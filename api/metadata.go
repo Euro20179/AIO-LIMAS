@@ -26,11 +26,14 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	if !metadata.IsValidProvider(providerOverride) {
 		providerOverride = ""
 	}
-	err = metadata.GetMetadata(&mainEntry, &metadataEntry, providerOverride)
+
+	newMeta, err := metadata.GetMetadata(&mainEntry, &metadataEntry, providerOverride)
 	if err != nil{
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
+	db.UpdateMetadataEntry(&newMeta)
+
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))
 }

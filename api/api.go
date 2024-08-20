@@ -111,7 +111,12 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		if !meta.IsValidProvider(providerOverride) {
 			providerOverride = ""
 		}
-		meta.GetMetadata(&entryInfo, &metadata, providerOverride)
+		newMeta, err := meta.GetMetadata(&entryInfo, &metadata, providerOverride)
+		if err != nil{
+			wError(w, 500, "Could not get metadata\n%s", err.Error())
+			return
+		}
+		db.UpdateMetadataEntry(&newMeta)
 	}
 
 	w.WriteHeader(200)
@@ -129,7 +134,7 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	for items.Next() {
 		var row db.InfoEntry
-		items.Scan(&row.ItemId, &row.Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Parent)
+		items.Scan(&row.ItemId, &row.En_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Parent)
 		j, err := row.ToJson()
 		if err != nil {
 			continue

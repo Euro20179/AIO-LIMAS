@@ -121,7 +121,7 @@ type MetadataEntry struct {
 
 type InfoEntry struct {
 	ItemId        int64
-	En_Title      string
+	En_Title      string //doesn't have to be english, more like, the user's preferred language
 	Native_Title  string
 	Format        Format
 	Location      string
