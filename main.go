@@ -35,6 +35,7 @@ func main() {
 	makeEndpoints(apiRoot+"/metadata", EndPointMap {
 		"fetch": api.FetchMetadataForEntry,
 		"retrieve": api.RetrieveMetadataForEntry,
+		"set": api.SetMetadataForEntry,
 	})
 
 	// for stuff relating to user viewing info
