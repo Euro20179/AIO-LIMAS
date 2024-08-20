@@ -36,6 +36,7 @@ func main() {
 	//for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap {
 		"fetch": api.FetchMetadataForEntry,
+		"retrieve": api.RetrieveMetadataForEntry,
 	})
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc

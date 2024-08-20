@@ -3,6 +3,7 @@ package api
 import (
 	"aiolimas/db"
 	"aiolimas/metadata"
+	"encoding/json"
 	"net/http"
 )
 
@@ -41,14 +42,18 @@ func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	mainEntry, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil{
-		wError(w, 500, "%s\n", err.Error())
-		return
-	}
 	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
 	if err != nil{
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
+
+	data, err := json.Marshal(metadataEntry)
+	if err != nil{
+		wError(w, 500, "%s\n", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
 }
