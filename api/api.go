@@ -273,6 +273,22 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("Success\n"))
 }
 
+func Stream(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n%s", err.Error())
+		return
+	}
+
+	info, err := db.GetInfoEntryById(entry.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not get info entry\n%s", err.Error())
+		return
+	}
+
+	http.ServeFile(w, req, info.Location)
+}
+
 func verifyIdQueryParam(req *http.Request) (int64, error){
 	id := req.URL.Query().Get("id")
 	if id == "" {

@@ -30,6 +30,7 @@ func main() {
 		"query":        api.QueryEntries,
 		"list-entries": api.ListEntries,
 		"scan-folder":  api.ScanFolder,
+		"stream-entry": api.Stream,
 	})
 
 	//for metadata stuff

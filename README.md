@@ -42,6 +42,6 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] Store purchace price
     - [ ] monitor folders, automatically add items in them
         - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
-- [ ] Ability to act as a proxy for the given {location} of an entry, and stream it
+- [x] Ability to act as a proxy for the given {location} of an entry, and stream it
   - [ ] reencoding?
 
