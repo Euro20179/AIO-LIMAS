@@ -19,8 +19,19 @@ const (
 )
 
 func IsValidStatus(status string) bool {
-	validStatuses := []string{"Viewing", "Finished", "Dropped", "Planned", "ReViewing", "Paused"}
-	return slices.Contains(validStatuses, status)
+	validStatuses := ListStatuses()
+	return slices.Contains(validStatuses, Status(status))
+}
+
+func ListStatuses() []Status {
+	return []Status{
+		"Viewing",
+		"Finished",
+		"Dropped",
+		"Planned",
+		"ReViewing",
+		"Paused",
+	}
 }
 
 type Format uint64
@@ -49,11 +60,18 @@ const (
 	F_XBOX360    Format = iota // 10
 	F_OTHER      Format = iota
 
-	F_MOD_DIGITAL Format = 0xFFFFFFFF - 1
+	F_MOD_DIGITAL Format = 0x10000000
 )
 
 func (self *Format) MkDigital() Format {
-	return *self & F_MOD_DIGITAL
+	return *self | F_MOD_DIGITAL
+}
+
+func (self *Format) MkUnDigital() Format {
+	if self.IsDigital() {
+		return *self - F_MOD_DIGITAL
+	}
+	return *self
 }
 
 func (self *Format) IsDigital() bool {
@@ -61,29 +79,34 @@ func (self *Format) IsDigital() bool {
 }
 
 func IsValidFormat(format int64) bool {
-	return format < 10 && format > -1
+	if format&int64(F_MOD_DIGITAL) == 1 {
+		format -= int64(F_MOD_DIGITAL)
+	}
+	return format >= int64(F_VHS) && format <= int64(F_OTHER)
 }
 
 type MediaTypes string
 
 const (
-	TY_SHOW  MediaTypes = "Show"
-	TY_MOVIE MediaTypes = "Movie"
-	TY_GAME  MediaTypes = "Game"
-	TY_SONG  MediaTypes = "Song"
-	TY_BOOK  MediaTypes = "Book"
-	TY_MANGA MediaTypes = "Manga"
+	TY_SHOW      MediaTypes = "Show"
+	TY_ANIME     MediaTypes = "Anime"
+	TY_MOVIE     MediaTypes = "Movie"
+	TY_GAME      MediaTypes = "Game"
+	TY_BOARDGAME MediaTypes = "BoardGame"
+	TY_SONG      MediaTypes = "Song"
+	TY_BOOK      MediaTypes = "Book"
+	TY_MANGA     MediaTypes = "Manga"
 )
 
+func ListMediaTypes() []MediaTypes {
+	return []MediaTypes{
+		TY_SHOW, TY_ANIME, TY_MOVIE, TY_GAME,
+		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
+	}
+}
+
 func IsValidType(ty string) bool {
-	return slices.Contains([]string{
-		string(TY_SHOW),
-		string(TY_MOVIE),
-		string(TY_GAME),
-		string(TY_SONG),
-		string(TY_BOOK),
-		string(TY_MANGA),
-	}, ty)
+	return slices.Contains(ListMediaTypes(), MediaTypes(ty))
 }
 
 type MetadataEntry struct {
@@ -98,13 +121,14 @@ type MetadataEntry struct {
 
 type InfoEntry struct {
 	ItemId        int64
-	Title         string
+	En_Title      string
+	Native_Title  string
 	Format        Format
 	Location      string
 	PurchasePrice float64
 	Collection    string
 	Parent        int64
-	Type MediaTypes
+	Type          MediaTypes
 }
 
 func (self *InfoEntry) ToJson() ([]byte, error) {
@@ -118,7 +142,7 @@ type UserViewingEntry struct {
 	StartDate  string
 	EndDate    string
 	UserRating float64
-	Notes string
+	Notes      string
 }
 
 func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {

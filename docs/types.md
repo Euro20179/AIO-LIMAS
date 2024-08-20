@@ -27,10 +27,14 @@ PAUSED
 # Media Dependant Json
 (all items in all jsons are optional)
 
+all values are strings that contain json
+
 Show + Movie
 ```json
 {
-    "length": number (milliseconds),
+    "episodes": number,
+    "episode-duration",
+    "length": number (seconds),
     "actors": string[],
     "directors": string[]
 }

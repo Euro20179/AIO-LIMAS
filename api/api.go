@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	db "aiolimas/db"
+	meta "aiolimas/metadata"
 )
 
 func wError(w http.ResponseWriter, status int, format string, args ...any) {
@@ -83,13 +84,16 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 
 
 	var entryInfo db.InfoEntry
-	entryInfo.Title = title
+	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Location = req.URL.Query().Get("location")
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
 	if db.IsValidType(ty) {
 		entryInfo.Type = db.MediaTypes(ty)
+	} else {
+		wError(w, 400, "%s is not a valid type\n", ty)
+		return
 	}
 
 	var metadata db.MetadataEntry
@@ -100,6 +104,14 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return
+	}
+
+	if req.URL.Query().Get("get-metadata") == "true" {
+		providerOverride := req.URL.Query().Get("metadata-provider")
+		if !meta.IsValidProvider(providerOverride) {
+			providerOverride = ""
+		}
+		meta.GetMetadata(&entryInfo, &metadata, providerOverride)
 	}
 
 	w.WriteHeader(200)

@@ -21,7 +21,8 @@ func InitDb(dbPath string) {
 	// parent is for somethign like a season of a show
 	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS entryInfo (
 			 itemId INTEGER,
-			 title TEXT,
+			 en_title TEXT,
+			 native_title TEXT,
 			 format INTEGER,
 			 location TEXT,
 			 purchasePrice NUMERIC,
@@ -74,7 +75,7 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Title, &res.Format, &res.Location, &res.PurchasePrice, &res.Collection, &res.Parent)
+	rows.Scan(&res.ItemId, &res.En_Title, &res.Native_Title, &res.Format, &res.Location, &res.PurchasePrice, &res.Collection, &res.Parent)
 	return res, nil
 }
 
@@ -115,11 +116,12 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	userViewingEntry.ItemId = id
 
 	entryQuery := `INSERT INTO entryInfo (
-			itemId, title, format, location, purchasePrice, collection, parentId
+			itemId, en_title, native_title, format, location, purchasePrice, collection, parentId
 		) VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := Db.Exec(entryQuery, id,
-		entryInfo.Title,
+		entryInfo.En_Title,
+		entryInfo.Native_Title,
 		entryInfo.Format,
 		entryInfo.Location,
 		entryInfo.PurchasePrice,
