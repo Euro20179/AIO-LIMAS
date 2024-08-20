@@ -32,7 +32,8 @@ Physical content will need to be entered in manually, however metadata should be
         - [ ] description
         - [ ] thumbnail
         - [ ] media dependant metadata
-    - [ ] nfo files
+    - [ ] ~nfo files~
+        - impossibly non-standard format
     - [x] allow user to change metadata
     - [ ] allow user to identify a media, and pull related metadata (like how jellyfin does)
     - [x] scanning folders
