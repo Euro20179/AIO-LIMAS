@@ -34,7 +34,7 @@ func ListStatuses() []Status {
 	}
 }
 
-type Format uint64
+type Format uint32
 
 // the digital modifier can be applied to any format
 
@@ -60,7 +60,7 @@ const (
 	F_XBOX360    Format = iota // 10
 	F_OTHER      Format = iota
 
-	F_MOD_DIGITAL Format = 0x10000000
+	F_MOD_DIGITAL Format = 0x1000
 )
 
 func (self *Format) MkDigital() Format {
@@ -143,6 +143,9 @@ type UserViewingEntry struct {
 	EndDate    string
 	UserRating float64
 	Notes      string
+}
+func (self *UserViewingEntry) ToJson() ([]byte, error) {
+	return json.Marshal(self)
 }
 
 func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {

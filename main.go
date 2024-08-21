@@ -51,6 +51,7 @@ func main() {
 		"pause-media": api.PauseMedia,
 		"resume-media": api.ResumeMedia,
 		"set-note": api.SetNote,
+		"list-entries": api.UserEntires,
 	})
 
 	http.ListenAndServe(":8080", nil)

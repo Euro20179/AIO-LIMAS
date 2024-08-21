@@ -245,23 +245,23 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 
 	userEntry.Notes = query.Get("user-notes")
 
-	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte("Error adding into table\n" + err.Error()))
-		return
-	}
-
 	if query.Get("get-metadata") == "true" {
 		providerOverride := query.Get("metadata-provider")
 		if !meta.IsValidProvider(providerOverride) {
 			providerOverride = ""
 		}
-		newMeta, err := meta.GetMetadata(&entryInfo, &metadata, providerOverride)
+		var err error
+		metadata, err = meta.GetMetadata(&entryInfo, &metadata, providerOverride)
 		if err != nil{
 			wError(w, 500, "Could not get metadata\n%s", err.Error())
 			return
 		}
-		db.UpdateMetadataEntry(&newMeta)
+	}
+
+	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("Error adding into table\n" + err.Error()))
+		return
 	}
 
 	w.WriteHeader(200)
@@ -279,7 +279,7 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	for items.Next() {
 		var row db.InfoEntry
-		items.Scan(&row.ItemId, &row.En_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Parent)
+		items.Scan(&row.ItemId, &row.En_Title, &row.Native_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Type, &row.Parent)
 		j, err := row.ToJson()
 		if err != nil {
 			continue

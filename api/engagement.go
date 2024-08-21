@@ -151,7 +151,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 	entry.Drop()
 
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -162,7 +162,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 
 func ResumeMedia(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
@@ -174,7 +174,7 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request) {
 
 	entry.Resume()
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -187,18 +187,44 @@ func SetNote(w http.ResponseWriter, req *http.Request) {
 	note := req.URL.Query().Get("note")
 
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
 
 	entry.Notes = note
 	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))
+}
+
+func UserEntires(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil {
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+	items, err := db.Db.Query("SELECT * FROM userViewingInfo WHERE itemId = ?;", entry.ItemId)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("Could not query entries\n" + err.Error()))
+		return
+	}
+	w.WriteHeader(200)
+	for items.Next() {
+		var row db.UserViewingEntry
+		items.Scan(&row.ItemId, &row.Status, &row.ViewCount, &row.StartDate, &row.EndDate, &row.UserRating, &row.Notes)
+		j, err := row.ToJson()
+		if err != nil {
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+	w.Write([]byte("\n"))
 }

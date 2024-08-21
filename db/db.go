@@ -27,6 +27,7 @@ func InitDb(dbPath string) {
 			 location TEXT,
 			 purchasePrice NUMERIC,
 			 collection TEXT,
+			 type TEXT,
 			 parentId INTEGER
 		)`)
 	if err != nil {
@@ -55,8 +56,8 @@ func InitDb(dbPath string) {
 			viewCount INTEGER,
 			startDate TEXT,
 			endDate TEXT,
-			userRating NUMERIC
-			notes TEXT,
+			userRating NUMERIC,
+			notes TEXT
 		)
 	`)
 	if err != nil {
@@ -116,8 +117,16 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	userViewingEntry.ItemId = id
 
 	entryQuery := `INSERT INTO entryInfo (
-			itemId, en_title, native_title, format, location, purchasePrice, collection, parentId
-		) VALUES (?, ?, ?, ?, ?, ?, ?)`
+			itemId,
+			en_title,
+			native_title,
+			format,
+			location,
+			purchasePrice,
+			collection,
+			parentId,
+			type
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := Db.Exec(entryQuery, id,
 		entryInfo.En_Title,
@@ -126,7 +135,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		entryInfo.Location,
 		entryInfo.PurchasePrice,
 		entryInfo.Collection,
-		entryInfo.Parent)
+		entryInfo.Parent,
+		entryInfo.Type)
 	if err != nil {
 		return err
 	}
@@ -139,7 +149,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			releaseYear,
 			thumbnail,
 			dataPoints
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		) VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
@@ -165,8 +175,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			viewCount,
 			startDate,
 			endDate,
-			userRating
-		) VALUES (?, ?, ?, ?, ?, ?)`
+			userRating,
+			notes
+		) VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(userViewingQuery,
 		userViewingEntry.ItemId,
@@ -175,6 +186,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		userViewingEntry.StartDate,
 		userViewingEntry.EndDate,
 		userViewingEntry.UserRating,
+		userViewingEntry.Notes,
 	)
 	if err != nil {
 		return err
@@ -271,15 +283,15 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 
 func UpdateInfoEntry(entry *InfoEntry) error {
 	/*
-	itemId INTEGER,
-	en_title TEXT,
-	native_title TEXT,
-	format INTEGER,
-	location TEXT,
-	purchasePrice NUMERIC,
-	collection TEXT,
-	parentId INTEGER
-*/
+		itemId INTEGER,
+		en_title TEXT,
+		native_title TEXT,
+		format INTEGER,
+		location TEXT,
+		purchasePrice NUMERIC,
+		collection TEXT,
+		parentId INTEGER
+	*/
 	_, err := Db.Exec(`
 		UPDATE entryInfo
 		SET
@@ -289,11 +301,12 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 			locaiton = ?
 			purchasePrice = ?,
 			collection = ?,
-			parentId = ?
+			parentId = ?,
+			type = ?
 		WHERE
 			itemId = ?
 	`, entry.En_Title, entry.Native_Title, entry.Format,
 		entry.Location, entry.PurchasePrice, entry.Collection,
-		entry.Parent, entry.ItemId)
+		entry.Parent, entry.Type, entry.ItemId)
 	return err
 }

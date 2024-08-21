@@ -2,10 +2,7 @@ package metadata
 
 import (
 	"aiolimas/db"
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path"
 )
