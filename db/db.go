@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -76,7 +77,17 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.En_Title, &res.Native_Title, &res.Format, &res.Location, &res.PurchasePrice, &res.Collection, &res.Parent)
+	rows.Scan(
+		&res.ItemId,
+		&res.En_Title,
+		&res.Native_Title,
+		&res.Format,
+		&res.Location,
+		&res.PurchasePrice,
+		&res.Collection,
+		&res.Type,
+		&res.Parent,
+	)
 	return res, nil
 }
 
@@ -309,4 +320,88 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 		entry.Location, entry.PurchasePrice, entry.Collection,
 		entry.Parent, entry.Type, entry.ItemId)
 	return err
+}
+
+type EntryInfoSearch struct {
+	TitleSearch       string
+	NativeTitleSearch string
+	Format            []Format
+	LocationSearch    string
+	PurchasePriceGt   float64
+	PurchasePriceLt   float64
+	InCollection      []string
+	HasParent         []int64
+	Type              []MediaTypes
+}
+
+func buildQString[T any](withList []T) string {
+	var out string
+	for i := range withList {
+		if i != len(withList) - 1 {
+			out += "?, "
+		} else {
+			out += "?"
+		}
+	}
+	return out
+}
+
+func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
+	query := sqlbuilder.NewSelectBuilder()
+	query.Select("*").From("entryInfo")
+	var queries []string
+	// query := `SELECT * FROM entryInfo WHERE true`
+
+	if len(mainSearchInfo.Format) > 0 {
+		formats := []interface{}{
+			mainSearchInfo.Format,
+		}
+		queries = append(queries, query.In("format", sqlbuilder.Flatten(formats)...))
+	}
+
+	if mainSearchInfo.LocationSearch != "" {
+		queries = append(queries, query.Like("location", mainSearchInfo.LocationSearch))
+	}
+	if mainSearchInfo.TitleSearch != "" {
+		queries = append(queries, query.Like("en_title", mainSearchInfo.TitleSearch))
+	}
+	if mainSearchInfo.NativeTitleSearch != "" {
+		queries = append(queries, query.Like("native_title", mainSearchInfo.NativeTitleSearch))
+	}
+	if mainSearchInfo.PurchasePriceGt != 0 {
+		queries = append(queries, query.GT("purchasePrice", mainSearchInfo.PurchasePriceGt))
+	}
+	if mainSearchInfo.PurchasePriceLt != 0 {
+		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
+	}
+	if len(mainSearchInfo.InCollection) > 0 {
+		cols := []interface{} {
+			mainSearchInfo.InCollection,
+		}
+		queries = append(queries, query.In("collection", sqlbuilder.Flatten(cols)...))
+	}
+	if len(mainSearchInfo.HasParent) > 0 {
+		pars := []interface{} {
+			mainSearchInfo.HasParent,
+		}
+		queries = append(queries, query.In("parentId", sqlbuilder.Flatten(pars)...))
+	}
+	if len(mainSearchInfo.Type) > 0 {
+		tys := []interface{} {
+			mainSearchInfo.Type,
+		}
+		queries = append(queries, query.In("type", sqlbuilder.Flatten(tys)...))
+	}
+
+	query = query.Where(queries...)
+
+	finalQuery, args := query.Build()
+	rows, err := Db.Query(
+		finalQuery,
+		args...
+	)
+	if err != nil {
+		return rows, err
+	}
+	return rows, nil
 }

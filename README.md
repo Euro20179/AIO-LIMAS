@@ -28,17 +28,24 @@ Physical content will need to be entered in manually, however metadata should be
         - [x] continue
 - [ ] Library features
     - [x] media dependant metadata
+    - [ ] proper collections
+        - [ ] create collection
+        - [ ] delete collection
+        - [ ] cannot put entry in a collection unless collection exists
     - [ ] automatic metadata
-        - [ ] description
-        - [ ] thumbnail
-        - [ ] media dependant metadata
+        - [x] anlist
+        - [ ] tmdb
     - [ ] ~nfo files~
         - impossibly non-standard format
     - [x] allow user to change metadata
     - [ ] allow user to identify a media, and pull related metadata (like how jellyfin does)
     - [x] scanning folders
     - [ ] search
-        - [ ] search filters
+        - [ ] search based on metadata entries
+        - [x] search based on user info entries
+        - [ ] search based on info entries
+        - [ ] search based on a combination of various entries
+        - [x] search filters
     - [x] Store purchace price
     - [ ] monitor folders, automatically add items in them
         - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder

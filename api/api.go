@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
+	"aiolimas/util"
 )
 
 func wError(w http.ResponseWriter, status int, format string, args ...any) {
@@ -292,6 +294,81 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 
 // should be an all in one query thingy, that should be able to query based on any matching column in any table
 func QueryEntries(w http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query()
+
+	title := query.Get("title")
+	nativeTitle := query.Get("native-title")
+	location := query.Get("location")
+	purchaseGt := query.Get("purchase-gt")
+	purchaselt := query.Get("purchase-lt")
+	formats := query.Get("formats")
+	collections := query.Get("collections")
+	types := query.Get("types")
+	parents := query.Get("parent-ids")
+
+	pgt := 0.0
+	plt := 0.0
+	var fmts []db.Format
+	var pars []int64
+	var tys []db.MediaTypes
+	collects := strings.Split(collections, ",")
+
+	if util.IsNumeric([]byte(purchaseGt)) {
+		pgt, _ = strconv.ParseFloat(purchaseGt, 64)
+	}
+	if util.IsNumeric([]byte(purchaselt)) {
+		plt, _ = strconv.ParseFloat(purchaselt, 64)
+	}
+
+	for _, format := range strings.Split(formats, ",") {
+		if util.IsNumeric([]byte(format)) {
+			f, _ := strconv.ParseInt(format, 10, 64)
+			if db.IsValidFormat(f) {
+				fmts = append(fmts, db.Format(f))
+			}
+		}
+	}
+
+	for _, ty := range strings.Split(types, ",") {
+		if db.IsValidType(ty) {
+			tys = append(tys, db.MediaTypes(ty))
+		}
+	}
+
+	for _, par := range strings.Split(parents, ",") {
+		if util.IsNumeric([]byte(par)) {
+			p, _ := strconv.ParseInt(par, 10, 64)
+			pars = append(pars, p)
+		}
+	}
+
+	var entrySearch db.EntryInfoSearch
+	entrySearch.TitleSearch = title
+	entrySearch.NativeTitleSearch = nativeTitle
+	entrySearch.LocationSearch = location
+	entrySearch.PurchasePriceGt = pgt
+	entrySearch.PurchasePriceLt = plt
+	entrySearch.InCollection = collects
+	entrySearch.Format = fmts
+	entrySearch.Type = tys
+	entrySearch.HasParent = pars
+
+	rows, err := db.Search(entrySearch)
+	if err != nil{
+		wError(w, 500, "%s\n", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	for rows.Next() {
+		var row db.InfoEntry
+		rows.Scan(&row.ItemId, &row.En_Title, &row.Native_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Type, &row.Parent)
+		j, err := row.ToJson()
+		if err != nil{
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
 }
 
 // Scans a folder as an entry, all folders within will be treated as children
