@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -118,8 +119,6 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-
-
 	price := query.Get("price")
 	priceNum := 0.0
 	if price != "" {
@@ -188,6 +187,63 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	var metadata db.MetadataEntry
 
 	var userEntry db.UserViewingEntry
+
+	userRating := query.Get("user-rating")
+	if userRating != "" {
+		ur, err := strconv.ParseFloat(userRating, 64)
+		if err != nil{
+			wError(w, 400, "%s is not a valid user rating\n%s", userRating, err.Error())
+			return
+		}
+		userEntry.UserRating = ur
+	}
+
+	status := query.Get("user-status") 
+	if status != "" {
+		if !db.IsValidStatus(status) {
+			wError(w, 400, "%s is not a valid status\n", status)
+			return
+		}
+		userEntry.Status = db.Status(status)
+	}
+
+	startDates := query.Get("user-start-dates")
+	if startDates != "" {
+		var startTimes []uint64
+		err := json.Unmarshal([]byte(startDates), &startTimes)
+		if err != nil {
+			wError(w, 400, "Invalid start dates %s\n%s", startDates, err.Error())
+			return
+		} 
+	} else {
+		startDates = "[]"
+	}
+	userEntry.StartDate = startDates
+
+	endDates := query.Get("user-end-dates")
+	if endDates != "" {
+		var endTimes []uint64
+		err := json.Unmarshal([]byte(endDates), &endTimes)
+		if err != nil {
+			wError(w, 400, "Invalid start dates %s\n%s", endDates, err.Error())
+			return
+		}
+	} else {
+		endDates = "[]"
+	}
+	userEntry.EndDate = endDates
+
+	viewCount := query.Get("user-view-count")
+	if viewCount != "" {
+		vc, err := strconv.ParseInt(viewCount, 10, 64)
+		if err != nil{
+			wError(w, 400, "Invalid view count %s\n%s", viewCount, err.Error())
+			return
+		}
+		userEntry.ViewCount = vc
+	}
+
+	userEntry.Notes = query.Get("user-notes")
 
 	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
