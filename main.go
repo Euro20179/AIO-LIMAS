@@ -38,6 +38,7 @@ func main() {
 		"fetch": api.FetchMetadataForEntry,
 		"retrieve": api.RetrieveMetadataForEntry,
 		"set": api.SetMetadataForEntry,
+		"list-entries": api.ListMetadata,
 	})
 
 	// for stuff relating to user viewing info
@@ -51,7 +52,8 @@ func main() {
 		"pause-media": api.PauseMedia,
 		"resume-media": api.ResumeMedia,
 		"set-note": api.SetNote,
-		"list-entries": api.UserEntires,
+		"get-entry": api.GetUserEntry,
+		"list-entries": api.UserEntries,
 	})
 
 	http.ListenAndServe(":8080", nil)

@@ -109,6 +109,34 @@ func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 		metadataEntry.Datapoints = datapointsJson
 	}
 
+	db.UpdateMetadataEntry(&metadataEntry)
+
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))
+}
+
+func ListMetadata(w http.ResponseWriter, req *http.Request) {
+	items, err := db.Db.Query("SELECT * FROM metadata")
+	if err != nil{
+		wError(w, 500, "Could not fetch data\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	for items.Next() {
+		var row db.MetadataEntry
+		err := row.ReadEntry(items)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		j, err := row.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+	w.Write([]byte("\n"))
 }

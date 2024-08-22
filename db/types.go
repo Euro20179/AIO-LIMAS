@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"encoding/json"
 	"slices"
 	"time"
@@ -45,20 +46,20 @@ type Format uint32
 
 // F_DIGITAL & F_MOD_DIGITAL has undefined meaning
 const (
-	F_VHS        Format = iota // 0
-	F_CD         Format = iota // 1
-	F_DVD        Format = iota // 2
-	F_BLURAY     Format = iota // 3
-	F_4KBLURAY   Format = iota // 4
-	F_MANGA      Format = iota // 5
-	F_BOOK       Format = iota // 6
-	F_DIGITAL    Format = iota // 7
-	F_BOARDGAME  Format = iota // 8
-	F_STEAM      Format = iota // 9
-	F_NIN_SWITCH Format = iota
-	F_XBOXONE    Format = iota
-	F_XBOX360    Format = iota // 10
-	F_OTHER      Format = iota
+	F_VHS        Format = iota // 1
+	F_CD         Format = iota // 2
+	F_DVD        Format = iota // 3
+	F_BLURAY     Format = iota // 4
+	F_4KBLURAY   Format = iota // 5
+	F_MANGA      Format = iota // 6
+	F_BOOK       Format = iota // 7
+	F_DIGITAL    Format = iota // 8
+	F_BOARDGAME  Format = iota // 9
+	F_STEAM      Format = iota // 10
+	F_NIN_SWITCH Format = iota // 11
+	F_XBOXONE    Format = iota // 12
+	F_XBOX360    Format = iota // 13
+	F_OTHER      Format = iota // 14
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -119,6 +120,18 @@ type MetadataEntry struct {
 	Datapoints     string // JSON {string: string} as a string
 }
 
+func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error{
+	return rows.Scan(
+		&self.ItemId,
+		&self.Rating,
+		&self.Description,
+		&self.ReleaseYear,
+		&self.Thumbnail,
+		&self.MediaDependant,
+		&self.Datapoints,
+	)
+}
+
 type InfoEntry struct {
 	ItemId        int64
 	En_Title      string //doesn't have to be english, more like, the user's preferred language
@@ -129,6 +142,10 @@ type InfoEntry struct {
 	Collection    string
 	Parent        int64
 	Type          MediaTypes
+}
+
+func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
+	return rows.Scan(&self.ItemId, &self.En_Title, &self.Native_Title, &self.Format, &self.Location, &self.PurchasePrice, &self.Collection, &self.Type, &self.Parent)
 }
 
 func (self *InfoEntry) ToJson() ([]byte, error) {
@@ -144,6 +161,19 @@ type UserViewingEntry struct {
 	UserRating float64
 	Notes      string
 }
+
+func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error{
+	return row.Scan(
+		&self.ItemId,
+		&self.Status,
+		&self.ViewCount,
+		&self.StartDate,
+		&self.EndDate,
+		&self.UserRating,
+		&self.Notes,
+	)
+}
+
 func (self *UserViewingEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }

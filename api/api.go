@@ -281,9 +281,14 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	for items.Next() {
 		var row db.InfoEntry
-		items.Scan(&row.ItemId, &row.En_Title, &row.Native_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Type, &row.Parent)
+		err = row.ReadEntry(items)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
 		j, err := row.ToJson()
 		if err != nil {
+			println(err.Error())
 			continue
 		}
 		w.Write(j)
@@ -361,9 +366,14 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	for rows.Next() {
 		var row db.InfoEntry
-		rows.Scan(&row.ItemId, &row.En_Title, &row.Native_Title, &row.Format, &row.Location, &row.PurchasePrice, &row.Collection, &row.Type, &row.Parent)
+		err = row.ReadEntry(rows)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
 		j, err := row.ToJson()
 		if err != nil{
+			println(err.Error())
 			continue
 		}
 		w.Write(j)

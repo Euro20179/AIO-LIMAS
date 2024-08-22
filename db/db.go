@@ -101,7 +101,10 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Status, &res.ViewCount, &res.StartDate, &res.EndDate, &res.UserRating, &res.Notes)
+	err = res.ReadEntry(rows)
+	if err != nil{
+		return res, err
+	}
 	return res, nil
 }
 
@@ -115,7 +118,10 @@ func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(&res.ItemId, &res.Rating, &res.Description, &res.ReleaseYear, &res.Thumbnail, &res.MediaDependant, &res.Datapoints)
+	err = res.ReadEntry(rows)
+	if err != nil{
+		return res, err
+	}
 	return res, nil
 }
 

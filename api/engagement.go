@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -203,7 +204,27 @@ func SetNote(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("Success\n"))
 }
 
-func UserEntires(w http.ResponseWriter, req *http.Request) {
+func outputUserEntries(items *sql.Rows, w http.ResponseWriter, req *http.Request) {
+	w.WriteHeader(200)
+	for items.Next() {
+		var row db.UserViewingEntry
+		err := row.ReadEntry(items)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		j, err := row.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+	w.Write([]byte("\n"))
+}
+
+func GetUserEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
 	if err != nil {
 		wError(w, 400, "Could not find entry\n")
@@ -215,16 +236,15 @@ func UserEntires(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("Could not query entries\n" + err.Error()))
 		return
 	}
-	w.WriteHeader(200)
-	for items.Next() {
-		var row db.UserViewingEntry
-		items.Scan(&row.ItemId, &row.Status, &row.ViewCount, &row.StartDate, &row.EndDate, &row.UserRating, &row.Notes)
-		j, err := row.ToJson()
-		if err != nil {
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
+	outputUserEntries(items, w, req)
+}
+
+func UserEntries(w http.ResponseWriter, req *http.Request) {
+	items, err := db.Db.Query("SELECT * FROM userViewingInfo")
+	if err != nil{
+		wError(w, 500, "Could not fetch data\n%s", err.Error())
+		return
 	}
-	w.Write([]byte("\n"))
+
+	outputUserEntries(items, w, req)
 }
