@@ -122,6 +122,8 @@ func ListMetadata(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer items.Close()
+
 	w.WriteHeader(200)
 	for items.Next() {
 		var row db.MetadataEntry

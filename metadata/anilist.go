@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"aiolimas/db"
 )
@@ -101,7 +102,7 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 		return outMeta, err
 	}
 
-	var mediaDependant map[string]string
+	mediaDependant := make(map[string]string)
 
 	if out.Title.Native != "" {
 		entry.Native_Title = out.Title.Native
@@ -112,10 +113,10 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 		entry.En_Title = out.Title.Romaji
 	}
 
-	mediaDependant["episodes"] = string(out.Episodes)
-	mediaDependant["episode-duration"] = string(out.Duration)
-	mediaDependant["length"] = string(out.Episodes * out.Duration * 60)
-	mediaDependant["airing-status"] = out.Status
+	mediaDependant["Show-episodes"] = strconv.Itoa(int(out.Episodes))
+	mediaDependant["Show-episode-duration"] =strconv.Itoa(int(out.Episodes))
+	mediaDependant["Show-length"] = strconv.Itoa(int(out.Episodes))
+	mediaDependant["Show-airing-status"] = out.Status
 
 	mdString, _ := json.Marshal(mediaDependant)
 
@@ -131,7 +132,7 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
 	var newMeta db.MetadataEntry
 	var err error
-	if entry.Type == db.TY_ANIME {
+	if entry.IsAnime {
 		newMeta, err = AnilistShow(entry, metadataEntry)
 	} else {
 		newMeta, err = AnilistManga(entry, metadataEntry)

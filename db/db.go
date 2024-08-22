@@ -13,6 +13,55 @@ import (
 
 var Db *sql.DB
 
+func hasAnimeCol(db *sql.DB) bool {
+	info, _ := db.Query("PRAGMA table_info('entryInfo')")
+	defer info.Close()
+	for info.Next() {
+		var id, x, y int
+		var name string
+		var ty string
+		var z string
+		info.Scan(&id, &name, &ty, &x, &z, &y)
+		if name == "isAnime" {
+			return true
+		}
+	}
+	return false
+}
+
+func ensureAnimeCol(db *sql.DB) {
+	if !hasAnimeCol(db) {
+		_, err := db.Exec("ALTER TABLE entryInfo ADD COLUMN isAnime INTEGER")
+		if err != nil {
+			panic("Could not add isAnime col\n" + err.Error())
+		}
+	}
+
+	animeShows, _ := db.Query("SELECT * FROM entryInfo WHERE type == 'Anime'")
+	var idsToUpdate []int64
+	for animeShows.Next() {
+		var out InfoEntry
+		out.ReadEntry(animeShows)
+		idsToUpdate = append(idsToUpdate, out.ItemId)
+	}
+	animeShows.Close()
+	for _, id := range idsToUpdate {
+		fmt.Printf("Updating: %d\n", id)
+		_, err := db.Exec(`
+			UPDATE entryInfo
+			SET
+				type = 'Show',
+				isAnime = ?
+			WHERE
+				itemId = ?
+			`, 1, id)
+		if err != nil {
+			panic(fmt.Sprintf("Could not update table entry %d to be isAnime", id) + "\n" + err.Error())
+		}
+
+	}
+}
+
 func InitDb(dbPath string) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	sqlite3.Version()
@@ -30,6 +79,7 @@ func InitDb(dbPath string) {
 			 collection TEXT,
 			 type TEXT,
 			 parentId INTEGER
+			 isAnime INTEGER
 		)`)
 	if err != nil {
 		panic("Failed to create general info table\n" + err.Error())
@@ -64,6 +114,7 @@ func InitDb(dbPath string) {
 	if err != nil {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
+	ensureAnimeCol(conn)
 	Db = conn
 }
 
@@ -77,17 +128,10 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 	defer rows.Close()
 
 	rows.Next()
-	rows.Scan(
-		&res.ItemId,
-		&res.En_Title,
-		&res.Native_Title,
-		&res.Format,
-		&res.Location,
-		&res.PurchasePrice,
-		&res.Collection,
-		&res.Type,
-		&res.Parent,
-	)
+	err = res.ReadEntry(rows)
+	if err != nil {
+		return res, err
+	}
 	return res, nil
 }
 
@@ -102,7 +146,7 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 
 	rows.Next()
 	err = res.ReadEntry(rows)
-	if err != nil{
+	if err != nil {
 		return res, err
 	}
 	return res, nil
@@ -119,7 +163,7 @@ func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 
 	rows.Next()
 	err = res.ReadEntry(rows)
-	if err != nil{
+	if err != nil {
 		return res, err
 	}
 	return res, nil
@@ -142,8 +186,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			purchasePrice,
 			collection,
 			parentId,
-			type
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			type,
+			isAnime
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := Db.Exec(entryQuery, id,
 		entryInfo.En_Title,
@@ -153,7 +198,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		entryInfo.PurchasePrice,
 		entryInfo.Collection,
 		entryInfo.Parent,
-		entryInfo.Type)
+		entryInfo.Type,
+		entryInfo.IsAnime)
 	if err != nil {
 		return err
 	}
@@ -320,11 +366,12 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 			collection = ?,
 			parentId = ?,
 			type = ?
+			isAnime = ?
 		WHERE
 			itemId = ?
 	`, entry.En_Title, entry.Native_Title, entry.Format,
 		entry.Location, entry.PurchasePrice, entry.Collection,
-		entry.Parent, entry.Type, entry.ItemId)
+		entry.Parent, entry.Type, entry.IsAnime, entry.ItemId)
 	return err
 }
 
@@ -343,7 +390,7 @@ type EntryInfoSearch struct {
 func buildQString[T any](withList []T) string {
 	var out string
 	for i := range withList {
-		if i != len(withList) - 1 {
+		if i != len(withList)-1 {
 			out += "?, "
 		} else {
 			out += "?"
@@ -381,19 +428,19 @@ func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
 		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
 	}
 	if len(mainSearchInfo.InCollection) > 0 {
-		cols := []interface{} {
+		cols := []interface{}{
 			mainSearchInfo.InCollection,
 		}
 		queries = append(queries, query.In("collection", sqlbuilder.Flatten(cols)...))
 	}
 	if len(mainSearchInfo.HasParent) > 0 {
-		pars := []interface{} {
+		pars := []interface{}{
 			mainSearchInfo.HasParent,
 		}
 		queries = append(queries, query.In("parentId", sqlbuilder.Flatten(pars)...))
 	}
 	if len(mainSearchInfo.Type) > 0 {
-		tys := []interface{} {
+		tys := []interface{}{
 			mainSearchInfo.Type,
 		}
 		queries = append(queries, query.In("type", sqlbuilder.Flatten(tys)...))
@@ -404,7 +451,7 @@ func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
 	finalQuery, args := query.Build()
 	rows, err := Db.Query(
 		finalQuery,
-		args...
+		args...,
 	)
 	if err != nil {
 		return rows, err

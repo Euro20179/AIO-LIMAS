@@ -90,7 +90,6 @@ type MediaTypes string
 
 const (
 	TY_SHOW      MediaTypes = "Show"
-	TY_ANIME     MediaTypes = "Anime"
 	TY_MOVIE     MediaTypes = "Movie"
 	TY_GAME      MediaTypes = "Game"
 	TY_BOARDGAME MediaTypes = "BoardGame"
@@ -101,7 +100,7 @@ const (
 
 func ListMediaTypes() []MediaTypes {
 	return []MediaTypes{
-		TY_SHOW, TY_ANIME, TY_MOVIE, TY_GAME,
+		TY_SHOW, TY_MOVIE, TY_GAME,
 		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
 	}
 }
@@ -131,6 +130,9 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error{
 		&self.Datapoints,
 	)
 }
+func (self *MetadataEntry) ToJson() ([]byte, error) {
+	return json.Marshal(self)
+}
 
 type InfoEntry struct {
 	ItemId        int64
@@ -142,10 +144,11 @@ type InfoEntry struct {
 	Collection    string
 	Parent        int64
 	Type          MediaTypes
+	IsAnime       bool
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
-	return rows.Scan(&self.ItemId, &self.En_Title, &self.Native_Title, &self.Format, &self.Location, &self.PurchasePrice, &self.Collection, &self.Type, &self.Parent)
+	return rows.Scan(&self.ItemId, &self.En_Title, &self.Native_Title, &self.Format, &self.Location, &self.PurchasePrice, &self.Collection, &self.Type, &self.Parent, &self.IsAnime)
 }
 
 func (self *InfoEntry) ToJson() ([]byte, error) {

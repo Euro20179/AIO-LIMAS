@@ -204,7 +204,7 @@ func SetNote(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("Success\n"))
 }
 
-func outputUserEntries(items *sql.Rows, w http.ResponseWriter, req *http.Request) {
+func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 	w.WriteHeader(200)
 	for items.Next() {
 		var row db.UserViewingEntry
@@ -236,7 +236,8 @@ func GetUserEntry(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("Could not query entries\n" + err.Error()))
 		return
 	}
-	outputUserEntries(items, w, req)
+	defer items.Close()
+	outputUserEntries(items, w)
 }
 
 func UserEntries(w http.ResponseWriter, req *http.Request) {
@@ -245,6 +246,6 @@ func UserEntries(w http.ResponseWriter, req *http.Request) {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
-
-	outputUserEntries(items, w, req)
+	defer items.Close()
+	outputUserEntries(items, w)
 }

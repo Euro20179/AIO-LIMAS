@@ -170,6 +170,8 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 
 	ty := query.Get("type")
 
+	isAnime := query.Get("is-anime")
+	anime := isAnime == "true"
 
 	var entryInfo db.InfoEntry
 	entryInfo.En_Title = title
@@ -179,6 +181,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	entryInfo.Location = query.Get("location")
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
+	entryInfo.IsAnime = anime
 	if db.IsValidType(ty) {
 		entryInfo.Type = db.MediaTypes(ty)
 	} else {
@@ -363,6 +366,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
+	defer rows.Close()
 	w.WriteHeader(200)
 	for rows.Next() {
 		var row db.InfoEntry

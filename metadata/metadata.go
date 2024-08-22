@@ -6,9 +6,10 @@ import (
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) (db.MetadataEntry, error) {
-	switch entry.Type {
-	case db.TY_ANIME:
+	if entry.IsAnime {
 		return AnilistShow(entry, metadataEntry)
+	}
+	switch entry.Type {
 	case db.TY_MANGA:
 		return AnilistManga(entry, metadataEntry)
 	}
