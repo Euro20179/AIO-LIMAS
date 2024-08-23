@@ -3,7 +3,6 @@ package metadata
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -111,7 +110,6 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	if err != nil {
 		return outMeta, err
 	}
-	fmt.Println(jData)
 
 	out := jData.Data.Media
 

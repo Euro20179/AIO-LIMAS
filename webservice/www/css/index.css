@@ -18,6 +18,13 @@
     a {
         color: var(--light-blue);
     }
+
+    button {
+        border: 1px solid currentColor;
+        border-radius: 5px;
+        background: var(--main);
+        color: white;
+    }
 }
 
 @layer utility {
@@ -36,11 +43,13 @@
     #all-entries {
         display: grid;
 
-        grid-template-columns: repeat(auto-fill, minmax(25em, 1fr));
-        grid-auto-rows: 20em;
+        grid-template-columns: repeat(auto-fill, minmax(30em, 1fr));
+        grid-auto-rows: 25em;
         gap: 3em;
 
         .entry {
+            position: relative;
+
             border: 1px solid;
             border-radius: 2em;
             width: 100%;
@@ -53,7 +62,7 @@
                 margin: 0 var(--side-margin);
             }
 
-            img {
+            .img {
                 float: right;
                 max-height: 90%;
                 max-width: 40%;

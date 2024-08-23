@@ -188,12 +188,18 @@ function createItemEntry(item) {
     const clone = /**@type {HTMLElement}*/(itemTemplate.content.cloneNode(true));
 
     const root = /**@type {HTMLElement}*/(clone.querySelector(".entry"));
+    root.setAttribute("data-type", item.Type);
+
 
     /**@type {HTMLElement}*/(clone.querySelector(".name")).innerHTML = item.En_Title
 
     const userEntry = getUserEntry(item.ItemId);
 
     /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
+
+    if(item.PurchasePrice) {
+        /**@type {HTMLElement}*/(clone.querySelector(".cost")).innerHTML = String(item.PurchasePrice)
+    }
 
     /**@type {HTMLElement}*/(clone.querySelector(".notes")).innerHTML = String(userEntry?.Notes || "");
 
@@ -304,6 +310,12 @@ async function addAllEntries(items) {
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
     for (const item of items) {
+        if(item.Parent) {
+            //TODO: put a link to children on each entry
+            //when the link is clicked, all entries will be removed in favor of that item's children
+            //also render the item itself
+            continue
+        }
         createItemEntry(item)
     }
 }
