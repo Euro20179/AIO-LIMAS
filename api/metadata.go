@@ -33,7 +33,12 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
-	db.UpdateMetadataEntry(&newMeta)
+	newMeta.ItemId = mainEntry.ItemId
+	err = db.UpdateMetadataEntry(&newMeta)
+	if err != nil{
+		wError(w, 500, "%s\n", err.Error())
+		return
+	}
 
 	success(w)
 }

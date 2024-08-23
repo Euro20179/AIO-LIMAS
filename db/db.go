@@ -326,7 +326,7 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 }
 
 func UpdateMetadataEntry(entry *MetadataEntry) error {
-	Db.Exec(`
+	_, err := Db.Exec(`
 		UPDATE metadata
 		SET
 			rating = ?,
@@ -334,12 +334,15 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 			releaseYear = ?,
 			thumbnail = ?,
 			mediaDependant = ?,
-			dataPoints = ?,
+			dataPoints = ?
 		WHERE
 			itemId = ?
 	`, entry.Rating, entry.Description,
 		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
 		entry.Datapoints, entry.ItemId)
+	if err != nil{
+		return err
+	}
 
 	return nil
 }
@@ -361,11 +364,11 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 			en_title = ?,
 			native_title = ?,
 			format = ?,
-			locaiton = ?
+			location = ?,
 			purchasePrice = ?,
 			collection = ?,
 			parentId = ?,
-			type = ?
+			type = ?,
 			isAnime = ?
 		WHERE
 			itemId = ?
@@ -411,7 +414,7 @@ func Delete(id int64) error {
 	return transact.Commit()
 }
 
-func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
+func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
 	query.Select("*").From("entryInfo")
 	var queries []string
@@ -469,10 +472,26 @@ func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
 		finalQuery,
 		args...,
 	)
+
+	var out []InfoEntry
+
 	if err != nil {
-		return rows, err
+		return out, err
 	}
-	return rows, nil
+
+	defer rows.Close()
+	i := 0
+	for rows.Next() {
+		i += 1
+		var row InfoEntry
+		err = row.ReadEntry(rows)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
 }
 
 func ListCollections() ([]string, error){

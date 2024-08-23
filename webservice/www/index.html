@@ -7,23 +7,50 @@
     <link rel="stylesheet" href="/css/index.css">
 </head>
 
-<body>
+<body data-loading>
     <h1 style="text-align: center;">Welcome to the AIO LIMAS</h1>
     <main>
-        <h2>Collections</h2>
-        <section id="collections"></section>
-        <h2>Unorganized</h2>
-        <section id="plain-entries"></section>
+        <!-- <h2>Collections</h2> -->
+        <!-- <section id="collections"></section> -->
+        <!-- <h2>All</h2> -->
+        <section id="all-entries"></section>
     </main>
 
     <template id="item-entry">
         <div class="entry">
-            <h3 id="name"></h3>
-            <details id="basic-info">
-                    <summary>
-                        Basic info
-                    </summary>
+            <img src="/no-img" class="img">
+            <section class="header">
+                <button class="meta-fetcher">⟳</button>
+                <h3 class="name"></h3>
+                <span class="rating"></span>
+            </section>
+            <section class="middle">
+                <span class="collection"></span>
+                <a class="location"></a>
+                <span class="notes"></span>
+            </section>
+            <details class="basic-info">
+                <summary>
+                    Basic info
+                </summary>
+                <ul>
+                </ul>
             </details>
+            <details class="user-info">
+                <summary>User info</summary>
+                <ul>
+                </ul>
+            </details>
+            <table class="view-table">
+                <thead>
+                    <tr>
+                        <th>Start</th>
+                        <th>End</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
     </template>
 

@@ -1,52 +1,130 @@
-#plain-entries {
-    display: grid;
+@layer general, utility, components;
 
-    grid-template-columns: repeat(auto-fill, minmax(20em, 1fr));
-    grid-auto-rows: 20em;
-    gap: 3em;
+:root {
+    --pink: #f7c8e0;
+    --green: #dfffd8;
+    --light-blue: #b4e4ff;
+    --blue: #95bdff;
 
-    .entry {
-        border: 1px solid black;
-        border-radius: 2em;
-        width: 100%;
+    --main: #121626;
+}
 
-        overflow-y: auto;
+@layer general {
+    body {
+        background: var(--main);
+        color: white;
+    }
 
-        h3 {
-            text-align: center;
-        }
+    a {
+        color: var(--light-blue);
+    }
+}
 
-        details {
-            margin: 1em;
+@layer utility {
+    .bad {
+        --accent-color: var(--pink);
+        color: var(--accent-color);
+    }    
 
-            summary {
-                cursor: pointer;
+    .good {
+        --accent-color: var(--green);
+        color: var(--accent-color);
+    }
+}
+
+@layer components {
+    #all-entries {
+        display: grid;
+
+        grid-template-columns: repeat(auto-fill, minmax(25em, 1fr));
+        grid-auto-rows: 20em;
+        gap: 3em;
+
+        .entry {
+            border: 1px solid;
+            border-radius: 2em;
+            width: 100%;
+
+            overflow-y: auto;
+
+            --side-margin: 10px;
+
+            & > * {
+                margin: 0 var(--side-margin);
             }
 
-            span {
-                --radius: 1em;
+            img {
+                float: right;
+                max-height: 90%;
+                max-width: 40%;
+            }
 
-                &:first-of-type {
-                    padding-top: 10px;
+            .header {
+                display: flex;
 
-                    border-top-right-radius: var(--radius);
-                    border-top-left-radius: var(--radius);
+                align-items: center;
+                gap: 2ch;
+
+                justify-content: center;
+
+            }
+
+            .middle {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .location {
+                text-align: center;
+            }
+
+            .view-table {
+                border-collapse: collapse;
+
+                :is(td, th) {
+                    border: 1px solid;
                 }
-                &:last-of-type {
-                    padding-bottom: 10px;
 
-                    border-bottom-right-radius: var(--radius);
-                    border-bottom-left-radius: var(--radius);
+                /*if there are no entries in the table, hide the table*/
+                &:not(:has(td)) {
+                    display: none;
+                }
+            }
+
+            h3 {
+                text-align: center;
+            }
+
+            details {
+                margin-top: 1em;
+                margin-bottom: 1em;
+
+                summary {
+                    cursor: pointer;
                 }
 
-                padding-left: 10px;
+                /*should be a span, but i might change it later*/
+                & > ul {
+                    --radius: 1em;
 
-                font-size: 0.8em;
-                line-height: 2cap;
+                max-width: fit-content;
 
-                background: gray;
+                    background: oklch(from var(--accent-color) calc(l * 0.2) c h);
 
-                display: block;
+                    border: 1px solid;
+                    border-radius:var(--radius);
+
+                    padding: 10px;
+
+                    font-size: 0.8em;
+                    line-height: 2cap;
+
+                    display: block;
+
+                    li::marker {
+                        content: "";
+                    }
+                }
             }
         }
     }

@@ -20,7 +20,7 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 
 func ListCollections(w http.ResponseWriter, req *http.Request) {
 	collections, err := db.ListCollections()
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get collections\n%s", err.Error())
 		return
 	}
@@ -32,13 +32,13 @@ func ListCollections(w http.ResponseWriter, req *http.Request) {
 
 func ModEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
 
 	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
@@ -58,7 +58,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 	format := query.Get("format")
 	if format != "" {
 		formatI, err := strconv.ParseInt(format, 10, 64)
-		if err != nil{
+		if err != nil {
 			wError(w, 400, "Invalid format %s\n%s", format, err.Error())
 			return
 		}
@@ -73,7 +73,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 	parentId := query.Get("parent-id")
 	if parentId != "" {
 		parentIdI, err := strconv.ParseInt(parentId, 10, 64)
-		if err != nil{
+		if err != nil {
 			wError(w, 400, "Invalid parent id %s\n%s", parentId, err.Error())
 			return
 		}
@@ -88,7 +88,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 	price := query.Get("price")
 	if price != "" {
 		priceF, err := strconv.ParseFloat(price, 64)
-		if err != nil{
+		if err != nil {
 			wError(w, 400, "Invalid price %s\n%s", price, err.Error())
 			return
 		}
@@ -106,7 +106,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 	}
 
 	err = db.UpdateInfoEntry(&info)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -207,14 +207,14 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	userRating := query.Get("user-rating")
 	if userRating != "" {
 		ur, err := strconv.ParseFloat(userRating, 64)
-		if err != nil{
+		if err != nil {
 			wError(w, 400, "%s is not a valid user rating\n%s", userRating, err.Error())
 			return
 		}
 		userEntry.UserRating = ur
 	}
 
-	status := query.Get("user-status") 
+	status := query.Get("user-status")
 	if status != "" {
 		if !db.IsValidStatus(status) {
 			wError(w, 400, "%s is not a valid status\n", status)
@@ -230,7 +230,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			wError(w, 400, "Invalid start dates %s\n%s", startDates, err.Error())
 			return
-		} 
+		}
 	} else {
 		startDates = "[]"
 	}
@@ -252,7 +252,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	viewCount := query.Get("user-view-count")
 	if viewCount != "" {
 		vc, err := strconv.ParseInt(viewCount, 10, 64)
-		if err != nil{
+		if err != nil {
 			wError(w, 400, "Invalid view count %s\n%s", viewCount, err.Error())
 			return
 		}
@@ -268,7 +268,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		}
 		var err error
 		metadata, err = meta.GetMetadata(&entryInfo, &metadata, providerOverride)
-		if err != nil{
+		if err != nil {
 			wError(w, 500, "Could not get metadata\n%s", err.Error())
 			return
 		}
@@ -295,7 +295,7 @@ func ListEntries(w http.ResponseWriter, req *http.Request) {
 	for items.Next() {
 		var row db.InfoEntry
 		err = row.ReadEntry(items)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -331,7 +331,6 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	var pars []int64
 	var tys []db.MediaTypes
 	collects := strings.Split(collections, ",")
-	anime := isAnime == "true"
 
 	if util.IsNumeric([]byte(purchaseGt)) {
 		pgt, _ = strconv.ParseFloat(purchaseGt, 64)
@@ -372,28 +371,24 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.Format = fmts
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
-	if anime {
+	switch isAnime {
+	case "true":
 		entrySearch.IsAnime = 2
-	} else {
+	case "false":
 		entrySearch.IsAnime = 1
+	default:
+		entrySearch.IsAnime = 0
 	}
 
 	rows, err := db.Search(entrySearch)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
-	defer rows.Close()
 	w.WriteHeader(200)
-	for rows.Next() {
-		var row db.InfoEntry
-		err = row.ReadEntry(rows)
-		if err != nil{
-			println(err.Error())
-			continue
-		}
+	for _, row := range rows {
 		j, err := row.ToJson()
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -438,13 +433,13 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 
 func Stream(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n%s", err.Error())
 		return
 	}
 
 	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get info entry\n%s", err.Error())
 		return
 	}
@@ -455,19 +450,19 @@ func Stream(w http.ResponseWriter, req *http.Request) {
 
 func DeleteEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n%s", err.Error())
 		return
 	}
 	err = db.Delete(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not delete entry\n%s", err.Error())
 		return
 	}
 	success(w)
 }
 
-func verifyIdQueryParam(req *http.Request) (int64, error){
+func verifyIdQueryParam(req *http.Request) (int64, error) {
 	id := req.URL.Query().Get("id")
 	if id == "" {
 		return 0, errors.New("No id given\n")
@@ -483,7 +478,7 @@ func verifyIdQueryParam(req *http.Request) (int64, error){
 func verifyIdAndGetUserEntry(w http.ResponseWriter, req *http.Request) (db.UserViewingEntry, error) {
 	var out db.UserViewingEntry
 	id, err := verifyIdQueryParam(req)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	entry, err := db.GetUserViewEntryById(id)

@@ -36,6 +36,10 @@ func main() {
 		"list-collections": api.ListCollections,
 	})
 
+	makeEndpoints(apiRoot + "/type", EndPointMap{
+		"format": api.ListFormats,
+	})
+
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":        api.FetchMetadataForEntry,

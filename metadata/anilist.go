@@ -3,6 +3,7 @@ package metadata
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -20,9 +21,9 @@ const (
 	SS_HIATUS           = "HIATUS"
 )
 
-type AnilistQuery struct {
+type AnilistQuery[T any] struct {
 	Query     string   `json:"query"`
-	Variables []string `json:"variables"`
+	Variables map[string]T `json:"variables"`
 }
 type AnilistTitles struct {
 	English string
@@ -30,21 +31,26 @@ type AnilistTitles struct {
 	Native  string
 }
 type AnilistResponse struct {
-	Title AnilistTitles `json:"title"`
+	Data struct {
+		Media struct {
+			Title AnilistTitles `json:"title"`
 
-	CoverImage struct {
-		Medium string `json:"medium"`
-	} `json:"coverImage"`
+			CoverImage struct {
+				Medium string `json:"medium"`
+				Large  string `json:"large"`
+			} `json:"coverImage"`
 
-	AverageScore uint64 `json:"averageScore"`
+			AverageScore uint64 `json:"averageScore"`
 
-	Description string `json:"description"`
+			Description string `json:"description"`
 
-	Duration   uint  `json:"duration"`
-	Episodes   uint  `json:"episodes"`
-	SeasonYear int64 `json:"seasonYear"`
+			Duration   uint  `json:"duration"`
+			Episodes   uint  `json:"episodes"`
+			SeasonYear int64 `json:"seasonYear"`
 
-	Status string `json:"status"`
+			Status string `json:"status"`
+		} `json:"media"`
+	} `json:"data"`
 }
 
 func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
@@ -60,24 +66,28 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 		searchTitle = entry.Native_Title
 	}
 	query := `
-		Media(search: $search, type: ANIME) {
-			title {
-				english
-				romaji
-				native
-			},
-			coverImage {
-				large
-			},
-			averageScore,
-			duration,
-			episodes,
-			seasonYear
+		query ($search: String) {
+			Media(search: $search, type: ANIME) {
+				title {
+					english
+					romaji
+					native
+				},
+				coverImage {
+					large
+				},
+				averageScore,
+				duration,
+				episodes,
+				seasonYear
+			}
 		}
 	`
-	anilistQuery := AnilistQuery{
+	anilistQuery := AnilistQuery[string]{
 		Query:     query,
-		Variables: []string{searchTitle},
+		Variables: map[string]string {
+			"search": searchTitle,
+		},
 	}
 	bodyBytes, err := json.Marshal(anilistQuery)
 	if err != nil {
@@ -96,11 +106,14 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 		return outMeta, err
 	}
 
-	var out AnilistResponse
-	err = json.Unmarshal(resp, &out)
+	jData := new(AnilistResponse)
+	err = json.Unmarshal(resp, &jData)
 	if err != nil {
 		return outMeta, err
 	}
+	fmt.Println(jData)
+
+	out := jData.Data.Media
 
 	mediaDependant := make(map[string]string)
 
@@ -114,13 +127,13 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	}
 
 	mediaDependant["Show-episodes"] = strconv.Itoa(int(out.Episodes))
-	mediaDependant["Show-episode-duration"] =strconv.Itoa(int(out.Episodes))
+	mediaDependant["Show-episode-duration"] = strconv.Itoa(int(out.Episodes))
 	mediaDependant["Show-length"] = strconv.Itoa(int(out.Episodes))
 	mediaDependant["Show-airing-status"] = out.Status
 
 	mdString, _ := json.Marshal(mediaDependant)
 
-	outMeta.Thumbnail = out.CoverImage.Medium
+	outMeta.Thumbnail = out.CoverImage.Large
 	outMeta.Rating = float64(out.AverageScore)
 	outMeta.Description = out.Description
 	outMeta.MediaDependant = string(mdString)
@@ -138,7 +151,7 @@ func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Me
 		newMeta, err = AnilistManga(entry, metadataEntry)
 	}
 
-	//ensure item ids are consistent
+	// ensure item ids are consistent
 	newMeta.ItemId = entry.ItemId
 
 	return newMeta, err

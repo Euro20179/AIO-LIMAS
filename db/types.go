@@ -46,23 +46,42 @@ type Format uint32
 
 // F_DIGITAL & F_MOD_DIGITAL has undefined meaning
 const (
-	F_VHS        Format = iota // 1
-	F_CD         Format = iota // 2
-	F_DVD        Format = iota // 3
-	F_BLURAY     Format = iota // 4
-	F_4KBLURAY   Format = iota // 5
-	F_MANGA      Format = iota // 6
-	F_BOOK       Format = iota // 7
-	F_DIGITAL    Format = iota // 8
-	F_BOARDGAME  Format = iota // 9
-	F_STEAM      Format = iota // 10
-	F_NIN_SWITCH Format = iota // 11
-	F_XBOXONE    Format = iota // 12
-	F_XBOX360    Format = iota // 13
-	F_OTHER      Format = iota // 14
+	F_VHS        Format = iota // 0
+	F_CD         Format = iota // 1
+	F_DVD        Format = iota // 2
+	F_BLURAY     Format = iota // 3
+	F_4KBLURAY   Format = iota // 4
+	F_MANGA      Format = iota // 5
+	F_BOOK       Format = iota // 6
+	F_DIGITAL    Format = iota // 7
+	F_BOARDGAME  Format = iota // 8
+	F_STEAM      Format = iota // 9
+	F_NIN_SWITCH Format = iota // 10
+	F_XBOXONE    Format = iota // 11
+	F_XBOX360    Format = iota // 12
+	F_OTHER      Format = iota // 13
 
 	F_MOD_DIGITAL Format = 0x1000
 )
+func ListFormats() map[Format] string {
+	return map[Format]string {
+		F_VHS: "VHS",
+		F_CD: "CD",
+		F_DVD: "DVD",
+		F_BLURAY: "BLURAY",
+		F_4KBLURAY: "4KBLURAY",
+		F_MANGA: "MANGA",
+		F_BOOK: "BOOK",
+		F_DIGITAL: "DIGITAL",
+		F_BOARDGAME: "BOARDGAME",
+		F_STEAM: "STEAM",
+		F_NIN_SWITCH: "NIN_SWITCH",
+		F_XBOXONE: "XBOXONE",
+		F_XBOX360: "XBOX360",
+		F_OTHER: "OTHER",
+		F_MOD_DIGITAL: "MOD_DIGITAL",
+	}
+}
 
 func (self *Format) MkDigital() Format {
 	return *self | F_MOD_DIGITAL
@@ -80,7 +99,8 @@ func (self *Format) IsDigital() bool {
 }
 
 func IsValidFormat(format int64) bool {
-	if format&int64(F_MOD_DIGITAL) == 1 {
+	println(format, F_MOD_DIGITAL, )
+	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}
 	return format >= int64(F_VHS) && format <= int64(F_OTHER)
