@@ -18,6 +18,18 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 	fmt.Fprintf(w, format, args...)
 }
 
+func ListCollections(w http.ResponseWriter, req *http.Request) {
+	collections, err := db.ListCollections()
+	if err != nil{
+		wError(w, 500, "Could not get collections\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	for _, col := range collections {
+		fmt.Fprintf(w, "%s\n", col)
+	}
+}
+
 func ModEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
 	if err != nil{

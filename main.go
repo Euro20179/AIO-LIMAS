@@ -24,22 +24,23 @@ func main() {
 
 	apiRoot := "/api/v1"
 
-	//for db management type stuff
+	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
-		"add-entry":    api.AddEntry,
-		"mod-entry":    api.ModEntry,
-		"query":        api.QueryEntries,
-		"list-entries": api.ListEntries,
-		"scan-folder":  api.ScanFolder,
-		"stream-entry": api.Stream,
-		"delete-entry": api.DeleteEntry,
+		"add-entry":        api.AddEntry,
+		"mod-entry":        api.ModEntry,
+		"query":            api.QueryEntries,
+		"list-entries":     api.ListEntries,
+		"scan-folder":      api.ScanFolder,
+		"stream-entry":     api.Stream,
+		"delete-entry":     api.DeleteEntry,
+		"list-collections": api.ListCollections,
 	})
 
-	//for metadata stuff
-	makeEndpoints(apiRoot+"/metadata", EndPointMap {
-		"fetch": api.FetchMetadataForEntry,
-		"retrieve": api.RetrieveMetadataForEntry,
-		"set": api.SetMetadataForEntry,
+	// for metadata stuff
+	makeEndpoints(apiRoot+"/metadata", EndPointMap{
+		"fetch":        api.FetchMetadataForEntry,
+		"retrieve":     api.RetrieveMetadataForEntry,
+		"set":          api.SetMetadataForEntry,
 		"list-entries": api.ListMetadata,
 	})
 
@@ -49,12 +50,12 @@ func main() {
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
 		"begin-media":  api.BeginMedia,
 		"finish-media": api.FinishMedia,
-		"plan-media": api.PlanMedia,
-		"drop-media": api.DropMedia,
-		"pause-media": api.PauseMedia,
+		"plan-media":   api.PlanMedia,
+		"drop-media":   api.DropMedia,
+		"pause-media":  api.PauseMedia,
 		"resume-media": api.ResumeMedia,
-		"set-note": api.SetNote,
-		"get-entry": api.GetUserEntry,
+		"set-note":     api.SetNote,
+		"get-entry":    api.GetUserEntry,
 		"list-entries": api.UserEntries,
 	})
 

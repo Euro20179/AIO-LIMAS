@@ -474,3 +474,20 @@ func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
 	}
 	return rows, nil
 }
+
+func ListCollections() ([]string, error){
+	var out []string
+	rows, err := Db.Query(`SELECT DISTINCT collection FROM entryInfo`)
+	if err != nil{
+		return out, err
+	}
+	for rows.Next() {
+		collection := ""
+		err := rows.Scan(&collection)
+		if err != nil{
+			return out, err
+		}
+		out = append(out, collection)
+	}
+	return out, nil
+}
