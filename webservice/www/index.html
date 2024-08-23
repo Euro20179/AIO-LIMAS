@@ -1,11 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
+    <link rel="stylesheet" href="/css/index.css">
 </head>
+
 <body>
-    <h1>Welcome to the AIO LIMAS</h1>
+    <h1 style="text-align: center;">Welcome to the AIO LIMAS</h1>
+    <main>
+        <h2>Collections</h2>
+        <section id="collections"></section>
+        <h2>Unorganized</h2>
+        <section id="plain-entries"></section>
+    </main>
+
+    <template id="item-entry">
+        <div class="entry">
+            <h3 id="name"></h3>
+            <details id="basic-info">
+                    <summary>
+                        Basic info
+                    </summary>
+            </details>
+        </div>
+    </template>
+
+    <script src="/js/globals.js"></script>
     <script src="/js/index.js"></script>
 </body>
+
 </html>
