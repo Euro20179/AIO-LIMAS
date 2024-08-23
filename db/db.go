@@ -385,6 +385,7 @@ type EntryInfoSearch struct {
 	InCollection      []string
 	HasParent         []int64
 	Type              []MediaTypes
+	IsAnime           int
 }
 
 func buildQString[T any](withList []T) string {
@@ -397,6 +398,17 @@ func buildQString[T any](withList []T) string {
 		}
 	}
 	return out
+}
+
+func Delete(id int64) error {
+	transact, err := Db.Begin()
+	if err != nil {
+		return err
+	}
+	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ?`, id)
+	transact.Exec(`DELETE FROM metadata WHERE itemId = ?`, id)
+	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ?`, id)
+	return transact.Commit()
 }
 
 func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
@@ -444,6 +456,10 @@ func Search(mainSearchInfo EntryInfoSearch) (*sql.Rows, error) {
 			mainSearchInfo.Type,
 		}
 		queries = append(queries, query.In("type", sqlbuilder.Flatten(tys)...))
+	}
+
+	if mainSearchInfo.IsAnime != 0 {
+		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime - 1))
 	}
 
 	query = query.Where(queries...)

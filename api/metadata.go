@@ -35,8 +35,7 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	}
 	db.UpdateMetadataEntry(&newMeta)
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
@@ -111,8 +110,7 @@ func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 
 	db.UpdateMetadataEntry(&metadataEntry)
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func ListMetadata(w http.ResponseWriter, req *http.Request) {

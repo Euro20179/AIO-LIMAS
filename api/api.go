@@ -98,8 +98,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 // lets the user add an item in their library
@@ -269,8 +268,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 // simply will list all entries as a json from the entryInfo table
@@ -313,6 +311,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	collections := query.Get("collections")
 	types := query.Get("types")
 	parents := query.Get("parent-ids")
+	isAnime := query.Get("is-anime")
 
 	pgt := 0.0
 	plt := 0.0
@@ -320,6 +319,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	var pars []int64
 	var tys []db.MediaTypes
 	collects := strings.Split(collections, ",")
+	anime := isAnime == "true"
 
 	if util.IsNumeric([]byte(purchaseGt)) {
 		pgt, _ = strconv.ParseFloat(purchaseGt, 64)
@@ -360,6 +360,11 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.Format = fmts
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
+	if anime {
+		entrySearch.IsAnime = 2
+	} else {
+		entrySearch.IsAnime = 1
+	}
 
 	rows, err := db.Search(entrySearch)
 	if err != nil{
@@ -416,8 +421,7 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func Stream(w http.ResponseWriter, req *http.Request) {
@@ -433,7 +437,22 @@ func Stream(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.WriteHeader(200)
 	http.ServeFile(w, req, info.Location)
+}
+
+func DeleteEntry(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n%s", err.Error())
+		return
+	}
+	err = db.Delete(entry.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not delete entry\n%s", err.Error())
+		return
+	}
+	success(w)
 }
 
 func verifyIdQueryParam(req *http.Request) (int64, error){
@@ -462,4 +481,9 @@ func verifyIdAndGetUserEntry(w http.ResponseWriter, req *http.Request) (db.UserV
 	}
 
 	return entry, nil
+}
+
+func success(w http.ResponseWriter) {
+	w.WriteHeader(200)
+	w.Write([]byte("Success\n"))
 }

@@ -110,8 +110,7 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func DropMedia(w http.ResponseWriter, req *http.Request) {
@@ -133,8 +132,7 @@ func DropMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func PauseMedia(w http.ResponseWriter, req *http.Request) {
@@ -157,8 +155,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func ResumeMedia(w http.ResponseWriter, req *http.Request) {
@@ -180,8 +177,7 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func SetNote(w http.ResponseWriter, req *http.Request) {
@@ -200,8 +196,7 @@ func SetNote(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.WriteHeader(200)
-	w.Write([]byte("Success\n"))
+	success(w)
 }
 
 func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {

@@ -6,6 +6,7 @@ import (
 
 	api "aiolimas/api"
 	db "aiolimas/db"
+	"aiolimas/webservice"
 )
 
 func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *http.Request)) {
@@ -31,6 +32,7 @@ func main() {
 		"list-entries": api.ListEntries,
 		"scan-folder":  api.ScanFolder,
 		"stream-entry": api.Stream,
+		"delete-entry": api.DeleteEntry,
 	})
 
 	//for metadata stuff
@@ -55,6 +57,8 @@ func main() {
 		"get-entry": api.GetUserEntry,
 		"list-entries": api.UserEntries,
 	})
+
+	http.HandleFunc("/", webservice.Root)
 
 	http.ListenAndServe(":8080", nil)
 }
