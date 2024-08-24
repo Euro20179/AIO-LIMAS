@@ -42,11 +42,11 @@
  * @type {object}
  * @property {string} title
  * @property {string} type
- * @property {number} format
+ * @property {number[]} format
  */
 
-/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[]} }*/
-const globals = { formats: {}, userEntries: [], metadataEntries: [] }
+/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[] }}*/
+const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [] }
 
 /**
  * @param {bigint} id
@@ -72,6 +72,45 @@ function getMetadataEntry(id) {
         }
     }
     return null
+}
+
+/**
+ * @param {bigint} id
+ * @returns {InfoEntry?}
+ */
+function getInfoEntry(id) {
+    for (let entry of globals.entries) {
+        if (entry.ItemId === id) {
+            return entry
+        }
+    }
+    return null
+}
+
+/**
+ * @param {bigint} id 
+ * @returns {Promise<InfoEntry[]>}
+ */
+async function getChildren(id) {
+    let res = await fetch(`${apiPath}/query?parent-ids=${id}`)
+    let text = await res.text()
+    return /**@type {InfoEntry[]}*/ text.split("\n")
+        .filter(Boolean)
+        .map(mkStrItemId)
+        .map(parseJsonL)
+}
+
+/**
+ * @param {InfoEntry} entry
+ * @param {InfoEntry[]} children
+ * @returns number
+ */
+function findTotalCost(entry, children) {
+    let cost = entry.PurchasePrice || 0
+    for(let child of children) {
+        cost += child.PurchasePrice || 0
+    }
+    return cost
 }
 
 /**
@@ -112,7 +151,7 @@ async function loadFormats() {
 }
 
 /**
- * @param {string} text
+ * @param {string | HTMLElement} text
  * @param {string} ty
  */
 function basicElement(text, ty = "span") {
@@ -137,19 +176,10 @@ function fillBasicInfoSummary(container, item) {
     }
     basicInfoEl.append(basicElement(typeText, "li"))
 
-    const MOD_DIGITAL = Number(Object.entries(globals.formats).filter(([_, val]) => val == "MOD_DIGITAL")[0][0])
-
-    let digitized = false
-    let fmtNo = item.Format
-    if ((item.Format & MOD_DIGITAL) === MOD_DIGITAL) {
-        fmtNo -= MOD_DIGITAL
-        digitized = true
+    basicInfoEl.append(basicElement(`Format: ${formatToStr(item.Format)}`, "li"))
+    if (item.PurchasePrice) {
+        basicInfoEl.append(basicElement(`$Purchase: $${item.PurchasePrice}`))
     }
-    let fmtText = `Format: ${globals.formats[fmtNo]}`
-    if (digitized) {
-        fmtText += ` +digitized`
-    }
-    basicInfoEl.append(basicElement(fmtText, "li"))
 }
 
 /**
@@ -187,9 +217,30 @@ function fillUserInfo(container, item) {
 }
 
 /**
- * @param {InfoEntry} item
+ * @param {number} format
+ * @returns {string}
  */
-function createItemEntry(item) {
+function formatToStr(format) {
+    const MOD_DIGITAL = Number(Object.entries(globals.formats).filter(([_, val]) => val == "MOD_DIGITAL")[0][0])
+    let fmtNo = format
+    let digitized = false
+    if ((format & MOD_DIGITAL) === MOD_DIGITAL) {
+        fmtNo -= MOD_DIGITAL
+        digitized = true
+    }
+    let fmtText = `${globals.formats[fmtNo]}`
+    if (digitized) {
+        fmtText += ` +digitized`
+    }
+    return fmtText
+}
+
+/**
+ * @param {InfoEntry} item
+ * @param {UserEntry} userEntry
+ * @param {MetadataEntry} meta
+ */
+function createItemEntry(item, userEntry, meta) {
     const out = /**@type {HTMLElement}*/(document.getElementById("all-entries"))
     const itemTemplate = /**@type {HTMLTemplateElement}*/ (document.getElementById("item-entry"))
     /**@type {HTMLElement}*/
@@ -198,16 +249,12 @@ function createItemEntry(item) {
     const root = /**@type {HTMLElement}*/(clone.querySelector(".entry"));
     root.setAttribute("data-type", item.Type);
 
+    /**@type {HTMLElement}*/(clone.querySelector(".location")).append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
 
-    /**@type {HTMLElement}*/(clone.querySelector(".location")).append(item.En_Title)
-
-    const userEntry = getUserEntry(item.ItemId);
-
-    /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
-
-    if (item.PurchasePrice) {
-        /**@type {HTMLElement}*/(clone.querySelector(".cost")).innerHTML = String(item.PurchasePrice)
+    if (userEntry?.UserRating) {
+        /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
     }
+    
 
     /**@type {HTMLElement}*/(clone.querySelector(".notes")).innerHTML = String(userEntry?.Notes || "");
 
@@ -220,6 +267,12 @@ function createItemEntry(item) {
         /**@type {HTMLElement}*/(clone.querySelector(".collection")).innerHTML = `Collection: ${item.Collection}`
     }
 
+    if(item.Parent) {
+        const parentA = /**@type {HTMLAnchorElement}*/(root.querySelector("a.parent"))
+        parentA.href = `javascript:displayEntry([${item.Parent}n])`
+        parentA.hidden = false
+    }
+
     if (userEntry?.UserRating) {
         if (userEntry.UserRating >= 80) {
             root.classList.add("good")
@@ -230,11 +283,39 @@ function createItemEntry(item) {
 
     const img = /**@type {HTMLImageElement}*/(clone.querySelector(".img"));
 
-    const meta = getMetadataEntry(item.ItemId)
-
     if (meta?.Thumbnail) {
         img.src = meta.Thumbnail
     }
+
+    getChildren(item.ItemId).then(children => {
+        if (!children.length) return
+        const list = /**@type {HTMLElement}*/ (root.querySelector(".children"))
+        //@ts-ignore
+        list.parentNode.hidden = false
+
+        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all children", "a"))
+        allA.href = `javascript:displayEntry([${children.map(i => i.ItemId).join("n, ")}n])`
+        list.append(allA)
+
+        for (let child of children) {
+            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                basicElement(
+                    `${child.En_Title} - $${child.PurchasePrice}`,
+                    "li"
+                ),
+                "a"
+            ))
+            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+            list.append(a)
+        }
+
+        let totalCost = findTotalCost(item, children);
+        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
+    })
+    if (item.PurchasePrice) {
+        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${item.PurchasePrice}`
+    }
+
 
     fillBasicInfoSummary(clone, item)
     fillUserInfo(clone, /**@type {UserEntry}*/(userEntry))
@@ -297,9 +378,10 @@ async function loadAllEntries() {
         let itemsText = await res.text()
         /**@type {string[]}*/
         let jsonL = itemsText.split("\n").filter(Boolean)
-        return jsonL
+        globals.entries = jsonL
             .map(mkStrItemId)
             .map(parseJsonL)
+        return globals.entries
     }
 }
 
@@ -308,13 +390,13 @@ async function loadAllEntries() {
  */
 async function loadQueriedEntries(search) {
     let queryString = "?_"
-    if(search.title) {
+    if (search.title) {
         queryString += `&title=${encodeURI(search.title)}`
     }
-    if(search.format) {
-        queryString += `&formats=${encodeURI(String(search.format))}`
+    if (search.format[0] != -1) {
+        queryString += `&formats=${encodeURI(search.format.join(","))}`
     }
-    if(search.type) {
+    if (search.type) {
         queryString += `&types=${encodeURI(search.type)}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)
@@ -334,8 +416,7 @@ async function loadQueriedEntries(search) {
 /**
 * @param {InfoEntry[] | undefined} items 
 */
-async function addEntries(items) {
-    console.log(items)
+async function addEntries(items, ignoreChildren = true) {
     if (!items) {
         return
     }
@@ -345,13 +426,17 @@ async function addEntries(items) {
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
     for (const item of items) {
-        if (item.Parent) {
+        if (item.Parent && ignoreChildren) {
             //TODO: put a link to children on each entry
             //when the link is clicked, all entries will be removed in favor of that item's children
             //also render the item itself
             continue
         }
-        createItemEntry(item)
+        let user = getUserEntry(item.ItemId)
+        let meta = item.Parent ?
+            getMetadataEntry(item.Parent) :
+            getMetadataEntry(item.ItemId)
+        createItemEntry(item, user, meta)
     }
 }
 
@@ -407,17 +492,38 @@ function query() {
     const form = /**@type {HTMLFormElement}*/(document.getElementById("query"))
     let data = new FormData(form)
     let enTitle = /**@type {string}*/(data.get("query"))
-    let format = /**@type {string}*/(data.get("format"))
+    // let format = /**@type {string}*/(data.get("format"))
     let ty = /**@type {string}*/(data.get("type"))
+
+    let formats = []
+    formats.push(data.getAll("format").map(Number))
 
     /**@type {DBQuery}*/
     let query = {
         title: enTitle,
         type: ty,
-        format: Number(format)
+        //@ts-ignore
+        format: formats.length ? formats : [-1]
+        // format: Number(format)
     }
 
     loadQueriedEntries(query).then(addEntries)
+}
+
+/**
+* @param {bigint[]} ids
+*/
+function displayEntry(ids) {
+    if(!Array.isArray(ids)) {
+        console.error("displayEntry: ids is not an array")
+        return
+    }
+    removeEntries()
+
+    addEntries(
+        ids.map(getInfoEntry),
+        false
+    )
 }
 
 function main() {

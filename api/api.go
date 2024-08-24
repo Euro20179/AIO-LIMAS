@@ -330,7 +330,13 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	var fmts []db.Format
 	var pars []int64
 	var tys []db.MediaTypes
-	collects := strings.Split(collections, ",")
+	collectsSplit := strings.Split(collections, ",")
+	var collects []string
+	for _, c := range collectsSplit {
+		if c != "" {
+			collects = append(collects, c)
+		}
+	}
 
 	if util.IsNumeric([]byte(purchaseGt)) {
 		pgt, _ = strconv.ParseFloat(purchaseGt, 64)

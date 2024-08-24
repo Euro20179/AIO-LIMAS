@@ -99,7 +99,6 @@ func (self *Format) IsDigital() bool {
 }
 
 func IsValidFormat(format int64) bool {
-	println(format, F_MOD_DIGITAL, )
 	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}

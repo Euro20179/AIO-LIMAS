@@ -16,8 +16,15 @@
     }
 
     /*make sure there is actually something in the anchor*/
+    a {
+        color: unset;
+        text-decoration: unset;
+        cursor: default;
+    }
     a[href*=":"] {
         color: var(--light-blue);
+        cursor: pointer;
+        text-decoration: underline;
     }
 
     button {
@@ -25,6 +32,7 @@
         border-radius: 5px;
         background: var(--main);
         color: white;
+        cursor: pointer;
     }
 }
 
@@ -105,6 +113,10 @@
                 &:not(:has(td)) {
                     display: none;
                 }
+            }
+
+            .children li::marker {
+                content: "";
             }
 
             h3 {
