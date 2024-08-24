@@ -27,6 +27,9 @@ Physical content will need to be entered in manually, however metadata should be
         - [x] pause
         - [x] continue
 - [ ] Library features
+    - [ ] copy of (id)
+        - that way if the user has say, a digital movie and blu ray of something
+        - they can have 2 entries, and the ui can know to display the same user/metadata for both
     - [x] media dependant metadata
     - [ ] proper collections
         - [ ] create collection
@@ -34,6 +37,8 @@ Physical content will need to be entered in manually, however metadata should be
         - [ ] cannot put entry in a collection unless collection exists
     - [ ] automatic metadata
         - [x] anlist
+            - [x] Anime
+            - [ ] Manga
         - [ ] tmdb
     - [ ] ~nfo files~
         - impossibly non-standard format

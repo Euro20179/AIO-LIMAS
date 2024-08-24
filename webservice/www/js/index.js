@@ -37,6 +37,14 @@
  * @property {string} Datapoints
  */
 
+/**
+ * @typedef DBQuery
+ * @type {object}
+ * @property {string} title
+ * @property {string} type
+ * @property {number} format
+ */
+
 /**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[]} }*/
 const globals = { formats: {}, userEntries: [], metadataEntries: [] }
 
@@ -71,9 +79,9 @@ function getMetadataEntry(id) {
  * @param {MetadataEntry?} newMeta
  */
 function setMetadataEntry(id, newMeta) {
-    for(let i = 0; i < globals.metadataEntries.length; i++) {
+    for (let i = 0; i < globals.metadataEntries.length; i++) {
         let entry = globals.metadataEntries[i]
-        if(entry.ItemId === id) {
+        if (entry.ItemId === id) {
             //@ts-ignore
             globals.metadataEntries[i] = newMeta
             return
@@ -191,13 +199,13 @@ function createItemEntry(item) {
     root.setAttribute("data-type", item.Type);
 
 
-    /**@type {HTMLElement}*/(clone.querySelector(".name")).innerHTML = item.En_Title
+    /**@type {HTMLElement}*/(clone.querySelector(".location")).append(item.En_Title)
 
     const userEntry = getUserEntry(item.ItemId);
 
     /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
 
-    if(item.PurchasePrice) {
+    if (item.PurchasePrice) {
         /**@type {HTMLElement}*/(clone.querySelector(".cost")).innerHTML = String(item.PurchasePrice)
     }
 
@@ -205,7 +213,6 @@ function createItemEntry(item) {
 
     if (item.Location) {
         const locationA = /**@type {HTMLAnchorElement}*/(clone.querySelector(".location"));
-        locationA.innerText = item.Location
         locationA.href = item.Location
     }
 
@@ -236,13 +243,13 @@ function createItemEntry(item) {
     const metaRefresher = /**@type {HTMLButtonElement}*/(clone.querySelector(".meta-fetcher"));
     metaRefresher.onclick = async function(e) {
         let res = await fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).catch(console.error)
-        if(res?.status != 200) {
+        if (res?.status != 200) {
             console.error(res)
             return
         }
 
         res = await fetch(`${apiPath}/metadata/retrieve?id=${item.ItemId}`).catch(console.error)
-        if(res?.status != 200) {
+        if (res?.status != 200) {
             console.error(res)
             return
         }
@@ -297,9 +304,37 @@ async function loadAllEntries() {
 }
 
 /**
+ * @param {DBQuery} search
+ */
+async function loadQueriedEntries(search) {
+    let queryString = "?_"
+    if(search.title) {
+        queryString += `&title=${encodeURI(search.title)}`
+    }
+    if(search.format) {
+        queryString += `&formats=${encodeURI(String(search.format))}`
+    }
+    if(search.type) {
+        queryString += `&types=${encodeURI(search.type)}`
+    }
+    const res = await fetch(`${apiPath}/query${queryString}`)
+        .catch(console.error)
+    if (!res) {
+        alert("Could not query entries")
+        return
+    }
+    let itemsText = await res.text()
+    let jsonL = itemsText.split("\n")
+        .filter(Boolean)
+        .map(mkStrItemId)
+        .map(parseJsonL)
+    return jsonL
+}
+
+/**
 * @param {InfoEntry[] | undefined} items 
 */
-async function addAllEntries(items) {
+async function addEntries(items) {
     console.log(items)
     if (!items) {
         return
@@ -310,7 +345,7 @@ async function addAllEntries(items) {
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
     for (const item of items) {
-        if(item.Parent) {
+        if (item.Parent) {
             //TODO: put a link to children on each entry
             //when the link is clicked, all entries will be removed in favor of that item's children
             //also render the item itself
@@ -360,6 +395,31 @@ async function loadMetadata() {
     return globals.metadataEntries
 }
 
+function removeEntries() {
+    const entryEl = document.getElementById("all-entries")
+    while (entryEl?.children.length) {
+        entryEl.firstChild?.remove()
+    }
+}
+
+function query() {
+    removeEntries()
+    const form = /**@type {HTMLFormElement}*/(document.getElementById("query"))
+    let data = new FormData(form)
+    let enTitle = /**@type {string}*/(data.get("query"))
+    let format = /**@type {string}*/(data.get("format"))
+    let ty = /**@type {string}*/(data.get("type"))
+
+    /**@type {DBQuery}*/
+    let query = {
+        title: enTitle,
+        type: ty,
+        format: Number(format)
+    }
+
+    loadQueriedEntries(query).then(addEntries)
+}
+
 function main() {
     loadFormats()
         // .then(loadCollections)
@@ -367,7 +427,7 @@ function main() {
         .then(loadUserEntries)
         .then(loadMetadata)
         .then(loadAllEntries)
-        .then(addAllEntries)
+        .then(addEntries)
         .catch(console.error)
 }
 main()

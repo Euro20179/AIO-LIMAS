@@ -9,6 +9,32 @@
 
 <body data-loading>
     <h1 style="text-align: center;">Welcome to the AIO LIMAS</h1>
+    <form id="query" action="javascript:query()">
+        <input type="search" name="query" placeholder="title">
+        <select name="format">
+            <option value="" selected>Format</option>
+            <option value="0">VHS</option>
+            <option value="1">CD</option>
+            <option value="2">DVD</option>
+            <option value="3">Blu Ray</option>
+            <option value="4">4k Blu Ray</option>
+            <option value="5">Manga</option>
+            <option value="6">Book</option>
+            <option value="7">Digital</option>
+            <option value="8">Board Game</option>
+        </select>
+        <select name="type">
+                <option value="">Type</option>
+                <option value="Show">Show</option>
+                <option value="Movie">Movie</option>
+                <option value="Manga">Manga</option>
+                <option value="Book">Book</option>
+                <option value="Game">Game</option>
+                <option value="Song">Song</option>
+                <option value="BoardGame">BoardGame</option>
+        </select>
+        <input type="submit" value="Locate!">
+    </form>
     <main>
         <!-- <h2>Collections</h2> -->
         <!-- <section id="collections"></section> -->
@@ -21,13 +47,12 @@
             <img src="/no-img" class="img">
             <section class="header">
                 <button class="meta-fetcher">⟳</button>
-                <h3 class="name"></h3>
+                    <h3 class="name"><a class="location"></a></h3>
                 <span class="rating"></span>
                 <span class="cost"></span>
             </section>
             <section class="middle">
                 <span class="collection"></span>
-                <a class="location"></a>
                 <span class="notes"></span>
             </section>
             <details class="basic-info">

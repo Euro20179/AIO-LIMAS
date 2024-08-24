@@ -15,7 +15,8 @@
         color: white;
     }
 
-    a {
+    /*make sure there is actually something in the anchor*/
+    a[href*=":"] {
         color: var(--light-blue);
     }
 
@@ -40,6 +41,12 @@
 }
 
 @layer components {
+
+    #query {
+        display: block;
+        margin: 50px;
+    }
+
     #all-entries {
         display: grid;
 
@@ -54,7 +61,7 @@
             border-radius: 2em;
             width: 100%;
 
-            overflow-y: auto;
+            overflow: auto auto;
 
             --side-margin: 10px;
 
