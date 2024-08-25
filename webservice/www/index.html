@@ -71,6 +71,13 @@
                 <span class="rating"></span>
                 <span class="cost"></span>
             </section>
+            <section class="actions">
+                <button onclick="beginMedia(this)" title="begin">▶</button>
+                <button onclick="endMedia(this)" title="finish">🏁</button>
+                <button onclick="mediaAction(this, 'drop')" title="drop">⏹</button>
+                <button onclick="mediaAction(this, 'pause')" title="pause">⏸</button>
+                <button onclick="mediaAction(this, 'resume')" title="resume">⏩</button>
+            </section>
             <section class="middle">
                 <span class="collection"></span>
                 <span class="notes"></span>
@@ -108,6 +115,7 @@
 
     <script src="/js/globals.js"></script>
     <script src="/js/index.js"></script>
+    <script src="/js/actions.js"></script>
 </body>
 
 </html>

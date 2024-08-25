@@ -147,7 +147,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	entry.Drop()
+	entry.Pause()
 
 	err = db.UpdateUserViewingEntry(&entry)
 	if err != nil {

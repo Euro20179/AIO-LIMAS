@@ -248,6 +248,7 @@ function createItemEntry(item, userEntry, meta) {
 
     const root = /**@type {HTMLElement}*/(clone.querySelector(".entry"));
     root.setAttribute("data-type", item.Type);
+    root.setAttribute("data-entry-id", String(item.ItemId));
 
     /**@type {HTMLElement}*/(clone.querySelector(".location")).append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
 
