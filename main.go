@@ -37,6 +37,7 @@ func main() {
 		"list-copies": api.GetCopies,
 		"list-descendants": api.GetDescendants,
 		"total-cost": api.TotalCostOf,
+		"list-tree": api.GetTree,
 	})
 
 	makeEndpoints(apiRoot + "/type", EndPointMap{

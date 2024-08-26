@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"time"
 )
@@ -336,13 +337,53 @@ func (self *UserViewingEntry) Resume() error {
 
 type EntryTree struct {
 	EntryInfo InfoEntry
-	UserInfo UserViewingEntry
-	MetaInfo MetadataEntry
-	Children []*EntryTree
-	Copies []*EntryTree
+	Children []string
+	Copies []string
 }
 
-func BuildEntryTree() ([]EntryTree, error) {
-	var out []EntryTree
+func (self *EntryTree) ToJson() ([]byte, error) {
+	return json.Marshal(*self)
+}
+
+func BuildEntryTree() (map[int64]EntryTree, error) {
+	out := map[int64]EntryTree{}
+
+	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
+	if err != nil{
+		return out, err
+	}
+
+	for allRows.Next() {
+		var cur EntryTree
+		err := cur.EntryInfo.ReadEntry(allRows)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+
+		children, err := GetChildren(cur.EntryInfo.ItemId)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+
+		for _, child := range children {
+			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
+		}
+
+		out[cur.EntryInfo.ItemId] = cur
+	}
+	//
+	// for id, cur := range out {
+	// 	children, err := GetChildren(id)
+	// 	if err != nil{
+	// 		println(err.Error())
+	// 		continue
+	// 	}
+	// 	for _, child := range children {
+	// 		cur.Children = append(cur.Children, child.ItemId)
+	// 	}
+	// }
+
 	return out, nil
 }

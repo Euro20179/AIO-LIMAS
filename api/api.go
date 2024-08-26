@@ -563,6 +563,22 @@ func GetDescendants(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("\n"))
 }
 
+func GetTree(w http.ResponseWriter, req *http.Request) {
+	tree, err := db.BuildEntryTree()
+	if err != nil{
+		wError(w, 500, "Could not build tree\n%s", err.Error())
+		return
+	}
+	jStr, err := json.Marshal(tree)
+	if err != nil{
+		wError(w, 500, "Could not marshal tree\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(jStr)
+}
+
 //TODO: allow this to accept multiple ids
 func TotalCostOf(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)

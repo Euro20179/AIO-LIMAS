@@ -1,15 +1,57 @@
-/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[] }}*/
-const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [] }
+/**
+ * @typedef EntryTree
+ * @type {Record<string, TreeNode>}
+ *
+ * @typedef TreeNode
+ * @type {object}
+ * @property {InfoEntry} EntryInfo
+ * @property {bigint[]} Children
+ * @property {bigint[]} Copies
+ */
+
+/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[], tree: EntryTree }}*/
+const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [], tree: {} }
+
+/**
+ * @param {bigint} id
+ * @returns {InfoEntry[]}
+ */
+function findChildren(id) {
+    let childrenIds = globals.tree[String(id)]?.Children || []
+    let entries = []
+    for (let childId of childrenIds) {
+        entries.push(globals.tree[String(childId)].EntryInfo)
+    }
+    return entries
+}
+
+/**
+ * @param {bigint} id
+ * @returns {number}
+ */
+function findTotalCostDeep(id, recurse = 0, maxRecursion = 10) {
+    if (recurse > maxRecursion) {
+        return 0
+    }
+    let item = globals.tree[String(id)]
+    let cost = item.EntryInfo.PurchasePrice
+
+    for (let child of item.Children || []) {
+        cost += findTotalCostDeep(child, recurse + 1, maxRecursion)
+    }
+
+    return cost
+}
 
 /**
  * @param {Record<string, any>} stats
  */
 function setGlobalStats(stats) {
     let out = /**@type {HTMLElement}*/(document.getElementById("total-stats"))
-    while(out.children.length) {
+    while (out.children.length) {
         out.firstChild?.remove()
     }
-    for(let name in stats) {
+    for (let name in stats) {
         let e = basicElement(`${name}: ${stats[name]}`, "li")
         out.append(e)
     }
@@ -95,7 +137,7 @@ function mkStrItemId(jsonl) {
 
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
-    const bigIntProperties = ["ItemId", "Parent"]
+    const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
     return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
 }
 
@@ -249,7 +291,7 @@ function createItemEntry(item, userEntry, meta) {
     if (item.Collection) {
         fills[".tags"] = e => {
             e.append("tags: ")
-            for(let tag of item.Collection.split(",")) {
+            for (let tag of item.Collection.split(",")) {
                 let tSpan = basicElement(tag, "span")
                 tSpan.classList.add("tag")
                 e.append(tSpan)
@@ -270,9 +312,14 @@ function createItemEntry(item, userEntry, meta) {
         el.src = meta.Thumbnail
     }
 
-    fills[".children"] = async e => {
-        let totalCost = await findTotalCostDeep(item);
-        let children = await getChildren(item.ItemId)
+    let totalCost = findTotalCostDeep(item.ItemId)
+    let children = findChildren(item.ItemId)
+
+    if(totalCost !== 0) {
+        fills['.cost'] = `$${totalCost}`
+    }
+
+    fills[".children"] = e => {
         if (!children.length) return
         //@ts-ignore
         e.parentNode.hidden = false
@@ -282,7 +329,7 @@ function createItemEntry(item, userEntry, meta) {
         e.append(allA)
 
         for (let child of children) {
-            let childCost = await findTotalCostDeep(child)
+            let childCost = findTotalCostDeep(child.ItemId)
             let a = /**@type {HTMLAnchorElement}*/ (basicElement(
                 basicElement(
                     `${child.En_Title} (${formatToStr(child.Format).toLowerCase()}) - $${childCost}`,
@@ -293,8 +340,6 @@ function createItemEntry(item, userEntry, meta) {
             a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
             e.append(a)
         }
-
-        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
     }
 
     fills[".copies"] = e => {
@@ -404,6 +449,24 @@ async function loadAllEntries() {
     }
 }
 
+async function loadEntryTree() {
+    const res = await fetch(`${apiPath}/list-tree`)
+        .catch(console.error)
+    if (!res) {
+        alert("Could not load entries")
+    } else {
+        let itemsText = await res.text()
+        itemsText = itemsText
+            .replaceAll(/"ItemId":\s*(\d+),/g, "\"ItemId\": \"$1\",")
+            .replaceAll(/"Parent":\s*(\d+),/g, "\"Parent\": \"$1\",")
+            .replaceAll(/"CopyOf":\s*(\d+),/g, "\"CopyOf\": \"$1\"")
+        const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
+        let json = JSON.parse(itemsText, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
+        globals.tree = json
+        return globals.tree
+    }
+}
+
 /**
  * @param {DBQuery} search
  */
@@ -433,6 +496,52 @@ async function loadQueriedEntries(search) {
 }
 
 /**
+ * @param {EntryTree | undefined} items
+ * @param {boolean} [ignoreChildren=true] 
+ * @param {boolean} [ignoreCopies=true]
+ */
+async function renderEntryTree(items, ignoreChildren = true, ignoreCopies = true) {
+    if (!items) {
+        return
+    }
+    items = Object.fromEntries(
+        Object.entries(items)
+            .sort(([id, _], [idB, __]) => {
+                const aUE = getUserEntry(BigInt(id))
+                const bUE = getUserEntry(BigInt(idB))
+                return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
+            })
+    )
+
+    let costFinders = []
+    let count = 0
+    let totalCount = 0
+    for (let id in items) {
+        totalCount++
+        let item = items[id]
+
+        if (item.EntryInfo.Parent && ignoreChildren) continue
+        if (item.EntryInfo.CopyOf && ignoreCopies) continue
+
+        let user = getUserEntry(item.EntryInfo.ItemId)
+        costFinders.push(getTotalCostDeep(item.EntryInfo))
+        let meta = item.EntryInfo.Parent ?
+            getMetadataEntry(item.EntryInfo.Parent) :
+            getMetadataEntry(item.EntryInfo.ItemId)
+        createItemEntry(item.EntryInfo, user, meta)
+        count++
+    }
+    let hiddenItems = totalCount - count
+
+    let totalCost = (await Promise.all(costFinders)).reduce((p, c) => p + c, 0)
+    setGlobalStats({
+        "Results": count,
+        "Hidden": hiddenItems,
+        "Cost": totalCost
+    })
+}
+
+/**
 * @param {InfoEntry[] | undefined} items 
 */
 async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
@@ -448,16 +557,13 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
     let costFinders = []
     for (const item of items) {
         if (item.Parent && ignoreChildren) {
-            //TODO: put a link to children on each entry
-            //when the link is clicked, all entries will be removed in favor of that item's children
-            //also render the item itself
             continue
         }
         if (item.CopyOf && ignoreCopies) {
             continue
         }
         let user = getUserEntry(item.ItemId)
-        costFinders.push(findTotalCostDeep(item))
+        costFinders.push(getTotalCostDeep(item))
         let meta = item.Parent ?
             getMetadataEntry(item.Parent) :
             getMetadataEntry(item.ItemId)
@@ -568,12 +674,11 @@ function displayEntry(ids) {
 
 function main() {
     loadFormats()
-        // .then(loadCollections)
-        // .then(addCollections)
         .then(loadUserEntries)
         .then(loadMetadata)
         .then(loadAllEntries)
-        .then(addEntries)
+        .then(loadEntryTree)
+        .then(renderEntryTree)
         .catch(console.error)
 }
 main()

@@ -89,7 +89,7 @@ async function getCopies(id) {
  * @param {InfoEntry} entry
  * @returns {Promise<number>} cost
  */
-async function findTotalCostDeep(entry) {
+async function getTotalCostDeep(entry) {
     if (String(entry.ItemId) in costCache) {
         return costCache[String(entry.ItemId)]
     }
@@ -97,35 +97,4 @@ async function findTotalCostDeep(entry) {
     let text = await res.text()
     costCache[String(entry.ItemId)] = Number(text)
     return Number(text)
-}
-
-class EntryTree {
-    /**
-    * @param {InfoEntry} entry
-    * @param {InfoEntry?} [parent=null] 
-    */
-    constructor(entry, parent = null) {
-        this.entry = entry
-        /**@type {EntryTree[]}*/
-        this.children = []
-        /**@type {EntryTree[]}*/
-        this.copies = []
-        /**@type {InfoEntry?}*/
-        this.parent = parent
-    }
-
-    /**
-    * @param {InfoEntry} entry
-    */
-    addChild(entry) {
-        let tree = new EntryTree(entry, this.entry)
-        this.children.push(tree)
-    }
-
-    /**
-    * @param {InfoEntry} entry
-    */
-    addCopy(entry) {
-        this.copies.push(new EntryTree(entry))
-    }
 }
