@@ -229,7 +229,7 @@ function fillBasicInfoSummary(container, item) {
         basicInfoEl.append(basicElement(`Copy of: ${item.CopyOf}`, "li"))
     }
     if (item.PurchasePrice) {
-        basicInfoEl.append(basicElement(`$Purchase: $${item.PurchasePrice}`))
+        basicInfoEl.append(basicElement(`Purchase: $${item.PurchasePrice}`))
     }
 }
 
