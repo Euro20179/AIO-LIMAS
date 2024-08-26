@@ -115,9 +115,9 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 		info.Location = location
 	}
 
-	collection := query.Get("collection")
-	if collection != "" {
-		info.Collection = collection
+	tags := query.Get("tags")
+	if tags != "" {
+		info.Collection = tags
 	}
 
 	err = db.UpdateInfoEntry(&info)
@@ -222,7 +222,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Native_Title = query.Get("native-title")
-	entryInfo.Collection = query.Get("collection")
+	entryInfo.Collection = query.Get("tags")
 	entryInfo.Location = query.Get("location")
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
@@ -355,7 +355,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	purchaseGt := query.Get("purchase-gt")
 	purchaselt := query.Get("purchase-lt")
 	formats := query.Get("formats")
-	collections := query.Get("collections")
+	tags := query.Get("tags")
 	types := query.Get("types")
 	parents := query.Get("parent-ids")
 	isAnime := query.Get("is-anime")
@@ -367,9 +367,9 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	var pars []int64
 	var cos []int64
 	var tys []db.MediaTypes
-	collectsSplit := strings.Split(collections, ",")
+	tagsSplit := strings.Split(tags, ",")
 	var collects []string
-	for _, c := range collectsSplit {
+	for _, c := range tagsSplit {
 		if c != "" {
 			collects = append(collects, c)
 		}
@@ -417,7 +417,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.LocationSearch = location
 	entrySearch.PurchasePriceGt = pgt
 	entrySearch.PurchasePriceLt = plt
-	entrySearch.InCollection = collects
+	entrySearch.InTags = collects
 	entrySearch.Format = fmts
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
@@ -491,7 +491,7 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	collection := req.URL.Query().Get("collection")
+	collection := req.URL.Query().Get("collection-id")
 
 	errs := db.ScanFolder(path, collection)
 

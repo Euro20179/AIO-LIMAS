@@ -31,10 +31,11 @@ Physical content will need to be entered in manually, however metadata should be
     - that way if the user has say, a digital movie and blu ray of something
     - they can have 2 entries, and the ui can know to display the same user/metadata for both
   - [x] media dependant metadata
-  - [ ] proper collections
-    - [ ] create collection
-    - [ ] delete collection
-    - [ ] cannot put entry in a collection unless collection exists
+  - [x] proper collections
+    - [x] create collection
+    - [x] delete collection
+    - [x] cannot put entry in a collection unless collection exists
+    - the way this is accomplished is simply by having a Collection TY.
   - [ ] automatic metadata
     - [x] anlist
       - [x] Anime

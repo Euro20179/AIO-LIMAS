@@ -322,7 +322,14 @@ function createItemEntry(item, userEntry, meta) {
     }
 
     if (item.Collection) {
-        fills[".collection"] = `Collection: ${item.Collection}`
+        fills[".tags"] = e => {
+            e.append("tags: ")
+            for(let tag of item.Collection.split(",")) {
+                let tSpan = basicElement(tag, "span")
+                tSpan.classList.add("tag")
+                e.append(tSpan)
+            }
+        }
     }
 
     if (item.Parent) {

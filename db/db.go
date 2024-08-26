@@ -403,7 +403,7 @@ type EntryInfoSearch struct {
 	LocationSearch    string
 	PurchasePriceGt   float64
 	PurchasePriceLt   float64
-	InCollection      []string
+	InTags      []string
 	HasParent         []int64
 	Type              []MediaTypes
 	IsAnime           int
@@ -461,10 +461,10 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	if mainSearchInfo.PurchasePriceLt != 0 {
 		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
 	}
-	if len(mainSearchInfo.InCollection) > 0 {
-		println(mainSearchInfo.InCollection[0])
+	if len(mainSearchInfo.InTags) > 0 {
+		println(mainSearchInfo.InTags[0])
 		cols := []interface{}{
-			mainSearchInfo.InCollection,
+			mainSearchInfo.InTags,
 		}
 		queries = append(queries, query.In("collection", sqlbuilder.Flatten(cols)...))
 	}
@@ -522,7 +522,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 
 func ListCollections() ([]string, error){
 	var out []string
-	rows, err := Db.Query(`SELECT DISTINCT collection FROM entryInfo`)
+	rows, err := Db.Query(`SELECT en_title FROM entryInfo WHERE type = 'Collection'`)
 	if err != nil{
 		return out, err
 	}
