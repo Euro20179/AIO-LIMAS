@@ -200,7 +200,7 @@ function fillBasicInfoSummary(container, item) {
     basicInfoEl.append(basicElement(typeText, "li"))
 
     basicInfoEl.append(basicElement(`Format: ${formatToStr(item.Format)}`, "li"))
-    if(item.CopyOf) {
+    if (item.CopyOf) {
         basicInfoEl.append(basicElement(`Copy of: ${item.CopyOf}`, "li"))
     }
     if (item.PurchasePrice) {
@@ -268,37 +268,96 @@ function formatToStr(format) {
  */
 function createItemEntry(item, userEntry, meta) {
     const out = /**@type {HTMLElement}*/(document.getElementById("all-entries"))
-    const itemTemplate = /**@type {HTMLTemplateElement}*/ (document.getElementById("item-entry"))
-    /**@type {HTMLElement}*/
-    const clone = /**@type {HTMLElement}*/(itemTemplate.content.cloneNode(true));
 
-    const root = /**@type {HTMLElement}*/(clone.querySelector(".entry"));
-    root.setAttribute("data-type", item.Type);
-    root.setAttribute("data-entry-id", String(item.ItemId));
+    /**@type {TemplateFiller}*/
+    const fills = {};
 
-    /**@type {HTMLElement}*/(clone.querySelector(".location")).append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
 
     if (userEntry?.UserRating) {
-        /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
+        fills[".rating"] = String(userEntry.UserRating || "#N/A")
     }
-
-
-    /**@type {HTMLElement}*/(clone.querySelector(".notes")).innerHTML = String(userEntry?.Notes || "");
+    fills[".notes"] = e => e.innerHTML = userEntry.Notes || "";
 
     if (item.Location) {
-        const locationA = /**@type {HTMLAnchorElement}*/(clone.querySelector(".location"));
-        locationA.href = item.Location
+        fills[".location"] = e => /**@type {HTMLAnchorElement}*/(e).href = item.Location
+    } else {
+        fills[".location"] = `${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`
     }
 
     if (item.Collection) {
-        /**@type {HTMLElement}*/(clone.querySelector(".collection")).innerHTML = `Collection: ${item.Collection}`
+        fills[".collection"] = `Collection: ${item.Collection}`
     }
 
     if (item.Parent) {
-        const parentA = /**@type {HTMLAnchorElement}*/(root.querySelector("a.parent"))
-        parentA.href = `javascript:displayEntry([${item.Parent}n])`
-        parentA.hidden = false
+        fills["a.parent"] = e => {
+            let el = /**@type {HTMLAnchorElement}*/(e)
+            el.href = `javascript:displayEntry([${item.Parent}n])`
+            el.hidden = false
+        }
     }
+
+    fills[".img"] = e => {
+        const el = /**@type {HTMLImageElement}*/(e)
+        el.src = meta.Thumbnail
+    }
+
+    fills[".children"] = e => {
+        getChildren(item.ItemId).then(children => {
+            if (!children.length) return
+            //@ts-ignore
+            e.parentNode.hidden = false
+
+            let allA = /**@type {HTMLAnchorElement}*/(basicElement("all children", "a"))
+            allA.href = `javascript:displayEntry([${children.map(i => i.ItemId).join("n, ")}n])`
+            e.append(allA)
+
+            for (let child of children) {
+                let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                    basicElement(
+                        `${child.En_Title} - $${child.PurchasePrice}`,
+                        "li"
+                    ),
+                    "a"
+                ))
+                a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+                e.append(a)
+            }
+
+            let totalCost = findTotalCost(item, children);
+        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
+        })
+    }
+
+    fills[".copies"] = e => {
+        getCopies(item.ItemId).then(copies => {
+            if (!copies.length) return
+            //@ts-ignore
+            e.parentNode.hidden = false
+
+            let allA = /**@type {HTMLAnchorElement}*/(basicElement("all copies", "a"))
+            allA.href = `javascript:displayEntry([${copies.map(i => i.ItemId).join("n, ")}n])`
+            e.append(allA)
+
+            for (let child of copies) {
+                let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                    basicElement(
+                        `${child.En_Title} - $${child.PurchasePrice}`,
+                        "li"
+                    ),
+                    "a"
+                ))
+                a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+                e.append(a)
+            }
+        })
+
+    }
+
+    if(item.PurchasePrice > 0) {
+        fills[".cost"] = `$${item.PurchasePrice}`
+    }
+
+    let root = fillTemplate("item-entry", fills)
 
     if (userEntry?.UserRating) {
         if (userEntry.UserRating >= 80) {
@@ -308,72 +367,10 @@ function createItemEntry(item, userEntry, meta) {
         }
     }
 
-    const img = /**@type {HTMLImageElement}*/(clone.querySelector(".img"));
+    fillBasicInfoSummary(root, item)
+    fillUserInfo(root, /**@type {UserEntry}*/(userEntry))
 
-    if (meta?.Thumbnail) {
-        img.src = meta.Thumbnail
-    }
-
-    getChildren(item.ItemId).then(children => {
-        if (!children.length) return
-        const list = /**@type {HTMLElement}*/ (root.querySelector(".children"))
-        //@ts-ignore
-        list.parentNode.hidden = false
-
-        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all children", "a"))
-        allA.href = `javascript:displayEntry([${children.map(i => i.ItemId).join("n, ")}n])`
-        list.append(allA)
-
-        for (let child of children) {
-            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
-                basicElement(
-                    `${child.En_Title} - $${child.PurchasePrice}`,
-                    "li"
-                ),
-                "a"
-            ))
-            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
-            list.append(a)
-        }
-
-        let totalCost = findTotalCost(item, children);
-        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
-    })
-
-    getCopies(item.ItemId).then(copies => {
-        if (!copies.length) return
-        const list = /**@type {HTMLElement}*/ (root.querySelector(".copies"))
-        //@ts-ignore
-        list.parentNode.hidden = false
-
-        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all copies", "a"))
-        allA.href = `javascript:displayEntry([${copies.map(i => i.ItemId).join("n, ")}n])`
-        list.append(allA)
-
-        for (let child of copies) {
-            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
-                basicElement(
-                    `${child.En_Title} - $${child.PurchasePrice}`,
-                    "li"
-                ),
-                "a"
-            ))
-            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
-            list.append(a)
-        }
-    })
-
-
-    if (item.PurchasePrice) {
-        /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${item.PurchasePrice}`
-    }
-
-
-    fillBasicInfoSummary(clone, item)
-    fillUserInfo(clone, /**@type {UserEntry}*/(userEntry))
-
-
-    const metaRefresher = /**@type {HTMLButtonElement}*/(clone.querySelector(".meta-fetcher"));
+    const metaRefresher = /**@type {HTMLButtonElement}*/(root.querySelector(".meta-fetcher"));
     metaRefresher.onclick = async function(e) {
         let res = await fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).catch(console.error)
         if (res?.status != 200) {
@@ -390,9 +387,10 @@ function createItemEntry(item, userEntry, meta) {
         const json = /**@type {MetadataEntry}*/(await res.json())
 
         setMetadataEntry(item.ItemId, json)
+        const img = /**@type {HTMLImageElement}*/(root.querySelector(".img"))
         img.src = json.Thumbnail
     }
-    out.appendChild(clone)
+    out.appendChild(root)
 }
 
 async function loadCollections() {
@@ -479,14 +477,13 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
     })
     let count = 0
     for (const item of items) {
-        console.log(item, ignoreChildren)
         if (item.Parent && ignoreChildren) {
             //TODO: put a link to children on each entry
             //when the link is clicked, all entries will be removed in favor of that item's children
             //also render the item itself
             continue
         }
-        if(item.CopyOf && ignoreCopies) {
+        if (item.CopyOf && ignoreCopies) {
             continue
         }
         let user = getUserEntry(item.ItemId)
@@ -570,7 +567,6 @@ function query() {
     }
 
     loadQueriedEntries(query).then(entries => {
-        console.log(displayChildren, displayCopies)
         addEntries(entries, displayChildren !== "on", displayCopies !== "on")
     })
 }

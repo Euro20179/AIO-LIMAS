@@ -68,6 +68,10 @@ func ensureCopyOfCol(db *sql.DB) {
 		if err != nil {
 			panic("Could not add isAnime col\n" + err.Error())
 		}
+		_, err = db.Exec("UPDATE entryInfo SET copyOf = 0")
+		if err != nil{
+			panic("Could not set copyIds to 0")
+		}
 	}
 }
 
