@@ -53,11 +53,17 @@ const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: []
 
 /**
  * @param {number} resultCount
+ * @param {number} totalCost
  */
-function setGlobalStats(resultCount) {
+function setGlobalStats(resultCount, totalCost) {
     let out = /**@type {HTMLElement}*/(document.getElementById("total-stats"))
+    while(out.children.length) {
+        out.firstChild?.remove()
+    }
     let e = basicElement(`Results: ${resultCount}`, "li")
+    let cost = basicElement(`Cost: ${totalCost}`, "li")
     out.append(e)
+    out.append(cost)
 }
 
 /**
@@ -116,6 +122,19 @@ async function getChildren(id) {
  * @param {bigint} id 
  * @returns {Promise<InfoEntry[]>}
  */
+async function getDescendants(id) {
+    let res = await fetch(`${apiPath}/list-descendants?id=${id}`)
+    let text = await res.text()
+    return /**@type {InfoEntry[]}*/ text.split("\n")
+        .filter(Boolean)
+        .map(mkStrItemId)
+        .map(parseJsonL)
+}
+
+/**
+ * @param {bigint} id 
+ * @returns {Promise<InfoEntry[]>}
+ */
 async function getCopies(id) {
     let res = await fetch(`${apiPath}/query?copy-ids=${id}`)
     let text = await res.text()
@@ -145,18 +164,13 @@ async function findTotalCostDeep(entry, depth = 0, maxDepth = 10) {
     if (depth == maxDepth) {
         return cost
     }
-    let children = await getChildren(entry.ItemId)
+    let children = await getDescendants(entry.ItemId)
     if (!children.length) {
         return cost
     }
 
-    let finding = []
     for (let child of children) {
-        finding.push(findTotalCostDeep(child, depth + 1))
-    }
-    let values = await Promise.all(finding)
-    for (let val of values) {
-        cost += val
+        cost += child.PurchasePrice
     }
     return cost
 }
@@ -551,7 +565,18 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         createItemEntry(item, user, meta)
         count++
     }
-    setGlobalStats(count)
+    //the only reason this total cost thing works
+    //is because we are given all search result items
+    //if per say, we only got the Erased Collection entry, it would say total cost is 0
+    //because it doesn't do a totalCost deep
+    //
+    //TODO: make the ui send a request to set the cost of a parent
+    //the parent cost will be the sum of the children costs
+    let totalCost = 0
+    for(let entry of items) {
+        totalCost += findTotalCost(entry, [])
+    }
+    setGlobalStats(count, totalCost)
 }
 
 /**@returns {Promise<UserEntry[]>}*/

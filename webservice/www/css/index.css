@@ -50,8 +50,14 @@
 
 @layer components {
 
-    #total-stats li::marker {
-        content: "";
+    #total-stats {
+
+        display: flex;
+        gap: 50px;
+
+        li::marker {
+            content: "";
+        }
     }
 
 
