@@ -12,6 +12,10 @@ func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override 
 	switch entry.Type {
 	case db.TY_MANGA:
 		return AnilistManga(entry, metadataEntry)
+	case db.TY_SHOW:
+		return OMDBProvider(entry, metadataEntry)
+	case db.TY_MOVIE:
+		return OMDBProvider(entry, metadataEntry)
 	}
 	var out db.MetadataEntry
 	return out, nil
@@ -36,4 +40,5 @@ var Providers ProviderMap = ProviderMap{
 	"anilist":       AnlistProvider,
 	"anilist-manga": AnilistManga,
 	"anilist-show":  AnilistShow,
+	"omdb":          OMDBProvider,
 }

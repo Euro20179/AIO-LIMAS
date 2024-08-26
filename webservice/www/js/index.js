@@ -279,9 +279,21 @@ function createItemEntry(item, userEntry, meta) {
     fills[".notes"] = e => e.innerHTML = userEntry.Notes || "";
 
     if (item.Location) {
-        fills[".location"] = e => /**@type {HTMLAnchorElement}*/(e).href = item.Location
+        fills[".location"] = e => {
+            let el = /**@type {HTMLAnchorElement}*/(e)
+            el.href = item.Location
+            el.append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
+            if (item.Native_Title) {
+                el.title = `Native: ${item.Native_Title}`
+            }
+        }
     } else {
-        fills[".location"] = `${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`
+        fills[".location"] = e => {
+            e.append( `${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
+            if (item.Native_Title) {
+                e.title = `Native: ${item.Native_Title}`
+            }
+        }
     }
 
     if (item.Collection) {
@@ -353,7 +365,7 @@ function createItemEntry(item, userEntry, meta) {
 
     }
 
-    if(item.PurchasePrice > 0) {
+    if (item.PurchasePrice > 0) {
         fills[".cost"] = `$${item.PurchasePrice}`
     }
 

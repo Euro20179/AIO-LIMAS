@@ -39,7 +39,9 @@ Physical content will need to be entered in manually, however metadata should be
         - [x] anlist
             - [x] Anime
             - [ ] Manga
-        - [ ] tmdb
+        - [ ] ~tmdb~
+            - requires billing address
+        - [x] omdb
     - [ ] ~nfo files~
         - impossibly non-standard format
     - [x] allow user to change metadata

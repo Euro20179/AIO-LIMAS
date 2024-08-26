@@ -125,8 +125,8 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	}
 
 	mediaDependant["Show-episodes"] = strconv.Itoa(int(out.Episodes))
-	mediaDependant["Show-episode-duration"] = strconv.Itoa(int(out.Episodes))
-	mediaDependant["Show-length"] = strconv.Itoa(int(out.Episodes))
+	mediaDependant["Show-episode-duration"] = strconv.Itoa(int(out.Duration))
+	mediaDependant["Show-length"] = strconv.Itoa(int(out.Episodes) * int(out.Duration))
 	mediaDependant["Show-airing-status"] = out.Status
 
 	mdString, _ := json.Marshal(mediaDependant)
