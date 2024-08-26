@@ -52,11 +52,12 @@
 const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [] }
 
 /**
- * @param {number} count
+ * @param {number} resultCount
  */
-function setResultCount(count) {
-    let e = /**@type {HTMLElement}*/(document.getElementById("result-count"));
-    e.innerText = String(count)
+function setGlobalStats(resultCount) {
+    let out = /**@type {HTMLElement}*/(document.getElementById("total-stats"))
+    let e = basicElement(`Results: ${resultCount}`, "li")
+    out.append(e)
 }
 
 /**
@@ -268,6 +269,19 @@ function fillUserInfo(container, item) {
 }
 
 /**
+ * @param {string} type
+ * @returns {string}
+ */
+function typeToEmoji(type) {
+    return {
+        "Movie": "🎬︎",
+        "Manga": "本",
+        "Book": "📚︎",
+        "Show": "📺︎"
+    }[type] || type
+}
+
+/**
  * @param {number} format
  * @returns {string}
  */
@@ -307,14 +321,14 @@ function createItemEntry(item, userEntry, meta) {
         fills[".location"] = e => {
             let el = /**@type {HTMLAnchorElement}*/(e)
             el.href = item.Location
-            el.append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
+            el.append(`${item.En_Title} (${typeToEmoji(item.Type)} ${formatToStr(item.Format).toLowerCase()})`)
             if (item.Native_Title) {
                 el.title = `Native: ${item.Native_Title}`
             }
         }
     } else {
         fills[".location"] = e => {
-            e.append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
+            e.append(`${item.En_Title} (${typeToEmoji(item.Type)} ${formatToStr(item.Format).toLowerCase()})`)
             if (item.Native_Title) {
                 e.title = `Native: ${item.Native_Title}`
             }
@@ -537,7 +551,7 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         createItemEntry(item, user, meta)
         count++
     }
-    setResultCount(count)
+    setGlobalStats(count)
 }
 
 /**@returns {Promise<UserEntry[]>}*/

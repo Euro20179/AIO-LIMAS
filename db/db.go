@@ -554,3 +554,7 @@ func GetCopiesOf(id int64) ([]InfoEntry, error) {
 	}
 	return out, nil
 }
+//
+// func GetTree(id int64) ([]InfoEntry, error) {
+// 	var out []InfoEntry
+// }

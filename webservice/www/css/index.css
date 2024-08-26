@@ -50,9 +50,10 @@
 
 @layer components {
 
-    #result-count::before {
-        content: "Results "
+    #total-stats li::marker {
+        content: "";
     }
+
 
     #query {
         display: block;

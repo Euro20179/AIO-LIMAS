@@ -536,7 +536,15 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request) {
 	}
 	success(w)
 }
-
+//
+// func GetTree(w http.ResponseWriter, req *http.Request) {
+// 	entry, err := verifyIdAndGetUserEntry(w, req)
+// 	if err != nil{
+// 		wError(w, 400, "Could not find entry\n%s", err.Error())
+// 		return
+// 	}
+// }
+//
 func verifyIdQueryParam(req *http.Request) (int64, error) {
 	id := req.URL.Query().Get("id")
 	if id == "" {
