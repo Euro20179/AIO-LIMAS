@@ -47,7 +47,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] scanning folders
     - [ ] search
         - [ ] search based on metadata entries
-        - [] search based on user info entries
+        - [ ] search based on user info entries
         - [x] search based on info entries
         - [ ] search based on a combination of various entries
         - [x] search filters

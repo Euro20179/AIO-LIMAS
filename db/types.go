@@ -164,10 +164,23 @@ type InfoEntry struct {
 	Parent        int64
 	Type          MediaTypes
 	IsAnime       bool
+	CopyOf        int64
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
-	return rows.Scan(&self.ItemId, &self.En_Title, &self.Native_Title, &self.Format, &self.Location, &self.PurchasePrice, &self.Collection, &self.Type, &self.Parent, &self.IsAnime)
+	return rows.Scan(
+		&self.ItemId,
+		&self.En_Title,
+		&self.Native_Title,
+		&self.Format,
+		&self.Location,
+		&self.PurchasePrice,
+		&self.Collection,
+		&self.Type,
+		&self.Parent,
+		&self.IsAnime,
+		&self.CopyOf,
+	)
 }
 
 func (self *InfoEntry) ToJson() ([]byte, error) {

@@ -13,7 +13,7 @@ import (
 
 var Db *sql.DB
 
-func hasAnimeCol(db *sql.DB) bool {
+func dbHasCol(db *sql.DB, colName string) bool {
 	info, _ := db.Query("PRAGMA table_info('entryInfo')")
 	defer info.Close()
 	for info.Next() {
@@ -22,7 +22,7 @@ func hasAnimeCol(db *sql.DB) bool {
 		var ty string
 		var z string
 		info.Scan(&id, &name, &ty, &x, &z, &y)
-		if name == "isAnime" {
+		if name == colName{
 			return true
 		}
 	}
@@ -30,7 +30,7 @@ func hasAnimeCol(db *sql.DB) bool {
 }
 
 func ensureAnimeCol(db *sql.DB) {
-	if !hasAnimeCol(db) {
+	if !dbHasCol(db, "isAnime") {
 		_, err := db.Exec("ALTER TABLE entryInfo ADD COLUMN isAnime INTEGER")
 		if err != nil {
 			panic("Could not add isAnime col\n" + err.Error())
@@ -62,6 +62,15 @@ func ensureAnimeCol(db *sql.DB) {
 	}
 }
 
+func ensureCopyOfCol(db *sql.DB) {
+	if !dbHasCol(db, "copyOf") {
+		_, err := db.Exec("ALTER TABLE entryInfo ADD COLUMN copyOf INTEGER")
+		if err != nil {
+			panic("Could not add isAnime col\n" + err.Error())
+		}
+	}
+}
+
 func InitDb(dbPath string) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	sqlite3.Version()
@@ -80,6 +89,7 @@ func InitDb(dbPath string) {
 			 type TEXT,
 			 parentId INTEGER
 			 isAnime INTEGER
+			copyOf INTEGER
 		)`)
 	if err != nil {
 		panic("Failed to create general info table\n" + err.Error())
@@ -115,6 +125,7 @@ func InitDb(dbPath string) {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
 	ensureAnimeCol(conn)
+	ensureCopyOfCol(conn)
 	Db = conn
 }
 
@@ -369,12 +380,13 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 			collection = ?,
 			parentId = ?,
 			type = ?,
-			isAnime = ?
+			isAnime = ?,
+			copyOf = ?
 		WHERE
 			itemId = ?
 	`, entry.En_Title, entry.Native_Title, entry.Format,
 		entry.Location, entry.PurchasePrice, entry.Collection,
-		entry.Parent, entry.Type, entry.IsAnime, entry.ItemId)
+		entry.Parent, entry.Type, entry.IsAnime, entry.CopyOf, entry.ItemId)
 	return err
 }
 
@@ -389,6 +401,7 @@ type EntryInfoSearch struct {
 	HasParent         []int64
 	Type              []MediaTypes
 	IsAnime           int
+	CopyIds []int64
 }
 
 func buildQString[T any](withList []T) string {
@@ -455,6 +468,12 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		}
 		queries = append(queries, query.In("parentId", sqlbuilder.Flatten(pars)...))
 	}
+	if len(mainSearchInfo.CopyIds) > 0 {
+		cos := []interface{} {
+			mainSearchInfo.CopyIds,
+		}
+		queries = append(queries, query.In("copyOf", sqlbuilder.Flatten(cos)...))
+	}
 	if len(mainSearchInfo.Type) > 0 {
 		tys := []interface{}{
 			mainSearchInfo.Type,
@@ -508,6 +527,24 @@ func ListCollections() ([]string, error){
 			return out, err
 		}
 		out = append(out, collection)
+	}
+	return out, nil
+}
+
+func GetCopiesOf(id int64) ([]InfoEntry, error) {
+	var out []InfoEntry
+	rows, err := Db.Query("SELECT * FROM entryInfo WHERE copyOf = ?", id)
+	if err != nil{
+		return out, err
+	}
+
+	for rows.Next() {
+		var entry InfoEntry
+		err := entry.ReadEntry(rows)
+		if err != nil{
+			return out, err
+		}
+		out = append(out, entry)
 	}
 	return out, nil
 }

@@ -85,6 +85,21 @@ func ModEntry(w http.ResponseWriter, req *http.Request) {
 		info.Parent = parentIdI
 	}
 
+	copyId := query.Get("copy-id")
+	if copyId != "" {
+		copyIdI, err := strconv.ParseInt(copyId, 10, 64)
+		if err != nil {
+			wError(w, 400, "Invalid copy id %s\n%s", copyId, err.Error())
+			return
+		}
+
+		if _, err := db.GetInfoEntryById(copyIdI); err != nil {
+			wError(w, 400, "Non existant item %d\n%s", copyIdI, err.Error())
+			return
+		}
+		info.CopyOf = copyIdI
+	}
+
 	price := query.Get("price")
 	if price != "" {
 		priceF, err := strconv.ParseFloat(price, 64)
@@ -121,6 +136,7 @@ price: float64
 location: string
 parentId: int64
 format: Format
+copyOf: int64
 */
 func AddEntry(w http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
@@ -179,6 +195,24 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		parentId = p.ItemId
 	}
 
+	copyOf := query.Get("copyOf")
+	var copyOfId int64 = 0
+	if copyOf != "" {
+		i, err := strconv.Atoi(copyOf)
+		if err != nil {
+			w.WriteHeader(400)
+			fmt.Fprintf(w, "Invalid copy id: %s\n"+err.Error(), i)
+			return
+		}
+		p, err := db.GetInfoEntryById(int64(i))
+		if err != nil {
+			w.WriteHeader(400)
+			fmt.Fprintf(w, "Item does not exist: %d\n", i)
+			return
+		}
+		copyOfId = p.ItemId
+	}
+
 	ty := query.Get("type")
 
 	isAnime := query.Get("is-anime")
@@ -193,6 +227,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
 	entryInfo.IsAnime = anime
+	entryInfo.CopyOf = copyOfId
 	if db.IsValidType(ty) {
 		entryInfo.Type = db.MediaTypes(ty)
 	} else {
@@ -324,11 +359,13 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	types := query.Get("types")
 	parents := query.Get("parent-ids")
 	isAnime := query.Get("is-anime")
+	copyIds := query.Get("copy-ids")
 
 	pgt := 0.0
 	plt := 0.0
 	var fmts []db.Format
 	var pars []int64
+	var cos []int64
 	var tys []db.MediaTypes
 	collectsSplit := strings.Split(collections, ",")
 	var collects []string
@@ -367,6 +404,13 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	for _, co := range strings.Split(copyIds, ",") {
+		if util.IsNumeric([]byte(co)) {
+			c, _ := strconv.ParseInt(co, 10, 64)
+			cos = append(cos, c)
+		}
+	}
+
 	var entrySearch db.EntryInfoSearch
 	entrySearch.TitleSearch = title
 	entrySearch.NativeTitleSearch = nativeTitle
@@ -377,6 +421,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.Format = fmts
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
+	entrySearch.CopyIds = cos
 	switch isAnime {
 	case "true":
 		entrySearch.IsAnime = 2
@@ -393,6 +438,30 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(200)
 	for _, row := range rows {
+		j, err := row.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+}
+
+func GetCopies(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil {
+		wError(w, 400, "Could not find entry\n")
+		return
+	}
+
+	copies, err := db.GetCopiesOf(entry.ItemId)
+	if err != nil {
+		wError(w, 500, "Could not get copies of %d\n%s", entry.ItemId, err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	for _, row := range copies {
 		j, err := row.ToJson()
 		if err != nil {
 			println(err.Error())

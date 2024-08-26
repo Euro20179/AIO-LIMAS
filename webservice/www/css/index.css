@@ -121,7 +121,7 @@
                 }
             }
 
-            .children li::marker {
+            :is(.children, .copies) li::marker {
                 content: "";
             }
 

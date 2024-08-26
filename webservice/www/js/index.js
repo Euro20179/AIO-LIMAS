@@ -23,6 +23,7 @@
  * @property {number} PurchasePrice
  * @property {string} Type
  * @property {string} En_Title
+ * @property {bigint} CopyOf
  */
 
 /**
@@ -43,6 +44,8 @@
  * @property {string} title
  * @property {string} type
  * @property {number[]} format
+ * @property {boolean} children
+ * @property {boolean} copies
  */
 
 /**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[] }}*/
@@ -101,13 +104,24 @@ async function getChildren(id) {
 }
 
 /**
+ * @param {bigint} id 
+ * @returns {Promise<InfoEntry[]>}
+ */
+async function getCopies(id) {
+    let res = await fetch(`${apiPath}/query?copy-ids=${id}`)
+    let text = await res.text()
+    return /**@type {InfoEntry[]}*/ text.split("\n")
+        .filter(Boolean).map(mkStrItemId).map(parseJsonL)
+}
+
+/**
  * @param {InfoEntry} entry
  * @param {InfoEntry[]} children
  * @returns number
  */
 function findTotalCost(entry, children) {
     let cost = entry.PurchasePrice || 0
-    for(let child of children) {
+    for (let child of children) {
         cost += child.PurchasePrice || 0
     }
     return cost
@@ -133,6 +147,7 @@ function mkStrItemId(jsonl) {
     return jsonl
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
         .replace(/"Parent":\s*(\d+),/, "\"Parent\": \"$1\",")
+        .replace(/"CopyOf":\s*(\d+),/, "\"CopyOf\": \"$1\"")
 }
 
 /**@param {string} jsonl*/
@@ -177,6 +192,9 @@ function fillBasicInfoSummary(container, item) {
     basicInfoEl.append(basicElement(typeText, "li"))
 
     basicInfoEl.append(basicElement(`Format: ${formatToStr(item.Format)}`, "li"))
+    if(item.CopyOf) {
+        basicInfoEl.append(basicElement(`Copy of: ${item.CopyOf}`, "li"))
+    }
     if (item.PurchasePrice) {
         basicInfoEl.append(basicElement(`$Purchase: $${item.PurchasePrice}`))
     }
@@ -255,7 +273,7 @@ function createItemEntry(item, userEntry, meta) {
     if (userEntry?.UserRating) {
         /**@type {HTMLElement}*/(clone.querySelector(".rating")).innerHTML = String(userEntry?.UserRating) || "#N/A";
     }
-    
+
 
     /**@type {HTMLElement}*/(clone.querySelector(".notes")).innerHTML = String(userEntry?.Notes || "");
 
@@ -268,7 +286,7 @@ function createItemEntry(item, userEntry, meta) {
         /**@type {HTMLElement}*/(clone.querySelector(".collection")).innerHTML = `Collection: ${item.Collection}`
     }
 
-    if(item.Parent) {
+    if (item.Parent) {
         const parentA = /**@type {HTMLAnchorElement}*/(root.querySelector("a.parent"))
         parentA.href = `javascript:displayEntry([${item.Parent}n])`
         parentA.hidden = false
@@ -313,6 +331,31 @@ function createItemEntry(item, userEntry, meta) {
         let totalCost = findTotalCost(item, children);
         /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
     })
+
+    getCopies(item.ItemId).then(copies => {
+        if (!copies.length) return
+        const list = /**@type {HTMLElement}*/ (root.querySelector(".copies"))
+        //@ts-ignore
+        list.parentNode.hidden = false
+
+        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all copies", "a"))
+        allA.href = `javascript:displayEntry([${copies.map(i => i.ItemId).join("n, ")}n])`
+        list.append(allA)
+
+        for (let child of copies) {
+            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                basicElement(
+                    `${child.En_Title} - $${child.PurchasePrice}`,
+                    "li"
+                ),
+                "a"
+            ))
+            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+            list.append(a)
+        }
+    })
+
+
     if (item.PurchasePrice) {
         /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${item.PurchasePrice}`
     }
@@ -417,7 +460,7 @@ async function loadQueriedEntries(search) {
 /**
 * @param {InfoEntry[] | undefined} items 
 */
-async function addEntries(items, ignoreChildren = true) {
+async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
     if (!items) {
         return
     }
@@ -427,10 +470,14 @@ async function addEntries(items, ignoreChildren = true) {
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
     for (const item of items) {
+        console.log(item, ignoreChildren)
         if (item.Parent && ignoreChildren) {
             //TODO: put a link to children on each entry
             //when the link is clicked, all entries will be removed in favor of that item's children
             //also render the item itself
+            continue
+        }
+        if(item.CopyOf && ignoreCopies) {
             continue
         }
         let user = getUserEntry(item.ItemId)
@@ -496,6 +543,9 @@ function query() {
     // let format = /**@type {string}*/(data.get("format"))
     let ty = /**@type {string}*/(data.get("type"))
 
+    let displayChildren = /**@type {string}*/(data.get("children"))
+    let displayCopies = /**@type {string}*/(data.get("copies"))
+
     let formats = []
     formats.push(data.getAll("format").map(Number))
 
@@ -508,14 +558,17 @@ function query() {
         // format: Number(format)
     }
 
-    loadQueriedEntries(query).then(addEntries)
+    loadQueriedEntries(query).then(entries => {
+        console.log(displayChildren, displayCopies)
+        addEntries(entries, displayChildren !== "on", displayCopies !== "on")
+    })
 }
 
 /**
 * @param {bigint[]} ids
 */
 function displayEntry(ids) {
-    if(!Array.isArray(ids)) {
+    if (!Array.isArray(ids)) {
         console.error("displayEntry: ids is not an array")
         return
     }
@@ -523,6 +576,7 @@ function displayEntry(ids) {
 
     addEntries(
         ids.map(getInfoEntry),
+        false,
         false
     )
 }

@@ -53,6 +53,8 @@
             <option value="Song">Song</option>
             <option value="BoardGame">BoardGame</option>
         </select>
+            <label title="display children"><input type="checkbox" name="children">children</label>
+            <label title="display copies"><input type="checkbox" name="copies">copies</label>
         <input type="submit" value="Locate!">
     </form>
     <main>
@@ -87,6 +89,10 @@
                 <summary>Children</summary>
                 <ul class="children">
                 </ul>
+            </details>
+            <details hidden>
+                <summary>Copies</summary>
+                <ul class="copies"></ul>
             </details>
             <details class="basic-info">
                 <summary>

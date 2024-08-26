@@ -34,6 +34,7 @@ func main() {
 		"stream-entry":     api.Stream,
 		"delete-entry":     api.DeleteEntry,
 		"list-collections": api.ListCollections,
+		"list-copies": api.GetCopies,
 	})
 
 	makeEndpoints(apiRoot + "/type", EndPointMap{
