@@ -35,6 +35,7 @@ func main() {
 		"delete-entry":     api.DeleteEntry,
 		"list-collections": api.ListCollections,
 		"list-copies": api.GetCopies,
+		"list-descendants": api.GetDescendants,
 	})
 
 	makeEndpoints(apiRoot + "/type", EndPointMap{

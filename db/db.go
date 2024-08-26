@@ -543,7 +543,12 @@ func GetCopiesOf(id int64) ([]InfoEntry, error) {
 	if err != nil{
 		return out, err
 	}
+	return mkRows(rows)
+}
 
+func mkRows(rows *sql.Rows) ([]InfoEntry, error) {
+	var out []InfoEntry
+	defer rows.Close()
 	for rows.Next() {
 		var entry InfoEntry
 		err := entry.ReadEntry(rows)
@@ -554,7 +559,38 @@ func GetCopiesOf(id int64) ([]InfoEntry, error) {
 	}
 	return out, nil
 }
-//
-// func GetTree(id int64) ([]InfoEntry, error) {
-// 	var out []InfoEntry
-// }
+
+func GetChildren(id int64) ([]InfoEntry, error) {
+	var out []InfoEntry
+	rows, err := Db.Query("SELECT * FROM entryInfo where parentId = ?", id)
+	if err != nil{
+		return out, err
+	}
+	return mkRows(rows)
+}
+
+func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, error){
+	var out []InfoEntry
+	if(recurse > maxRecurse) {
+		return out, nil
+	}
+
+	children, err := GetChildren(id)
+	if err != nil{
+		return out, err
+	}
+
+	for _, item := range children {
+		out = append(out, item)
+		newItems, err := getDescendants(item.ItemId, recurse + 1, maxRecurse)
+		if err != nil{
+			continue
+		}
+		out = append(out, newItems...)
+	}
+	return out, nil
+}
+
+func GetDescendants(id int64) ([]InfoEntry, error) {
+	return getDescendants(id, 0, 10)
+}
