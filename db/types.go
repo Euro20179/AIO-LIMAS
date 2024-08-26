@@ -115,12 +115,14 @@ const (
 	TY_SONG      MediaTypes = "Song"
 	TY_BOOK      MediaTypes = "Book"
 	TY_MANGA     MediaTypes = "Manga"
+	TY_COLLECTION MediaTypes = "Collection"
 )
 
 func ListMediaTypes() []MediaTypes {
 	return []MediaTypes{
 		TY_SHOW, TY_MOVIE, TY_GAME,
 		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
+		TY_COLLECTION,
 	}
 }
 

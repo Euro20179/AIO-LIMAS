@@ -65,6 +65,14 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] by price
     - [ ] by rating
     - [ ] alpha
+  - [ ] search
+    - [ ] by collection
+    - [ ] by rating
+    - [x] by type
+      - [ ] multiple
+    - [x] by format
+      - [ ] multiple
+    - [x] by title
   - [ ] add item
   - [ ] edit item
   - [ ] delete item

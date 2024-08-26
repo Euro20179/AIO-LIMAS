@@ -202,8 +202,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			collection,
 			parentId,
 			type,
-			isAnime
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			isAnime,
+			copyOf
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := Db.Exec(entryQuery, id,
 		entryInfo.En_Title,
@@ -214,7 +215,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		entryInfo.Collection,
 		entryInfo.Parent,
 		entryInfo.Type,
-		entryInfo.IsAnime)
+		entryInfo.IsAnime,
+		entryInfo.CopyOf)
 	if err != nil {
 		return err
 	}

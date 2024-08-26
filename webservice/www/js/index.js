@@ -136,6 +136,31 @@ function findTotalCost(entry, children) {
 }
 
 /**
+ * @param {InfoEntry} entry
+ * @param {number} depth
+ */
+async function findTotalCostDeep(entry, depth = 0, maxDepth = 10) {
+    let cost = entry.PurchasePrice || 0
+    if (depth == maxDepth) {
+        return cost
+    }
+    let children = await getChildren(entry.ItemId)
+    if (!children.length) {
+        return cost
+    }
+
+    let finding = []
+    for (let child of children) {
+        finding.push(findTotalCostDeep(child, depth + 1))
+    }
+    let values = await Promise.all(finding)
+    for (let val of values) {
+        cost += val
+    }
+    return cost
+}
+
+/**
  * @param {bigint} id
  * @param {MetadataEntry?} newMeta
  */
@@ -289,7 +314,7 @@ function createItemEntry(item, userEntry, meta) {
         }
     } else {
         fills[".location"] = e => {
-            e.append( `${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
+            e.append(`${item.En_Title} (${formatToStr(item.Format).toLowerCase()})`)
             if (item.Native_Title) {
                 e.title = `Native: ${item.Native_Title}`
             }
@@ -313,31 +338,31 @@ function createItemEntry(item, userEntry, meta) {
         el.src = meta.Thumbnail
     }
 
-    fills[".children"] = e => {
-        getChildren(item.ItemId).then(children => {
-            if (!children.length) return
-            //@ts-ignore
-            e.parentNode.hidden = false
+    fills[".children"] = async e => {
+        let totalCost = await findTotalCostDeep(item);
+        let children = await getChildren(item.ItemId)
+        if (!children.length) return
+        //@ts-ignore
+        e.parentNode.hidden = false
 
-            let allA = /**@type {HTMLAnchorElement}*/(basicElement("all children", "a"))
-            allA.href = `javascript:displayEntry([${children.map(i => i.ItemId).join("n, ")}n])`
-            e.append(allA)
+        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all children", "a"))
+        allA.href = `javascript:displayEntry([${children.map(i => i.ItemId).join("n, ")}n])`
+        e.append(allA)
 
-            for (let child of children) {
-                let a = /**@type {HTMLAnchorElement}*/ (basicElement(
-                    basicElement(
-                        `${child.En_Title} - $${child.PurchasePrice}`,
-                        "li"
-                    ),
-                    "a"
-                ))
-                a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
-                e.append(a)
-            }
+        for (let child of children) {
+            let childCost = await findTotalCostDeep(child)
+            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                basicElement(
+                    `${child.En_Title} (${formatToStr(child.Format).toLowerCase()}) - $${childCost}`,
+                    "li"
+                ),
+                "a"
+            ))
+            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+            e.append(a)
+        }
 
-            let totalCost = findTotalCost(item, children);
         /**@type {HTMLElement}*/(root.querySelector(".cost")).innerHTML = `$${totalCost}`
-        })
     }
 
     fills[".copies"] = e => {
