@@ -27,6 +27,19 @@ function findChildren(id) {
 
 /**
  * @param {bigint} id
+ * @returns {InfoEntry[]}
+ */
+function findCopies(id) {
+    let copyIds = globals.tree[String(id)]?.Children || []
+    let entries = []
+    for (let copyId of copyIds) {
+        entries.push(globals.tree[String(copyId)].EntryInfo)
+    }
+    return entries
+}
+
+/**
+ * @param {bigint} id
  * @returns {number}
  */
 function findTotalCostDeep(id, recurse = 0, maxRecursion = 10) {
@@ -315,7 +328,7 @@ function createItemEntry(item, userEntry, meta) {
     let totalCost = findTotalCostDeep(item.ItemId)
     let children = findChildren(item.ItemId)
 
-    if(totalCost !== 0) {
+    if (totalCost !== 0) {
         fills['.cost'] = `$${totalCost}`
     }
 
@@ -343,28 +356,26 @@ function createItemEntry(item, userEntry, meta) {
     }
 
     fills[".copies"] = e => {
-        getCopies(item.ItemId).then(copies => {
-            if (!copies.length) return
-            //@ts-ignore
-            e.parentNode.hidden = false
+        let copies = findCopies(item.ItemId)
+        if (!copies.length) return
+        //@ts-ignore
+        e.parentNode.hidden = false
 
-            let allA = /**@type {HTMLAnchorElement}*/(basicElement("all copies", "a"))
-            allA.href = `javascript:displayEntry([${copies.map(i => i.ItemId).join("n, ")}n])`
-            e.append(allA)
+        let allA = /**@type {HTMLAnchorElement}*/(basicElement("all copies", "a"))
+        allA.href = `javascript:displayEntry([${copies.map(i => i.ItemId).join("n, ")}n])`
+        e.append(allA)
 
-            for (let child of copies) {
-                let a = /**@type {HTMLAnchorElement}*/ (basicElement(
-                    basicElement(
-                        `${child.En_Title} - $${child.PurchasePrice}`,
-                        "li"
-                    ),
-                    "a"
-                ))
-                a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
-                e.append(a)
-            }
-        })
-
+        for (let child of copies) {
+            let a = /**@type {HTMLAnchorElement}*/ (basicElement(
+                basicElement(
+                    `${child.En_Title} - $${child.PurchasePrice}`,
+                    "li"
+                ),
+                "a"
+            ))
+            a.href = `javascript:displayEntry([${child.ItemId.toString()}n])`
+            e.append(a)
+        }
     }
 
     if (item.PurchasePrice > 0) {

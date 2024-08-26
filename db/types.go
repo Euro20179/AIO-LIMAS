@@ -371,6 +371,16 @@ func BuildEntryTree() (map[int64]EntryTree, error) {
 			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
 		}
 
+		copies, err := GetCopiesOf(cur.EntryInfo.ItemId)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+
+		for _, c := range copies {
+			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
+		}
+
 		out[cur.EntryInfo.ItemId] = cur
 	}
 	//
