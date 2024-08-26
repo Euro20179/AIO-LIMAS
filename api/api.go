@@ -563,6 +563,7 @@ func GetDescendants(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("\n"))
 }
 
+//TODO: allow this to accept multiple ids
 func TotalCostOf(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
 	if err != nil{
