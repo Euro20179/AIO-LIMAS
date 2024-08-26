@@ -50,6 +50,10 @@
 
 @layer components {
 
+    #result-count::before {
+        content: "Results "
+    }
+
     #query {
         display: block;
         margin: 50px;

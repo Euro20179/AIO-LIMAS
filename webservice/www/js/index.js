@@ -52,6 +52,14 @@
 const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [] }
 
 /**
+ * @param {number} count
+ */
+function setResultCount(count) {
+    let e = /**@type {HTMLElement}*/(document.getElementById("result-count"));
+    e.innerText = String(count)
+}
+
+/**
  * @param {bigint} id
  * @returns {UserEntry?}
  */
@@ -469,6 +477,7 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         const bUE = getUserEntry(b.ItemId)
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
+    let count = 0
     for (const item of items) {
         console.log(item, ignoreChildren)
         if (item.Parent && ignoreChildren) {
@@ -485,7 +494,9 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
             getMetadataEntry(item.Parent) :
             getMetadataEntry(item.ItemId)
         createItemEntry(item, user, meta)
+        count++
     }
+    setResultCount(count)
 }
 
 /**@returns {Promise<UserEntry[]>}*/
