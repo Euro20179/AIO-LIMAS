@@ -21,18 +21,25 @@
         text-decoration: unset;
         cursor: default;
     }
+
     a[href*=":"] {
         color: var(--light-blue);
         cursor: pointer;
         text-decoration: underline;
     }
 
-    button {
+    button,
+    input[type="submit"] {
         border: 1px solid currentColor;
         border-radius: 5px;
         background: var(--main);
         color: white;
         cursor: pointer;
+    }
+
+    dialog::backdrop {
+        background-color: #00000077;
+        backdrop-filter: blur(1px);
     }
 }
 
@@ -40,7 +47,7 @@
     .bad {
         --accent-color: var(--pink);
         color: var(--accent-color);
-    }    
+    }
 
     .good {
         --accent-color: var(--green);
@@ -49,6 +56,39 @@
 }
 
 @layer components {
+
+    #new-item-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1cap;
+        margin: 0 20%;
+    }
+
+    main>nav {
+        display: grid;
+        margin-bottom: 10px;
+        width: 100%;
+
+        grid-auto-flow: column;
+
+        .add-item {
+            grid-column: end;
+        }
+    }
+
+    #new-item {
+        color: white;
+
+        background: var(--main);
+        border: 1px solid white;
+
+        width: 70vmin;
+        aspect-ratio: 1 / 1;
+
+        h3 {
+            text-align: center;
+        }
+    }
 
     #total-stats {
 
@@ -84,7 +124,7 @@
 
             --side-margin: 10px;
 
-            & > * {
+            &>* {
                 margin: 0 var(--side-margin);
             }
 
@@ -149,15 +189,15 @@
                 }
 
                 /*should be a span, but i might change it later*/
-                & > ul {
+                &>ul {
                     --radius: 1em;
 
-                max-width: fit-content;
+                    max-width: fit-content;
 
                     background: oklch(from var(--accent-color) calc(l * 0.2) c h);
 
                     border: 1px solid;
-                    border-radius:var(--radius);
+                    border-radius: var(--radius);
 
                     padding: 10px;
 
