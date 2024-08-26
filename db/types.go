@@ -333,3 +333,16 @@ func (self *UserViewingEntry) Resume() error {
 	self.Status = S_REVIEWING
 	return nil
 }
+
+type EntryTree struct {
+	EntryInfo InfoEntry
+	UserInfo UserViewingEntry
+	MetaInfo MetadataEntry
+	Children []*EntryTree
+	Copies []*EntryTree
+}
+
+func BuildEntryTree() ([]EntryTree, error) {
+	var out []EntryTree
+	return out, nil
+}

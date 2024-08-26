@@ -3,6 +3,7 @@ package metadata
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -124,10 +125,10 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 		entry.En_Title = out.Title.Romaji
 	}
 
-	mediaDependant["Show-episodes"] = strconv.Itoa(int(out.Episodes))
-	mediaDependant["Show-episode-duration"] = strconv.Itoa(int(out.Duration))
-	mediaDependant["Show-length"] = strconv.Itoa(int(out.Episodes) * int(out.Duration))
-	mediaDependant["Show-airing-status"] = out.Status
+	mediaDependant[fmt.Sprintf("%s-episodes", entry.Type)] = strconv.Itoa(int(out.Episodes))
+	mediaDependant[fmt.Sprintf("%s-episode-duration", entry.Type)] = strconv.Itoa(int(out.Duration))
+	mediaDependant[fmt.Sprintf("%s-length", entry.Type)] = strconv.Itoa(int(out.Episodes) * int(out.Duration))
+	mediaDependant[fmt.Sprintf("%s-airing-status", entry.Type)] = out.Status
 
 	mdString, _ := json.Marshal(mediaDependant)
 

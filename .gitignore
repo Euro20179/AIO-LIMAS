@@ -1,0 +1,12 @@
+**/*
+
+!.gitignore
+!db
+!api
+!metadata
+!docs
+!webservice
+!main.go
+!go.sum
+!go.mod
+!README.md
