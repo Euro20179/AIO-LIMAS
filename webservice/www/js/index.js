@@ -52,18 +52,17 @@
 const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [] }
 
 /**
- * @param {number} resultCount
- * @param {number} totalCost
+ * @param {Record<string, any>} stats
  */
-function setGlobalStats(resultCount, totalCost) {
+function setGlobalStats(stats) {
     let out = /**@type {HTMLElement}*/(document.getElementById("total-stats"))
     while(out.children.length) {
         out.firstChild?.remove()
     }
-    let e = basicElement(`Results: ${resultCount}`, "li")
-    let cost = basicElement(`Cost: ${totalCost}`, "li")
-    out.append(e)
-    out.append(cost)
+    for(let name in stats) {
+        let e = basicElement(`${name}: ${stats[name]}`, "li")
+        out.append(e)
+    }
 }
 
 /**
@@ -155,24 +154,21 @@ function findTotalCost(entry, children) {
     return cost
 }
 
+/**@type {Record<string, number>}*/
+const costCache = {}
+
 /**
  * @param {InfoEntry} entry
- * @param {number} depth
+ * @returns {Promise<number>} cost
  */
-async function findTotalCostDeep(entry, depth = 0, maxDepth = 10) {
-    let cost = entry.PurchasePrice || 0
-    if (depth == maxDepth) {
-        return cost
+async function findTotalCostDeep(entry) {
+    if(String(entry.ItemId) in costCache) {
+        return costCache[String(entry.ItemId)]
     }
-    let children = await getDescendants(entry.ItemId)
-    if (!children.length) {
-        return cost
-    }
-
-    for (let child of children) {
-        cost += child.PurchasePrice
-    }
-    return cost
+    let res = await fetch(`${apiPath}/total-cost?id=${entry.ItemId}`)
+    let text = await res.text()
+    costCache[String(entry.ItemId)] = Number(text)
+    return Number(text)
 }
 
 /**
@@ -291,7 +287,9 @@ function typeToEmoji(type) {
         "Movie": "🎬︎",
         "Manga": "本",
         "Book": "📚︎",
-        "Show": "📺︎"
+        "Show": "📺︎",
+        "Collection": "🗄",
+        "Game": "🎮︎",
     }[type] || type
 }
 
@@ -548,6 +546,7 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
     })
     let count = 0
+    let costFinders = []
     for (const item of items) {
         if (item.Parent && ignoreChildren) {
             //TODO: put a link to children on each entry
@@ -559,24 +558,21 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
             continue
         }
         let user = getUserEntry(item.ItemId)
+        costFinders.push(findTotalCostDeep(item))
         let meta = item.Parent ?
             getMetadataEntry(item.Parent) :
             getMetadataEntry(item.ItemId)
         createItemEntry(item, user, meta)
         count++
     }
-    //the only reason this total cost thing works
-    //is because we are given all search result items
-    //if per say, we only got the Erased Collection entry, it would say total cost is 0
-    //because it doesn't do a totalCost deep
-    //
-    //TODO: make the ui send a request to set the cost of a parent
-    //the parent cost will be the sum of the children costs
-    let totalCost = 0
-    for(let entry of items) {
-        totalCost += findTotalCost(entry, [])
-    }
-    setGlobalStats(count, totalCost)
+    let hiddenItems = items.length - count
+
+    let totalCost = (await Promise.all(costFinders)).reduce((p, c) => p + c, 0)
+    setGlobalStats({
+        "Results": count,
+        "Hidden": hiddenItems,
+        "Cost": totalCost
+    })
 }
 
 /**@returns {Promise<UserEntry[]>}*/

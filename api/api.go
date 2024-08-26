@@ -563,6 +563,31 @@ func GetDescendants(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("\n"))
 }
 
+func TotalCostOf(w http.ResponseWriter, req *http.Request) {
+	entry, err := verifyIdAndGetUserEntry(w, req)
+	if err != nil{
+		wError(w, 400, "Could not find entry\n%s", err.Error())
+		return
+	}
+	info, err := db.GetInfoEntryById(entry.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not get price info\n%s", err.Error())
+		return
+	}
+	desc, err := db.GetDescendants(entry.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not get descendants\n%s", err.Error())
+		return
+	}
+
+	cost := info.PurchasePrice
+	for _, item := range desc {
+		cost += item.PurchasePrice
+	}
+	w.WriteHeader(200)
+	fmt.Fprintf(w, "%f", cost)
+}
+
 func verifyIdQueryParam(req *http.Request) (int64, error) {
 	id := req.URL.Query().Get("id")
 	if id == "" {
