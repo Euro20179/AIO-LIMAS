@@ -40,6 +40,8 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] anlist
       - [x] Anime
       - [ ] Manga
+    - [ ] Steam games
+    - [ ] Books
     - [ ] ~tmdb~
       - requires billing address
     - [x] omdb
@@ -58,7 +60,6 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] monitor folders, automatically add items in them
     - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
 - [x] Ability to act as a proxy for the given {location} of an entry, and stream it
-
   - [ ] reencoding?
 
 - [ ] ui
@@ -67,6 +68,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] by rating
     - [ ] alpha
   - [ ] search
+    - [ ] by price
     - [ ] by collection
     - [ ] by rating
     - [x] by type
@@ -74,9 +76,9 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] by format
       - [ ] multiple
     - [x] by title
-  - [ ] add item
+  - [x] add item
   - [ ] edit item
-  - [ ] delete item
+  - [x] delete item
   - [x] start/stop, etc
   - [x] fetch metadata
   - [ ] display metadata
