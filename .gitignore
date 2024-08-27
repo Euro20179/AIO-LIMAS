@@ -1,7 +1,8 @@
 all.db
 aiolimas
 start
-show.json
+shows.json
+backup
 sql-parent-children-getter
 start
 shows-to-aiolimas

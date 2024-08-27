@@ -30,97 +30,46 @@ func ListCollections(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ModEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams map[string]any) {
+	info := parsedParams["id"].(db.InfoEntry)
 
-	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
-		return
-	}
-
-	query := req.URL.Query()
-
-	title := query.Get("en-title")
-	if title != "" {
+	title, exists := parsedParams["en-title"].(string)
+	if exists{
 		info.En_Title = title
 	}
 
-	nativeTitle := query.Get("native-title")
-	if nativeTitle != "" {
+	nativeTitle, exists := parsedParams["native-title"].(string)
+	if exists{
 		info.Native_Title = nativeTitle
 	}
 
-	format := query.Get("format")
-	if format != "" {
-		formatI, err := strconv.ParseInt(format, 10, 64)
-		if err != nil {
-			wError(w, 400, "Invalid format %s\n%s", format, err.Error())
-			return
-		}
-		if !db.IsValidFormat(formatI) {
-			wError(w, 400, "Invalid format %d\n", formatI)
-			return
-		}
-
-		info.Format = db.Format(formatI)
+	format, exists := parsedParams["format"].(db.Format)
+	if exists {
+		info.Format = format
 	}
 
-	parentId := query.Get("parent-id")
-	if parentId != "" {
-		parentIdI, err := strconv.ParseInt(parentId, 10, 64)
-		if err != nil {
-			wError(w, 400, "Invalid parent id %s\n%s", parentId, err.Error())
-			return
-		}
-
-		if _, err := db.GetInfoEntryById(parentIdI); err != nil {
-			wError(w, 400, "Non existant parent %d\n%s", parentIdI, err.Error())
-			return
-		}
-		info.Parent = parentIdI
+	parent, exists := parsedParams["parent-id"].(db.InfoEntry)
+	if exists {
+		info.Parent = parent.ItemId
 	}
 
-	copyId := query.Get("copy-id")
-	if copyId != "" {
-		copyIdI, err := strconv.ParseInt(copyId, 10, 64)
-		if err != nil {
-			wError(w, 400, "Invalid copy id %s\n%s", copyId, err.Error())
-			return
-		}
-
-		if _, err := db.GetInfoEntryById(copyIdI); err != nil {
-			wError(w, 400, "Non existant item %d\n%s", copyIdI, err.Error())
-			return
-		}
-		info.CopyOf = copyIdI
+	if itemCopy, exists := parsedParams["copy-id"].(db.InfoEntry); exists {
+		info.CopyOf = itemCopy.ItemId
 	}
 
-	price := query.Get("price")
-	if price != "" {
-		priceF, err := strconv.ParseFloat(price, 64)
-		if err != nil {
-			wError(w, 400, "Invalid price %s\n%s", price, err.Error())
-			return
-		}
-		info.PurchasePrice = priceF
+	if price, exists := parsedParams["price"].(float64); exists {
+		info.PurchasePrice = price
 	}
 
-	location := query.Get("location")
-	if location != "" {
+	if location, exists := parsedParams["location"].(string); exists {
 		info.Location = location
 	}
 
-	tags := query.Get("tags")
-	if tags != "" {
+	if tags, exists := parsedParams["tags"].(string); exists {
 		info.Collection = tags
 	}
 
-	err = db.UpdateInfoEntry(&info)
+	err := db.UpdateInfoEntry(&info)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return

@@ -23,11 +23,26 @@ func main() {
 	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 
 	apiRoot := "/api/v1"
+	modEntry := api.ApiEndPoint {
+		Handler: api.ModEntry,
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"en-title": api.MkQueryInfo(api.P_NotEmpty, false),
+			"native-title": api.MkQueryInfo(api.P_True, false),
+			"format": api.MkQueryInfo(api.P_EntryFormat, false),
+			"parent-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"copy-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"price": api.MkQueryInfo(api.P_Float64, false),
+			"location": api.MkQueryInfo(api.P_True, false),
+			"tags": api.MkQueryInfo(api.P_True, false),
+		},
+	}
+
 
 	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":        api.AddEntry,
-		"mod-entry":        api.ModEntry,
+		"mod-entry":        modEntry.Listener,
 		"query":            api.QueryEntries,
 		"list-entries":     api.ListEntries,
 		"scan-folder":      api.ScanFolder,

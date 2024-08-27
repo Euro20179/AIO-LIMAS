@@ -142,7 +142,10 @@ func GetInfoEntryById(id int64) (InfoEntry, error) {
 	}
 	defer rows.Close()
 
-	rows.Next()
+	hasEntry := rows.Next()
+	if !hasEntry {
+		return res, fmt.Errorf("Could not find id %d", id)
+	}
 	err = res.ReadEntry(rows)
 	if err != nil {
 		return res, err
