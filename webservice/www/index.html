@@ -68,11 +68,11 @@
             <button class="add-item" popovertarget="new-item" title="new item">New</button>
             <dialog id="new-item" popover>
                 <h3>New Entry</h3>
-                <form id="new-item-form">
+                <form id="new-item-form" action="/api/v1/add-entry">
                     <input type="text" placeholder="title" name="title" required>
                     <input type="text" placeholder="native title" name="native-title">
                     <input type="text" placeholder="location" name="location">
-                    <label>Price <input type="number" min="0" step="0.01" name="purchase-price"></label>
+                    <label>Price <input type="number" min="0" step="0.01" name="price"></label>
                     <br>
                     <section>
                         <select name="type" title="The type of media">
@@ -109,8 +109,8 @@
                     </section>
                     <input type="text" placeholder="tags (',' separated)" name="tags">
                     <section>
-                        <input type="text" placeholder="parent id" name="parent-id">
-                        <input type="text" placeholder="copy of id" name="copy-id">
+                        <input type="text" placeholder="parent id" name="parentId">
+                        <input type="text" placeholder="copy of id" name="copyOf">
                     </section>
                     <input type="submit" value="CREATE!">
                 </form>

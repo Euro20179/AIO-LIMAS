@@ -177,6 +177,11 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	isDigital := query.Get("is-digital")
+	if isDigital == "true" || isDigital == "on" {
+		formatInt |= int64(db.F_MOD_DIGITAL)
+	}
+
 	parentQuery := query.Get("parentId")
 	var parentId int64 = 0
 	if parentQuery != "" {
@@ -216,7 +221,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	ty := query.Get("type")
 
 	isAnime := query.Get("is-anime")
-	anime := isAnime == "true"
+	anime := isAnime == "true" || isAnime == "on"
 
 	var entryInfo db.InfoEntry
 	entryInfo.En_Title = title
@@ -296,7 +301,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 
 	userEntry.Notes = query.Get("user-notes")
 
-	if query.Get("get-metadata") == "true" {
+	if query.Get("get-metadata") == "true" || query.Get("get-metadata") == "on" {
 		providerOverride := query.Get("metadata-provider")
 		if !meta.IsValidProvider(providerOverride) {
 			providerOverride = ""
