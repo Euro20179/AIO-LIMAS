@@ -393,6 +393,8 @@ function createItemEntry(item, userEntry, meta) {
 
     let root = fillTemplate("item-entry", fills)
 
+    root.setAttribute("data-entry-id", String(item.ItemId))
+
     if (userEntry?.UserRating) {
         if (userEntry.UserRating >= 80) {
             root.classList.add("good")

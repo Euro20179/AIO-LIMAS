@@ -14,11 +14,14 @@ function findRoot(elem) {
 * @param {string} action 
 */
 function mediaAction(elem, action) {
+    if(!confirm(`Are you sure you want to ${action} this entry`)) {
+        return
+    }
     let entryElem = findRoot(elem)
 
     let entryId = BigInt(entryElem?.getAttribute("data-entry-id") || 0)
     if(entryId == 0n) {
-        alert("Could not begin entry")
+        alert(`Could not ${action} entry`)
         return
     }
 
