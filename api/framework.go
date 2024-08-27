@@ -2,6 +2,8 @@ package api
 
 import (
 	"aiolimas/db"
+	"aiolimas/metadata"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,13 +26,22 @@ func MkQueryInfo(parser Parser, required bool) QueryParamInfo {
 	}
 }
 
+type ParsedParams map[string]any
+
+func (self *ParsedParams) Get(name string, backup any) any {
+	if v, exists := (*self)[name]; exists {
+		return v
+	}
+	return backup
+}
+
 type ApiEndPoint struct {
-	Handler func(w http.ResponseWriter, req *http.Request, parsedParams map[string]any)
+	Handler func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
 	QueryParams QueryParams
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
-	parsedParams := map[string]any{}
+	parsedParams := ParsedParams{}
 
 	query := req.URL.Query()
 	for name, info := range self.QueryParams {
@@ -124,7 +135,33 @@ func P_EntryFormat(in string) (any, error) {
 }
 
 func P_EntryType(in string) (any, error) {
-	return db.IsValidType(in), nil
+	if db.IsValidType(in) {
+		return db.MediaTypes(in), nil
+	}
+	return "Show", fmt.Errorf("Invalid entry type: '%s'", in)
+}
+
+func P_MetaProvider(in string) (any, error) {
+	if metadata.IsValidProvider(in) {
+		return in, nil
+	}
+	return in, fmt.Errorf("Invalid metadata provider: '%s'", in)
+}
+
+func P_UserStatus(in string) (any, error) {
+	if db.IsValidStatus(in) {
+		return db.Status(in), nil
+	}
+	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
+}
+
+func P_Uint64Array(in string) (any, error) {
+	var startTimes []uint64
+	err := json.Unmarshal([]byte(in), &startTimes)
+	if err != nil{
+		return startTimes, err
+	}
+	return startTimes, nil
 }
 
 func P_Bool(in string) (any, error) {
@@ -135,4 +172,18 @@ func P_Bool(in string) (any, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("Not a boolean: '%s'", in)
+}
+
+func As_JsonMarshal(parser Parser) Parser {
+	return func(in string) (any, error) {
+		v, err := parser(in)
+		if err != nil{
+			return "", err
+		}
+		res, err := json.Marshal(v)
+		if err != nil{
+			return "", err
+		}
+		return string(res), nil
+	}
 }

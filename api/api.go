@@ -30,16 +30,16 @@ func ListCollections(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams map[string]any) {
+func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	info := parsedParams["id"].(db.InfoEntry)
 
 	title, exists := parsedParams["en-title"].(string)
-	if exists{
+	if exists {
 		info.En_Title = title
 	}
 
 	nativeTitle, exists := parsedParams["native-title"].(string)
-	if exists{
+	if exists {
 		info.Native_Title = nativeTitle
 	}
 
@@ -78,171 +78,81 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams map[string]
 }
 
 // lets the user add an item in their library
-/*
-PARAMETERS:
-title: string
-price: float64
-location: string
-parentId: int64
-format: Format
-copyOf: int64
-*/
-func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams map[string]any) {
-	query := req.URL.Query()
-
+func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	title := parsedParams["title"].(string)
 
-	priceNum := 0.0
-	if price, exists := parsedParams["price"]; exists {
-		priceNum = price.(float64)
-	}
+	priceNum := parsedParams.Get("price", 0.0).(float64)
 
-	format := query.Get("format")
-	formatInt := int64(-1)
-	if format != "" {
-		var err error
-		formatInt, err = strconv.ParseInt(format, 10, 64)
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "%s is not an int\n", format)
-			return
-		}
-		if !db.IsValidFormat(formatInt) {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "%d is not a valid format\n", formatInt)
-			return
+	formatInt := parsedParams["format"].(db.Format)
+
+	if digital, exists := parsedParams["is-digital"]; exists {
+		if digital.(bool) {
+			formatInt |= db.F_MOD_DIGITAL
 		}
 	}
 
-	isDigital := query.Get("is-digital")
-	if isDigital == "true" || isDigital == "on" {
-		formatInt |= int64(db.F_MOD_DIGITAL)
-	}
-
-	parentQuery := query.Get("parentId")
 	var parentId int64 = 0
-	if parentQuery != "" {
-		i, err := strconv.Atoi(parentQuery)
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "Invalid parent id: %s\n"+err.Error(), i)
-			return
-		}
-		p, err := db.GetInfoEntryById(int64(i))
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "Parent does not exist: %d\n", i)
-			return
-		}
-		parentId = p.ItemId
+	if parent, exists := parsedParams["parentId"]; exists {
+		parentId = parent.(db.InfoEntry).ItemId
 	}
 
-	copyOf := query.Get("copyOf")
 	var copyOfId int64 = 0
-	if copyOf != "" {
-		i, err := strconv.Atoi(copyOf)
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "Invalid copy id: %s\n"+err.Error(), i)
-			return
-		}
-		p, err := db.GetInfoEntryById(int64(i))
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "Item does not exist: %d\n", i)
-			return
-		}
-		copyOfId = p.ItemId
+
+	if c, exists := parsedParams["copyOf"]; exists {
+		copyOfId = c.(db.InfoEntry).ItemId
 	}
 
-	ty := query.Get("type")
+	isAnime := false
+	if anime, exists := parsedParams["is-anime"]; exists {
+		isAnime = anime.(bool)
+	}
 
-	isAnime := query.Get("is-anime")
-	anime := isAnime == "true" || isAnime == "on"
+	nativeTitle := ""
+	if title, exists := parsedParams["native-title"]; exists {
+		nativeTitle = title.(string)
+	}
+
+	location := ""
+	if l, exists := parsedParams["location"]; exists {
+		location = l.(string)
+	}
+
+	tags := ""
+	if t, exists := parsedParams["tags"]; exists {
+		tags = t.(string)
+	}
 
 	var entryInfo db.InfoEntry
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
-	entryInfo.Native_Title = query.Get("native-title")
-	entryInfo.Collection = query.Get("tags")
-	entryInfo.Location = query.Get("location")
+	entryInfo.Native_Title = nativeTitle
+	entryInfo.Collection = tags
+	entryInfo.Location = location
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.Parent = parentId
-	entryInfo.IsAnime = anime
+	entryInfo.IsAnime = isAnime
 	entryInfo.CopyOf = copyOfId
-	if db.IsValidType(ty) {
-		entryInfo.Type = db.MediaTypes(ty)
-	} else {
-		wError(w, 400, "%s is not a valid type\n", ty)
-		return
-	}
+	entryInfo.Type = parsedParams["type"].(db.MediaTypes)
 
 	var metadata db.MetadataEntry
 
 	var userEntry db.UserViewingEntry
 
-	userRating := query.Get("user-rating")
-	if userRating != "" {
-		ur, err := strconv.ParseFloat(userRating, 64)
-		if err != nil {
-			wError(w, 400, "%s is not a valid user rating\n%s", userRating, err.Error())
-			return
-		}
-		userEntry.UserRating = ur
+	if userRating, exists := parsedParams["user-rating"]; exists {
+		userEntry.UserRating = userRating.(float64)
+	}
+	if status, exists := parsedParams["user-status"]; exists {
+		userEntry.Status = status.(db.Status)
 	}
 
-	status := query.Get("user-status")
-	if status != "" {
-		if !db.IsValidStatus(status) {
-			wError(w, 400, "%s is not a valid status\n", status)
-			return
-		}
-		userEntry.Status = db.Status(status)
-	}
+	userEntry.StartDate = parsedParams.Get("user-start-dates", "[]").(string)
+	userEntry.EndDate = parsedParams.Get("user-end-dates", "[]").(string)
+	userEntry.ViewCount = parsedParams.Get("user-view-count", int64(0)).(int64)
 
-	startDates := query.Get("user-start-dates")
-	if startDates != "" {
-		var startTimes []uint64
-		err := json.Unmarshal([]byte(startDates), &startTimes)
-		if err != nil {
-			wError(w, 400, "Invalid start dates %s\n%s", startDates, err.Error())
-			return
-		}
-	} else {
-		startDates = "[]"
-	}
-	userEntry.StartDate = startDates
+	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
 
-	endDates := query.Get("user-end-dates")
-	if endDates != "" {
-		var endTimes []uint64
-		err := json.Unmarshal([]byte(endDates), &endTimes)
-		if err != nil {
-			wError(w, 400, "Invalid start dates %s\n%s", endDates, err.Error())
-			return
-		}
-	} else {
-		endDates = "[]"
-	}
-	userEntry.EndDate = endDates
-
-	viewCount := query.Get("user-view-count")
-	if viewCount != "" {
-		vc, err := strconv.ParseInt(viewCount, 10, 64)
-		if err != nil {
-			wError(w, 400, "Invalid view count %s\n%s", viewCount, err.Error())
-			return
-		}
-		userEntry.ViewCount = vc
-	}
-
-	userEntry.Notes = query.Get("user-notes")
-
-	if query.Get("get-metadata") == "true" || query.Get("get-metadata") == "on" {
-		providerOverride := query.Get("metadata-provider")
-		if !meta.IsValidProvider(providerOverride) {
-			providerOverride = ""
-		}
+	if parsedParams.Get("get-metadata", false).(bool) {
+		providerOverride := parsedParams.Get("metadata-provider", "").(string)
 		var err error
 		metadata, err = meta.GetMetadata(&entryInfo, &metadata, providerOverride)
 		if err != nil {
@@ -481,13 +391,13 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request) {
 
 func GetDescendants(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n%s", err.Error())
 		return
 	}
 
 	items, err := db.GetDescendants(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get items\n%s", err.Error())
 		return
 	}
@@ -507,12 +417,12 @@ func GetDescendants(w http.ResponseWriter, req *http.Request) {
 
 func GetTree(w http.ResponseWriter, req *http.Request) {
 	tree, err := db.BuildEntryTree()
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not build tree\n%s", err.Error())
 		return
 	}
 	jStr, err := json.Marshal(tree)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not marshal tree\n%s", err.Error())
 		return
 	}
@@ -521,20 +431,20 @@ func GetTree(w http.ResponseWriter, req *http.Request) {
 	w.Write(jStr)
 }
 
-//TODO: allow this to accept multiple ids
+// TODO: allow this to accept multiple ids
 func TotalCostOf(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n%s", err.Error())
 		return
 	}
 	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get price info\n%s", err.Error())
 		return
 	}
 	desc, err := db.GetDescendants(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get descendants\n%s", err.Error())
 		return
 	}

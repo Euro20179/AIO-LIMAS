@@ -32,11 +32,22 @@ func main() {
 			"format":       api.MkQueryInfo(api.P_EntryFormat, true),
 			"price":        api.MkQueryInfo(api.P_Float64, false),
 			"is-digital":   api.MkQueryInfo(api.P_Bool, false),
+			"is-anime":     api.MkQueryInfo(api.P_Bool, false),
 			"parentId":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"copyOf":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"native-title": api.MkQueryInfo(api.P_True, false),
 			"tags":         api.MkQueryInfo(api.P_True, false),
 			"location":     api.MkQueryInfo(api.P_True, false),
+
+			"get-metadata": api.MkQueryInfo(api.P_Bool, false),
+			"metadata-provider": api.MkQueryInfo(api.P_MetaProvider, false),
+
+			"user-rating":      api.MkQueryInfo(api.P_Float64, false),
+			"user-status":      api.MkQueryInfo(api.P_UserStatus, false),
+			"user-start-dates": api.MkQueryInfo(api.As_JsonMarshal(api.P_Uint64Array), false),
+			"user-end-dates":   api.MkQueryInfo(api.As_JsonMarshal(api.P_Uint64Array), false),
+			"user-view-count":  api.MkQueryInfo(api.P_Int64, false),
+			"user-notes":       api.MkQueryInfo(api.P_True, false),
 		},
 	}
 
