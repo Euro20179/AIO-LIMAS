@@ -319,6 +319,12 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return
 	}
+	
+	if strings.HasPrefix(req.UserAgent(), "Mozilla/5") {
+		w.Header().Add("Location", "/")
+		w.WriteHeader(302)
+		return
+	}
 
 	success(w)
 }

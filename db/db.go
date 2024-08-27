@@ -462,7 +462,6 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
 	}
 	if len(mainSearchInfo.InTags) > 0 {
-		println(mainSearchInfo.InTags[0])
 		cols := []interface{}{
 			mainSearchInfo.InTags,
 		}

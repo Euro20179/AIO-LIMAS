@@ -12,6 +12,15 @@
 /**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[], tree: EntryTree }}*/
 const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [], tree: {} }
 
+function resubmitSearch() {
+    /**@type {HTMLInputElement?}*/
+    let queryButton = document.querySelector("#query [type=submit][value*=ocate]")
+    if(!queryButton) {
+        return
+    }
+    queryButton.click()
+}
+
 /**
  * @param {bigint} id
  * @returns {InfoEntry[]}
@@ -30,7 +39,7 @@ function findChildren(id) {
  * @returns {InfoEntry[]}
  */
 function findCopies(id) {
-    let copyIds = globals.tree[String(id)]?.Children || []
+    let copyIds = globals.tree[String(id)]?.Copies || []
     let entries = []
     for (let copyId of copyIds) {
         entries.push(globals.tree[String(copyId)].EntryInfo)
@@ -428,7 +437,7 @@ function createItemEntry(item, userEntry, meta) {
             return
         }
         alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
-        root.remove()
+        resubmitSearch()
     }
 
     out.appendChild(root)
@@ -507,6 +516,9 @@ async function loadQueriedEntries(search) {
     }
     if (search.type) {
         queryString += `&types=${encodeURI(search.type)}`
+    }
+    if(search.tags) {
+        queryString += `&tags=${encodeURI(search.tags)}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)
         .catch(console.error)
@@ -665,6 +677,8 @@ function query() {
     let displayChildren = /**@type {string}*/(data.get("children"))
     let displayCopies = /**@type {string}*/(data.get("copies"))
 
+    let tags = /**@type {string}*/(data.get("tags"))
+
     let formats = []
     formats.push(data.getAll("format").map(Number))
 
@@ -673,7 +687,8 @@ function query() {
         title: enTitle,
         type: ty,
         //@ts-ignore
-        format: formats.length ? formats : [-1]
+        format: formats.length ? formats : [-1],
+        tags: tags
         // format: Number(format)
     }
 

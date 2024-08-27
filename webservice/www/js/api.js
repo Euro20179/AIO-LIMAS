@@ -46,6 +46,7 @@
  * @property {number[]} format
  * @property {boolean} children
  * @property {boolean} copies
+ * @property {string} tags
  */
 
 /**
