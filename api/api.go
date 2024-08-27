@@ -87,26 +87,14 @@ parentId: int64
 format: Format
 copyOf: int64
 */
-func AddEntry(w http.ResponseWriter, req *http.Request) {
+func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams map[string]any) {
 	query := req.URL.Query()
 
-	title := query.Get("title")
-	if title == "" {
-		w.WriteHeader(400)
-		w.Write([]byte("No title provided\n"))
-		return
-	}
+	title := parsedParams["title"].(string)
 
-	price := query.Get("price")
 	priceNum := 0.0
-	if price != "" {
-		var err error
-		priceNum, err = strconv.ParseFloat(price, 64)
-		if err != nil {
-			w.WriteHeader(400)
-			fmt.Fprintf(w, "%s is not an float\n", price)
-			return
-		}
+	if price, exists := parsedParams["price"]; exists {
+		priceNum = price.(float64)
 	}
 
 	format := query.Get("format")
@@ -266,12 +254,6 @@ func AddEntry(w http.ResponseWriter, req *http.Request) {
 	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
-		return
-	}
-	
-	if strings.HasPrefix(req.UserAgent(), "Mozilla/5") {
-		w.Header().Add("Location", "/")
-		w.WriteHeader(302)
 		return
 	}
 

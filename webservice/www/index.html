@@ -69,7 +69,7 @@
             <button class="add-item" popovertarget="new-item" title="new item">New</button>
             <dialog id="new-item" popover>
                 <h3>New Entry</h3>
-                <form id="new-item-form" action="/api/v1/add-entry">
+                <form id="new-item-form" action="javascript:newEntry()">
                     <input type="text" placeholder="title" name="title" required>
                     <input type="text" placeholder="native title" name="native-title">
                     <input type="text" placeholder="location" name="location">
@@ -109,7 +109,7 @@
                         <label for="is-digital">digital? <input type="checkbox" id='is-digital'
                                 name="is-digital"></label>
                     </section>
-                    <input type="text" placeholder="tags (',' separated)" name="tags">
+                    <input type="text" placeholder="tags (',' separated)" name="tags" value="">
                     <section>
                         <input type="text" placeholder="parent id" name="parentId">
                         <input type="text" placeholder="copy of id" name="copyOf">

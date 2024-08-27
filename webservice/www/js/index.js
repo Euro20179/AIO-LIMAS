@@ -15,7 +15,7 @@ const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: []
 function resubmitSearch() {
     /**@type {HTMLInputElement?}*/
     let queryButton = document.querySelector("#query [type=submit][value*=ocate]")
-    if(!queryButton) {
+    if (!queryButton) {
         return
     }
     queryButton.click()
@@ -427,11 +427,11 @@ function createItemEntry(item, userEntry, meta) {
 
     const deleter = /**@type {HTMLButtonElement}*/ (root.querySelector(".deleter"))
     deleter.onclick = async function() {
-        if(!confirm("Are you sure you want to delete this item")) {
+        if (!confirm("Are you sure you want to delete this item")) {
             return
         }
         let res = await fetch(`${apiPath}/delete-entry?id=${item.ItemId}`)
-        if(res?.status != 200) {
+        if (res?.status != 200) {
             console.error(res)
             alert("Failed to delete item")
             return
@@ -517,7 +517,7 @@ async function loadQueriedEntries(search) {
     if (search.type) {
         queryString += `&types=${encodeURI(search.type)}`
     }
-    if(search.tags) {
+    if (search.tags) {
         queryString += `&tags=${encodeURI(search.tags)}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)
@@ -712,6 +712,29 @@ function displayEntry(ids) {
         false,
         false
     )
+}
+
+async function newEntry() {
+    const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
+    const data = new FormData(form)
+    /**@type {Record<string, FormDataEntryValue>}*/
+    let validEntries = {}
+    for (let [name, value] of data.entries()) {
+        if (value == "") continue
+        validEntries[name] = value
+    }
+    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURI(String(v[1]))}`).join("&")
+
+    let res = await fetch(`${apiPath}/add-entry${queryString}`)
+    let text = await res.text()
+    alert(text)
+
+    await Promise.all([
+        loadUserEntries(),
+        loadMetadata(),
+        loadAllEntries(),
+        loadEntryTree()
+    ])
 }
 
 function main() {

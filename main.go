@@ -23,25 +23,41 @@ func main() {
 	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 
 	apiRoot := "/api/v1"
-	modEntry := api.ApiEndPoint {
-		Handler: api.ModEntry,
-		QueryParams: api.QueryParams {
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-			"en-title": api.MkQueryInfo(api.P_NotEmpty, false),
+
+	addEntry := api.ApiEndPoint{
+		Handler: api.AddEntry,
+		QueryParams: api.QueryParams{
+			"title":        api.MkQueryInfo(api.P_NotEmpty, true),
+			"type":         api.MkQueryInfo(api.P_EntryType, true),
+			"format":       api.MkQueryInfo(api.P_EntryFormat, true),
+			"price":        api.MkQueryInfo(api.P_Float64, false),
+			"is-digital":   api.MkQueryInfo(api.P_Bool, false),
+			"parentId":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"copyOf":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"native-title": api.MkQueryInfo(api.P_True, false),
-			"format": api.MkQueryInfo(api.P_EntryFormat, false),
-			"parent-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"copy-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"price": api.MkQueryInfo(api.P_Float64, false),
-			"location": api.MkQueryInfo(api.P_True, false),
-			"tags": api.MkQueryInfo(api.P_True, false),
+			"tags":         api.MkQueryInfo(api.P_True, false),
+			"location":     api.MkQueryInfo(api.P_True, false),
 		},
 	}
 
+	modEntry := api.ApiEndPoint{
+		Handler: api.ModEntry,
+		QueryParams: api.QueryParams{
+			"id":           api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"en-title":     api.MkQueryInfo(api.P_NotEmpty, false),
+			"native-title": api.MkQueryInfo(api.P_True, false),
+			"format":       api.MkQueryInfo(api.P_EntryFormat, false),
+			"parent-id":    api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"copy-id":      api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"price":        api.MkQueryInfo(api.P_Float64, false),
+			"location":     api.MkQueryInfo(api.P_True, false),
+			"tags":         api.MkQueryInfo(api.P_True, false),
+		},
+	}
 
 	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
-		"add-entry":        api.AddEntry,
+		"add-entry":        addEntry.Listener,
 		"mod-entry":        modEntry.Listener,
 		"query":            api.QueryEntries,
 		"list-entries":     api.ListEntries,
@@ -49,13 +65,13 @@ func main() {
 		"stream-entry":     api.Stream,
 		"delete-entry":     api.DeleteEntry,
 		"list-collections": api.ListCollections,
-		"list-copies": api.GetCopies,
+		"list-copies":      api.GetCopies,
 		"list-descendants": api.GetDescendants,
-		"total-cost": api.TotalCostOf,
-		"list-tree": api.GetTree,
+		"total-cost":       api.TotalCostOf,
+		"list-tree":        api.GetTree,
 	})
 
-	makeEndpoints(apiRoot + "/type", EndPointMap{
+	makeEndpoints(apiRoot+"/type", EndPointMap{
 		"format": api.ListFormats,
 	})
 

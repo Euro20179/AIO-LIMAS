@@ -122,3 +122,17 @@ func P_EntryFormat(in string) (any, error) {
 	}
 	return db.Format(i.(int64)), nil
 }
+
+func P_EntryType(in string) (any, error) {
+	return db.IsValidType(in), nil
+}
+
+func P_Bool(in string) (any, error) {
+	if in == "true" || in == "on" {
+		return true, nil
+	}
+	if in == "" || in == "false" {
+		return false, nil
+	}
+	return false, fmt.Errorf("Not a boolean: '%s'", in)
+}
