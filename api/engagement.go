@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	db "aiolimas/db"
 )
@@ -44,18 +43,8 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "%d started\n", id)
 }
 
-func FinishMedia(w http.ResponseWriter, req *http.Request) {
-	id, err := verifyIdQueryParam(req)
-	if err != nil {
-		wError(w, 400, err.Error())
-	}
-
-	entry, err := db.GetUserViewEntryById(id)
-	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprintf(w, "There is no entry with id %d\n", id)
-		return
-	}
+func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	entry := parsedParams["id"].(db.UserViewingEntry)
 
 	if !entry.CanFinish() {
 		w.WriteHeader(405)
@@ -63,27 +52,22 @@ func FinishMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rating := req.URL.Query().Get("rating")
-	ratingN, err := strconv.ParseFloat(rating, 64)
-	if err != nil {
-		wError(w, 400, "Not a number %s Be sure to provide a rating\n", rating)
-		return
-	}
-	entry.UserRating = ratingN
+	rating := parsedParams["rating"].(float64)
+	entry.UserRating = rating
 
 	if err := entry.Finish(); err != nil {
 		wError(w, 500, "Could not finish media\n%s", err.Error())
 		return
 	}
 
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%d finished\n", id)
+	fmt.Fprintf(w, "%d finished\n", entry.ItemId)
 }
 
 func PlanMedia(w http.ResponseWriter, req *http.Request) {

@@ -101,12 +101,20 @@ func main() {
 		"list-entries": api.ListMetadata,
 	})
 
+	finishEngagement := api.ApiEndPoint {
+		Handler: api.FinishMedia,
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"rating": api.MkQueryInfo(api.P_Float64, true),
+		},
+	}
+
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
 		"begin-media":  api.BeginMedia,
-		"finish-media": api.FinishMedia,
+		"finish-media": finishEngagement.Listener,
 		"plan-media":   api.PlanMedia,
 		"drop-media":   api.DropMedia,
 		"pause-media":  api.PauseMedia,
