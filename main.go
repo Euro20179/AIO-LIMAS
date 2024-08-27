@@ -66,12 +66,19 @@ func main() {
 		},
 	}
 
+	searchApi := api.ApiEndPoint {
+		Handler: api.ListEntries,
+		QueryParams: api.QueryParams {
+			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
+		},
+	}
+
 	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":        addEntry.Listener,
 		"mod-entry":        modEntry.Listener,
 		"query":            api.QueryEntries,
-		"list-entries":     api.ListEntries,
+		"list-entries":     searchApi.Listener,
 		"scan-folder":      api.ScanFolder,
 		"stream-entry":     api.Stream,
 		"delete-entry":     api.DeleteEntry,

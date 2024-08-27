@@ -1,22 +1,26 @@
 package api
 
 import (
-	"aiolimas/db"
-	"aiolimas/metadata"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
+	"regexp"
 	"runtime"
 	"strconv"
+
+	"aiolimas/db"
+	"aiolimas/metadata"
 )
 
-type Parser = func(in string) (any, error)
-type QueryParams = map[string]QueryParamInfo
+type (
+	Parser      = func(in string) (any, error)
+	QueryParams = map[string]QueryParamInfo
+)
 
 type QueryParamInfo struct {
-	Parser Parser
+	Parser   Parser
 	Required bool
 }
 
@@ -36,7 +40,7 @@ func (self *ParsedParams) Get(name string, backup any) any {
 }
 
 type ApiEndPoint struct {
-	Handler func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
+	Handler     func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
 	QueryParams QueryParams
 }
 
@@ -45,7 +49,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 	query := req.URL.Query()
 	for name, info := range self.QueryParams {
-		if !query.Has(name){
+		if !query.Has(name) {
 			if info.Required {
 				w.WriteHeader(400)
 				fmt.Fprintf(w, "Missing parameter: '%s'", name)
@@ -57,7 +61,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		queryVal := query.Get(name)
 
 		val, err := info.Parser(queryVal)
-		if err != nil{
+		if err != nil {
 			w.WriteHeader(400)
 			funcName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
 			fmt.Fprintf(w, "%s\nInvalid value for: '%s'\nexpected to pass: '%s'", err.Error(), name, funcName)
@@ -72,7 +76,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 func P_Int64(in string) (any, error) {
 	i, err := strconv.ParseInt(in, 10, 64)
-	if err != nil{
+	if err != nil {
 		return 0, err
 	}
 	return i, nil
@@ -80,7 +84,7 @@ func P_Int64(in string) (any, error) {
 
 func P_Float64(in string) (any, error) {
 	f, err := strconv.ParseFloat(in, 64)
-	if err != nil{
+	if err != nil {
 		return 0, err
 	}
 	return f, nil
@@ -89,11 +93,11 @@ func P_Float64(in string) (any, error) {
 func P_VerifyIdAndGetUserEntry(id string) (any, error) {
 	var out db.UserViewingEntry
 	i, err := P_Int64(id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	entry, err := db.GetUserViewEntryById(i.(int64))
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	return entry, nil
@@ -102,11 +106,11 @@ func P_VerifyIdAndGetUserEntry(id string) (any, error) {
 func P_VerifyIdAndGetInfoEntry(id string) (any, error) {
 	var out db.InfoEntry
 	i, err := P_Int64(id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	entry, err := db.GetInfoEntryById(i.(int64))
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	return entry, nil
@@ -123,9 +127,22 @@ func P_NotEmpty(in string) (any, error) {
 	return in, errors.New("Empty")
 }
 
+func P_SqlSafe(in string) (any, error) {
+	if in == "" {
+		return in, nil
+	}
+	match, err := regexp.Match("[0-9A-Za-z-_\\.]", []byte(in))
+	if err != nil{
+		return "", err
+	} else if match {
+		return in, nil
+	}
+	return in, fmt.Errorf("'%s' contains invalid characters", in)
+}
+
 func P_EntryFormat(in string) (any, error) {
 	i, err := P_Int64(in)
-	if err != nil{
+	if err != nil {
 		return 0, err
 	}
 	if !db.IsValidFormat(i.(int64)) {
@@ -158,7 +175,7 @@ func P_UserStatus(in string) (any, error) {
 func P_Uint64Array(in string) (any, error) {
 	var startTimes []uint64
 	err := json.Unmarshal([]byte(in), &startTimes)
-	if err != nil{
+	if err != nil {
 		return startTimes, err
 	}
 	return startTimes, nil
@@ -177,11 +194,11 @@ func P_Bool(in string) (any, error) {
 func As_JsonMarshal(parser Parser) Parser {
 	return func(in string) (any, error) {
 		v, err := parser(in)
-		if err != nil{
+		if err != nil {
 			return "", err
 		}
 		res, err := json.Marshal(v)
-		if err != nil{
+		if err != nil {
 			return "", err
 		}
 		return string(res), nil

@@ -171,8 +171,13 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 }
 
 // simply will list all entries as a json from the entryInfo table
-func ListEntries(w http.ResponseWriter, req *http.Request) {
-	items, err := db.Db.Query("SELECT * FROM entryInfo;")
+func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	sortBy, _ := parsedParams.Get("sort-by", "userRating").(string)
+	items, err := db.Db.Query(fmt.Sprintf(`SELECT entryInfo.*
+		FROM
+			entryInfo JOIN userViewingInfo ON
+				entryInfo.itemId = userViewingInfo.itemId
+		ORDER BY %s`, sortBy))
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
