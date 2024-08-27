@@ -12,8 +12,9 @@ function findRoot(elem) {
 /**
 * @param {HTMLButtonElement} elem 
 * @param {string} action 
+* @param {string} queryParams 
 */
-function mediaAction(elem, action) {
+function mediaAction(elem, action, queryParams = "") {
     if(!confirm(`Are you sure you want to ${action} this entry`)) {
         return
     }
@@ -25,7 +26,7 @@ function mediaAction(elem, action) {
         return
     }
 
-    fetch(`${apiPath}/engagement/${action}-media?id=${entryId}`)
+    fetch(`${apiPath}/engagement/${action}-media?id=${entryId}${queryParams}`)
         .then(res => res.text())
         .then(alert)
         .catch(console.error)
@@ -35,12 +36,16 @@ function mediaAction(elem, action) {
 * @param {HTMLButtonElement} elem 
 */
 function beginMedia(elem) {
-    mediaAction(elem, "begin")
+    mediaAction(elem, "begin", "")
 }
 
 /**
 * @param {HTMLButtonElement} elem 
 */
 function endMedia(elem) {
-    mediaAction(elem, "finish")
+    let rating = prompt("Rating")
+    while(isNaN(Number(rating))) {
+        rating = prompt("Not a number\nRating")
+    }
+    mediaAction(elem, "finish", `&rating=${rating}`)
 }
