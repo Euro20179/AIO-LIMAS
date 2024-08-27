@@ -119,14 +119,21 @@
             </dialog>
         </nav>
         <section id="all-entries"></section>
+
     </main>
 
     <template id="item-entry">
         <div class="entry">
+            <dialog popover id="edit-entry">
+                TODO
+            </dialog>
             <img src="/no-img" class="img">
             <section class="header">
-                <button class="meta-fetcher" title="refresh metadata">⟳</button>
-                <button class="deleter" title="delete entry">🗑</button>
+                <div class="entry-actions">
+                    <button class="editor" popovertarget="edit-entry">✏</button>
+                    <button class="meta-fetcher" title="refresh metadata">⟳</button>
+                    <button class="deleter" title="delete entry">🗑</button>
+                </div>
                 <h3 class="name"><a class="location"></a></h3>
                 <span class="rating"></span>
                 <span class="cost"></span>

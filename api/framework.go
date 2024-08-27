@@ -129,7 +129,7 @@ func P_NotEmpty(in string) (any, error) {
 
 func P_SqlSafe(in string) (any, error) {
 	if in == "" {
-		return in, nil
+		return in, errors.New("Empty")
 	}
 	match, err := regexp.Match("[0-9A-Za-z-_\\.]", []byte(in))
 	if err != nil{
