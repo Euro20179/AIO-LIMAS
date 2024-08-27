@@ -415,6 +415,22 @@ function createItemEntry(item, userEntry, meta) {
         const img = /**@type {HTMLImageElement}*/(root.querySelector(".img"))
         img.src = json.Thumbnail
     }
+
+    const deleter = /**@type {HTMLButtonElement}*/ (root.querySelector(".deleter"))
+    deleter.onclick = async function() {
+        if(!confirm("Are you sure you want to delete this item")) {
+            return
+        }
+        let res = await fetch(`${apiPath}/delete-entry?id=${item.ItemId}`)
+        if(res?.status != 200) {
+            console.error(res)
+            alert("Failed to delete item")
+            return
+        }
+        alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
+        root.remove()
+    }
+
     out.appendChild(root)
 }
 
