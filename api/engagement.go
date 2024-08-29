@@ -8,6 +8,18 @@ import (
 	db "aiolimas/db"
 )
 
+func ReAssociate(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	userEntry := parsedParams["id"].(db.UserViewingEntry)
+	libraryEntry := parsedParams["new-id"].(db.InfoEntry)
+
+	err := db.ReassosicateUserViewingEntry(userEntry.ItemId, libraryEntry.ItemId)
+	if err != nil{
+		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
+		return
+	}
+	success(w)
+}
+
 // engagement endpoints
 func BeginMedia(w http.ResponseWriter, req *http.Request) {
 	id, err := verifyIdQueryParam(req)

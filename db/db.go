@@ -345,6 +345,16 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 	return nil
 }
 
+func ReassosicateUserViewingEntry(oldId int64, newId int64) error {
+	_, err := Db.Exec(`
+		UPDATE userViewingInfo
+		SET
+			itemId = ?
+		WHERE
+		itemId = ?`, newId, oldId)
+	return err
+}
+
 func UpdateMetadataEntry(entry *MetadataEntry) error {
 	_, err := Db.Exec(`
 		UPDATE metadata

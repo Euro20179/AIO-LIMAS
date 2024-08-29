@@ -39,7 +39,7 @@ func main() {
 			"tags":         api.MkQueryInfo(api.P_True, false),
 			"location":     api.MkQueryInfo(api.P_True, false),
 
-			"get-metadata": api.MkQueryInfo(api.P_Bool, false),
+			"get-metadata":      api.MkQueryInfo(api.P_Bool, false),
 			"metadata-provider": api.MkQueryInfo(api.P_MetaProvider, false),
 
 			"user-rating":      api.MkQueryInfo(api.P_Float64, false),
@@ -67,9 +67,9 @@ func main() {
 		},
 	}
 
-	searchApi := api.ApiEndPoint {
+	searchApi := api.ApiEndPoint{
 		Handler: api.ListEntries,
-		QueryParams: api.QueryParams {
+		QueryParams: api.QueryParams{
 			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
 		},
 	}
@@ -102,11 +102,19 @@ func main() {
 		"list-entries": api.ListMetadata,
 	})
 
-	finishEngagement := api.ApiEndPoint {
+	finishEngagement := api.ApiEndPoint{
 		Handler: api.FinishMedia,
-		QueryParams: api.QueryParams {
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		QueryParams: api.QueryParams{
+			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"rating": api.MkQueryInfo(api.P_Float64, true),
+		},
+	}
+
+	reassociate := api.ApiEndPoint{
+		Handler: api.ReAssociate,
+		QueryParams: api.QueryParams{
+			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"new-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
 
@@ -123,6 +131,7 @@ func main() {
 		"set-note":     api.SetNote,
 		"get-entry":    api.GetUserEntry,
 		"list-entries": api.UserEntries,
+		"reassociate":  reassociate.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)
