@@ -219,26 +219,53 @@ function fillUserInfo(container, item) {
     userInfoEl.append(basicElement(`View count: ${item.ViewCount}`, "li"));
     userInfoEl.append(basicElement(`Status: ${item.Status}`, "li"));
 
-    const viewTableBody = /**@type {HTMLTableElement}*/(container.querySelector(".view-table tbody"));
+    const viewTableBody = /**@type {HTMLTableElement}*/(container.querySelector(".event-table tbody"));
+    fetch(`${apiPath}/engagement/get-events?id=${item.ItemId}`)
+        .then(res => res.text())
+        .then(text => {
+            const json = text.split("\n")
+                .filter(Boolean)
+                .map(mkStrItemId)
+                .map(parseJsonL)
+            for(let item of json) {
+                let tText = "unknown"
+                if (item.Timestamp !== 0) {
+                    let time = new Date(item.Timestamp)
+                    tText = `${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
+                } else if(item.After !== 0) {
+                    let time = new Date(item.After)
+                    tText = `After: ${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
+                }
 
-    const startDates = JSON.parse(item.StartDate)
-    const endDates = JSON.parse(item.EndDate)
-    for (let i = 0; i < startDates.length; i++) {
-        let start = startDates[i]
-        let end = endDates[i]
+                let eventTd = basicElement(item.Event, "td")
+                let timeTd = basicElement(tText, "td")
+                let tr = document.createElement("tr")
+                tr.append(eventTd)
+                tr.append(timeTd)
+                viewTableBody.append( tr)
+            }
+            console.log(json)
+        })
 
-        let sd = new Date(start)
-        let ed = new Date(end)
-        let sText = `${sd.getMonth() + 1}/${sd.getDate()}/${sd.getFullYear()}`
-        let eText = `${ed.getMonth() + 1}/${ed.getDate()}/${ed.getFullYear()}`
+    //     const startDates = JSON.parse(item.StartDate)
 
-        viewTableBody.innerHTML += `
-<tr>
-    <td>${start === 0 ? "unknown" : sText}</td>
-    <td>${end === 0 ? "unknown" : eText}</td>
-</tr>
-`
-    }
+    //     const endDates = JSON.parse(item.EndDate)
+    //     for (let i = 0; i < startDates.length; i++) {
+    //         let start = startDates[i]
+    //         let end = endDates[i]
+    //
+    //         let sd = new Date(start)
+    //         let ed = new Date(end)
+    //         let sText = `${sd.getMonth() + 1}/${sd.getDate()}/${sd.getFullYear()}`
+    //         let eText = `${ed.getMonth() + 1}/${ed.getDate()}/${ed.getFullYear()}`
+    //
+    //         viewTableBody.innerHTML += `
+    // <tr>
+    //     <td>${start === 0 ? "unknown" : sText}</td>
+    //     <td>${end === 0 ? "unknown" : eText}</td>
+    // </tr>
+    // `
+    //     }
 }
 
 /**
@@ -522,7 +549,7 @@ async function loadQueriedEntries(search) {
     if (search.tags) {
         queryString += `&tags=${encodeURI(search.tags)}`
     }
-    if(search.status) {
+    if (search.status) {
         queryString += `&user-status=${encodeURI(search.status)}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)

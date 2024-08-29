@@ -173,12 +173,12 @@ func P_UserStatus(in string) (any, error) {
 }
 
 func P_Uint64Array(in string) (any, error) {
-	var startTimes []uint64
-	err := json.Unmarshal([]byte(in), &startTimes)
+	var arr []uint64
+	err := json.Unmarshal([]byte(in), &arr)
 	if err != nil {
-		return startTimes, err
+		return arr, err
 	}
-	return startTimes, nil
+	return arr, nil
 }
 
 func P_Bool(in string) (any, error) {

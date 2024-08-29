@@ -8,11 +8,12 @@ import (
 	db "aiolimas/db"
 )
 
-func ReAssociate(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	userEntry := parsedParams["id"].(db.UserViewingEntry)
-	libraryEntry := parsedParams["new-id"].(db.InfoEntry)
+func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	userEntry := parsedParams["src-id"].(db.UserViewingEntry)
+	libraryEntry := parsedParams["dest-id"].(db.InfoEntry)
 
-	err := db.ReassosicateUserViewingEntry(userEntry.ItemId, libraryEntry.ItemId)
+
+	err := db.CopyUserViewingEntry(&userEntry, libraryEntry.ItemId)
 	if err != nil{
 		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
@@ -239,4 +240,41 @@ func UserEntries(w http.ResponseWriter, req *http.Request) {
 	}
 	defer items.Close()
 	outputUserEntries(items, w)
+}
+
+func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	id := parsedParams["id"].(db.InfoEntry)
+	events, err := db.Db.Query(`
+		SELECT * from userEventInfo
+		WHERE
+			itemId == ?
+		ORDER BY
+			CASE timestamp
+				WHEN 0 THEN
+					userEventInfo.after
+				ELSE timestamp
+			END`, id.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not fetch events\n%s", err.Error())
+		return
+	}
+	defer events.Close()
+
+	w.WriteHeader(200)
+	for events.Next() {
+		var event db.UserViewingEvent
+		err := event.ReadEntry(events)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+
+		j, err := event.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
 }

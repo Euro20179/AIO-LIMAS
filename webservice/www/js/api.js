@@ -4,8 +4,6 @@
  * @property {bigint} ItemId
  * @property {string} Status
  * @property {number} ViewCount
- * @property {string} StartDate
- * @property {string} EndDate
  * @property {number} UserRating
  * @property {string} Notes
  */

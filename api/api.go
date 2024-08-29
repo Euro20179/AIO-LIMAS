@@ -149,8 +149,6 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		userEntry.Status = status.(db.Status)
 	}
 
-	userEntry.StartDate = parsedParams.Get("user-start-dates", "[]").(string)
-	userEntry.EndDate = parsedParams.Get("user-end-dates", "[]").(string)
 	userEntry.ViewCount = parsedParams.Get("user-view-count", int64(0)).(int64)
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"time"
 )
 
 type Status string
@@ -190,12 +189,31 @@ func (self *InfoEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
 
+type UserViewingEvent struct {
+	ItemId int64
+	Event string
+	Timestamp uint64
+	After uint64 //this is also a timestamp, for when the exact timestamp is unknown
+				//this is to ensure that order can be determined
+}
+
+func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
+	return rows.Scan(
+		&self.ItemId,
+		&self.Timestamp,
+		&self.After,
+		&self.Event,
+	)
+}
+
+func (self *UserViewingEvent) ToJson() ([]byte, error) {
+	return json.Marshal(self)
+}
+
 type UserViewingEntry struct {
 	ItemId     int64
 	Status     Status
 	ViewCount  int64
-	StartDate  string
-	EndDate    string
 	UserRating float64
 	Notes      string
 }
@@ -205,8 +223,6 @@ func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error{
 		&self.ItemId,
 		&self.Status,
 		&self.ViewCount,
-		&self.StartDate,
-		&self.EndDate,
 		&self.UserRating,
 		&self.Notes,
 	)
@@ -214,34 +230,6 @@ func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error{
 
 func (self *UserViewingEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
-}
-
-func (self *UserViewingEntry) unmarshallTimes() ([]uint64, []uint64, error) {
-	var startTimes []uint64
-	err := json.Unmarshal([]byte(self.StartDate), &startTimes)
-	if err != nil {
-		return nil, nil, err
-	}
-	var endTimes []uint64
-	err = json.Unmarshal([]byte(self.EndDate), &endTimes)
-	if err != nil {
-		return nil, nil, err
-	}
-	return startTimes, endTimes, nil
-}
-
-func (self *UserViewingEntry) marshallTimes(startTimes []uint64, endTimes []uint64) error {
-	marshalledStart, err := json.Marshal(startTimes)
-	if err != nil {
-		return err
-	}
-	marshalledEnd, err := json.Marshal(endTimes)
-	if err != nil {
-		return err
-	}
-	self.StartDate = string(marshalledStart)
-	self.EndDate = string(marshalledEnd)
-	return nil
 }
 
 func (self *UserViewingEntry) IsViewing() bool {
@@ -253,17 +241,11 @@ func (self *UserViewingEntry) CanBegin() bool {
 }
 
 func (self *UserViewingEntry) Begin() error {
-	startTimes, endTimes, err := self.unmarshallTimes()
-	if err != nil {
+	err := RegisterBasicUserEvent("Viewing", self.ItemId)
+	if err != nil{
 		return err
 	}
-	startTimes = append(startTimes, uint64(time.Now().UnixMilli()))
-	// start times and end times array must be same length
-	endTimes = append(endTimes, 0)
-
-	if err := self.marshallTimes(startTimes, endTimes); err != nil {
-		return err
-	}
+	
 	if self.Status != S_FINISHED {
 		self.Status = S_VIEWING
 	} else {
@@ -278,15 +260,8 @@ func (self *UserViewingEntry) CanFinish() bool {
 }
 
 func (self *UserViewingEntry) Finish() error {
-	startTimes, endTimes, err := self.unmarshallTimes()
-	if err != nil {
-		return err
-	}
-
-	// this should be 0, overwrite it to the current time
-	endTimes[len(endTimes)-1] = uint64(time.Now().UnixMilli())
-
-	if err := self.marshallTimes(startTimes, endTimes); err != nil {
+	err := RegisterBasicUserEvent("Finished", self.ItemId)
+	if err != nil{
 		return err
 	}
 
@@ -301,6 +276,11 @@ func (self *UserViewingEntry) CanPlan() bool {
 }
 
 func (self *UserViewingEntry) Plan() error {
+	err := RegisterBasicUserEvent("Planned", self.ItemId)
+	if err != nil{
+		return err
+	}
+
 	self.Status = S_PLANNED
 
 	return nil
@@ -311,6 +291,11 @@ func (self *UserViewingEntry) CanDrop() bool {
 }
 
 func (self *UserViewingEntry) Drop() error {
+	err := RegisterBasicUserEvent("Dropped", self.ItemId)
+	if err != nil{
+		return err
+	}
+
 	self.Status = S_DROPPED
 
 	return nil
@@ -321,6 +306,11 @@ func (self *UserViewingEntry) CanPause() bool {
 }
 
 func (self *UserViewingEntry) Pause() error {
+	err := RegisterBasicUserEvent("Paused", self.ItemId)
+	if err != nil{
+		return err
+	}
+
 	self.Status = S_PAUSED
 
 	return nil
@@ -331,6 +321,11 @@ func (self *UserViewingEntry) CanResume() bool {
 }
 
 func (self *UserViewingEntry) Resume() error {
+	err := RegisterBasicUserEvent("ReViewing", self.ItemId)
+	if err != nil{
+		return err
+	}
+
 	self.Status = S_REVIEWING
 	return nil
 }

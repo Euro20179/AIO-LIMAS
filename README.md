@@ -26,12 +26,15 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] drop
     - [x] pause
     - [x] continue
-  - [ ] Ability to reassociate with a different library entry
+  - [x] Ability to reassociate with a different library entry
     - Something like `/api/v1/engagement/reassociate?id=X&new-id=Y`
-  - [ ] Replace the start/end lists with event lists
+  - [x] Replace the start/end lists with event lists
     - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
     - The events should be the same as statuses
     - unixtime is when that status was set
+    - this actually might be really good as it's own table that looks something like this
+    `itemId | timestamp | event`
+    - Even if the items are entered into the table out of order, and the ids aren't in order, we can always use `SELECT * FROM userEvents WHERE itemId = ? ORDER BY timestamp`
 - [ ] Library features
   - [x] copy of (id)
     - that way if the user has say, a digital movie and blu ray of something
@@ -95,3 +98,4 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] total stats
     - [x] total items
   - [x] thumbnails
+  - [ ] if an item is marked as a copy, display the copy user viewing entry

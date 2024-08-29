@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
@@ -27,52 +28,6 @@ func dbHasCol(db *sql.DB, colName string) bool {
 		}
 	}
 	return false
-}
-
-func ensureAnimeCol(db *sql.DB) {
-	if !dbHasCol(db, "isAnime") {
-		_, err := db.Exec("ALTER TABLE entryInfo ADD COLUMN isAnime INTEGER")
-		if err != nil {
-			panic("Could not add isAnime col\n" + err.Error())
-		}
-	}
-
-	animeShows, _ := db.Query("SELECT * FROM entryInfo WHERE type == 'Anime'")
-	var idsToUpdate []int64
-	for animeShows.Next() {
-		var out InfoEntry
-		out.ReadEntry(animeShows)
-		idsToUpdate = append(idsToUpdate, out.ItemId)
-	}
-	animeShows.Close()
-	for _, id := range idsToUpdate {
-		fmt.Printf("Updating: %d\n", id)
-		_, err := db.Exec(`
-			UPDATE entryInfo
-			SET
-				type = 'Show',
-				isAnime = ?
-			WHERE
-				itemId = ?
-			`, 1, id)
-		if err != nil {
-			panic(fmt.Sprintf("Could not update table entry %d to be isAnime", id) + "\n" + err.Error())
-		}
-
-	}
-}
-
-func ensureCopyOfCol(db *sql.DB) {
-	if !dbHasCol(db, "copyOf") {
-		_, err := db.Exec("ALTER TABLE entryInfo ADD COLUMN copyOf INTEGER")
-		if err != nil {
-			panic("Could not add isAnime col\n" + err.Error())
-		}
-		_, err = db.Exec("UPDATE entryInfo SET copyOf = 0")
-		if err != nil {
-			panic("Could not set copyIds to 0")
-		}
-	}
 }
 
 func InitDb(dbPath string) {
@@ -113,23 +68,26 @@ func InitDb(dbPath string) {
 		panic("Failed to create metadata table\n" + err.Error())
 	}
 
-	// startDate and endDate are expected to number[] stringified into json
 	_, err = conn.Exec(`
 		CREATE TABLE IF NOT EXISTS userViewingInfo (
 			itemId INTEGER,
 			status TEXT,
 			viewCount INTEGER,
-			startDate TEXT,
-			endDate TEXT,
 			userRating NUMERIC,
 			notes TEXT
+		)
+	`)
+	_, err = conn.Exec(`
+		CREATE TABLE IF NOT EXISTS userEventInfo (
+			itemId INTEGER,
+			timestamp INTEGER,
+			after INTEGER,
+			event TEXT
 		)
 	`)
 	if err != nil {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
-	ensureAnimeCol(conn)
-	ensureCopyOfCol(conn)
 	Db = conn
 }
 
@@ -165,6 +123,22 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	rows.Next()
 	err = res.ReadEntry(rows)
 	if err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func GetUserEventEntryById(id int64) (UserViewingEvent, error) {
+	var res UserViewingEvent
+	rows, err := Db.Query("SELECT * FROM userEventInfo WHERE itemId == ?", id)
+	if err != nil{
+		return res, err
+	}
+	defer rows.Close()
+
+	rows.Next()
+	err = res.ReadEntry(rows)
+	if err != nil{
 		return res, err
 	}
 	return res, nil
@@ -245,19 +219,10 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		return err
 	}
 
-	if userViewingEntry.StartDate == "" {
-		userViewingEntry.StartDate = "[]"
-	}
-	if userViewingEntry.EndDate == "" {
-		userViewingEntry.EndDate = "[]"
-	}
-
 	userViewingQuery := `INSERT INTO userViewingInfo (
 			itemId,
 			status,
 			viewCount,
-			startDate,
-			endDate,
 			userRating,
 			notes
 		) VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -266,11 +231,19 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		userViewingEntry.ItemId,
 		userViewingEntry.Status,
 		userViewingEntry.ViewCount,
-		userViewingEntry.StartDate,
-		userViewingEntry.EndDate,
 		userViewingEntry.UserRating,
 		userViewingEntry.Notes,
 	)
+	if err != nil {
+		return err
+	}
+
+	userEventQuery := `INSERT INTO userEventInfo (
+		itemId,
+		timestamp,
+		event
+	) VALUES (?, ?, ?)`
+	_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()))
 	if err != nil {
 		return err
 	}
@@ -328,31 +301,40 @@ func ScanFolder(path string, collection string) []error {
 	return ScanFolderWithParent(path, collection, 0)
 }
 
+func RegisterUserEvent(event UserViewingEvent) error {
+	_, err := Db.Exec(`
+		INSERT INTO userEventInfo (itemId, timestamp, event, after)
+		VALUES (?, ?, ?, ?)
+	`, event.ItemId, event.Timestamp, event.Event, event.After)
+	return err
+}
+
+func RegisterBasicUserEvent(event string, itemId int64) error {
+	var e UserViewingEvent
+	e.Event = event
+	e.Timestamp = uint64(time.Now().UnixMilli())
+	e.ItemId = itemId
+	return RegisterUserEvent(e)
+}
+
 func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 	Db.Exec(`
 		UPDATE userViewingInfo
 		SET
 			status = ?,
 			viewCount = ?,
-			startDate = ?,
-			endDate = ?,
 			userRating = ?,
 			notes = ?
 		WHERE
 			itemId = ?
-	`, entry.Status, entry.ViewCount, entry.StartDate, entry.EndDate, entry.UserRating, entry.Notes, entry.ItemId)
+	`, entry.Status, entry.ViewCount, entry.UserRating, entry.Notes, entry.ItemId)
 
 	return nil
 }
 
-func ReassosicateUserViewingEntry(oldId int64, newId int64) error {
-	_, err := Db.Exec(`
-		UPDATE userViewingInfo
-		SET
-			itemId = ?
-		WHERE
-		itemId = ?`, newId, oldId)
-	return err
+func CopyUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
+	oldEntry.ItemId = newId
+	return UpdateUserViewingEntry(oldEntry)
 }
 
 func UpdateMetadataEntry(entry *MetadataEntry) error {
