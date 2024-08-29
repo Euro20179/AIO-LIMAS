@@ -22,7 +22,7 @@ func dbHasCol(db *sql.DB, colName string) bool {
 		var ty string
 		var z string
 		info.Scan(&id, &name, &ty, &x, &z, &y)
-		if name == colName{
+		if name == colName {
 			return true
 		}
 	}
@@ -69,7 +69,7 @@ func ensureCopyOfCol(db *sql.DB) {
 			panic("Could not add isAnime col\n" + err.Error())
 		}
 		_, err = db.Exec("UPDATE entryInfo SET copyOf = 0")
-		if err != nil{
+		if err != nil {
 			panic("Could not set copyIds to 0")
 		}
 	}
@@ -360,7 +360,7 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 	`, entry.Rating, entry.Description,
 		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
 		entry.Datapoints, entry.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -406,11 +406,12 @@ type EntryInfoSearch struct {
 	LocationSearch    string
 	PurchasePriceGt   float64
 	PurchasePriceLt   float64
-	InTags      []string
+	InTags            []string
 	HasParent         []int64
 	Type              []MediaTypes
 	IsAnime           int
-	CopyIds []int64
+	CopyIds           []int64
+	UserStatus        Status
 }
 
 func buildQString[T any](withList []T) string {
@@ -438,7 +439,7 @@ func Delete(id int64) error {
 
 func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
-	query.Select("*").From("entryInfo")
+	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId")
 	var queries []string
 	// query := `SELECT * FROM entryInfo WHERE true`
 
@@ -477,7 +478,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.In("parentId", sqlbuilder.Flatten(pars)...))
 	}
 	if len(mainSearchInfo.CopyIds) > 0 {
-		cos := []interface{} {
+		cos := []interface{}{
 			mainSearchInfo.CopyIds,
 		}
 		queries = append(queries, query.In("copyOf", sqlbuilder.Flatten(cos)...))
@@ -490,7 +491,11 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	}
 
 	if mainSearchInfo.IsAnime != 0 {
-		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime - 1))
+		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime-1))
+	}
+
+	if mainSearchInfo.UserStatus != "" {
+		queries = append(queries, query.Equal("userViewingInfo.status", mainSearchInfo.UserStatus))
 	}
 
 	query = query.Where(queries...)
@@ -513,7 +518,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		i += 1
 		var row InfoEntry
 		err = row.ReadEntry(rows)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -522,16 +527,16 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	return out, nil
 }
 
-func ListCollections() ([]string, error){
+func ListCollections() ([]string, error) {
 	var out []string
 	rows, err := Db.Query(`SELECT en_title FROM entryInfo WHERE type = 'Collection'`)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	for rows.Next() {
 		collection := ""
 		err := rows.Scan(&collection)
-		if err != nil{
+		if err != nil {
 			return out, err
 		}
 		out = append(out, collection)
@@ -542,7 +547,7 @@ func ListCollections() ([]string, error){
 func GetCopiesOf(id int64) ([]InfoEntry, error) {
 	var out []InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo WHERE copyOf = ?", id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	return mkRows(rows)
@@ -554,7 +559,7 @@ func mkRows(rows *sql.Rows) ([]InfoEntry, error) {
 	for rows.Next() {
 		var entry InfoEntry
 		err := entry.ReadEntry(rows)
-		if err != nil{
+		if err != nil {
 			return out, err
 		}
 		out = append(out, entry)
@@ -565,27 +570,27 @@ func mkRows(rows *sql.Rows) ([]InfoEntry, error) {
 func GetChildren(id int64) ([]InfoEntry, error) {
 	var out []InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo where parentId = ?", id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 	return mkRows(rows)
 }
 
-func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, error){
+func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, error) {
 	var out []InfoEntry
-	if(recurse > maxRecurse) {
+	if recurse > maxRecurse {
 		return out, nil
 	}
 
 	children, err := GetChildren(id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 
 	for _, item := range children {
 		out = append(out, item)
-		newItems, err := getDescendants(item.ItemId, recurse + 1, maxRecurse)
-		if err != nil{
+		newItems, err := getDescendants(item.ItemId, recurse+1, maxRecurse)
+		if err != nil {
 			continue
 		}
 		out = append(out, newItems...)

@@ -54,6 +54,15 @@
             <option value="BoardGame">BoardGame</option>
             <option value="Collection">Collection</option>
         </select>
+        <select name="status">
+            <option value="">Status</option>
+            <option value="Viewing">Viewing</option>
+            <option value="Finished">Finished</option>
+            <option value="Dropped">Dropped</option>
+            <option value="Planned">Planned</option>
+            <option value="ReViewing">ReViewing</option>
+            <option value="Paused">Paused</option>
+        </select>
         <input type="text" name="tags" placeholder="tags (',' separated)">
         <label title="display children"><input type="checkbox" name="children">children</label>
         <label title="display copies"><input type="checkbox" name="copies">copies</label>
@@ -130,6 +139,7 @@
             <img src="/no-img" class="img">
             <section class="header">
                 <div class="entry-actions">
+                    <button class="identifier" title="Identify entry">ℹ</button>
                     <button class="editor" popovertarget="edit-entry">✏</button>
                     <button class="meta-fetcher" title="refresh metadata">⟳</button>
                     <button class="deleter" title="delete entry">🗑</button>

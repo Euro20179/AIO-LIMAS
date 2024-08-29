@@ -47,6 +47,7 @@
  * @property {boolean} children
  * @property {boolean} copies
  * @property {string} tags
+ * @property {string} status
  */
 
 /**

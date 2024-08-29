@@ -522,6 +522,9 @@ async function loadQueriedEntries(search) {
     if (search.tags) {
         queryString += `&tags=${encodeURI(search.tags)}`
     }
+    if(search.status) {
+        queryString += `&user-status=${encodeURI(search.status)}`
+    }
     const res = await fetch(`${apiPath}/query${queryString}`)
         .catch(console.error)
     if (!res) {
@@ -684,13 +687,16 @@ function query() {
     let formats = []
     formats.push(data.getAll("format").map(Number))
 
+    let status = /**@type {string}*/(data.get("status"))
+
     /**@type {DBQuery}*/
     let query = {
         title: enTitle,
         type: ty,
         //@ts-ignore
         format: formats.length ? formats : [-1],
-        tags: tags
+        tags: tags,
+        status
         // format: Number(format)
     }
 

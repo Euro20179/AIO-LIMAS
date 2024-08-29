@@ -219,7 +219,9 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	parents := query.Get("parent-ids")
 	isAnime := query.Get("is-anime")
 	copyIds := query.Get("copy-ids")
+	status := query.Get("user-status")
 
+	println(status)
 	pgt := 0.0
 	plt := 0.0
 	var fmts []db.Format
@@ -281,6 +283,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
 	entrySearch.CopyIds = cos
+	entrySearch.UserStatus = db.Status(status)
 	switch isAnime {
 	case "true":
 		entrySearch.IsAnime = 2
