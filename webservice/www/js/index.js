@@ -244,7 +244,6 @@ function fillUserInfo(container, item) {
                 tr.append(timeTd)
                 viewTableBody.append( tr)
             }
-            console.log(json)
         })
 
     //     const startDates = JSON.parse(item.StartDate)

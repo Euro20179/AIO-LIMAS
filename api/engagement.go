@@ -122,7 +122,7 @@ func DropMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	entry.Plan()
+	entry.Drop()
 	err = db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())

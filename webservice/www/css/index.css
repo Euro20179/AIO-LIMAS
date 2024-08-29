@@ -181,7 +181,7 @@
                 text-align: center;
             }
 
-            .view-table {
+            .event-table {
                 border-collapse: collapse;
 
                 :is(td, th) {
