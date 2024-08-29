@@ -69,6 +69,10 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Collection = tags
 	}
 
+	if isAnime, exists := parsedParams["is-anime"].(bool); exists {
+		info.IsAnime = isAnime
+	}
+
 	err := db.UpdateInfoEntry(&info)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())

@@ -63,6 +63,7 @@ func main() {
 			"price":        api.MkQueryInfo(api.P_Float64, false),
 			"location":     api.MkQueryInfo(api.P_True, false),
 			"tags":         api.MkQueryInfo(api.P_True, false),
+			"is-anime":     api.MkQueryInfo(api.P_Bool, false),
 		},
 	}
 

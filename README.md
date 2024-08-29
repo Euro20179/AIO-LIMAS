@@ -28,6 +28,10 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] continue
   - [ ] Ability to reassociate with a different library entry
     - Something like `/api/v1/engagement/reassociate?id=X&new-id=Y`
+  - [ ] Replace the start/end lists with event lists
+    - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
+    - The events should be the same as statuses
+    - unixtime is when that status was set
 - [ ] Library features
   - [x] copy of (id)
     - that way if the user has say, a digital movie and blu ray of something
