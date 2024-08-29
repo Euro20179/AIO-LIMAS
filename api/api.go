@@ -223,7 +223,6 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	copyIds := query.Get("copy-ids")
 	status := query.Get("user-status")
 
-	println(status)
 	pgt := 0.0
 	plt := 0.0
 	var fmts []db.Format
