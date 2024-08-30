@@ -209,6 +209,36 @@ function fillBasicInfoSummary(container, item) {
 
 /**
  * @param {HTMLElement} container
+ *@param {MetadataEntry} item
+ */
+function fillMetaInfo(container, item) {
+    const metaEl = /**@type {HTMLDetailsElement}*/(container.querySelector(".metadata-info ul"))
+
+    const descBox = /**@type {HTMLElement}*/(container.querySelector(".description"))
+    descBox.innerText = item.Description
+
+    metaEl.append(basicElement(`Release year: ${item.ReleaseYear}`, "li"))
+    metaEl.append(basicElement(`General rating: ${item.Rating}`, "li"))
+    try{ 
+        const mediaDependant = JSON.parse(item.MediaDependant)
+        for(let name in mediaDependant) {
+            metaEl.append(basicElement(`${name}: ${mediaDependant[name]}`, "li"))
+        }
+    } catch(err) {
+        console.warn(err)
+    }
+    try{
+        const datapoints = JSON.parse(item.Datapoints)
+        for(let name in datapoints) {
+            metaEl.append(basicElement(`${name}: ${datapoints[name]}`, "li"))
+        }
+    } catch(err){
+        console.warn(err)
+    }
+}
+
+/**
+ * @param {HTMLElement} container
  * @param {UserEntry} item
  */
 function fillUserInfo(container, item) {
@@ -227,12 +257,12 @@ function fillUserInfo(container, item) {
                 .filter(Boolean)
                 .map(mkStrItemId)
                 .map(parseJsonL)
-            for(let item of json) {
+            for (let item of json) {
                 let tText = "unknown"
                 if (item.Timestamp !== 0) {
                     let time = new Date(item.Timestamp)
                     tText = `${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
-                } else if(item.After !== 0) {
+                } else if (item.After !== 0) {
                     let time = new Date(item.After)
                     tText = `After: ${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
                 }
@@ -242,7 +272,7 @@ function fillUserInfo(container, item) {
                 let tr = document.createElement("tr")
                 tr.append(eventTd)
                 tr.append(timeTd)
-                viewTableBody.append( tr)
+                viewTableBody.append(tr)
             }
         })
 
@@ -429,8 +459,11 @@ function createItemEntry(item, userEntry, meta) {
         }
     }
 
+    let metadata = getMetadataEntry(item.ItemId)
+
     fillBasicInfoSummary(root, item)
     fillUserInfo(root, /**@type {UserEntry}*/(userEntry))
+    fillMetaInfo(root, /**@type {MetadataEntry}*/(metadata))
 
     const metaRefresher = /**@type {HTMLButtonElement}*/(root.querySelector(".meta-fetcher"));
     metaRefresher.onclick = async function(e) {

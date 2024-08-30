@@ -26,8 +26,6 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] drop
     - [x] pause
     - [x] continue
-  - [x] Ability to reassociate with a different library entry
-    - Something like `/api/v1/engagement/reassociate?id=X&new-id=Y`
   - [x] Replace the start/end lists with event lists
     - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
     - The events should be the same as statuses
