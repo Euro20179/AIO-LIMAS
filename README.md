@@ -34,6 +34,13 @@ Physical content will need to be entered in manually, however metadata should be
     `itemId | timestamp | event`
     - Even if the items are entered into the table out of order, and the ids aren't in order, we can always use `SELECT * FROM userEvents WHERE itemId = ? ORDER BY timestamp`
 - [ ] Library features
+  - [ ] internet search
+    - i can do something like `/api/v1/internet-search` with similar params to addentry, except
+    - instead of adding an entry, it uses the (yet to be implemented) identify feature to gather search results
+    - [ ] search
+        - as described above
+    - [ ] lookup
+        - will lookup a specific entry using a specific provider
   - [x] copy of (id)
     - that way if the user has say, a digital movie and blu ray of something
     - they can have 2 entries, and the ui can know to display the same user/metadata for both

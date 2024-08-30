@@ -92,12 +92,20 @@ func main() {
 		"format": api.ListFormats,
 	})
 
+	identify := api.ApiEndPoint{
+		Handler: api.IdentifyWithSearch,
+		QueryParams: api.QueryParams{
+			"title": api.MkQueryInfo(api.P_NotEmpty, true),
+		},
+	}
+
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":        api.FetchMetadataForEntry,
 		"retrieve":     api.RetrieveMetadataForEntry,
 		"set":          api.SetMetadataForEntry,
 		"list-entries": api.ListMetadata,
+		"identify":     identify.Listener,
 	})
 
 	finishEngagement := api.ApiEndPoint{

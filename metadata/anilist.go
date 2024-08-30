@@ -22,7 +22,7 @@ const (
 )
 
 type AnilistQuery[T any] struct {
-	Query     string   `json:"query"`
+	Query     string       `json:"query"`
 	Variables map[string]T `json:"variables"`
 }
 type AnilistTitles struct {
@@ -30,26 +30,36 @@ type AnilistTitles struct {
 	Romaji  string
 	Native  string
 }
+type AnlistMediaEntry struct {
+	Title AnilistTitles `json:"title"`
+
+	CoverImage struct {
+		Medium string `json:"medium"`
+		Large  string `json:"large"`
+	} `json:"coverImage"`
+
+	AverageScore uint64 `json:"averageScore"`
+
+	Description string `json:"description"`
+
+	Duration   uint  `json:"duration"`
+	Episodes   uint  `json:"episodes"`
+	SeasonYear int64 `json:"seasonYear"`
+
+	Status string `json:"status"`
+
+	Type string `json:"type"`
+}
 type AnilistResponse struct {
 	Data struct {
-		Media struct {
-			Title AnilistTitles `json:"title"`
-
-			CoverImage struct {
-				Medium string `json:"medium"`
-				Large  string `json:"large"`
-			} `json:"coverImage"`
-
-			AverageScore uint64 `json:"averageScore"`
-
-			Description string `json:"description"`
-
-			Duration   uint  `json:"duration"`
-			Episodes   uint  `json:"episodes"`
-			SeasonYear int64 `json:"seasonYear"`
-
-			Status string `json:"status"`
-		} `json:"media"`
+		Media AnlistMediaEntry `json:"media"`
+	} `json:"data"`
+}
+type AnilistIdentifyResponse struct {
+	Data struct {
+		Page struct {
+			Media []AnlistMediaEntry `json:"media"`
+		} `json:"Page"`
 	} `json:"data"`
 }
 
@@ -79,13 +89,15 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 				averageScore,
 				duration,
 				episodes,
-				seasonYear
+				seasonYear,
+				description,
+				type
 			}
 		}
 	`
 	anilistQuery := AnilistQuery[string]{
-		Query:     query,
-		Variables: map[string]string {
+		Query: query,
+		Variables: map[string]string{
 			"search": searchTitle,
 		},
 	}
@@ -154,4 +166,77 @@ func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Me
 	newMeta.ItemId = entry.ItemId
 
 	return newMeta, err
+}
+
+func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
+	outMeta := []db.MetadataEntry{}
+
+	searchTitle := info.Title
+	query := `
+		query ($search: String) {
+			Page(page: 1) {
+				media(search: $search) {
+					title {
+						english
+						romaji
+						native
+					},
+					coverImage {
+						large
+					},
+					averageScore,
+					duration,
+					episodes,
+					seasonYear,
+					description,
+					type
+				}
+			}
+		}
+	`
+	anilistQuery := AnilistQuery[string]{
+		Query: query,
+		Variables: map[string]string{
+			"search": searchTitle,
+		},
+	}
+	bodyBytes, err := json.Marshal(anilistQuery)
+	if err != nil {
+		return outMeta, err
+	}
+	bodyReader := bytes.NewReader(bodyBytes)
+	res, err := http.Post("https://graphql.anilist.co", "application/json", bodyReader)
+	if err != nil {
+		return outMeta, err
+	}
+
+	defer res.Body.Close()
+
+	resp, err := io.ReadAll(res.Body)
+	if err != nil {
+		return outMeta, err
+	}
+
+	jData := new(AnilistIdentifyResponse)
+	err = json.Unmarshal(resp, &jData)
+	if err != nil {
+		return outMeta, err
+	}
+
+	for _, entry := range jData.Data.Page.Media {
+		var cur db.MetadataEntry
+		cur.Thumbnail = entry.CoverImage.Large
+		cur.Description = entry.Description
+		cur.Rating = float64(entry.AverageScore)
+
+		if entry.Type == "ANIME" {
+			cur.MediaDependant = fmt.Sprintf("{\"Show-title-english\": \"%s\", \"Show-title-native\":\"%s\"}", entry.Title.English, entry.Title.Native)
+		} else {
+			cur.MediaDependant = fmt.Sprintf("{\"Manga-title-english\":  \"%s\", \"Manga-title-native\":\"%s\"}", entry.Title.English, entry.Title.Native)
+		}
+
+		outMeta = append(outMeta, cur)
+	}
+
+	return outMeta, nil
 }

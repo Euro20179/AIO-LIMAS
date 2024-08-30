@@ -145,3 +145,26 @@ func ListMetadata(w http.ResponseWriter, req *http.Request) {
 	}
 	w.Write([]byte("\n"))
 }
+
+func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms ParsedParams) {
+	title := parsedParsms["title"].(string)
+	search := metadata.IdentifyMetadata {
+		Title: title,
+	}
+
+	infoList, err := metadata.Identify(search, "anilist")
+	if err != nil{
+		wError(w, 500, "Could not identify\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	for _, entry  := range infoList {
+		text, err := json.Marshal(entry)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		w.Write(text)
+		w.Write([]byte("\n"))
+	}
+}

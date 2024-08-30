@@ -2,7 +2,12 @@ package metadata
 
 import (
 	"aiolimas/db"
+	"fmt"
 )
+
+type IdentifyMetadata struct {
+	Title string
+}
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) (db.MetadataEntry, error) {
@@ -21,6 +26,15 @@ func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override 
 	return out, nil
 }
 
+func Identify(identifySearch IdentifyMetadata, identifier string) ([]db.MetadataEntry, error) {
+	fn, contains := IdentifyProviders[identifier]
+	if !contains {
+		return []db.MetadataEntry{}, fmt.Errorf("Invalid provider %s", identifier)
+	}
+
+	return fn(identifySearch)
+}
+
 func ListMetadataProviders() []string {
 	keys := make([]string, 0, len(Providers))
 	for k := range Providers {
@@ -34,6 +48,11 @@ func IsValidProvider(name string) bool {
 	return contains
 }
 
+func IsValidIdentifier(name string) bool {
+	_, contains := IdentifyProviders[name]
+	return contains
+}
+
 type ProviderMap map[string]func(*db.InfoEntry, *db.MetadataEntry) (db.MetadataEntry, error)
 
 var Providers ProviderMap = ProviderMap{
@@ -41,4 +60,9 @@ var Providers ProviderMap = ProviderMap{
 	"anilist-manga": AnilistManga,
 	"anilist-show":  AnilistShow,
 	"omdb":          OMDBProvider,
+}
+
+type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error) 
+var IdentifyProviders IdentifiersMap = IdentifiersMap{
+	"anilist": AnilistIdentifier,
 }

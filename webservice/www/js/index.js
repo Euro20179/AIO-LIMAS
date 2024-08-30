@@ -215,7 +215,7 @@ function fillMetaInfo(container, item) {
     const metaEl = /**@type {HTMLDetailsElement}*/(container.querySelector(".metadata-info ul"))
 
     const descBox = /**@type {HTMLElement}*/(container.querySelector(".description"))
-    descBox.innerText = item.Description
+    descBox.innerHTML = item.Description
 
     metaEl.append(basicElement(`Release year: ${item.ReleaseYear}`, "li"))
     metaEl.append(basicElement(`General rating: ${item.Rating}`, "li"))
@@ -259,16 +259,21 @@ function fillUserInfo(container, item) {
                 .map(parseJsonL)
             for (let item of json) {
                 let tText = "unknown"
+                let titleText = ""
                 if (item.Timestamp !== 0) {
                     let time = new Date(item.Timestamp)
-                    tText = `${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
+                    tText = time.toLocaleDateString('en', {timeZone: "America/Los_Angeles"})
+                    titleText = time.toLocaleTimeString('en', {timeZone: "America/Los_Angeles"})
                 } else if (item.After !== 0) {
                     let time = new Date(item.After)
-                    tText = `After: ${time.getMonth() + 1}/${time.getDate()}/${time.getFullYear()}`
+                    tText = `After: ${time.toLocaleDateString('en', {timeZone: "America/Los_Angeles"})}`
                 }
 
                 let eventTd = basicElement(item.Event, "td")
                 let timeTd = basicElement(tText, "td")
+                if (titleText) {
+                    timeTd.title = titleText
+                }
                 let tr = document.createElement("tr")
                 tr.append(eventTd)
                 tr.append(timeTd)
