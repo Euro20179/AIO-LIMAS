@@ -168,3 +168,23 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 		w.Write([]byte("\n"))
 	}
 }
+
+func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	itemToApplyTo := parsedParams["apply-to"].(db.MetadataEntry)
+	id := parsedParams["id"].(string)
+	provider := parsedParams["provider"].(string)
+
+	data, err := metadata.GetMetadataById(id, provider)
+	if err != nil{
+		wError(w, 500, "Could not get metadata\n%s", err.Error())
+		return
+	}
+
+	data.ItemId = itemToApplyTo.ItemId
+	err = db.UpdateMetadataEntry(&data)
+	if err != nil{
+		wError(w, 500, "Failed to update metadata\n%s", err.Error())
+		return
+	}
+
+}

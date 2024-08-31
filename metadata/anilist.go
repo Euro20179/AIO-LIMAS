@@ -49,6 +49,8 @@ type AnlistMediaEntry struct {
 	Status string `json:"status"`
 
 	Type string `json:"type"`
+	Id   int64  `json:"id"`
+	Format string `json:"format"`
 }
 type AnilistResponse struct {
 	Data struct {
@@ -63,9 +65,55 @@ type AnilistIdentifyResponse struct {
 	} `json:"data"`
 }
 
+const ANILIST_MEDIA_QUERY_INFO = `
+	title {
+		english
+		romaji
+		native
+	},
+	coverImage {
+		large
+	},
+	averageScore,
+	duration,
+	episodes,
+	seasonYear,
+	description,
+	type,
+	id,
+	format
+`
+
 func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
 	var o db.MetadataEntry
 	return o, nil
+}
+
+func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, error) {
+	var out TOut
+	bodyBytes, err := json.Marshal(anilistQuery)
+	if err != nil {
+		return out, err
+	}
+	bodyReader := bytes.NewReader(bodyBytes)
+	res, err := http.Post("https://graphql.anilist.co", "application/json", bodyReader)
+	if err != nil {
+		return out, err
+	}
+
+	defer res.Body.Close()
+
+	resp, err := io.ReadAll(res.Body)
+	if err != nil {
+		return out, err
+	}
+
+	jData := new(TOut)
+	err = json.Unmarshal(resp, &jData)
+	if err != nil {
+		return out, err
+	}
+	return *jData, nil
 }
 
 func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
@@ -75,52 +123,22 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	if searchTitle == "" {
 		searchTitle = entry.Native_Title
 	}
-	query := `
+	query := fmt.Sprintf(`
 		query ($search: String) {
 			Media(search: $search, type: ANIME) {
-				title {
-					english
-					romaji
-					native
-				},
-				coverImage {
-					large
-				},
-				averageScore,
-				duration,
-				episodes,
-				seasonYear,
-				description,
-				type
+				%s
 			}
 		}
-	`
+	`, ANILIST_MEDIA_QUERY_INFO)
 	anilistQuery := AnilistQuery[string]{
 		Query: query,
 		Variables: map[string]string{
 			"search": searchTitle,
 		},
 	}
-	bodyBytes, err := json.Marshal(anilistQuery)
-	if err != nil {
-		return outMeta, err
-	}
-	bodyReader := bytes.NewReader(bodyBytes)
-	res, err := http.Post("https://graphql.anilist.co", "application/json", bodyReader)
-	if err != nil {
-		return outMeta, err
-	}
 
-	defer res.Body.Close()
-
-	resp, err := io.ReadAll(res.Body)
-	if err != nil {
-		return outMeta, err
-	}
-
-	jData := new(AnilistResponse)
-	err = json.Unmarshal(resp, &jData)
-	if err != nil {
+	jData, err := mkAnilistRequest[string, AnilistResponse](anilistQuery)
+	if err != nil{
 		return outMeta, err
 	}
 
@@ -172,54 +190,23 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	outMeta := []db.MetadataEntry{}
 
 	searchTitle := info.Title
-	query := `
+	query := fmt.Sprintf(`
 		query ($search: String) {
 			Page(page: 1) {
 				media(search: $search) {
-					title {
-						english
-						romaji
-						native
-					},
-					coverImage {
-						large
-					},
-					averageScore,
-					duration,
-					episodes,
-					seasonYear,
-					description,
-					type
+					%s
 				}
 			}
 		}
-	`
+	`, ANILIST_MEDIA_QUERY_INFO)
 	anilistQuery := AnilistQuery[string]{
 		Query: query,
 		Variables: map[string]string{
 			"search": searchTitle,
 		},
 	}
-	bodyBytes, err := json.Marshal(anilistQuery)
-	if err != nil {
-		return outMeta, err
-	}
-	bodyReader := bytes.NewReader(bodyBytes)
-	res, err := http.Post("https://graphql.anilist.co", "application/json", bodyReader)
-	if err != nil {
-		return outMeta, err
-	}
-
-	defer res.Body.Close()
-
-	resp, err := io.ReadAll(res.Body)
-	if err != nil {
-		return outMeta, err
-	}
-
-	jData := new(AnilistIdentifyResponse)
-	err = json.Unmarshal(resp, &jData)
-	if err != nil {
+	jData, err := mkAnilistRequest[string, AnilistIdentifyResponse](anilistQuery)
+	if err != nil{
 		return outMeta, err
 	}
 
@@ -228,6 +215,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 		cur.Thumbnail = entry.CoverImage.Large
 		cur.Description = entry.Description
 		cur.Rating = float64(entry.AverageScore)
+		cur.ItemId = entry.Id
 
 		if entry.Type == "ANIME" {
 			cur.MediaDependant = fmt.Sprintf("{\"Show-title-english\": \"%s\", \"Show-title-native\":\"%s\"}", entry.Title.English, entry.Title.Native)
@@ -238,5 +226,50 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 		outMeta = append(outMeta, cur)
 	}
 
+	return outMeta, nil
+}
+
+func AnilistById(id string) (db.MetadataEntry, error) {
+	var outMeta db.MetadataEntry
+	query := fmt.Sprintf(`
+		query ($id: Int) {
+			Media(id: $id) {
+				%s
+			}
+		}
+	`, ANILIST_MEDIA_QUERY_INFO)
+	anilistQuery := AnilistQuery[string]{
+		Query: query,
+		Variables: map[string]string{
+			"id": id,
+		},
+	}
+
+	jData, err := mkAnilistRequest[string, AnilistResponse](anilistQuery)
+	if err != nil{
+		return outMeta, err
+	}
+	out := jData.Data.Media
+	mediaDependant := make(map[string]string)
+
+	var ty string
+	if out.Format == "MOVIE" {
+		ty = "Movie"
+	} else if out.Format == "MANGA" {
+		ty = "Manga"
+	} else {
+		ty = "Show"
+	}
+	mediaDependant[fmt.Sprintf("%s-episodes", ty)] = strconv.Itoa(int(out.Episodes))
+	mediaDependant[fmt.Sprintf("%s-episode-duration", ty)] = strconv.Itoa(int(out.Duration))
+	mediaDependant[fmt.Sprintf("%s-length", ty)] = strconv.Itoa(int(out.Episodes) * int(out.Duration))
+	mediaDependant[fmt.Sprintf("%s-airing-status", ty)] = out.Status
+
+	mdString, _ := json.Marshal(mediaDependant)
+	outMeta.Thumbnail = out.CoverImage.Large
+	outMeta.Rating = float64(out.AverageScore)
+	outMeta.Description = out.Description
+	outMeta.MediaDependant = string(mdString)
+	outMeta.ReleaseYear = out.SeasonYear
 	return outMeta, nil
 }

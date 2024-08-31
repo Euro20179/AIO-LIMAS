@@ -35,6 +35,14 @@ func Identify(identifySearch IdentifyMetadata, identifier string) ([]db.Metadata
 	return fn(identifySearch)
 }
 
+func GetMetadataById(id string, provider string) (db.MetadataEntry, error) {
+	fn, contains := IdIdentifiers[provider]
+	if !contains {
+		return db.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
+	}
+	return fn(id)
+}
+
 func ListMetadataProviders() []string {
 	keys := make([]string, 0, len(Providers))
 	for k := range Providers {
@@ -53,6 +61,11 @@ func IsValidIdentifier(name string) bool {
 	return contains
 }
 
+func IsValidIdIdentifier(name string) bool {
+	_, contains := IdIdentifiers[name]
+	return contains
+}
+
 type ProviderMap map[string]func(*db.InfoEntry, *db.MetadataEntry) (db.MetadataEntry, error)
 
 var Providers ProviderMap = ProviderMap{
@@ -65,4 +78,10 @@ var Providers ProviderMap = ProviderMap{
 type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error) 
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
+}
+
+type IdIdentifier func(id string) (db.MetadataEntry, error)
+type IdIdentifiersMap = map[string]IdIdentifier
+var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap {
+	"anilist": AnilistById,
 }

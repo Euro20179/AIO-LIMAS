@@ -22,6 +22,50 @@ function resubmitSearch() {
 }
 
 /**
+ * @param {MetadataEntry} result
+ */
+function createResultItem(result) {
+    let fig = document.createElement("figure")
+    let img = document.createElement("img")
+    img.src = result.Thumbnail
+    let caption = document.createElement("figcaption")
+    caption.innerHTML = result.Description
+
+    fig.append(img)
+    fig.append(caption)
+    return fig
+}
+
+/**
+ * @param {HTMLFormElement} form
+ * @param {bigint} id
+ */
+async function identifyEntry(form, id) {
+    let data = new FormData(form)
+    let title = data.get("title")
+    let provider = data.get("provider")
+    let res = await fetch(`${apiPath}/metadata/identify?title=${title}&provider=${provider}`)
+    let text = await res.text()
+    //@ts-ignore
+    let results = /**@type {MetadataEntry[]}*/(text.split("\n").filter(Boolean).map(JSON.parse))
+    let output = /**@type {HTMLDivElement}*/(form.parentElement?.querySelector(".results"))
+    output.innerHTML = ""
+    for(let result of results) {
+        let fig = createResultItem(result)
+        fig.addEventListener("click",() => {
+            if(!confirm(`Are you sure you want to reidentify this media`)) {
+                return
+            }
+
+            fetch(`${apiPath}/metadata/finalize-identify?id=${result.ItemId}&provider=${provider}&apply-to=${id}`)
+            .then(res => res.text)
+            .then(console.log)
+        })
+        output.append(fig)
+    }
+}
+
+/**
  * @param {bigint} id
  * @returns {InfoEntry[]}
  */
@@ -225,7 +269,7 @@ function fillMetaInfo(container, item) {
             metaEl.append(basicElement(`${name}: ${mediaDependant[name]}`, "li"))
         }
     } catch(err) {
-        console.warn(err)
+        // console.warn(err)
     }
     try{
         const datapoints = JSON.parse(item.Datapoints)
@@ -233,7 +277,7 @@ function fillMetaInfo(container, item) {
             metaEl.append(basicElement(`${name}: ${datapoints[name]}`, "li"))
         }
     } catch(err){
-        console.warn(err)
+        // console.warn(err)
     }
 }
 
@@ -469,6 +513,11 @@ function createItemEntry(item, userEntry, meta) {
     fillBasicInfoSummary(root, item)
     fillUserInfo(root, /**@type {UserEntry}*/(userEntry))
     fillMetaInfo(root, /**@type {MetadataEntry}*/(metadata))
+
+    const identifier = /**@type {HTMLFormElement}*/(root.querySelector("#identify-entry form"))
+    identifier.addEventListener("submit", e => {
+        identifyEntry(identifier, item.ItemId)
+    })
 
     const metaRefresher = /**@type {HTMLButtonElement}*/(root.querySelector(".meta-fetcher"));
     metaRefresher.onclick = async function(e) {

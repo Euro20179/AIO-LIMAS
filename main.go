@@ -99,6 +99,15 @@ func main() {
 		},
 	}
 
+	finalizeIdentify := api.ApiEndPoint {
+		Handler: api.FinalizeIdentification,
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_NotEmpty, true),
+			"provider": api.MkQueryInfo(api.P_IdIdentifier, true),
+			"apply-to": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+		},
+	}
+
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":        api.FetchMetadataForEntry,
@@ -106,6 +115,7 @@ func main() {
 		"set":          api.SetMetadataForEntry,
 		"list-entries": api.ListMetadata,
 		"identify":     identify.Listener,
+		"finalize-identify": finalizeIdentify.Listener,
 	})
 
 	finishEngagement := api.ApiEndPoint{

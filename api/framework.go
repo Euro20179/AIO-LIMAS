@@ -116,6 +116,19 @@ func P_VerifyIdAndGetInfoEntry(id string) (any, error) {
 	return entry, nil
 }
 
+func P_VerifyIdAndGetMetaEntry(id string) (any, error) {
+	var out db.MetadataEntry
+	i, err := P_Int64(id)
+	if err != nil {
+		return out, err
+	}
+	entry, err := db.GetMetadataEntryById(i.(int64))
+	if err != nil {
+		return out, err
+	}
+	return entry, nil
+}
+
 func P_True(in string) (any, error) {
 	return in, nil
 }
@@ -189,6 +202,13 @@ func P_Bool(in string) (any, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("Not a boolean: '%s'", in)
+}
+
+func P_IdIdentifier(in string) (any, error) {
+	if metadata.IsValidIdIdentifier(in) {
+		return in, nil
+	}
+	return "", fmt.Errorf("Invalid id identifier: '%s'", in)
 }
 
 func As_JsonMarshal(parser Parser) Parser {

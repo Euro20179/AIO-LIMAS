@@ -136,10 +136,25 @@
             <dialog popover id="edit-entry">
                 TODO
             </dialog>
+            <dialog popover id="identify-entry">
+                <form action="javascript:void 0">
+                    <label>
+                        Provider
+                        <select name="provider" id="identifier-provider">
+                            <option value="anilist">Anilist</option>
+                        </select>
+                    </label>
+                    <br>
+                    <input type="text" placeholder="Title" name="title" title="Title to search for">
+                    <input type="submit" value="IDENTIFY!">
+                </form>
+                <div class="results">
+                </div>
+            </dialog>
             <img src="/no-img" class="img">
             <section class="header">
                 <div class="entry-actions">
-                    <button class="identifier" title="Identify entry">ℹ</button>
+                    <button class="identifier" title="Identify entry" popovertarget="identify-entry">ℹ</button>
                     <button class="editor" popovertarget="edit-entry">✏</button>
                     <button class="meta-fetcher" title="refresh metadata">⟳</button>
                     <button class="deleter" title="delete entry">🗑</button>

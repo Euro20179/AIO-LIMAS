@@ -49,6 +49,13 @@
  */
 
 /**
+ * @typedef IdentifyResult
+ * @property {number} id
+ * @property {string} Description
+ * @property {string} Thumbnail
+ */
+
+/**
  * @param {bigint} id 
  * @returns {Promise<InfoEntry[]>}
  */

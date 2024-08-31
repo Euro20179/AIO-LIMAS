@@ -45,6 +45,10 @@
 
         width: 70vmin;
         aspect-ratio: 1 / 1;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 
     dialog::backdrop {
@@ -66,6 +70,24 @@
 }
 
 @layer components {
+
+    #identify-entry {
+        width: 90vw;
+        height: 90vh;
+        .results {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5ch;
+
+            figure {
+                max-width: 25%;
+                font-size: 0.8em;
+                img {
+                    max-width: 55%;
+                }
+            }
+        }
+    }
 
     #new-item-form {
         display: flex;
@@ -90,13 +112,6 @@
         h3 {
             text-align: center;
         }
-    }
-
-    #edit-entry {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
     }
 
     #total-stats {
