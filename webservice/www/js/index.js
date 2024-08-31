@@ -9,8 +9,15 @@
  * @property {bigint[]} Copies
  */
 
-/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[], tree: EntryTree }}*/
-const globals = { formats: {}, userEntries: [], metadataEntries: [], entries: [], tree: {} }
+/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[], tree: EntryTree, events: UserEvent[] }}*/
+const globals = {
+    formats: {},
+    userEntries: [],
+    metadataEntries: [],
+    entries: [],
+    tree: {},
+    events: []
+}
 
 function resubmitSearch() {
     /**@type {HTMLInputElement?}*/
@@ -89,6 +96,21 @@ function findCopies(id) {
         entries.push(globals.tree[String(copyId)].EntryInfo)
     }
     return entries
+}
+
+
+/**
+ * @param {bigint} id
+ * @returns {UserEvent[]}
+ */
+function findEvents(id) {
+    let events = []
+    for (let event of globals.events) {
+        if (event.ItemId === id) {
+            events.push(event)
+        }
+    }
+    return events
 }
 
 /**
@@ -296,36 +318,29 @@ function fillUserInfo(container, item) {
     userInfoEl.append(basicElement(`Status: ${item.Status}`, "li"));
 
     const viewTableBody = /**@type {HTMLTableElement}*/(container.querySelector(".event-table tbody"));
-    fetch(`${apiPath}/engagement/get-events?id=${item.ItemId}`)
-        .then(res => res.text())
-        .then(text => {
-            const json = text.split("\n")
-                .filter(Boolean)
-                .map(mkStrItemId)
-                .map(parseJsonL)
-            for (let item of json) {
-                let tText = "unknown"
-                let titleText = ""
-                if (item.Timestamp !== 0) {
-                    let time = new Date(item.Timestamp)
-                    tText = time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })
-                    titleText = time.toLocaleTimeString('en', { timeZone: "America/Los_Angeles" })
-                } else if (item.After !== 0) {
-                    let time = new Date(item.After)
-                    tText = `After: ${time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })}`
-                }
+    let events = findEvents(item.ItemId)
+    for (let item of events) {
+        let tText = "unknown"
+        let titleText = ""
+        if (item.Timestamp !== 0) {
+            let time = new Date(item.Timestamp)
+            tText = time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })
+            titleText = time.toLocaleTimeString('en', { timeZone: "America/Los_Angeles" })
+        } else if (item.After !== 0) {
+            let time = new Date(item.After)
+            tText = `After: ${time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })}`
+        }
 
-                let eventTd = basicElement(item.Event, "td")
-                let timeTd = basicElement(tText, "td")
-                if (titleText) {
-                    timeTd.title = titleText
-                }
-                let tr = document.createElement("tr")
-                tr.append(eventTd)
-                tr.append(timeTd)
-                viewTableBody.append(tr)
-            }
-        })
+        let eventTd = basicElement(item.Event, "td")
+        let timeTd = basicElement(tText, "td")
+        if (titleText) {
+            timeTd.title = titleText
+        }
+        let tr = document.createElement("tr")
+        tr.append(eventTd)
+        tr.append(timeTd)
+        viewTableBody.append(tr)
+    }
 
     //     const startDates = JSON.parse(item.StartDate)
 
@@ -514,7 +529,7 @@ function createItemEntry(item, userEntry, meta, root = null) {
 
     fills['.meta-fetcher'] = e => {
         e.onclick = async function() {
-            if(!confirm("Are you sure you want to overwrite the metadata?")) {
+            if (!confirm("Are you sure you want to overwrite the metadata?")) {
                 return
             }
             let res = await fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).catch(console.error)
@@ -778,6 +793,26 @@ async function loadUserEntries() {
     return globals.userEntries
 }
 
+async function loadUserEvents() {
+    const res = await fetch(`${apiPath}/engagement/list-events`)
+    if (!res) {
+        return []
+    }
+
+    const text = await res.text()
+
+    if (!text) {
+        return []
+    }
+
+    const lines = text.split("\n").filter(Boolean)
+    globals.events = lines
+        .map(mkStrItemId)
+        .map(parseJsonL)
+
+    return globals.events
+}
+
 /**@returns {Promise<MetadataEntry[]>}*/
 async function loadMetadata() {
     const res = await fetch(`${apiPath}/metadata/list-entries`)
@@ -882,6 +917,7 @@ async function newEntry() {
 function main() {
     loadFormats()
         .then(loadUserEntries)
+        .then(loadUserEvents)
         .then(loadMetadata)
         .then(loadAllEntries)
         .then(loadEntryTree)

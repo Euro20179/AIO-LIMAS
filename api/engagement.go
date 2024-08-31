@@ -12,9 +12,8 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 	userEntry := parsedParams["src-id"].(db.UserViewingEntry)
 	libraryEntry := parsedParams["dest-id"].(db.InfoEntry)
 
-
 	err := db.CopyUserViewingEntry(&userEntry, libraryEntry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
 	}
@@ -201,7 +200,7 @@ func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 	for items.Next() {
 		var row db.UserViewingEntry
 		err := row.ReadEntry(items)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -234,12 +233,46 @@ func GetUserEntry(w http.ResponseWriter, req *http.Request) {
 
 func UserEntries(w http.ResponseWriter, req *http.Request) {
 	items, err := db.Db.Query("SELECT * FROM userViewingInfo")
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
 	defer items.Close()
 	outputUserEntries(items, w)
+}
+
+func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	events, err := db.Db.Query(`
+		SELECT * from userEventInfo
+		ORDER BY
+			CASE timestamp
+				WHEN 0 THEN
+					userEventInfo.after
+				ELSE timestamp
+			END`)
+	if err != nil {
+		wError(w, 500, "Could not fetch events\n%s", err.Error())
+		return
+	}
+	defer events.Close()
+
+	w.WriteHeader(200)
+	for events.Next() {
+		var event db.UserViewingEvent
+		err := event.ReadEntry(events)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		j, err := event.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
 }
 
 func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
@@ -254,7 +287,7 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 					userEventInfo.after
 				ELSE timestamp
 			END`, id.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
 	}
@@ -264,7 +297,7 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	for events.Next() {
 		var event db.UserViewingEvent
 		err := event.ReadEntry(events)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}

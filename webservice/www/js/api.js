@@ -9,6 +9,15 @@
  */
 
 /**
+ * @typedef UserEvent
+ * @type {object}
+ * @property {bigint} ItemId
+ * @property {string} Event
+ * @property {number} Timestamp
+ * @property {number} After
+ */
+
+/**
  * @typedef InfoEntry
  * @type {object}
  * @property {bigint} ItemId

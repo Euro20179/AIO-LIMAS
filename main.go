@@ -141,6 +141,11 @@ func main() {
 		},
 	}
 
+	listEvents := api.ApiEndPoint {
+		Handler: api.ListEvents,
+		QueryParams: api.QueryParams {},
+	}
+
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
@@ -156,6 +161,7 @@ func main() {
 		"list-entries": api.UserEntries,
 		"copy":         reassociate.Listener,
 		"get-events":   getEvents.Listener,
+		"list-events": listEvents.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)
