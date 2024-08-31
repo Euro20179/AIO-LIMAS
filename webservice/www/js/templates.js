@@ -5,17 +5,28 @@
  */
 
 /**
-    * @param {string} templateId
+    * @param {string | HTMLTemplateElement} templateId
     * @param {TemplateFiller} fills
     * @returns {HTMLElement} The root element
 */
 function fillTemplate(templateId, fills) {
-    const template = /**@type {HTMLTemplateElement}*/(document.getElementById(templateId))
+    if(typeof templateId === 'string') {
+        templateId = /**@type {HTMLTemplateElement}*/(document.getElementById(templateId))
+    }
 
-    const clone = /**@type {HTMLElement}*/(template.content.cloneNode(true))
+    const clone = /**@type {HTMLElement}*/(templateId.content.cloneNode(true))
 
     const root = /**@type {HTMLElement}*/(clone.querySelector(":first-child"))
+    fillRoot(root, fills)
 
+    return root
+}
+
+/**
+    * @param {HTMLElement} root
+    * @param {TemplateFiller} fills
+*/
+function fillRoot(root, fills) {
     for(let key in fills) {
         let value = fills[key]
         let el = /**@type {HTMLElement}*/(root.querySelector(key))
@@ -26,5 +37,5 @@ function fillTemplate(templateId, fills) {
         }
     }
 
-    return root
+
 }

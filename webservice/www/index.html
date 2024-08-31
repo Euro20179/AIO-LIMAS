@@ -8,67 +8,71 @@
 </head>
 
 <body data-loading>
-    <h1 style="text-align: center;">Welcome to the AIO LIMAS</h1>
-    <form id="query" action="javascript:query()">
-        <input type="search" name="query" placeholder="title">
-        <details style="display: inline; cursor: default; user-select: none;">
-            <summary>
-                Formats
-            </summary>
-            <label><input name="format" type="checkbox" value="0">VHS</label>
-            <br>
-            <label><input name="format" type="checkbox" value="1">CD</label>
-            <br>
-            <label><input name="format" type="checkbox" value="2">DVD</label>
-            <br>
-            <label><input name="format" type="checkbox" value="3">Blu Ray</label>
-            <br>
-            <label><input name="format" type="checkbox" value="4">4k Blu Ray</label>
-            <br>
-            <label><input name="format" type="checkbox" value="5">Manga</label>
-            <br>
-            <label><input name="format" type="checkbox" value="6">Book</label>
-            <br>
-            <label><input name="format" type="checkbox" value="7">Digital</label>
-            <br>
-            <label><input name="format" type="checkbox" value="8">Board Game</label>
-            <br>
-            <label><input name="format" type="checkbox" value="9">Steam</label>
-            <br>
-            <label><input name="format" type="checkbox" value="10">Nintendo Switch</label>
-            <br>
-            <label><input name="format" type="checkbox" value="11">Xbox One</label>
-            <br>
-            <label><input name="format" type="checkbox" value="12">Xbox 360</label>
-            <br>
-            <label><input name="format" type="checkbox" value="13">Other</label>
-        </details>
-        <select name="type">
-            <option value="">Type</option>
-            <option value="Show">Show</option>
-            <option value="Movie">Movie</option>
-            <option value="Manga">Manga</option>
-            <option value="Book">Book</option>
-            <option value="Game">Game</option>
-            <option value="Song">Song</option>
-            <option value="BoardGame">BoardGame</option>
-            <option value="Collection">Collection</option>
-        </select>
-        <select name="status">
-            <option value="">Status</option>
-            <option value="Viewing">Viewing</option>
-            <option value="Finished">Finished</option>
-            <option value="Dropped">Dropped</option>
-            <option value="Planned">Planned</option>
-            <option value="ReViewing">ReViewing</option>
-            <option value="Paused">Paused</option>
-        </select>
-        <input type="text" name="tags" placeholder="tags (',' separated)">
-        <label title="display children"><input type="checkbox" name="children">children</label>
-        <label title="display copies"><input type="checkbox" name="copies">copies</label>
-        <input type="submit" value="Locate!">
-    </form>
+    <header>
+        <h1 style="text-align: center;">Welcome to the AIO LIMAS</h1>
+    </header>
     <main>
+        <div id="search-entry">
+            <form id="query" action="javascript:query()">
+                <input type="search" name="query" placeholder="title">
+                <details style="display: inline; cursor: default; user-select: none;">
+                    <summary>
+                        Formats
+                    </summary>
+                    <label><input name="format" type="checkbox" value="0">VHS</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="1">CD</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="2">DVD</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="3">Blu Ray</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="4">4k Blu Ray</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="5">Manga</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="6">Book</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="7">Digital</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="8">Board Game</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="9">Steam</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="10">Nintendo Switch</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="11">Xbox One</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="12">Xbox 360</label>
+                    <br>
+                    <label><input name="format" type="checkbox" value="13">Other</label>
+                </details>
+                <select name="type">
+                    <option value="">Type</option>
+                    <option value="Show">Show</option>
+                    <option value="Movie">Movie</option>
+                    <option value="Manga">Manga</option>
+                    <option value="Book">Book</option>
+                    <option value="Game">Game</option>
+                    <option value="Song">Song</option>
+                    <option value="BoardGame">BoardGame</option>
+                    <option value="Collection">Collection</option>
+                </select>
+                <select name="status">
+                    <option value="">Status</option>
+                    <option value="Viewing">Viewing</option>
+                    <option value="Finished">Finished</option>
+                    <option value="Dropped">Dropped</option>
+                    <option value="Planned">Planned</option>
+                    <option value="ReViewing">ReViewing</option>
+                    <option value="Paused">Paused</option>
+                </select>
+                <input type="text" name="tags" placeholder="tags (',' separated)">
+                <label title="display children"><input type="checkbox" name="children">children</label>
+                <label title="display copies"><input type="checkbox" name="copies">copies</label>
+                <input type="submit" value="Locate!">
+            </form>
+        </div>
         <nav>
             <!-- <h2>Collections</h2> -->
             <!-- <section id="collections"></section> -->
@@ -127,7 +131,8 @@
                 </form>
             </dialog>
         </nav>
-        <section id="all-entries"></section>
+        <section id="all-entries">
+        </section>
 
     </main>
 
@@ -136,11 +141,11 @@
             <dialog popover id="edit-entry">
                 TODO
             </dialog>
-            <dialog popover id="identify-entry">
+            <dialog popover class="identify-entry">
                 <form action="javascript:void 0">
                     <label>
                         Provider
-                        <select name="provider" id="identifier-provider">
+                        <select name="provider">
                             <option value="anilist">Anilist</option>
                         </select>
                     </label>
@@ -154,7 +159,7 @@
             <img src="/no-img" class="img">
             <section class="header">
                 <div class="entry-actions">
-                    <button class="identifier" title="Identify entry" popovertarget="identify-entry">ℹ</button>
+                    <button class="identifier" title="Identify entry">ℹ</button>
                     <button class="editor" popovertarget="edit-entry">✏</button>
                     <button class="meta-fetcher" title="refresh metadata">⟳</button>
                     <button class="deleter" title="delete entry">🗑</button>

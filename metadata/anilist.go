@@ -48,8 +48,8 @@ type AnlistMediaEntry struct {
 
 	Status string `json:"status"`
 
-	Type string `json:"type"`
-	Id   int64  `json:"id"`
+	Type   string `json:"type"`
+	Id     int64  `json:"id"`
 	Format string `json:"format"`
 }
 type AnilistResponse struct {
@@ -138,7 +138,7 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	}
 
 	jData, err := mkAnilistRequest[string, AnilistResponse](anilistQuery)
-	if err != nil{
+	if err != nil {
 		return outMeta, err
 	}
 
@@ -206,7 +206,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 		},
 	}
 	jData, err := mkAnilistRequest[string, AnilistIdentifyResponse](anilistQuery)
-	if err != nil{
+	if err != nil {
 		return outMeta, err
 	}
 
@@ -246,20 +246,22 @@ func AnilistById(id string) (db.MetadataEntry, error) {
 	}
 
 	jData, err := mkAnilistRequest[string, AnilistResponse](anilistQuery)
-	if err != nil{
+	if err != nil {
 		return outMeta, err
 	}
 	out := jData.Data.Media
 	mediaDependant := make(map[string]string)
 
 	var ty string
-	if out.Format == "MOVIE" {
+	switch out.Format {
+	case "MOVIE":
 		ty = "Movie"
-	} else if out.Format == "MANGA" {
+	case "MANGA":
 		ty = "Manga"
-	} else {
+	case "SHOW":
 		ty = "Show"
 	}
+
 	mediaDependant[fmt.Sprintf("%s-episodes", ty)] = strconv.Itoa(int(out.Episodes))
 	mediaDependant[fmt.Sprintf("%s-episode-duration", ty)] = strconv.Itoa(int(out.Duration))
 	mediaDependant[fmt.Sprintf("%s-length", ty)] = strconv.Itoa(int(out.Episodes) * int(out.Duration))

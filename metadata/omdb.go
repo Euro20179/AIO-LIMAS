@@ -90,6 +90,7 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 			out.Rating = res
 		}
 	}
+	out.Description = jData.Plot
 	out.Thumbnail = jData.Poster
 
 	return out, nil

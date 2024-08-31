@@ -50,16 +50,16 @@ async function identifyEntry(form, id) {
     let results = /**@type {MetadataEntry[]}*/(text.split("\n").filter(Boolean).map(JSON.parse))
     let output = /**@type {HTMLDivElement}*/(form.parentElement?.querySelector(".results"))
     output.innerHTML = ""
-    for(let result of results) {
+    for (let result of results) {
         let fig = createResultItem(result)
-        fig.addEventListener("click",() => {
-            if(!confirm(`Are you sure you want to reidentify this media`)) {
+        fig.addEventListener("click", () => {
+            if (!confirm(`Are you sure you want to reidentify this media ${id}`)) {
                 return
             }
 
             fetch(`${apiPath}/metadata/finalize-identify?id=${result.ItemId}&provider=${provider}&apply-to=${id}`)
-            .then(res => res.text)
-            .then(console.log)
+                .then(res => res.text)
+                .then(console.log)
         })
         output.append(fig)
     }
@@ -233,6 +233,7 @@ function basicElement(text, ty = "span") {
 function fillBasicInfoSummary(container, item) {
     /**@type {HTMLDetailsElement}*/
     const basicInfoEl = /**@type {HTMLDetailsElement}*/(container.querySelector(".basic-info ul"))
+    basicInfoEl.innerHTML = ""
     basicInfoEl.append(basicElement(`Item id: ${item.ItemId}`, "li"))
     basicInfoEl.append(basicElement(`Title: ${item.En_Title}`, "li"))
     basicInfoEl.append(basicElement(`Native title: ${item.Native_Title}`, "li"))
@@ -257,26 +258,27 @@ function fillBasicInfoSummary(container, item) {
  */
 function fillMetaInfo(container, item) {
     const metaEl = /**@type {HTMLDetailsElement}*/(container.querySelector(".metadata-info ul"))
+    metaEl.innerHTML = ""
 
     const descBox = /**@type {HTMLElement}*/(container.querySelector(".description"))
     descBox.innerHTML = item.Description
 
     metaEl.append(basicElement(`Release year: ${item.ReleaseYear}`, "li"))
     metaEl.append(basicElement(`General rating: ${item.Rating}`, "li"))
-    try{ 
+    try {
         const mediaDependant = JSON.parse(item.MediaDependant)
-        for(let name in mediaDependant) {
+        for (let name in mediaDependant) {
             metaEl.append(basicElement(`${name}: ${mediaDependant[name]}`, "li"))
         }
-    } catch(err) {
+    } catch (err) {
         // console.warn(err)
     }
-    try{
+    try {
         const datapoints = JSON.parse(item.Datapoints)
-        for(let name in datapoints) {
+        for (let name in datapoints) {
             metaEl.append(basicElement(`${name}: ${datapoints[name]}`, "li"))
         }
-    } catch(err){
+    } catch (err) {
         // console.warn(err)
     }
 }
@@ -306,11 +308,11 @@ function fillUserInfo(container, item) {
                 let titleText = ""
                 if (item.Timestamp !== 0) {
                     let time = new Date(item.Timestamp)
-                    tText = time.toLocaleDateString('en', {timeZone: "America/Los_Angeles"})
-                    titleText = time.toLocaleTimeString('en', {timeZone: "America/Los_Angeles"})
+                    tText = time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })
+                    titleText = time.toLocaleTimeString('en', { timeZone: "America/Los_Angeles" })
                 } else if (item.After !== 0) {
                     let time = new Date(item.After)
-                    tText = `After: ${time.toLocaleDateString('en', {timeZone: "America/Los_Angeles"})}`
+                    tText = `After: ${time.toLocaleDateString('en', { timeZone: "America/Los_Angeles" })}`
                 }
 
                 let eventTd = basicElement(item.Event, "td")
@@ -384,8 +386,9 @@ function formatToStr(format) {
  * @param {InfoEntry} item
  * @param {UserEntry} userEntry
  * @param {MetadataEntry} meta
+ * @param {HTMLElement?} root
  */
-function createItemEntry(item, userEntry, meta) {
+function createItemEntry(item, userEntry, meta, root = null) {
     const out = /**@type {HTMLElement}*/(document.getElementById("all-entries"))
 
     /**@type {TemplateFiller}*/
@@ -496,7 +499,64 @@ function createItemEntry(item, userEntry, meta) {
         fills[".cost"] = `$${item.PurchasePrice}`
     }
 
-    let root = fillTemplate("item-entry", fills)
+    fills['button.identifier'] = e => {
+        e.setAttribute("popovertarget", `identify-entry-${item.ItemId}`)
+    }
+    fills['.identify-entry'] = e => {
+        e.id = `identify-entry-${item.ItemId}`
+        console.log(e)
+    }
+    fills['.identify-entry form'] = e => {
+        e.onsubmit = function() {
+            identifyEntry(/**@type {HTMLFormElement}*/(e), item.ItemId)
+        }
+    }
+
+    fills['.meta-fetcher'] = e => {
+        e.onclick = async function() {
+            if(!confirm("Are you sure you want to overwrite the metadata?")) {
+                return
+            }
+            let res = await fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).catch(console.error)
+            if (res?.status != 200) {
+                console.error(res)
+                return
+            }
+
+            res = await fetch(`${apiPath}/metadata/retrieve?id=${item.ItemId}`).catch(console.error)
+            if (res?.status != 200) {
+                console.error(res)
+                return
+            }
+
+            const json = /**@type {MetadataEntry}*/(await res.json())
+
+            setMetadataEntry(item.ItemId, json)
+        }
+    }
+
+    fills['.deleter'] = e => {
+        e.onclick = async function() {
+            if (!confirm("Are you sure you want to delete this item")) {
+                return
+            }
+            let res = await fetch(`${apiPath}/delete-entry?id=${item.ItemId}`)
+            if (res?.status != 200) {
+                console.error(res)
+                alert("Failed to delete item")
+                return
+            }
+            alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
+            resubmitSearch()
+        }
+    }
+
+    let rootWasDefined = Boolean(root)
+    if (!root) {
+        root = fillTemplate("item-entry", fills)
+    } else {
+        fillRoot(root, fills)
+    }
 
     root.setAttribute("data-entry-id", String(item.ItemId))
 
@@ -514,48 +574,9 @@ function createItemEntry(item, userEntry, meta) {
     fillUserInfo(root, /**@type {UserEntry}*/(userEntry))
     fillMetaInfo(root, /**@type {MetadataEntry}*/(metadata))
 
-    const identifier = /**@type {HTMLFormElement}*/(root.querySelector("#identify-entry form"))
-    identifier.addEventListener("submit", e => {
-        identifyEntry(identifier, item.ItemId)
-    })
-
-    const metaRefresher = /**@type {HTMLButtonElement}*/(root.querySelector(".meta-fetcher"));
-    metaRefresher.onclick = async function(e) {
-        let res = await fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).catch(console.error)
-        if (res?.status != 200) {
-            console.error(res)
-            return
-        }
-
-        res = await fetch(`${apiPath}/metadata/retrieve?id=${item.ItemId}`).catch(console.error)
-        if (res?.status != 200) {
-            console.error(res)
-            return
-        }
-
-        const json = /**@type {MetadataEntry}*/(await res.json())
-
-        setMetadataEntry(item.ItemId, json)
-        const img = /**@type {HTMLImageElement}*/(root.querySelector(".img"))
-        img.src = json.Thumbnail
+    if (!rootWasDefined) {
+        out.appendChild(root)
     }
-
-    const deleter = /**@type {HTMLButtonElement}*/ (root.querySelector(".deleter"))
-    deleter.onclick = async function() {
-        if (!confirm("Are you sure you want to delete this item")) {
-            return
-        }
-        let res = await fetch(`${apiPath}/delete-entry?id=${item.ItemId}`)
-        if (res?.status != 200) {
-            console.error(res)
-            alert("Failed to delete item")
-            return
-        }
-        alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
-        resubmitSearch()
-    }
-
-    out.appendChild(root)
 }
 
 async function loadCollections() {
