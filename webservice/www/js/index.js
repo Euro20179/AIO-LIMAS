@@ -620,7 +620,7 @@ function addCollections(collections) {
     }
 }
 
-async function loadAllEntries() {
+async function loadInfoEntries() {
     const res = await fetch(`${apiPath}/list-entries`)
         .catch(console.error)
     if (!res) {
@@ -697,41 +697,12 @@ async function renderEntryTree(items, ignoreChildren = true, ignoreCopies = true
     if (!items) {
         return
     }
-    items = Object.fromEntries(
-        Object.entries(items)
-            .sort(([id, _], [idB, __]) => {
-                const aUE = getUserEntry(BigInt(id))
-                const bUE = getUserEntry(BigInt(idB))
-                return (bUE?.UserRating || 0) - (aUE?.UserRating || 0)
-            })
-    )
-
-    let costFinders = []
-    let count = 0
-    let totalCount = 0
-    for (let id in items) {
-        totalCount++
-        let item = items[id]
-
-        if (item.EntryInfo.Parent && ignoreChildren) continue
-        if (item.EntryInfo.CopyOf && ignoreCopies) continue
-
-        let user = getUserEntry(item.EntryInfo.ItemId)
-        costFinders.push(getTotalCostDeep(item.EntryInfo))
-        let meta = item.EntryInfo.Parent ?
-            getMetadataEntry(item.EntryInfo.Parent) :
-            getMetadataEntry(item.EntryInfo.ItemId)
-        createItemEntry(item.EntryInfo, user, meta)
-        count++
+    let entries = []
+    for(let item in items) {
+        entries.push(items[item].EntryInfo)
     }
-    let hiddenItems = totalCount - count
 
-    let totalCost = (await Promise.all(costFinders)).reduce((p, c) => p + c, 0)
-    setGlobalStats({
-        "Results": count,
-        "Hidden": hiddenItems,
-        "Cost": totalCost
-    })
+    addEntries(entries, ignoreChildren, ignoreCopies)
 }
 
 /**
@@ -837,12 +808,7 @@ function displayEntry(ids) {
         return
     }
     removeEntries()
-
-    addEntries(
-        ids.map(getInfoEntry),
-        false,
-        false
-    )
+    loadEntryTree().then(res => renderEntryTree(res, false, false))
 }
 
 async function newEntry() {
@@ -863,19 +829,23 @@ async function newEntry() {
     await Promise.all([
         loadUserEntries(),
         loadMetadata(),
-        loadAllEntries(),
+        loadInfoEntries(),
         loadEntryTree()
     ])
 }
 
 function main() {
-    loadFormats()
-        .then(loadUserEntries)
-        .then(loadUserEvents)
-        .then(loadMetadata)
-        .then(loadAllEntries)
-        .then(loadEntryTree)
-        .then(renderEntryTree)
-        .catch(console.error)
+    loadFormats().then(() => {
+        let loaders = [
+            loadUserEntries(),
+            loadUserEvents(),
+            loadMetadata(),
+            loadInfoEntries(),
+        ]
+        Promise.all(loaders)
+            .then(loadEntryTree)
+            .then(renderEntryTree)
+            .catch(console.error)
+    })
 }
 main()
