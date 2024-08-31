@@ -775,62 +775,16 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
 
 /**@returns {Promise<UserEntry[]>}*/
 async function loadUserEntries() {
-    const res = await fetch(`${apiPath}/engagement/list-entries`)
-    if (!res) {
-        return []
-    }
-
-    const text = await res.text()
-    if (!text) {
-        return []
-    }
-
-    const lines = text.split("\n").filter(Boolean)
-    globals.userEntries = lines
-        .map(mkStrItemId)
-        .map(parseJsonL)
-
-    return globals.userEntries
+    return globals.userEntries = await loadList("engagement/list-entries")
 }
 
 async function loadUserEvents() {
-    const res = await fetch(`${apiPath}/engagement/list-events`)
-    if (!res) {
-        return []
-    }
-
-    const text = await res.text()
-
-    if (!text) {
-        return []
-    }
-
-    const lines = text.split("\n").filter(Boolean)
-    globals.events = lines
-        .map(mkStrItemId)
-        .map(parseJsonL)
-
-    return globals.events
+    return globals.events = await loadList("engagement/list-events")
 }
 
 /**@returns {Promise<MetadataEntry[]>}*/
 async function loadMetadata() {
-    const res = await fetch(`${apiPath}/metadata/list-entries`)
-    if (!res) {
-        return []
-    }
-
-    const text = await res.text()
-    if (!text) {
-        return []
-    }
-
-    const lines = text.split("\n").filter(Boolean)
-    globals.metadataEntries = lines
-        .map(mkStrItemId)
-        .map(parseJsonL)
-
-    return globals.metadataEntries
+    return globals.metadataEntries = await loadList("metadata/list-entries")
 }
 
 function removeEntries() {

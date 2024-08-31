@@ -114,3 +114,26 @@ async function getTotalCostDeep(entry) {
     costCache[String(entry.ItemId)] = Number(text)
     return Number(text)
 }
+
+/**
+ * @function
+ * @template T
+ * @param {string} endpoint 
+ * @returns {Promise<T[]>}
+*/
+async function loadList(endpoint) {
+    const res = await fetch(`${apiPath}/${endpoint}`)
+    if (!res) {
+        return []
+    }
+
+    const text = await res.text()
+    if (!text) {
+        return []
+    }
+
+    const lines = text.split("\n").filter(Boolean)
+   return  lines
+        .map(mkStrItemId)
+        .map(parseJsonL)
+}
