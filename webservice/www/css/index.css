@@ -31,12 +31,27 @@
         text-decoration: underline;
     }
 
+    [data-close-popover]{
+        position: absolute;
+        top: 2%;
+        right: 2%;
+
+        background: var(--secondary);
+        border: 1px solid white;
+        border-radius: var(--border-roundness);
+        padding: 5px;
+    }
+
     input {
         color: white;
         background: var(--secondary);
         border-style: dotted;
         padding: 5px;
         border-radius: var(--border-roundness);
+    }
+
+    form button {
+        padding: 5px;
     }
 
     select {
@@ -61,7 +76,7 @@
         background: var(--main);
         border: 1px solid white;
 
-        width: 70vmin;
+        width: 80vmin;
         aspect-ratio: 1 / 1;
         position: fixed;
         top: 50%;
@@ -159,9 +174,6 @@
         #search-dialog {
             left: 0;
             top: 0;
-            width: 90%;
-            height: 90%;
-            aspect-ratio: revert;
             transform: revert;
         }
 

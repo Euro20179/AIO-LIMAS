@@ -71,19 +71,21 @@
             <ul id="total-stats">
             </ul>
             <form action="javascript:queryLite()" id="query-lite">
-                <input type="text" placeholder="Query" name="title" required>
+                <input type="text" placeholder="Query" name="title">
+                <button type="button" popovertarget="search-dialog">Advanced Search</button>
                 <input type="submit" value="Search">
             </form>
-            <button popovertarget="search-dialog">Advanced Search</button>
             <input-group>
-                <label title="display children"><input type="checkbox" onchange="toggleHiddenTypes()" id="toggle-children" name="children">children</label>
-                <label title="display copies"><input type="checkbox" onchange="toggleHiddenTypes()" id="toggle-copies" name="copies">copies</label>
+                <label title="display children"><input type="checkbox" onchange="toggleHiddenTypes()"
+                        id="toggle-children" name="children">children</label>
+                <label title="display copies"><input type="checkbox" onchange="toggleHiddenTypes()" id="toggle-copies"
+                        name="copies">copies</label>
             </input-group>
-            <dialog popover id="search-dialog">
-                <h3>Welcome to search hell</h3>
-                <form id="query" action="javascript:query()">
+            <form id="query" action="javascript:query()">
+                <dialog popover id="search-dialog">
+                    <h3>Welcome to search hell</h3>
+                    <button popovertarget="search-dialog" type="button" data-close-popover>✖︎</button>
                     <input-group class="flex-row flex-wrap">
-                        <input type="search" name="query" placeholder="title">
                         <input type="text" name="tags" placeholder="tags (',' separated)">
                         <input-group>
                             <input type="number" step="0.1" name="user-rating-gt" placeholder="rating ⬆">
@@ -139,9 +141,8 @@
                             </select>
                         </div>
                     </input-group>
-                    <input type="submit" value="Locate!">
-                </form>
-            </dialog>
+                </dialog>
+            </form>
             <button class="add-item" popovertarget="new-item" title="new item">New</button>
         </div>
         <section id="all-entries">
