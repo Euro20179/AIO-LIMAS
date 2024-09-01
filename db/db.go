@@ -225,7 +225,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			viewCount,
 			userRating,
 			notes
-		) VALUES (?, ?, ?, ?, ?, ?, ?)`
+		) VALUES (?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(userViewingQuery,
 		userViewingEntry.ItemId,
@@ -238,14 +238,16 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		return err
 	}
 
-	userEventQuery := `INSERT INTO userEventInfo (
+	if userViewingEntry.Status != Status("") {
+		userEventQuery := `INSERT INTO userEventInfo (
 		itemId,
 		timestamp,
 		event
-	) VALUES (?, ?, ?)`
-	_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()))
-	if err != nil {
-		return err
+		) VALUES (?, ?, ?)`
+		_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
