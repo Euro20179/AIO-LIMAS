@@ -7,6 +7,7 @@
     --blue: #95bdff;
 
     --main: #121626;
+    --secondary: hsl(from var(--main) h s calc(l * 1.8));
 
     --border-roundness: 5px;
 }
@@ -32,14 +33,14 @@
 
     input {
         color: white;
-        background: var(--main);
+        background: var(--secondary);
         border-style: dotted;
         padding: 5px;
         border-radius: var(--border-roundness);
     }
 
     select {
-        background: var(--main);
+        background: var(--secondary);
         border-style: solid;
         color: white;
         border-radius: var(--border-roundness);
@@ -49,7 +50,7 @@
     input[type="submit"] {
         border: 1px solid currentColor;
         border-radius: var(--border-roundness);
-        background: var(--main);
+        background: var(--secondary);
         color: white;
         cursor: pointer;
     }
@@ -87,19 +88,46 @@
 }
 
 @layer components {
+    main>nav {
+        display: grid;
+        margin-bottom: 10px;
+        width: 100%;
+
+        grid-auto-flow: column;
+
+        .add-item {
+            grid-column: end;
+        }
+    }
+
+    main {
+        display: flex;
+        flex-direction: column;
+        gap: 3cap;
+    }
 
     #search-entry {
         position: sticky;
         top: 0;
+        z-index: 5;
+
+        padding: 20px;
         border: 1px solid white;
         background: var(--main);
-        z-index: 5;
-        padding: 20px;
         border-radius: var(--border-roundness);
+
+        display: grid;
+        grid-auto-flow: column;
 
         input,
         label {
             user-select: none;
+        }
+
+        button,
+        input,
+        select {
+            background: hsl(from var(--main) h s calc(l * 1.8))
         }
     }
 
@@ -128,18 +156,6 @@
         flex-direction: column;
         gap: 1cap;
         margin: 0 20%;
-    }
-
-    main>nav {
-        display: grid;
-        margin-bottom: 10px;
-        width: 100%;
-
-        grid-auto-flow: column;
-
-        .add-item {
-            grid-column: end;
-        }
     }
 
     #new-item {
