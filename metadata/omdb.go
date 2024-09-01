@@ -92,6 +92,9 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 	}
 	out.Description = jData.Plot
 	out.Thumbnail = jData.Poster
+	if n, err := strconv.ParseInt(jData.Year, 10, 64); err == nil {
+		out.ReleaseYear = n
+	}
 
 	return out, nil
 }
