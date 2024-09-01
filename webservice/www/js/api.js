@@ -55,6 +55,11 @@
  * @property {boolean} copies
  * @property {string} tags
  * @property {string} status
+ * @property {number} userRatingLt
+ * @property {number} userRatingGt
+ * @property {number} purchasePriceGt
+ * @property {number} purchasePriceLt
+ * @property {boolean} isAnime
  */
 
 /**

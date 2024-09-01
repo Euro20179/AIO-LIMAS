@@ -66,7 +66,6 @@ async function identifyEntry(form, id) {
 
             fetch(`${apiPath}/metadata/finalize-identify?id=${result.ItemId}&provider=${provider}&apply-to=${id}`)
                 .then(res => res.text)
-                .then(console.log)
         })
         output.append(fig)
     }
@@ -519,7 +518,6 @@ function createItemEntry(item, userEntry, meta, root = null) {
     }
     fills['.identify-entry'] = e => {
         e.id = `identify-entry-${item.ItemId}`
-        console.log(e)
     }
     fills['.identify-entry form'] = e => {
         e.onsubmit = function() {
@@ -662,7 +660,7 @@ async function loadQueriedEntries(search) {
     if (search.title) {
         queryString += `&title=${encodeURI(search.title)}`
     }
-    if (search.format[0] != -1) {
+    if (search.format && search.format?.[0] != -1) {
         queryString += `&formats=${encodeURI(search.format.join(","))}`
     }
     if (search.type) {
@@ -673,6 +671,21 @@ async function loadQueriedEntries(search) {
     }
     if (search.status) {
         queryString += `&user-status=${encodeURI(search.status)}`
+    }
+    if(search.userRatingGt) {
+        queryString += `&user-rating-gt=${encodeURI(String(search.userRatingGt))}`
+    }
+    if(search.userRatingLt) {
+        queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
+    }
+    if(search.isAnime) {
+        queryString += `&is-anime=${search.isAnime}`
+    }
+    if(search.purchasePriceGt) {
+        queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`
+    }
+    if(search.purchasePriceLt) {
+        queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)
         .catch(console.error)
@@ -765,16 +778,21 @@ function removeEntries() {
     }
 }
 
-function query() {
+function queryLite() {
+    removeEntries()
+    const form = /**@type {HTMLFormElement}*/(document.getElementById("query-lite"))
+    let data = new FormData(form)
+    let title = /**@type {string}*/(data.get("title")) || ""
+    loadQueriedEntries({title}).then(addEntries)
+}
+
+function query(displayChildren = false, displayCopies = false) {
     removeEntries()
     const form = /**@type {HTMLFormElement}*/(document.getElementById("query"))
     let data = new FormData(form)
     let enTitle = /**@type {string}*/(data.get("query"))
     // let format = /**@type {string}*/(data.get("format"))
     let ty = /**@type {string}*/(data.get("type"))
-
-    let displayChildren = /**@type {string}*/(data.get("children"))
-    let displayCopies = /**@type {string}*/(data.get("copies"))
 
     let tags = /**@type {string}*/(data.get("tags"))
 
@@ -783,6 +801,14 @@ function query() {
 
     let status = /**@type {string}*/(data.get("status"))
 
+    let ltr = Number(/**@type {string}*/(data.get("user-rating-lt")))
+    let gtr = Number(/**@type {string}*/(data.get("user-rating-gt")))
+
+    let pgt = Number(data.get("purchase-price-gt"))
+    let plt = Number(data.get("purchase-price-lt"))
+
+    let isAnime = data.get("is-anime") === "on" ? true : false
+
     /**@type {DBQuery}*/
     let query = {
         title: enTitle,
@@ -790,12 +816,17 @@ function query() {
         //@ts-ignore
         format: formats.length ? formats : [-1],
         tags: tags,
-        status
+        status,
+        userRatingLt: ltr,
+        userRatingGt: gtr,
+        isAnime,
+        purchasePriceGt: pgt,
+        purchasePriceLt: plt,
         // format: Number(format)
     }
 
     loadQueriedEntries(query).then(entries => {
-        addEntries(entries, displayChildren !== "on", displayCopies !== "on")
+        addEntries(entries, !displayChildren, !displayCopies)
     })
 }
 
@@ -832,6 +863,12 @@ async function newEntry() {
         loadInfoEntries(),
         loadEntryTree()
     ])
+}
+
+function toggleHiddenTypes() {
+    const childrenChecked = /**@type {HTMLInputElement}*/(document.getElementById("toggle-children")).checked
+    const copiesChecked = /**@type {HTMLInputElement}*/(document.getElementById("toggle-copies")).checked
+    query(childrenChecked, copiesChecked)
 }
 
 function main() {

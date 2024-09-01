@@ -404,6 +404,8 @@ type EntryInfoSearch struct {
 	IsAnime           int
 	CopyIds           []int64
 	UserStatus        Status
+	UserRatingGt      float64
+	UserRatingLt      float64
 }
 
 func buildQString[T any](withList []T) string {
@@ -456,6 +458,12 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	}
 	if mainSearchInfo.PurchasePriceLt != 0 {
 		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
+	}
+	if mainSearchInfo.UserRatingGt != 0 {
+		queries = append(queries, query.GT("userRating", mainSearchInfo.UserRatingGt))
+	}
+	if mainSearchInfo.UserRatingLt != 0 {
+		queries = append(queries, query.LT("userRating", mainSearchInfo.UserRatingLt))
 	}
 	if len(mainSearchInfo.InTags) > 0 {
 		cols := []interface{}{

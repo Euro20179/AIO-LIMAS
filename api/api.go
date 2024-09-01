@@ -207,41 +207,32 @@ func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 }
 
 // should be an all in one query thingy, that should be able to query based on any matching column in any table
-func QueryEntries(w http.ResponseWriter, req *http.Request) {
-	query := req.URL.Query()
+func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	title := parsedParams.Get("title", "").(string)
+	nativeTitle := parsedParams.Get("native-title", "").(string)
+	location := parsedParams.Get("location", "").(string)
+	pgt := parsedParams.Get("purchase-gt", 0.0).(float64)
+	plt := parsedParams.Get("purchase-lt", 0.0).(float64)
+	formats := parsedParams.Get("formats", "").(string)
+	tags := parsedParams.Get("tags", "").(string)
+	types := parsedParams.Get("types", "").(string)
+	parents := parsedParams.Get("parent-ids", "").(string)
+	copyIds := parsedParams.Get("copy-ids", "").(string)
+	status := parsedParams.Get("user-status", db.Status("")).(db.Status)
+	userRatingGt := parsedParams.Get("user-rating-gt", 0.0).(float64)
+	userRatingLt := parsedParams.Get("user-rating-lt", 0.0).(float64)
 
-	title := query.Get("title")
-	nativeTitle := query.Get("native-title")
-	location := query.Get("location")
-	purchaseGt := query.Get("purchase-gt")
-	purchaselt := query.Get("purchase-lt")
-	formats := query.Get("formats")
-	tags := query.Get("tags")
-	types := query.Get("types")
-	parents := query.Get("parent-ids")
-	isAnime := query.Get("is-anime")
-	copyIds := query.Get("copy-ids")
-	status := query.Get("user-status")
-
-	pgt := 0.0
-	plt := 0.0
 	var fmts []db.Format
 	var pars []int64
 	var cos []int64
 	var tys []db.MediaTypes
 	tagsSplit := strings.Split(tags, ",")
 	var collects []string
+
 	for _, c := range tagsSplit {
 		if c != "" {
 			collects = append(collects, c)
 		}
-	}
-
-	if util.IsNumeric([]byte(purchaseGt)) {
-		pgt, _ = strconv.ParseFloat(purchaseGt, 64)
-	}
-	if util.IsNumeric([]byte(purchaselt)) {
-		plt, _ = strconv.ParseFloat(purchaselt, 64)
 	}
 
 	for _, format := range strings.Split(formats, ",") {
@@ -279,20 +270,14 @@ func QueryEntries(w http.ResponseWriter, req *http.Request) {
 	entrySearch.LocationSearch = location
 	entrySearch.PurchasePriceGt = pgt
 	entrySearch.PurchasePriceLt = plt
+	entrySearch.UserRatingLt = userRatingLt
+	entrySearch.UserRatingGt = userRatingGt
 	entrySearch.InTags = collects
 	entrySearch.Format = fmts
 	entrySearch.Type = tys
 	entrySearch.HasParent = pars
 	entrySearch.CopyIds = cos
 	entrySearch.UserStatus = db.Status(status)
-	switch isAnime {
-	case "true":
-		entrySearch.IsAnime = 2
-	case "false":
-		entrySearch.IsAnime = 1
-	default:
-		entrySearch.IsAnime = 0
-	}
 
 	rows, err := db.Search(entrySearch)
 	if err != nil {

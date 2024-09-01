@@ -67,11 +67,15 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
+        container: dialog size;
     }
 
     dialog::backdrop {
         background-color: #00000077;
         backdrop-filter: blur(1px);
+        user-select: none;
+        pointer-events: none;
     }
 }
 
@@ -84,6 +88,23 @@
     .good {
         --accent-color: var(--green);
         color: var(--accent-color);
+    }
+
+    .flex-column {
+        display: inline-flex;
+        flex-direction: column;
+    }
+
+    .flex-row {
+        display: inline-flex;
+    }
+
+    .flex-wrap {
+        flex-wrap: wrap
+    }
+
+    .block {
+        display: block;
     }
 }
 
@@ -111,13 +132,14 @@
         top: 0;
         z-index: 5;
 
-        padding: 20px;
+        padding: 10px;
         border: 1px solid white;
         background: var(--main);
         border-radius: var(--border-roundness);
 
         display: grid;
         grid-auto-flow: column;
+        gap: 5ch;
 
         input,
         label {
@@ -129,6 +151,20 @@
         select {
             background: hsl(from var(--main) h s calc(l * 1.8))
         }
+
+        [multiple] {
+            height: 20cqi;
+        }
+
+        #search-dialog {
+            left: 0;
+            top: 0;
+            width: 90%;
+            height: 90%;
+            aspect-ratio: revert;
+            transform: revert;
+        }
+
     }
 
     #identify-entry {
@@ -165,18 +201,32 @@
     }
 
     #total-stats {
+        columns: 25% auto;
 
-        display: flex;
-        gap: 50px;
+        font-size: 0.8em;
+
+        max-height: 100%;
 
         li::marker {
             content: "";
         }
     }
 
+    #query-lite {
+        align-self: center;
+    }
 
     #query {
-        display: block;
+        align-self: center;
+        display: grid;
+        grid-auto-flow: row;
+
+        [type="submit"] {
+            /* position: absolute; */
+            /* bottom: 2%; */
+            /* right: 2%; */
+            /* font-size: 2em; */
+        }
     }
 
     #all-entries {

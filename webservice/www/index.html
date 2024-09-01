@@ -16,8 +16,6 @@
             <!-- <h2>Collections</h2> -->
             <!-- <section id="collections"></section> -->
             <!-- <h2>All</h2> -->
-            <ul id="total-stats">
-            </ul>
             <dialog id="new-item" popover>
                 <h3>New Entry</h3>
                 <form id="new-item-form" action="javascript:newEntry()">
@@ -70,65 +68,80 @@
             </dialog>
         </nav>
         <div id="search-entry">
-            <form id="query" action="javascript:query()">
-                <input type="search" name="query" placeholder="title">
-                <details style="display: inline; cursor: default; user-select: none;">
-                    <summary>
-                        Formats
-                    </summary>
-                    <label><input name="format" type="checkbox" value="0">VHS</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="1">CD</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="2">DVD</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="3">Blu Ray</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="4">4k Blu Ray</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="5">Manga</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="6">Book</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="7">Digital</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="8">Board Game</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="9">Steam</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="10">Nintendo Switch</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="11">Xbox One</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="12">Xbox 360</label>
-                    <br>
-                    <label><input name="format" type="checkbox" value="13">Other</label>
-                </details>
-                <select name="type">
-                    <option value="">Type</option>
-                    <option value="Show">Show</option>
-                    <option value="Movie">Movie</option>
-                    <option value="Manga">Manga</option>
-                    <option value="Book">Book</option>
-                    <option value="Game">Game</option>
-                    <option value="Song">Song</option>
-                    <option value="BoardGame">BoardGame</option>
-                    <option value="Collection">Collection</option>
-                </select>
-                <select name="status">
-                    <option value="">Status</option>
-                    <option value="Viewing">Viewing</option>
-                    <option value="Finished">Finished</option>
-                    <option value="Dropped">Dropped</option>
-                    <option value="Planned">Planned</option>
-                    <option value="ReViewing">ReViewing</option>
-                    <option value="Paused">Paused</option>
-                </select>
-                <input type="text" name="tags" placeholder="tags (',' separated)">
-                <label title="display children"><input type="checkbox" name="children">children</label>
-                <label title="display copies"><input type="checkbox" name="copies">copies</label>
-                <input type="submit" value="Locate!">
+            <ul id="total-stats">
+            </ul>
+            <form action="javascript:queryLite()" id="query-lite">
+                <input type="text" placeholder="Query" name="title" required>
+                <input type="submit" value="Search">
             </form>
+            <button popovertarget="search-dialog">Advanced Search</button>
+            <input-group>
+                <label title="display children"><input type="checkbox" onchange="toggleHiddenTypes()" id="toggle-children" name="children">children</label>
+                <label title="display copies"><input type="checkbox" onchange="toggleHiddenTypes()" id="toggle-copies" name="copies">copies</label>
+            </input-group>
+            <dialog popover id="search-dialog">
+                <h3>Welcome to search hell</h3>
+                <form id="query" action="javascript:query()">
+                    <input-group class="flex-row flex-wrap">
+                        <input type="search" name="query" placeholder="title">
+                        <input type="text" name="tags" placeholder="tags (',' separated)">
+                        <input-group>
+                            <input type="number" step="0.1" name="user-rating-gt" placeholder="rating ⬆">
+                            <input type="number" step="0.1" name="user-rating-lt" placeholder="rating ⬇">
+                        </input-group>
+                        <input-group>
+                            <input type="number" step="0.1" name="purchase-price-gt" placeholder="price ⬆">
+                            <input type="number" step="0.1" name="purchase-price-lt" placeholder="price ⬇">
+                        </input-group>
+                    </input-group>
+                    <input-group class="flex-row">
+                        <div class="select-figure">
+                            <h4>Format</h4>
+                            <select name="format" multiple>
+                                <option value="0">VHS</option>
+                                <option value="1">CD</option>
+                                <option value="2">DVD</option>
+                                <option value="3">Blu Ray</option>
+                                <option value="4">4k Blu Ray</option>
+                                <option value="5">Manga</option>
+                                <option value="6">Book</option>
+                                <option value="7">Digital</option>
+                                <option value="8">Board Game</option>
+                                <option value="9">Steam</option>
+                                <option value="10">Nintendo Switch</option>
+                                <option value="11">Xbox One</option>
+                                <option value="12">Xbox 360</option>
+                                <option value="13">Other</option>
+                            </select>
+                        </div>
+                        <div class="select-figure">
+                            <h4>Type</h4>
+                            <select name="type" multiple>
+                                <option value="Show">Show</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Manga">Manga</option>
+                                <option value="Book">Book</option>
+                                <option value="Game">Game</option>
+                                <option value="Song">Song</option>
+                                <option value="BoardGame">BoardGame</option>
+                                <option value="Collection">Collection</option>
+                            </select>
+                        </div>
+                        <div class="select-figure">
+                            <h4>Status</h4>
+                            <select name="status" multiple>
+                                <option value="Viewing">Viewing</option>
+                                <option value="Finished">Finished</option>
+                                <option value="Dropped">Dropped</option>
+                                <option value="Planned">Planned</option>
+                                <option value="ReViewing">ReViewing</option>
+                                <option value="Paused">Paused</option>
+                            </select>
+                        </div>
+                    </input-group>
+                    <input type="submit" value="Locate!">
+                </form>
+            </dialog>
             <button class="add-item" popovertarget="new-item" title="new item">New</button>
         </div>
         <section id="all-entries">

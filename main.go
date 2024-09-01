@@ -65,10 +65,30 @@ func main() {
 		},
 	}
 
-	searchApi := api.ApiEndPoint{
+	listApi := api.ApiEndPoint{
 		Handler: api.ListEntries,
 		QueryParams: api.QueryParams{
 			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
+		},
+	}
+
+	searchApi := api.ApiEndPoint {
+		Handler: api.QueryEntries,
+		QueryParams: api.QueryParams {
+			"title": api.MkQueryInfo(api.P_True, false),
+			"native-title": api.MkQueryInfo(api.P_True, false),
+			"location": api.MkQueryInfo(api.P_True, false),
+			"purchase-gt": api.MkQueryInfo(api.P_Float64, false),
+			"purchase-lt": api.MkQueryInfo(api.P_Float64, false),
+			"formats": api.MkQueryInfo(api.P_True, false),
+			"tags": api.MkQueryInfo(api.P_True, false),
+			"types": api.MkQueryInfo(api.P_True, false),
+			"parents": api.MkQueryInfo(api.P_True, false),
+			"is-anime": api.MkQueryInfo(api.P_Bool, false),
+			"copy-ids": api.MkQueryInfo(api.P_True, false),
+			"user-status": api.MkQueryInfo(api.P_UserStatus, false),
+			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
+			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
 		},
 	}
 
@@ -76,8 +96,8 @@ func main() {
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":        addEntry.Listener,
 		"mod-entry":        modEntry.Listener,
-		"query":            api.QueryEntries,
-		"list-entries":     searchApi.Listener,
+		"query":            searchApi.Listener,
+		"list-entries":     listApi.Listener,
 		"scan-folder":      api.ScanFolder,
 		"stream-entry":     api.Stream,
 		"delete-entry":     api.DeleteEntry,
