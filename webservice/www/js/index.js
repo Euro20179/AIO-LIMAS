@@ -866,7 +866,14 @@ function displayEntry(ids) {
         return
     }
     removeEntries()
-    loadEntryTree().then(res => renderEntryTree(res, false, false))
+    loadEntryTree().then(res => {
+        if(!res) return
+        let items = []
+        for(let id of ids) {
+            items.push(res[String(id)].EntryInfo)
+        }
+        addEntries(items, false, false)
+    })
 }
 
 async function newEntry() {

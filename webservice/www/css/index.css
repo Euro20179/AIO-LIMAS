@@ -31,7 +31,7 @@
         text-decoration: underline;
     }
 
-    [data-close-popover]{
+    [data-close-popover] {
         position: absolute;
         top: 2%;
         right: 2%;
@@ -171,7 +171,7 @@
             height: 20cqi;
         }
 
-        #search-dialog {
+        dialog {
             left: 0;
             top: 0;
             transform: revert;
@@ -207,6 +207,10 @@
     }
 
     #new-item {
+        left: 0;
+        top: 0;
+        transform: revert;
+
         h3 {
             text-align: center;
         }
