@@ -759,7 +759,7 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         //only add the item's cost to the total if it doesn't have a parent
         //Or if the parent is not one of the items we are rendering
         //otherwise, it's total will be counted twice
-        if(!item.Parent || !items.find(val => val.ItemId === item.Parent)) {
+        if(!item.Parent && !items.find(val => val.ItemId === item.Parent)) {
             costFinders.push(getTotalCostDeep(item))
         }
         let meta = item.Parent ?
@@ -778,7 +778,7 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
     setGlobalStats({
         "Results": count,
         "Hidden": hiddenItems,
-        "Cost": totalCost
+        "Cost": Math.round(totalCost * 100) / 100
     })
 
     globals.results = items
