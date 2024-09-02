@@ -9,14 +9,26 @@
  * @property {bigint[]} Copies
  */
 
-/**@type { {formats: Record<number, string>, userEntries: UserEntry[], metadataEntries: MetadataEntry[], entries: InfoEntry[], tree: EntryTree, events: UserEvent[] }}*/
+/**
+ * @typedef Globals
+ * @type {object}
+ * @property {Record<number, string>} formats
+ * @property {UserEntry[]} userEntries
+ * @property {MetadataEntry[]} metadataEntries
+ * @property {InfoEntry[]} entries
+ * @property {EntryTree} tree
+ * @property {UserEvent[]} events
+ * @property {InfoEntry[]} results
+ */
+/**@type {Globals}*/
 const globals = {
     formats: {},
     userEntries: [],
     metadataEntries: [],
     entries: [],
     tree: {},
-    events: []
+    events: [],
+    results: []
 }
 
 function resubmitSearch() {
@@ -672,19 +684,19 @@ async function loadQueriedEntries(search) {
     if (search.status) {
         queryString += `&user-status=${encodeURI(search.status)}`
     }
-    if(search.userRatingGt) {
+    if (search.userRatingGt) {
         queryString += `&user-rating-gt=${encodeURI(String(search.userRatingGt))}`
     }
-    if(search.userRatingLt) {
+    if (search.userRatingLt) {
         queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
     }
-    if(search.isAnime) {
+    if (search.isAnime) {
         queryString += `&is-anime=${search.isAnime}`
     }
-    if(search.purchasePriceGt) {
+    if (search.purchasePriceGt) {
         queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`
     }
-    if(search.purchasePriceLt) {
+    if (search.purchasePriceLt) {
         queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
     }
     const res = await fetch(`${apiPath}/query${queryString}`)
@@ -711,7 +723,7 @@ async function renderEntryTree(items, ignoreChildren = true, ignoreCopies = true
         return
     }
     let entries = []
-    for(let item in items) {
+    for (let item in items) {
         entries.push(items[item].EntryInfo)
     }
 
@@ -740,10 +752,23 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
             continue
         }
         let user = getUserEntry(item.ItemId)
-        costFinders.push(getTotalCostDeep(item))
+        if (user == null) {
+            console.error("No user enry for", item.ItemId, item.En_Title || item.Native_Title)
+            continue
+        }
+        //only add the item's cost to the total if it doesn't have a parent
+        //Or if the parent is not one of the items we are rendering
+        //otherwise, it's total will be counted twice
+        if(!item.Parent || !items.find(val => val.ItemId === item.Parent)) {
+            costFinders.push(getTotalCostDeep(item))
+        }
         let meta = item.Parent ?
             getMetadataEntry(item.Parent) :
             getMetadataEntry(item.ItemId)
+        if (meta == null) {
+            console.error("No meta entry for", item.ItemId, item.En_Title || item.Native_Title)
+            continue
+        }
         createItemEntry(item, user, meta)
         count++
     }
@@ -755,6 +780,8 @@ async function addEntries(items, ignoreChildren = true, ignoreCopies = true) {
         "Hidden": hiddenItems,
         "Cost": totalCost
     })
+
+    globals.results = items
 }
 
 /**@returns {Promise<UserEntry[]>}*/
@@ -783,7 +810,7 @@ function queryLite() {
     const form = /**@type {HTMLFormElement}*/(document.getElementById("query-lite"))
     let data = new FormData(form)
     let title = /**@type {string}*/(data.get("title")) || ""
-    loadQueriedEntries({title}).then(addEntries)
+    loadQueriedEntries({ title }).then(addEntries)
 }
 
 function query(displayChildren = false, displayCopies = false) {

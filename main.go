@@ -57,6 +57,7 @@ func main() {
 			"native-title": api.MkQueryInfo(api.P_True, false),
 			"format":       api.MkQueryInfo(api.P_EntryFormat, false),
 			"parent-id":    api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"become-orphan": api.MkQueryInfo(api.P_Bool, false),
 			"copy-id":      api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"price":        api.MkQueryInfo(api.P_Float64, false),
 			"location":     api.MkQueryInfo(api.P_True, false),

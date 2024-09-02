@@ -53,6 +53,10 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Parent = parent.ItemId
 	}
 
+	if orphan, exists := parsedParams["become-orphan"].(bool); exists && orphan {
+		info.Parent = 0
+	}
+
 	if itemCopy, exists := parsedParams["copy-id"].(db.InfoEntry); exists {
 		info.CopyOf = itemCopy.ItemId
 	}
