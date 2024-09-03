@@ -26,21 +26,23 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] drop
     - [x] pause
     - [x] continue
+  - [ ] Track current position as string
+    - Then whichever ui the user uses to play content, will send a request to the server saying that the user is now at position X
   - [x] Replace the start/end lists with event lists
     - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
     - The events should be the same as statuses
     - unixtime is when that status was set
     - this actually might be really good as it's own table that looks something like this
-    `itemId | timestamp | event`
+      `itemId | timestamp | event`
     - Even if the items are entered into the table out of order, and the ids aren't in order, we can always use `SELECT * FROM userEvents WHERE itemId = ? ORDER BY timestamp`
 - [ ] Library features
   - [ ] internet search
     - i can do something like `/api/v1/internet-search` with similar params to addentry, except
     - instead of adding an entry, it uses the (yet to be implemented) identify feature to gather search results
     - [ ] search
-        - as described above
+      - as described above
     - [ ] lookup
-        - will lookup a specific entry using a specific provider
+      - will lookup a specific entry using a specific provider
   - [x] copy of (id)
     - that way if the user has say, a digital movie and blu ray of something
     - they can have 2 entries, and the ui can know to display the same user/metadata for both
@@ -74,9 +76,11 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] monitor folders, automatically add items in them
     - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
 - [x] Ability to act as a proxy for the given {location} of an entry, and stream it
+
   - [ ] reencoding?
 
 - [ ] ui
+
   - [ ] sorting
     - [ ] by price
     - [ ] by rating
@@ -104,3 +108,14 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] total items
   - [x] thumbnails
   - [ ] if an item is marked as a copy, display the copy user viewing entry
+
+- [ ] new ui
+
+  - have a sidebar that contains all items
+  - the user clicks on one
+  - searching will filter the items down on the side
+  - Should have all the same features as the old ui
+
+- [ ] terminal ui
+  - simply a list of all items
+  - [ ] allow user to filter by status

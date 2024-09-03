@@ -836,6 +836,15 @@ function query(displayChildren = false, displayCopies = false) {
 
     let isAnime = data.get("is-anime") === "on" ? true : false
 
+    const childrenChecked = /**@type {HTMLInputElement}*/(document.getElementById("toggle-children")).checked
+    if(childrenChecked) {
+        displayChildren = true
+    }
+    const copiesChecked = /**@type {HTMLInputElement}*/(document.getElementById("toggle-copies")).checked
+    if(copiesChecked) {
+        displayCopies = true
+    }
+
     /**@type {DBQuery}*/
     let query = {
         title: enTitle,
