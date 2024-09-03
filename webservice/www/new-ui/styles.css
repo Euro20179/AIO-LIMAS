@@ -28,9 +28,9 @@
 
         @media (width >=800px) {
             grid-template-areas:
-                "form main main"
+                "form form results"
                 "sidebar main main"
-                "results main main";
+                "sidebar main main";
             grid-template-columns: 1fr 2.2fr;
         }
 
@@ -60,6 +60,9 @@
         @media (width < 800px) {
             grid-column: 1 / -1;
             overflow: auto auto;
+        }
+        @media (width >= 800px) {
+            grid-column: 2 / -1;
         }
     }
 
