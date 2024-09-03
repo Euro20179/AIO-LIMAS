@@ -18,83 +18,119 @@
     }
 
     #main {
-        display: flex;
-        flex-direction: column;
         height: 100%;
+    }
 
-        #main-ui {
-            overflow: auto;
-            flex-grow: 1;
+    #main-ui {
+        flex-grow: 1;
 
-            display: grid;
+        display: grid;
 
-            @media (width >=800px) {
-                grid-template-areas:
-                    "form form form"
-                    "sidebar main main";
-                grid-template-columns: 1fr 2.2fr;
-            }
+        @media (width >=800px) {
+            grid-template-areas:
+                "form main main"
+                "sidebar main main"
+                "results main main";
+            grid-template-columns: 1fr 2.2fr;
+        }
 
-            @media (width < 800px) {
-                grid-template-rows: 1fr 1fr 3fr;
-                grid-template-areas:
-                    "form form form"
-                    "sidebar sidebar sidebar"
-                    "main main main";
-
-            }
-
-            #sidebar-form {
-                grid-area: form
-            }
-
-            #entry-output {
-                grid-area: main;
-            }
-
-            .sidebar {
-                grid-area: sidebar;
-                overflow: auto auto;
-            }
-
-            .sidebar--items {
-                display: flex;
-                width: clamp(200px, 35vw, 35vw);
-                flex-direction: column;
-
-                min-height: 10vh;
-                max-height: 83%;
-
-                max-width: 30vw;
-
-                float: left;
-
-                padding: 0;
-            }
+        @media (width < 800px) {
+            grid-template-rows: 1fr 1fr 3fr;
+            grid-template-columns: 1fr 1fr 0.5fr;
+            grid-template-areas:
+                "form form results"
+                "sidebar sidebar sidebar"
+                "main main main";
         }
     }
 
+    #sidebar-form {
+        grid-area: form;
+
+        select:not([multiple]) {
+            vertical-align: top;
+        }
+
+        text-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    #viewing-area {
+        height: 100%;
+        @media (width < 800px) {
+            grid-column: 1 / -1;
+            overflow: auto auto;
+        }
+    }
+
+    #entry-output {
+        --grid-size: 50%;
+
+        height: 100%;
+        overflow: auto auto;
+
+        grid-area: main;
+
+        @media (width >= 800px) {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        @media (width < 800px) {
+            display: flex;
+            flex-direction: column;
+        }
+
+        &:has(display-entry) {
+            border: 1px solid purple;
+        }
+    }
+
+    .sidebar {
+        grid-area: sidebar;
+        min-height: 200px;
+
+        @media (width < 800px) {
+            overflow-y: hidden;
+        }
+    }
+
+    .sidebar--items {
+        display: flex;
+        width: clamp(200px, 35vw, 35vw);
+        flex-direction: column;
+
+        min-height: 10vh;
+        max-height: 83%;
+
+        width: 100%;
+
+        float: left;
+
+        padding: 0;
+    }
+
+    #result-info {
+        grid-area: results;
+    }
+
     @media (width < 800px) {
-        #main {
-            #main-ui {
-                position: relative;
+        #main-ui {
+            position: relative;
 
-                .sidebar {
-                    overflow: auto auto;
+        }
 
-                    :not(.sidebar--items) {
-                        position: sticky;
-                        left: 0;
-                    }
-                }
-
-                .sidebar--items {
-                    grid-column: 1 / -1;
-                    flex-direction: row;
-                    min-width: fit-content;
-                    min-height: 100%;
-                }
+        .sidebar {
+            :not(.sidebar--items):not(.sidebar--items *) {
+                position: sticky;
+                left: 0;
             }
+        }
+
+        .sidebar--items {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            min-width: fit-content;
+            min-height: 100%;
         }
     }
 }

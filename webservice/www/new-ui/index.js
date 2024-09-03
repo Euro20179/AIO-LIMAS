@@ -15,6 +15,7 @@ let globalsNewUi = {
     events: [],
 }
 const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
+const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-output"))
 
 /**
     * @returns {Promise<EntryTree>}
@@ -95,6 +96,34 @@ function clearSidebar() {
 /**
  * @param {InfoEntry} item
  */
+function renderDisplayItem(item) {
+    let el = document.createElement("display-entry")
+    el.setAttribute("data-title", item.En_Title)
+    el.setAttribute("data-item-id", String(item.ItemId))
+
+    let meta = findMetadataById(item.ItemId)
+    let user = findUserEntryById(item.ItemId)
+
+    if (meta?.Thumbnail) {
+        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
+    }
+    displayItems.append(el)
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function removeDisplayItem(item) {
+    let el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
+    if (el) {
+        el.remove()
+    }
+
+}
+
+/**
+ * @param {InfoEntry} item
+ */
 function renderSidebarItem(item) {
     let elem = document.createElement("sidebar-entry")
     let meta = findMetadataById(item.ItemId)
@@ -115,17 +144,20 @@ function renderSidebarItem(item) {
         elem.setAttribute("data-user-rating", String(user.UserRating))
     }
 
-    if(item.PurchasePrice) {
-        console.log(item.PurchasePrice)
-        elem.setAttribute("data-cost", String(item.PurchasePrice))
+    if (item.PurchasePrice) {
+        elem.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
     }
 
     sidebarItems.append(elem)
 
-    let viewBtn = /**@type {HTMLButtonElement?}*/(elem.shadowRoot?.querySelector(".view-button"))
-    if (viewBtn) {
-        viewBtn.addEventListener("click", e => {
-            console.log(e)
+    let viewCkBox = /**@type {HTMLInputElement?}*/(elem.shadowRoot?.querySelector("[name='view']"))
+    if (viewCkBox) {
+        viewCkBox.addEventListener("change", e => {
+            if (viewCkBox?.checked && !document.querySelector(`[data-item-id="${item.ItemId}"]`)) {
+                renderDisplayItem(item)
+            } else {
+                removeDisplayItem(item)
+            }
         })
     }
 }
@@ -168,9 +200,12 @@ async function treeFilterForm() {
     let sortBy = data.get("sort-by")
     let status = /**@type {string[]}*/(data.getAll("status"))
     let type = /**@type {string[]}*/(data.getAll("type"))
-    let format = /**@type {string[]}*/(data.getAll('format'))
+    let format = /**@type {string[]}*/(data.getAll('format')).filter(n => n !== "")
 
-    let formatN = format.map(Number)
+    let formatN = undefined
+    if (format.length) {
+        formatN = format.map(Number)
+    }
 
     let entries = await loadQueriedEntries({
         status: status.join(","),
@@ -187,9 +222,16 @@ async function treeFilterForm() {
             })
         }
     }
+
+    const resultOut = /**@type {HTMLElement}*/(document.getElementById("result-info"))
+
+    let totalCost = 0, results = 0
     for (let item of entries) {
         renderSidebarItem(item)
+        results++
+        totalCost += item.PurchasePrice
     }
+    resultOut.innerHTML = `<span>Results ${results}</span> <span>$${totalCost}</span>`
 }
 
 

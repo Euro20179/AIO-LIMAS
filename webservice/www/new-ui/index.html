@@ -9,9 +9,9 @@
 </head>
 
 <body>
-    <div id="main">
+    <div id="main" class="flex column">
         <h1>Welcome to the AIO LIMAS</h1>
-        <section id="main-ui">
+        <section id="main-ui" class="overflow">
             <form action="javascript:treeFilterForm()" id="sidebar-form">
                 <select name="sort-by">
                     <option value="">None</option>
@@ -56,16 +56,39 @@
                 </select>
                 <input type="submit" value="sort'n'search">
             </form>
-            <nav class="sidebar">
+            <section id="result-info">
+            </section>
+            <nav class="sidebar overflow">
+                <label><input type="checkbox" name="view-all" id="">View all</label>
                 <div class="sidebar--items">
                 </div>
             </nav>
-            <div id="entry-output">
-            </div>
+            <section id="viewing-area" class="flex column">
+                <h3 class="center">Inspecting</h3>
+                <div id="entry-output" class="overflow">
+                </div>
+            </section>
         </section>
     </div>
 
     <template id="display-entry">
+        <style>
+            :host(display-entry) {
+                flex-grow: 1;
+            }
+            .root {
+                width: 100%;
+                height: 100%;
+            }
+            .thumbnail {
+                float: right;
+                width: 25%;
+            }
+        </style>
+        <div class="root">
+            <img src="" alt="" class="thumbnail">
+            <h3 class="title"></h3>
+        </div>
     </template>
     <template id="sidebar-entry">
         <style>
@@ -209,11 +232,8 @@
                 <button data-ation="Pause" class="action">⏸</button>
                 <button data-ation="Resume" class="action">⏩</button>
             </section>
-            <button class="view-button">View</button>
+            <label><input type="checkbox" name="view">View</label>
         </div>
-    </template>
-    <template id="entry-display">
-        <h2 class="title"></h2>
     </template>
     <script src="/new-ui/components.js"></script>
     <script src="/js/globals.js"></script>

@@ -48,18 +48,18 @@
 /**
  * @typedef DBQuery
  * @type {object}
- * @property {string | undefined | null} title
- * @property {string | undefined | null} type
- * @property {number[] | undefined | null} format
- * @property {boolean | undefined | null} children
- * @property {boolean | undefined | null} copies
- * @property {string | undefined | null} tags
- * @property {string | undefined | null} status
- * @property {number | undefined | null} userRatingLt
- * @property {number | undefined | null} userRatingGt
- * @property {number | undefined | null} purchasePriceGt
- * @property {number | undefined | null} purchasePriceLt
- * @property {boolean | undefined | null} isAnime
+ * @property {string} [title]
+ * @property {string} [type]
+ * @property {number[]} [format]
+ * @property {boolean} [children]
+ * @property {boolean} [copies]
+ * @property {string} [tags]
+ * @property {string} [status]
+ * @property {number} [userRatingLt]
+ * @property {number} [userRatingGt]
+ * @property {number} [purchasePriceGt]
+ * @property {number} [purchasePriceLt]
+ * @property {boolean} [isAnime]
  */
 
 /**
