@@ -48,18 +48,18 @@
 /**
  * @typedef DBQuery
  * @type {object}
- * @property {string} title
- * @property {string} type
- * @property {number[]} format
- * @property {boolean} children
- * @property {boolean} copies
- * @property {string} tags
- * @property {string} status
- * @property {number} userRatingLt
- * @property {number} userRatingGt
- * @property {number} purchasePriceGt
- * @property {number} purchasePriceLt
- * @property {boolean} isAnime
+ * @property {string | undefined | null} title
+ * @property {string | undefined | null} type
+ * @property {number[] | undefined | null} format
+ * @property {boolean | undefined | null} children
+ * @property {boolean | undefined | null} copies
+ * @property {string | undefined | null} tags
+ * @property {string | undefined | null} status
+ * @property {number | undefined | null} userRatingLt
+ * @property {number | undefined | null} userRatingGt
+ * @property {number | undefined | null} purchasePriceGt
+ * @property {number | undefined | null} purchasePriceLt
+ * @property {boolean | undefined | null} isAnime
  */
 
 /**
@@ -69,6 +69,19 @@
  * @property {string} Thumbnail
  */
 
+/**@param {string} jsonl*/
+function mkStrItemId(jsonl) {
+    return jsonl
+        .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
+        .replace(/"Parent":\s*(\d+),/, "\"Parent\": \"$1\",")
+        .replace(/"CopyOf":\s*(\d+),/, "\"CopyOf\": \"$1\"")
+}
+
+/**@param {string} jsonl*/
+function parseJsonL(jsonl) {
+    const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
+    return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
+}
 /**
  * @param {bigint} id 
  * @returns {Promise<InfoEntry[]>}
@@ -141,4 +154,54 @@ async function loadList(endpoint) {
    return  lines
         .map(mkStrItemId)
         .map(parseJsonL)
+}
+
+/**
+ * @param {DBQuery} search
+ * @returns {Promise<InfoEntry[]>}
+ */
+async function loadQueriedEntries(search) {
+    let queryString = "?_"
+    if (search.title) {
+        queryString += `&title=${encodeURI(search.title)}`
+    }
+    if (search.format && search.format?.[0] != -1) {
+        queryString += `&formats=${encodeURI(search.format.join(","))}`
+    }
+    if (search.type) {
+        queryString += `&types=${encodeURI(search.type)}`
+    }
+    if (search.tags) {
+        queryString += `&tags=${encodeURI(search.tags)}`
+    }
+    if (search.status) {
+        queryString += `&user-status=${encodeURI(search.status)}`
+    }
+    if (search.userRatingGt) {
+        queryString += `&user-rating-gt=${encodeURI(String(search.userRatingGt))}`
+    }
+    if (search.userRatingLt) {
+        queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
+    }
+    if (search.isAnime) {
+        queryString += `&is-anime=${search.isAnime}`
+    }
+    if (search.purchasePriceGt) {
+        queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`
+    }
+    if (search.purchasePriceLt) {
+        queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
+    }
+    const res = await fetch(`${apiPath}/query${queryString}`)
+        .catch(console.error)
+    if (!res) {
+        alert("Could not query entries")
+        return
+    }
+    let itemsText = await res.text()
+    let jsonL = itemsText.split("\n")
+        .filter(Boolean)
+        .map(mkStrItemId)
+        .map(parseJsonL)
+    return jsonL
 }

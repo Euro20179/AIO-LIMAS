@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>New ui</title>
+    <link rel="stylesheet" href="/new-ui/styles.css">
+</head>
+
+<body>
+    <div id="main">
+        <h1>Welcome to the AIO LIMAS</h1>
+        <section id="main-ui">
+            <form action="javascript:treeFilterForm()" id="sidebar-form">
+                <select name="sort-by">
+                    <option value="">None</option>
+                    <option value="rating">Rating</option>
+                </select>
+                <select name="format" multiple>
+                    <option value="">NONE</option>
+                    <option value="0">VHS</option>
+                    <option value="1">CD</option>
+                    <option value="2">DVD</option>
+                    <option value="3">Blu Ray</option>
+                    <option value="4">4k Blu Ray</option>
+                    <option value="5">Manga</option>
+                    <option value="6">Book</option>
+                    <option value="7">Digital</option>
+                    <option value="8">Board Game</option>
+                    <option value="9">Steam</option>
+                    <option value="10">Nintendo Switch</option>
+                    <option value="11">Xbox One</option>
+                    <option value="12">Xbox 360</option>
+                    <option value="13">Other</option>
+                </select>
+                <select name="status" multiple>
+                    <option value="">NONE</option>
+                    <option value="Viewing">Viewing</option>
+                    <option value="Finished">Finished</option>
+                    <option value="Dropped">Dropped</option>
+                    <option value="Planned">Planned</option>
+                    <option value="ReViewing">ReViewing</option>
+                    <option value="Paused">Paused</option>
+                </select>
+                <select name="type" multiple>
+                    <option value="">NONE</option>
+                    <option value="Show">Show</option>
+                    <option value="Movie">Movie</option>
+                    <option value="Manga">Manga</option>
+                    <option value="Book">Book</option>
+                    <option value="Game">Game</option>
+                    <option value="Song">Song</option>
+                    <option value="BoardGame">BoardGame</option>
+                    <option value="Collection">Collection</option>
+                </select>
+                <input type="submit" value="sort'n'search">
+            </form>
+            <nav class="sidebar">
+                <div class="sidebar--items">
+                </div>
+            </nav>
+            <div id="entry-output">
+            </div>
+        </section>
+    </div>
+
+    <template id="display-entry">
+    </template>
+    <template id="sidebar-entry">
+        <style>
+            :host(sidebar-entry) {
+                @media (width < 800px) {
+                    width: 300px;
+                }
+
+                .root {
+                    border-top: 1px solid white;
+                    border-bottom: 1px solid white;
+
+                    @media (width < 800px) {
+                        border-left: 1px solid white;
+                        border-right: 1px solid white;
+                    }
+
+                    box-sizing: inline;
+
+                    container-type: size;
+                    height: 150px;
+                    overflow: auto;
+
+                    font-size: 0.9em;
+                }
+
+                .actions {
+                    display: flex;
+                }
+
+                .title {
+                    font-size: 1.3em;
+                }
+
+                .header {
+                    display: grid;
+                    grid-auto-flow: column;
+                    grid-template-columns: auto max-content;
+                }
+
+                .thumbnail {
+                    float: right;
+                    width: 50cqh;
+                }
+
+                .status {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                button {
+                    color: white;
+                    margin: 3px;
+                    border: 1px solid currentColor;
+                    border-radius: 5px;
+                    background: var(--secondary);
+
+                    cursor: pointer;
+                }
+
+                .view-button {
+                    position: absolute;
+                    bottom: 0;
+                }
+
+                .action {
+                    font-size: 0.6em;
+                }
+
+                .splus-tier {
+                    text-decoration: underline;
+                    color: hsl(from var(--green) h 100% 50%);
+                }
+
+                .splus-tier::before {
+                    content: "S+ "
+                }
+
+                .s-tier {
+                    color: hsl(from var(--green) h 100% 50%)
+                }
+
+                .s-tier::before {
+                    content: "S ";
+                }
+
+                .a-tier {
+                    color: hsl(from var(--green) h 50% 50%);
+                }
+
+                .a-tier::before {
+                    content: "A ";
+                }
+
+                .b-tier {
+                    color: color-mix(in srgb, var(--green) 50%, var(--yellow) 50%)
+                }
+
+                .b-tier::before {
+                    content: "B ";
+                }
+
+                .c-tier {
+                    color: var(--yellow);
+                }
+
+                .c-tier::before {
+                    content: "C "
+                }
+
+                .d-tier {
+                    color: color-mix(in srgb, var(--yellow) 50%, var(--red) 50%)
+                }
+
+                .d-tier::before {
+                    content: "D "
+                }
+
+                .f-tier {
+                    color: var(--red)
+                }
+
+                .f-tier::before {
+                    content: "F "
+                }
+
+            }
+        </style>
+        <div class="root" part="root">
+            <img part="thumbnail" class="thumbnail">
+            <section class="main">
+                <h2 class="title"></h2>
+                <span class="rating"></span>
+                <span class="cost"></span>
+            </section>
+            <section class="actions">
+                <button data-action="Plan" class="action">🗓</button>
+                <button data-action="Begin" class="action">▶</button>
+                <button data-action="Finish" class="action">🏁</button>
+                <button data-ation="Drop" class="action">⏹</button>
+                <button data-ation="Pause" class="action">⏸</button>
+                <button data-ation="Resume" class="action">⏩</button>
+            </section>
+            <button class="view-button">View</button>
+        </div>
+    </template>
+    <template id="entry-display">
+        <h2 class="title"></h2>
+    </template>
+    <script src="/new-ui/components.js"></script>
+    <script src="/js/globals.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/new-ui/index.js"></script>
+</body>
+
+</html>

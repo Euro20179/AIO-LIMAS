@@ -226,19 +226,6 @@ function setMetadataEntry(id, newMeta) {
     }
 }
 
-/**@param {string} jsonl*/
-function mkStrItemId(jsonl) {
-    return jsonl
-        .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
-        .replace(/"Parent":\s*(\d+),/, "\"Parent\": \"$1\",")
-        .replace(/"CopyOf":\s*(\d+),/, "\"CopyOf\": \"$1\"")
-}
-
-/**@param {string} jsonl*/
-function parseJsonL(jsonl) {
-    const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
-    return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
-}
 
 async function loadFormats() {
     const res = await fetch(`${apiPath}/type/format`)
@@ -664,54 +651,6 @@ async function loadEntryTree() {
     }
 }
 
-/**
- * @param {DBQuery} search
- */
-async function loadQueriedEntries(search) {
-    let queryString = "?_"
-    if (search.title) {
-        queryString += `&title=${encodeURI(search.title)}`
-    }
-    if (search.format && search.format?.[0] != -1) {
-        queryString += `&formats=${encodeURI(search.format.join(","))}`
-    }
-    if (search.type) {
-        queryString += `&types=${encodeURI(search.type)}`
-    }
-    if (search.tags) {
-        queryString += `&tags=${encodeURI(search.tags)}`
-    }
-    if (search.status) {
-        queryString += `&user-status=${encodeURI(search.status)}`
-    }
-    if (search.userRatingGt) {
-        queryString += `&user-rating-gt=${encodeURI(String(search.userRatingGt))}`
-    }
-    if (search.userRatingLt) {
-        queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
-    }
-    if (search.isAnime) {
-        queryString += `&is-anime=${search.isAnime}`
-    }
-    if (search.purchasePriceGt) {
-        queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`
-    }
-    if (search.purchasePriceLt) {
-        queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
-    }
-    const res = await fetch(`${apiPath}/query${queryString}`)
-        .catch(console.error)
-    if (!res) {
-        alert("Could not query entries")
-        return
-    }
-    let itemsText = await res.text()
-    let jsonL = itemsText.split("\n")
-        .filter(Boolean)
-        .map(mkStrItemId)
-        .map(parseJsonL)
-    return jsonL
-}
 
 /**
  * @param {EntryTree | undefined} items

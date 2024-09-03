@@ -1,0 +1,135 @@
+:root {
+    --pink: #f7c8e0;
+    --green: #dfffd8;
+    --light-blue: #b4e4ff;
+    --blue: #95bdff;
+    --yellow: #e5c890;
+
+    --main: #121626;
+    --secondary: hsl(from var(--main) h s calc(l * 1.8));
+
+    --border-roundness: 5px;
+}
+
+@layer general {
+    body {
+        background: var(--main);
+        color: white;
+    }
+
+    input,
+    label {
+        user-select: none;
+    }
+
+    button,
+    input,
+    select {
+        background: hsl(from var(--main) h s calc(l * 1.8))
+    }
+
+
+    /*make sure there is actually something in the anchor*/
+    a {
+        color: unset;
+        text-decoration: unset;
+        cursor: default;
+    }
+
+    a[href*=":"] {
+        color: var(--light-blue);
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    [data-close-popover] {
+        position: absolute;
+        top: 2%;
+        right: 2%;
+
+        background: var(--secondary);
+        border: 1px solid white;
+        border-radius: var(--border-roundness);
+        padding: 5px;
+    }
+
+    input {
+        color: white;
+        background: var(--secondary);
+        border-style: dotted;
+        padding: 5px;
+        border-radius: var(--border-roundness);
+    }
+
+    form button {
+        padding: 5px;
+    }
+
+    select {
+        background: var(--secondary);
+        border-style: solid;
+        color: white;
+        border-radius: var(--border-roundness);
+    }
+
+    button,
+    input[type="submit"] {
+        border: 1px solid currentColor;
+        border-radius: var(--border-roundness);
+        background: var(--secondary);
+        color: white;
+        cursor: pointer;
+    }
+
+    dialog {
+        color: white;
+
+        background: var(--main);
+        border: 1px solid white;
+
+        width: 80vmin;
+        aspect-ratio: 1 / 1;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+        container: dialog size;
+    }
+
+    dialog::backdrop {
+        background-color: #00000077;
+        backdrop-filter: blur(1px);
+        user-select: none;
+        pointer-events: none;
+    }
+}
+
+@layer utility {
+    .bad {
+        --accent-color: var(--pink);
+        color: var(--accent-color);
+    }
+
+    .good {
+        --accent-color: var(--green);
+        color: var(--accent-color);
+    }
+
+    .flex-column {
+        display: inline-flex;
+        flex-direction: column;
+    }
+
+    .flex-row {
+        display: inline-flex;
+    }
+
+    .flex-wrap {
+        flex-wrap: wrap
+    }
+
+    .block {
+        display: block;
+    }
+}
