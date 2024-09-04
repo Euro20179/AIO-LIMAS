@@ -1,0 +1,123 @@
+
+:host(sidebar-entry) {
+    @media (width < 800px) {
+        width: 300px;
+    }
+
+    .root {
+        border-top: 1px solid white;
+        border-bottom: 1px solid white;
+
+        @media (width < 800px) {
+            border-left: 1px solid white;
+            border-right: 1px solid white;
+        }
+
+        box-sizing: inline;
+
+        container-type: size;
+        height: 150px;
+        overflow: auto;
+
+        font-size: 0.9em;
+    }
+
+    .title {
+        font-size: 1.3em;
+    }
+
+    .header {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: auto max-content;
+    }
+
+    .thumbnail {
+        float: right;
+        width: 50cqh;
+
+        cursor: pointer;
+
+        border: 2px solid var(--blue);
+    }
+
+    .status {
+        margin: 0;
+        padding: 0;
+    }
+
+    button {
+        color: white;
+        margin: 3px;
+        border: 1px solid currentColor;
+        border-radius: 5px;
+        background: var(--secondary);
+
+        cursor: pointer;
+    }
+
+    .view-button {
+        position: absolute;
+        bottom: 0;
+    }
+
+
+    .splus-tier {
+        text-decoration: underline;
+        color: hsl(from var(--green) h 100% 50%);
+    }
+
+    .splus-tier::before {
+        content: "S+ "
+    }
+
+    .s-tier {
+        color: hsl(from var(--green) h 100% 50%)
+    }
+
+    .s-tier::before {
+        content: "S ";
+    }
+
+    .a-tier {
+        color: hsl(from var(--green) h 50% 50%);
+    }
+
+    .a-tier::before {
+        content: "A ";
+    }
+
+    .b-tier {
+        color: color-mix(in srgb, var(--green) 50%, var(--yellow) 50%)
+    }
+
+    .b-tier::before {
+        content: "B ";
+    }
+
+    .c-tier {
+        color: var(--yellow);
+    }
+
+    .c-tier::before {
+        content: "C "
+    }
+
+    .d-tier {
+        color: color-mix(in srgb, var(--yellow) 50%, var(--red) 50%)
+    }
+
+    .d-tier::before {
+        content: "D "
+    }
+
+    .f-tier {
+        color: var(--red)
+    }
+
+    .f-tier::before {
+        content: "F "
+    }
+
+}
+

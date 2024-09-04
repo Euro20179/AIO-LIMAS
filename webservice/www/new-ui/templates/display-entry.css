@@ -1,0 +1,76 @@
+@import "/css/general.css";
+
+* {
+    box-sizing: border-box;
+}
+
+:host(display-entry) {
+    flex-grow: 1;
+    min-width: 50%;
+    min-height: 50%;
+
+    overflow: auto auto;
+}
+
+.root {
+    width: 100%;
+    height: 100%;
+    container: entry / inline-size;
+    border: 1px solid white;
+
+    overflow: auto auto;
+}
+
+.thumbnail {
+    float: right;
+    width: 25cqw;
+
+    box-shadow: 2px 2px 10px var(--blue);
+    border: 1px solid var(--blue);
+}
+
+.user-actions {
+    border-collapse: collapse;
+    width: 40cqw;
+
+    text-align: center;
+
+    td,
+    th {
+        border: 1px solid white;
+    }
+}
+
+.header-subtitle {
+    display: grid;
+    gap: 3ch;
+
+    font-size: 0.85em;
+
+    text-align: center;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5cqi;
+
+    justify-content: center;
+
+    margin: 3cap 0;
+}
+
+.action {
+    font-size: max(20px, 1.5cqi);
+    aspect-ratio: 1 / 1;
+}
+
+section:has(.close) {
+    float: left;
+    gap: 20px;
+    width: 4cqw;
+    aspect-ratio: 1 / 2;
+}
+
+.delete {
+    color: var(--red);
+}
