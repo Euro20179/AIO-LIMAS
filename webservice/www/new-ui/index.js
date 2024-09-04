@@ -5,6 +5,7 @@
  * @property {MetadataEntry[]} metadataEntries
  * @property {InfoEntry[]} entries
  * @property {UserEvent[]} events
+ * @property {InfoEntry[]} results
  */
 /**@type {GlobalsNewUi}*/
 
@@ -12,6 +13,7 @@ let globalsNewUi = {
     userEntries: [],
     metadataEntries: [],
     entries: [],
+    results: [],
     events: [],
 }
 
@@ -52,6 +54,19 @@ function changeResultStats(key, value) {
 function changeResultStatsWithItem(item, multiplier = 1) {
     changeResultStats("totalCost", item.PurchasePrice * multiplier)
     changeResultStats("count", 1 * multiplier)
+}
+
+/**
+ * @param {InfoEntry[]} items
+ * @param {number} [multiplier=1]
+ */
+function changeResultStatsWithItemList(items, multiplier = 1) {
+    for(let item of items) {
+        if(item.PurchasePrice) {
+            console.log(item.En_Title, item.PurchasePrice)
+        }
+        changeResultStatsWithItem(item, multiplier)
+    }
 }
 
 /**
@@ -221,19 +236,19 @@ function hookActionButtons(shadowRoot, item) {
  */
 function refreshDisplayItem(item) {
     let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
-    changeResultStatsWithItem(item, -1)
     if (el) {
-        renderDisplayItem(item, el)
+        renderDisplayItem(item, el, false)
     } else {
-        renderDisplayItem(item)
+        renderDisplayItem(item, null, false)
     }
 }
 
 /**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
+ * @param {boolean} [updateStats=true]
  */
-function renderDisplayItem(item, el = null) {
+function renderDisplayItem(item, el = null, updateStats = true) {
     let doEventHooking = false
     if (!el) {
         el = document.createElement("display-entry")
@@ -247,7 +262,9 @@ function renderDisplayItem(item, el = null) {
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
 
-    changeResultStatsWithItem(item)
+    if(updateStats) {
+        changeResultStatsWithItem(item)
+    }
 
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
@@ -387,12 +404,9 @@ function renderSidebarItem(item) {
 document.getElementById("view-all")?.addEventListener("change", e => {
     clearMainDisplay()
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
-        for (let elem of document.querySelectorAll("sidebar-entry")) {
-            let id = elem.getAttribute("data-entry-id")
-            if (!id) continue
-            let item = findInfoEntryById(BigInt(id))
-            if (!item) continue
-            renderDisplayItem(item)
+        changeResultStatsWithItemList(globalsNewUi.results)
+        for (let item of globalsNewUi.results) {
+            renderDisplayItem(item, null, false)
         }
     }
 })
@@ -451,6 +465,8 @@ async function treeFilterForm() {
         title: search
     })
 
+    globalsNewUi.results = entries
+
     if (sortBy != "") {
         if (sortBy == "rating") {
             entries = entries.sort((a, b) => {
@@ -465,6 +481,7 @@ async function treeFilterForm() {
             })
         }
     }
+
     clearMainDisplay()
     if (entries.length === 0) {
         alert("No results")
@@ -494,6 +511,7 @@ async function main() {
         return bUInfo?.UserRating - aUInfo?.UserRating
     })
 
+    globalsNewUi.results = tree
     renderSidebar(tree)
 }
 main()
