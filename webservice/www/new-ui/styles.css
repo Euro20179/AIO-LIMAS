@@ -7,6 +7,10 @@
         display: grid;
         grid-auto-flow: row;
     }
+
+    .close {
+        margin: 20px;
+    }
 }
 
 @layer components {
@@ -48,12 +52,40 @@
     #sidebar-form {
         grid-area: form;
 
-        select:not([multiple]) {
+        :not([multiple]) {
             vertical-align: top;
         }
 
         text-wrap: nowrap;
         overflow-x: auto;
+
+        [type="submit"] {
+            float: left;
+        }
+
+        dialog {
+            --btn-size: max(20px, 3cqi);
+
+            top: revert;
+            transform: translateX(-50%);
+
+            select[multiple] {
+                height: 50cqb;
+            }
+
+            .grid {
+                display: grid;
+                grid-template-areas: "main close-button";
+                grid-template-columns: calc(100% - var(--btn-size)) var(--btn-size);
+            }
+
+            button.close {
+                grid-area: close-button;
+                width: var(--btn-size);
+                aspect-ratio: 1 / 1;
+                margin: 0;
+            }
+        }
     }
 
     #viewing-area {
@@ -61,20 +93,34 @@
 
         .result-stats {
             border: 2px solid;
+            display: flex;
+            gap: 10px;
+
+            *:not(:last-child) {
+                padding-right: 10px;
+                border-right: 1px dashed white;
+            }
         }
+
         .result-stats::before {
-            content: "Stats: "
+            content: "Stats: ";
+            border-right: 1px dashed white;
+            padding-right: 10px;
         }
 
         [data-name="totalCost"]::before {
             content: "$"
         }
 
+        [data-name="count"]::before {
+            content: "Count: "
+        }
+
         &:has(display-entry) h3 {
             display: none;
         }
 
-        &:not(:has(display-entry)){
+        &:not(:has(display-entry)) {
             align-items: center;
         }
 

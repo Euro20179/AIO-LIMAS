@@ -22,7 +22,8 @@ const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-sta
 
 function resetResultStats() {
     return {
-        totalCost: 0
+        totalCost: 0,
+        count: 0
     }
 }
 
@@ -30,6 +31,7 @@ function resetResultStats() {
  * @typedef ResultStats
  * @type {object}
  * @property {number} totalCost
+ * @property {number} count
  */
 let resultStats = resetResultStats()
 
@@ -70,9 +72,9 @@ async function loadEntryTree() {
  * @returns {any}
  */
 function findEntryById(id, entryTable) {
-    for(let item in entryTable) {
+    for (let item in entryTable) {
         let entry = entryTable[item]
-        if(entry.ItemId === id) {
+        if (entry.ItemId === id) {
             return entry
         }
     }
@@ -106,9 +108,9 @@ function findUserEntryById(id) {
  */
 function findUserEventsById(id) {
     let events = []
-    for(let item in globalsNewUi.events) {
+    for (let item in globalsNewUi.events) {
         let entry = globalsNewUi.events[item]
-        if(entry.ItemId === id) {
+        if (entry.ItemId === id) {
             events.push(entry)
         }
     }
@@ -170,28 +172,29 @@ function renderDisplayItem(item) {
     let events = findUserEventsById(item.ItemId)
 
     changeResultStats("totalCost", item.PurchasePrice)
+    changeResultStats("count", 1)
 
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
 
-    if(user?.UserRating) {
+    if (user?.UserRating) {
         el.setAttribute("data-user-rating", String(user.UserRating))
     }
 
-    if(user?.Notes) {
+    if (user?.Notes) {
         el.setAttribute('data-user-notes', user.Notes)
     }
 
-    if(item.PurchasePrice) {
+    if (item.PurchasePrice) {
         el.setAttribute("data-cost", String(item.PurchasePrice))
     }
-    
-    if(meta?.Description) {
+
+    if (meta?.Description) {
         el.setAttribute("data-description", meta.Description)
     }
 
-    if(events.length) {
+    if (events.length) {
         let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}`).join(",")
         el.setAttribute("data-user-events", eventsStr)
     }
@@ -199,7 +202,7 @@ function renderDisplayItem(item) {
     let closeButton = el.shadowRoot?.querySelector(".close")
     closeButton?.addEventListener("click", e => {
         removeDisplayItem(item)
-    }) 
+    })
     displayItems.append(el)
 }
 
@@ -209,7 +212,7 @@ function renderDisplayItem(item) {
  */
 function isItemDisplayed(id) {
     let elem = document.querySelector(`[data-item-id="${id}"]`)
-    if(elem) {
+    if (elem) {
         return true
     }
     return false
@@ -223,6 +226,7 @@ function removeDisplayItem(item) {
     if (el) {
         el.remove()
         changeResultStats("totalCost", -item.PurchasePrice)
+        changeResultStats("count", -1)
     }
 }
 
@@ -256,19 +260,20 @@ function renderSidebarItem(item) {
     sidebarItems.append(elem)
 
     let img = elem.shadowRoot?.querySelector("img")
-
-    img.addEventListener("click", e => {
-        if(!isItemDisplayed(item.ItemId)) {
-            renderDisplayItem(item)
-        } else {
-            removeDisplayItem(item)
-        }
-    })
+    if (img) {
+        img.addEventListener("click", e => {
+            if (!isItemDisplayed(item.ItemId)) {
+                renderDisplayItem(item)
+            } else {
+                removeDisplayItem(item)
+            }
+        })
+    }
 }
 
 document.getElementById("view-all")?.addEventListener("change", e => {
     clearMainDisplay()
-    if (e.target?.checked) {
+    if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
         for (let elem of document.querySelectorAll("sidebar-entry")) {
             let id = elem.getAttribute("data-entry-id")
             if (!id) continue
@@ -319,6 +324,8 @@ async function treeFilterForm() {
     let type = /**@type {string[]}*/(data.getAll("type"))
     let format = /**@type {string[]}*/(data.getAll('format')).filter(n => n !== "")
 
+    let search = /**@type {string}*/(data.get("search-query"))
+
     let formatN = undefined
     if (format.length) {
         formatN = format.map(Number)
@@ -327,7 +334,8 @@ async function treeFilterForm() {
     let entries = await loadQueriedEntries({
         status: status.join(","),
         type: type.join(","),
-        format: formatN
+        format: formatN,
+        title: search
     })
 
     if (sortBy != "") {
@@ -335,9 +343,19 @@ async function treeFilterForm() {
             entries = entries.sort((a, b) => {
                 let aUInfo = findUserEntryById(a.ItemId)
                 let bUInfo = findUserEntryById(b.ItemId)
+                if(!aUInfo || !bUInfo) return 0
                 return bUInfo?.UserRating - aUInfo?.UserRating
             })
+        } else if (sortBy == "cost") {
+            entries = entries.sort((a, b) => {
+                return b.PurchasePrice - a.PurchasePrice
+            })
         }
+    }
+    clearMainDisplay()
+    if (entries.length === 0) {
+        alert("No results")
+        return
     }
     renderSidebar(entries)
 }
@@ -354,10 +372,11 @@ async function main() {
     tree = sortTree(tree, ([_, aInfo], [__, bInfo]) => {
         let aUInfo = findUserEntryById(aInfo.EntryInfo.ItemId)
         let bUInfo = findUserEntryById(bInfo.EntryInfo.ItemId)
+        if(!aUInfo || !bUInfo) return 0
         return bUInfo?.UserRating - aUInfo?.UserRating
     })
     let entries = []
-    for(let item in tree) {
+    for (let item in tree) {
         entries.push(tree[item].EntryInfo)
     }
     renderSidebar(entries)
