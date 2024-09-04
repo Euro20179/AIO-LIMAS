@@ -36,7 +36,7 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 
 	if !entry.CanBegin() {
 		w.WriteHeader(405)
-		fmt.Fprintf(w, "This media is already being viewed, cannot start again\n")
+		fmt.Fprintf(w, "This media is already being viewed, or has not been planned, could not start\n")
 		return
 	}
 

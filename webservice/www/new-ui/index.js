@@ -257,6 +257,28 @@ function renderSidebarItem(item) {
         elem.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
     }
 
+    for (let btn of elem.shadowRoot?.querySelectorAll("[data-action]") || []) {
+        let action = btn.getAttribute("data-action")
+        btn.addEventListener("click", e => {
+            if (!confirm(`Are you sure you want to ${action} this entry`)) {
+                return
+            }
+
+            let queryParams = ""
+            if (action === "Finish") {
+                let rating = prompt("Rating")
+                while (isNaN(Number(rating))) {
+                    rating = prompt("Not a number\nrating")
+                }
+                queryParams += `&rating=${rating}`
+            }
+
+            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media?id=${item.ItemId}${queryParams}`)
+                .then(res => res.text())
+                .then(alert)
+        })
+    }
+
     sidebarItems.append(elem)
 
     let img = elem.shadowRoot?.querySelector("img")
@@ -343,7 +365,7 @@ async function treeFilterForm() {
             entries = entries.sort((a, b) => {
                 let aUInfo = findUserEntryById(a.ItemId)
                 let bUInfo = findUserEntryById(b.ItemId)
-                if(!aUInfo || !bUInfo) return 0
+                if (!aUInfo || !bUInfo) return 0
                 return bUInfo?.UserRating - aUInfo?.UserRating
             })
         } else if (sortBy == "cost") {
@@ -361,7 +383,6 @@ async function treeFilterForm() {
 }
 
 
-
 async function main() {
     let tree = await loadEntryTree()
     globalsNewUi.tree = tree
@@ -372,7 +393,7 @@ async function main() {
     tree = sortTree(tree, ([_, aInfo], [__, bInfo]) => {
         let aUInfo = findUserEntryById(aInfo.EntryInfo.ItemId)
         let bUInfo = findUserEntryById(bInfo.EntryInfo.ItemId)
-        if(!aUInfo || !bUInfo) return 0
+        if (!aUInfo || !bUInfo) return 0
         return bUInfo?.UserRating - aUInfo?.UserRating
     })
     let entries = []
