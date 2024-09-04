@@ -72,6 +72,20 @@ function findUserEntryById(id) {
     return null
 }
 
+/**
+ * @param {bigint} id
+ * @returns {InfoEntry?}
+ */
+function findInfoEntryById(id) {
+    for (let item in globalsNewUi.tree) {
+        let entry = globalsNewUi.tree[item]
+        if (entry.EntryInfo.ItemId === id) {
+            return entry.EntryInfo
+        }
+    }
+    return null
+}
+
 /**@returns {Promise<UserEntry[]>}*/
 async function loadUserEntries() {
     userEntryCache = {}
@@ -90,6 +104,11 @@ async function loadMetadata() {
 function clearSidebar() {
     while (sidebarItems.children.length) {
         sidebarItems.firstChild?.remove()
+    }
+}
+function clearMainDisplay() {
+    while (displayItems.children.length) {
+        displayItems.firstChild?.remove()
     }
 }
 
@@ -162,6 +181,19 @@ function renderSidebarItem(item) {
     }
 }
 
+document.getElementById("view-all")?.addEventListener("change", e => {
+    clearMainDisplay()
+    if (e.target?.checked) {
+        for (let elem of document.querySelectorAll("sidebar-entry")) {
+            let id = elem.getAttribute("data-entry-id")
+            if (!id) continue
+            let item = findInfoEntryById(BigInt(id))
+            if (!item) continue
+            renderDisplayItem(item)
+        }
+    }
+})
+
 /**
 * @param {EntryTree} tree
 */
@@ -223,15 +255,9 @@ async function treeFilterForm() {
         }
     }
 
-    const resultOut = /**@type {HTMLElement}*/(document.getElementById("result-info"))
-
-    let totalCost = 0, results = 0
     for (let item of entries) {
         renderSidebarItem(item)
-        results++
-        totalCost += item.PurchasePrice
     }
-    resultOut.innerHTML = `<span>Results ${results}</span> <span>$${totalCost}</span>`
 }
 
 
