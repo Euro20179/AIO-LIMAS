@@ -83,10 +83,6 @@
             display: flex;
             flex-direction: column;
         }
-
-        &:has(display-entry) {
-            border: 1px solid purple;
-        }
     }
 
     .sidebar {
