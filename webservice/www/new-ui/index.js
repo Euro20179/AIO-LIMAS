@@ -242,7 +242,9 @@ function hookActionButtons(shadowRoot, item) {
                 .then(text => {
                     alert(text)
                     refreshInfo()
-                        .then(() => refreshDisplayItem(item))
+                        .then(() => {
+                            refreshDisplayItem(item)
+                        })
                 })
         })
     }
@@ -258,6 +260,18 @@ function refreshDisplayItem(item) {
         renderDisplayItem(item, el, false)
     } else {
         renderDisplayItem(item, null, false)
+    }
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function refreshSidebarItem(item) {
+    let el = /**@type {HTMLElement}*/(document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`))
+    if(el) {
+        renderSidebarItem(item, el)
+    } else {
+        renderSidebarItem(item)
     }
 }
 
@@ -349,13 +363,16 @@ function renderDisplayItem(item, el = null, updateStats = true) {
             }
 
             fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).then(res => {
-                if(res.status !== 200) {
+                if (res.status !== 200) {
                     console.error(res)
                     alert("Failed to get metadata")
                     return
                 }
                 refreshInfo()
-                    .then(() => refreshDisplayItem(item))
+                    .then(() => {
+                        refreshDisplayItem(item)
+                        refreshSidebarItem(item)
+                    })
             })
         })
     }
@@ -396,9 +413,14 @@ function removeSidebarItem(item) {
 
 /**
  * @param {InfoEntry} item
+ * @param {HTMLElement?} [elem=null] 
  */
-function renderSidebarItem(item) {
-    let elem = document.createElement("sidebar-entry")
+function renderSidebarItem(item, elem = null) {
+    let doEventHooking = false
+    if (!elem) {
+        doEventHooking = true
+        elem = document.createElement("sidebar-entry")
+    }
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
 
@@ -424,15 +446,17 @@ function renderSidebarItem(item) {
 
     sidebarItems.append(elem)
 
-    let img = elem.shadowRoot?.querySelector("img")
-    if (img) {
-        img.addEventListener("click", e => {
-            if (!isItemDisplayed(item.ItemId)) {
-                renderDisplayItem(item)
-            } else {
-                removeDisplayItem(item)
-            }
-        })
+    if (doEventHooking) {
+        let img = elem.shadowRoot?.querySelector("img")
+        if (img) {
+            img.addEventListener("click", e => {
+                if (!isItemDisplayed(item.ItemId)) {
+                    renderDisplayItem(item)
+                } else {
+                    removeDisplayItem(item)
+                }
+            })
+        }
     }
 }
 

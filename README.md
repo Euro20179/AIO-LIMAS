@@ -129,7 +129,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] edit item
   - [x] delete item
   - [x] start/stop, etc
-  - [ ] fetch metadata
+  - [x] fetch metadata
   - [ ] display metadata
   - [ ] identify item
   - [x] display user info
