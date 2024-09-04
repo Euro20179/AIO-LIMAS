@@ -12,6 +12,10 @@
 }
 
 @layer general {
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
     body {
         background: var(--main);
         color: white;
@@ -127,9 +131,11 @@
 
     .flex {
         display: flex;
+
         &.column {
             flex-direction: column;
         }
+
         &.row {
             flex-direction: row;
         }
@@ -155,6 +161,7 @@
         &.right {
             float: right;
         }
+
         &.left {
             float: left;
         }
