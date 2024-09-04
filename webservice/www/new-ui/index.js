@@ -293,6 +293,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
+    if(!user) return
 
     if (updateStats) {
         changeResultStatsWithItem(item)
@@ -302,11 +303,11 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
 
-    if (user?.UserRating) {
+    if (user.ViewCount > 0) {
         el.setAttribute("data-user-rating", String(user.UserRating))
     }
 
-    if (user?.Notes) {
+    if (user.Notes) {
         el.setAttribute('data-user-notes', user.Notes)
     }
 
@@ -375,6 +376,14 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                     })
             })
         })
+
+        let saveBtn = root.querySelector(".save")
+        saveBtn?.addEventListener("click", e => {
+            if(!confirm("Are you sure you want to save changes?")) {
+                return
+            }
+            //TODO: IMPLEMENT SAVING (start with notes)
+        })
     }
 }
 
@@ -423,6 +432,7 @@ function renderSidebarItem(item, elem = null) {
     }
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
+    if(!user) return
 
     elem.setAttribute("data-entry-id", String(item.ItemId))
 
@@ -435,7 +445,7 @@ function renderSidebarItem(item, elem = null) {
         elem.setAttribute("data-user-status", user.Status)
     }
 
-    if (user?.UserRating) {
+    if (user.ViewCount > 0) {
         elem.setAttribute("data-user-rating", String(user.UserRating))
     }
 

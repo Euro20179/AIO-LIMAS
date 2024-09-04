@@ -33,8 +33,10 @@ function applyUserRating(rating, root) {
         root.classList.add("c-tier")
     } else if (rating > 65) {
         root.classList.add("d-tier")
-    } else {
+    } else if(rating > 0) {
         root.classList.add('f-tier')
+    } else {
+        root.classList.add("z-tier")
     }
 }
 

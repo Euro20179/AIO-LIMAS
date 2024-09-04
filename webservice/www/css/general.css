@@ -26,7 +26,12 @@
         user-select: none;
     }
 
+    textarea {
+        border-style: solid;
+    }
+
     button,
+    textarea,
     input,
     select {
         background: hsl(from var(--main) h s calc(l * 1.8))

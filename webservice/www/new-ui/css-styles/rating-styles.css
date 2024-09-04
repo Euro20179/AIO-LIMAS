@@ -54,3 +54,10 @@
 .f-tier::before {
     content: "F "
 }
+
+.z-tier {
+    color: purple;
+}
+.z-tier::before {
+    content: "Z "
+}
