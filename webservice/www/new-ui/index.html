@@ -55,8 +55,6 @@
                 </select>
                 <input type="submit" value="sort'n'search">
             </form>
-            <section id="result-info">
-            </section>
             <nav class="sidebar overflow">
                 <label><input type="checkbox" name="view-all" id="view-all">View all</label>
                 <div class="sidebar--items">
@@ -94,6 +92,8 @@
                 height: 100%;
                 container: entry / inline-size;
                 border: 1px solid white;
+
+                overflow: auto auto;
             }
 
             .thumbnail {

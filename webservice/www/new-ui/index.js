@@ -20,14 +20,18 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
+function resetResultStats() {
+    return {
+        totalCost: 0
+    }
+}
+
 /**
  * @typedef ResultStats
  * @type {object}
  * @property {number} totalCost
  */
-let resultStats = {
-    totalCost: 0
-}
+let resultStats = resetResultStats()
 
 /**
  * @param {keyof ResultStats} key
@@ -145,10 +149,12 @@ function clearSidebar() {
         sidebarItems.firstChild?.remove()
     }
 }
+
 function clearMainDisplay() {
     while (displayItems.children.length) {
         displayItems.firstChild?.remove()
     }
+    resultStats = resetResultStats()
 }
 
 /**

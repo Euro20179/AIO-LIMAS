@@ -30,8 +30,9 @@
             grid-template-areas:
                 "form main main"
                 "sidebar main main"
-                "results main main";
+                "sidebar main main";
             grid-template-columns: 1fr 2.2fr;
+            grid-template-rows: min-content 1fr 1fr;
         }
 
         @media (width < 800px) {
