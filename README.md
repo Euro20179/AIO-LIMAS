@@ -79,8 +79,8 @@ Physical content will need to be entered in manually, however metadata should be
 
   - [ ] reencoding?
 
+<del>
 - [ ] ui
-
   - [ ] sorting
     - [ ] by price
     - [ ] by rating
@@ -108,13 +108,38 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] total items
   - [x] thumbnails
   - [ ] if an item is marked as a copy, display the copy user viewing entry
+</del>
 
 - [ ] new ui
-
-  - have a sidebar that contains all items
-  - the user clicks on one
-  - searching will filter the items down on the side
-  - Should have all the same features as the old ui
+  - [ ] sorting
+    - [ ] by price
+    - [x] by rating
+    - [ ] alpha
+  - [ ] search
+    - [ ] by price
+    - [ ] by collection
+    - [ ] by rating
+    - [x] by type
+      - [x] multiple
+    - [x] by format
+      - [x] multiple
+    - [ ] by title
+  - [ ] add item
+  - [ ] edit item
+  - [ ] delete item
+  - [ ] start/stop, etc
+  - [ ] fetch metadata
+  - [ ] display metadata
+  - [x] display user info
+  - [x] display general info
+  - [x] display cost
+  - [ ] ability to view pie chart of which tags cost the most money
+  - [ ] display total stats
+    - [ ] total stats
+    - [x] total cost of inspected items
+    - [x] total items
+  - [x] thumbnails
+  - [ ] if an item is marked as a copy, display the copy user viewing entry
 
 - [ ] terminal ui
   - simply a list of all items

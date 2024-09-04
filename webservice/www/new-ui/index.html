@@ -10,10 +10,9 @@
 
 <body>
     <div id="main" class="flex column">
-        <h1>Welcome to the AIO LIMAS</h1>
         <section id="main-ui" class="overflow">
             <form action="javascript:treeFilterForm()" id="sidebar-form">
-                <select name="sort-by">
+                <select name="sort-by" title="sort">
                     <option value="">None</option>
                     <option value="rating">Rating</option>
                 </select>
@@ -64,7 +63,10 @@
                 </div>
             </nav>
             <section id="viewing-area" class="flex column overflow">
-                <h3 class="center">Inspecting</h3>
+                <h3 class="center">Inspection Area</h3>
+                <section class="result-stats">
+                    <span data-name="totalCost"></span>
+                </section>
                 <div id="entry-output" class="overflow">
                 </div>
             </section>
@@ -74,28 +76,74 @@
     <template id="display-entry">
         <style>
             @import "/css/general.css";
+
             * {
                 box-sizing: border-box;
             }
+
             :host(display-entry) {
                 flex-grow: 1;
                 min-width: 50%;
                 min-height: 50%;
+
+                overflow: auto auto;
             }
+
             .root {
                 width: 100%;
                 height: 100%;
                 container: entry / inline-size;
                 border: 1px solid white;
             }
+
             .thumbnail {
                 float: right;
-                width: 25%;
+                width: 25cqw;
+
+                box-shadow: 2px 2px 10px var(--blue);
+                border: 1px solid var(--blue);
+            }
+
+            .user-actions {
+                border-collapse: collapse;
+                width: 40cqw;
+
+                text-align: center;
+
+                td,
+                th {
+                    border: 1px solid white;
+                }
+            }
+
+            .header-subtitle {
+                display: grid;
+                gap: 3ch;
+
+                font-size: 0.85em;
+
+                text-align: center;
+            }
+
+            .close {
+                margin: 20px;
             }
         </style>
         <div class="root">
+            <button class="close">X</button>
             <img src="" alt="" class="thumbnail">
             <h3 class="title center"></h3>
+            <section class="header-subtitle">
+                <span class="rating"></span>
+                <span class="cost"></span>
+            </section>
+            <table class="user-actions margin-center">
+            </table>
+            <h4 class="center">Description</h4>
+            <p class="description"></p>
+            <hr>
+            <h4 class="center">Notes</h4>
+            <p class="notes"></p>
         </div>
     </template>
     <template id="sidebar-entry">
@@ -125,6 +173,9 @@
 
                 .actions {
                     display: flex;
+
+                    position: absolute;
+                    bottom: 0;
                 }
 
                 .title {
@@ -140,6 +191,10 @@
                 .thumbnail {
                     float: right;
                     width: 50cqh;
+
+                    cursor: pointer;
+
+                    border: 2px solid var(--blue);
                 }
 
                 .status {
@@ -163,7 +218,8 @@
                 }
 
                 .action {
-                    font-size: 0.6em;
+                    font-size: 2cqi;
+                    aspect-ratio: 1 / 1;
                 }
 
                 .splus-tier {
@@ -240,7 +296,6 @@
                 <button data-ation="Pause" class="action">⏸</button>
                 <button data-ation="Resume" class="action">⏩</button>
             </section>
-            <label><input type="checkbox" name="view">View</label>
         </div>
     </template>
     <script src="/new-ui/components.js"></script>

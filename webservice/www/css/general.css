@@ -113,6 +113,9 @@
     .center {
         text-align: center;
     }
+    .margin-center {
+        margin: 0 auto;
+    }
 
     .bad {
         --accent-color: var(--pink);

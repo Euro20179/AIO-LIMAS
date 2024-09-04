@@ -57,11 +57,32 @@
 
     #viewing-area {
         height: 100%;
+
+        .result-stats {
+            border: 2px solid;
+        }
+        .result-stats::before {
+            content: "Stats: "
+        }
+
+        [data-name="totalCost"]::before {
+            content: "$"
+        }
+
+        &:has(display-entry) h3 {
+            display: none;
+        }
+
+        &:not(:has(display-entry)){
+            align-items: center;
+        }
+
         @media (width < 800px) {
             grid-column: 1 / -1;
             overflow: auto auto;
         }
-        @media (width >= 800px) {
+
+        @media (width >=800px) {
             grid-column: 2 / -1;
             grid-row: 1 / -1;
         }
@@ -75,14 +96,20 @@
 
         grid-area: main;
 
-        @media (width >= 800px) {
-            display: flex;
+        display: flex;
+
+        @media (width >=800px) {
             flex-wrap: wrap;
         }
-        @media (width < 800px) {
-            display: flex;
+
+        @media(aspect-ratio > 1) {
+            flex-direction: row;
+        }
+
+        @media(aspect-ratio <=1) {
             flex-direction: column;
         }
+
     }
 
     .sidebar {
@@ -99,7 +126,7 @@
         width: clamp(200px, 35vw, 35vw);
         flex-direction: column;
 
-        min-height: 10vh;
+        min-height: 10dvh;
         max-height: 83%;
 
         width: 100%;
