@@ -144,6 +144,16 @@
         }
     }
 
+    .grid {
+        display: grid;
+        &.row {
+            grid-auto-flow: row;
+        }
+        &.column {
+            grid-auto-flow: column;
+        }
+    }
+
     .flex-row {
         display: inline-flex;
     }

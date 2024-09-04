@@ -46,6 +46,15 @@ function changeResultStats(key, value) {
 }
 
 /**
+ * @param {InfoEntry} item
+ * @param {number} [multiplier=1]
+ */
+function changeResultStatsWithItem(item, multiplier = 1) {
+    changeResultStats("totalCost", item.PurchasePrice * multiplier)
+    changeResultStats("count", 1 * multiplier)
+}
+
+/**
     * @returns {Promise<EntryTree>}
 */
 async function loadEntryTree() {
@@ -199,8 +208,7 @@ function hookActionButtons(shadowRoot, item) {
                 .then(res => res.text())
                 .then(text => {
                     alert(text)
-                    loadUserEntries()
-                        .then(loadUserEvents)
+                    refreshInfo()
                         .then(() => refreshDisplayItem(item))
                 })
         })
@@ -213,6 +221,7 @@ function hookActionButtons(shadowRoot, item) {
  */
 function refreshDisplayItem(item) {
     let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
+    changeResultStatsWithItem(item, -1)
     if (el) {
         renderDisplayItem(item, el)
     } else {
@@ -238,8 +247,7 @@ function renderDisplayItem(item, el = null) {
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
 
-    changeResultStats("totalCost", item.PurchasePrice)
-    changeResultStats("count", 1)
+    changeResultStatsWithItem(item)
 
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
@@ -278,6 +286,26 @@ function renderDisplayItem(item, el = null) {
         closeButton?.addEventListener("click", e => {
             removeDisplayItem(item)
         })
+
+        let deleteBtn = root.querySelector(".delete")
+        deleteBtn?.addEventListener("click", e => {
+            if (!confirm("Are you sure you want to delete this item")) {
+                return
+            }
+            fetch(`${apiPath}/delete-entry?id=${item.ItemId}`).then(res => {
+                if (res?.status != 200) {
+                    console.error(res)
+                    alert("Failed to delete item")
+                    return
+                }
+                alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
+                refreshInfo()
+                    .then(() => {
+                        removeDisplayItem(item)
+                        removeSidebarItem(item)
+                    })
+            })
+        })
     }
 }
 
@@ -300,8 +328,17 @@ function removeDisplayItem(item) {
     let el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
     if (el) {
         el.remove()
-        changeResultStats("totalCost", -item.PurchasePrice)
-        changeResultStats("count", -1)
+        changeResultStatsWithItem(item, -1)
+    }
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function removeSidebarItem(item) {
+    let el = /**@type {HTMLElement}*/(sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`))
+    if(el){
+        el.remove()
     }
 }
 
@@ -436,18 +473,20 @@ async function treeFilterForm() {
     renderSidebar(entries)
 }
 
+async function refreshInfo() {
+    return Promise.all([
+        loadInfoEntries(),
+        loadMetadata(),
+        loadUserEntries(),
+        loadUserEvents()
+    ])
+}
+
 
 async function main() {
-    let tree = await loadInfoEntries()
-    if (!tree) return
+    await refreshInfo()
 
-    globalsNewUi.entries = tree
-
-    await loadMetadata()
-    await loadUserEntries()
-    await loadUserEvents()
-
-    tree = tree.sort((a, b) => {
+    let tree = globalsNewUi.entries.sort((a, b) => {
 
         let aUInfo = findUserEntryById(a.ItemId)
         let bUInfo = findUserEntryById(b.ItemId)

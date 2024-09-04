@@ -127,7 +127,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] by title
   - [ ] add item
   - [ ] edit item
-  - [ ] delete item
+  - [x] delete item
   - [x] start/stop, etc
   - [ ] fetch metadata
   - [ ] display metadata

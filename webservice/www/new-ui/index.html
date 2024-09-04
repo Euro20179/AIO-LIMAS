@@ -149,9 +149,23 @@
                 font-size: max(20px, 1.5cqi);
                 aspect-ratio: 1 / 1;
             }
+
+            section:has(.close) {
+                float: left;
+                gap: 20px;
+                width: 4cqw;
+                aspect-ratio: 1 / 2;
+            }
+            .delete {
+                color: var(--red);
+            }
+
         </style>
         <div class="root">
-            <button class="close">X</button>
+            <section class="grid row">
+                <button class="close" title="remove item from inspection area">X</button>
+                <button class="delete" title="permanently delete item">🗑</button>
+            </section>
             <img src="" alt="" class="thumbnail">
             <h3 class="title center"></h3>
             <section class="header-subtitle">

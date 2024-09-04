@@ -854,6 +854,15 @@ function toggleHiddenTypes() {
     query(childrenChecked, copiesChecked)
 }
 
+async function refreshInfo() {
+        let loaders = [
+            loadUserEntries(),
+            loadUserEvents(),
+            loadMetadata(),
+            loadInfoEntries(),
+        ]
+}
+
 function main() {
     loadFormats().then(() => {
         let loaders = [
