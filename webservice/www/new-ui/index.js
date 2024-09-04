@@ -22,6 +22,24 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
+async function newEntry() {
+    const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
+    const data = new FormData(form)
+    /**@type {Record<string, FormDataEntryValue>}*/
+    let validEntries = {}
+    for (let [name, value] of data.entries()) {
+        if (value == "") continue
+        validEntries[name] = value
+    }
+    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURI(String(v[1]))}`).join("&")
+
+    let res = await fetch(`${apiPath}/add-entry${queryString}`)
+    let text = await res.text()
+    alert(text)
+
+    await refreshInfo()
+}
+
 function resetResultStats() {
     return {
         totalCost: 0,
@@ -61,8 +79,8 @@ function changeResultStatsWithItem(item, multiplier = 1) {
  * @param {number} [multiplier=1]
  */
 function changeResultStatsWithItemList(items, multiplier = 1) {
-    for(let item of items) {
-        if(item.PurchasePrice) {
+    for (let item of items) {
+        if (item.PurchasePrice) {
             console.log(item.En_Title, item.PurchasePrice)
         }
         changeResultStatsWithItem(item, multiplier)
@@ -262,7 +280,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
 
-    if(updateStats) {
+    if (updateStats) {
         changeResultStatsWithItem(item)
     }
 
@@ -354,7 +372,7 @@ function removeDisplayItem(item) {
  */
 function removeSidebarItem(item) {
     let el = /**@type {HTMLElement}*/(sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`))
-    if(el){
+    if (el) {
         el.remove()
     }
 }

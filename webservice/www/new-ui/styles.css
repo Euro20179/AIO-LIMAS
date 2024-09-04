@@ -21,6 +21,11 @@
         margin: 0;
     }
 
+    dialog {
+        top: revert;
+        transform: translateX(-50%);
+    }
+
     #main {
         height: 100%;
     }
@@ -49,6 +54,17 @@
         }
     }
 
+    dialog:has(#new-item-form) h3 {
+        text-align: center;
+    }
+
+    #new-item-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1cap;
+        margin: 0 20%;
+    }
+
     #sidebar-form {
         grid-area: form;
 
@@ -63,9 +79,6 @@
 
         dialog {
             --btn-size: max(20px, 3cqi);
-
-            top: revert;
-            transform: translateX(-50%);
 
             select[multiple] {
                 height: 50cqb;

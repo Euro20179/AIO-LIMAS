@@ -64,13 +64,13 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] ~nfo files~
     - impossibly non-standard format
   - [x] allow user to change metadata
-  - [ ] allow user to identify a media, and pull related metadata (like how jellyfin does)
+  - [x] allow user to identify a media, and pull related metadata (like how jellyfin does)
   - [x] scanning folders
   - [ ] search
     - [ ] search based on metadata entries
     - [ ] search based on user info entries
     - [x] search based on info entries
-    - [ ] search based on a combination of various entries
+    - [x] search based on a combination of various entries
     - [x] search filters
   - [x] Store purchace price
   - [ ] monitor folders, automatically add items in them
@@ -125,7 +125,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] by format
       - [x] multiple
     - [ ] by title
-  - [ ] add item
+  - [x] add item
   - [ ] edit item
   - [x] delete item
   - [x] start/stop, etc

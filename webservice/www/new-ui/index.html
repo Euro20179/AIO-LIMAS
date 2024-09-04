@@ -67,6 +67,57 @@
             </form>
             <nav class="sidebar overflow">
                 <label><input type="checkbox" name="view-all" id="view-all">View all</label>
+                <button popovertarget="new-entry">New</button>
+                <dialog id="new-entry" popover>
+                    <h3>New Entry</h3>
+                    <form id="new-item-form" action="javascript:newEntry()">
+                        <input type="text" placeholder="title" name="title" required>
+                        <input type="text" placeholder="native title" name="native-title">
+                        <input type="text" placeholder="location" name="location">
+                        <label>Price <input type="number" min="0" step="0.01" name="price"></label>
+                        <br>
+                        <section>
+                            <select name="type" title="The type of media" required>
+                                <option value="">Type</option>
+                                <option value="Show">Show</option>
+                                <option value="Movie">Movie</option>
+                                <option value="Manga">Manga</option>
+                                <option value="Book">Book</option>
+                                <option value="Game">Game</option>
+                                <option value="Song">Song</option>
+                                <option value="BoardGame">BoardGame</option>
+                                <option value="Collection">Collection</option>
+                            </select>
+                            <label for="is-anime">anime?: <input type="checkbox" id="is-anime" name="is-anime"></label>
+                        </section>
+                        <section>
+                            <select name="format" required title="Format type">
+                                <option value="0">VHS</option>
+                                <option value="1">CD</option>
+                                <option value="2">DVD</option>
+                                <option value="3">Blu Ray</option>
+                                <option value="4">4k Blu Ray</option>
+                                <option value="5">Manga</option>
+                                <option value="6">Book</option>
+                                <option value="7">Digital</option>
+                                <option value="8">Board Game</option>
+                                <option value="9">Steam</option>
+                                <option value="10">Nintendo Switch</option>
+                                <option value="11">Xbox One</option>
+                                <option value="12">Xbox 360</option>
+                                <option value="13">Other</option>
+                            </select>
+                            <label for="is-digital">digital? <input type="checkbox" id='is-digital'
+                                    name="is-digital"></label>
+                        </section>
+                        <input type="text" placeholder="tags (',' separated)" name="tags" value="">
+                        <section>
+                            <input type="text" placeholder="parent id" name="parentId">
+                            <input type="text" placeholder="copy of id" name="copyOf">
+                        </section>
+                        <input type="submit" value="CREATE!">
+                    </form>
+                </dialog>
                 <div class="sidebar--items">
                 </div>
             </nav>
@@ -142,7 +193,7 @@
 
                 justify-content: center;
 
-                margin-bottom: 3cap;
+                margin: 3cap 0;
             }
 
             .action {
@@ -156,10 +207,10 @@
                 width: 4cqw;
                 aspect-ratio: 1 / 2;
             }
+
             .delete {
                 color: var(--red);
             }
-
         </style>
         <div class="root">
             <section class="grid row">
