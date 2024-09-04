@@ -28,9 +28,9 @@
 
         @media (width >=800px) {
             grid-template-areas:
-                "form form results"
+                "form main main"
                 "sidebar main main"
-                "sidebar main main";
+                "results main main";
             grid-template-columns: 1fr 2.2fr;
         }
 
@@ -63,7 +63,7 @@
         }
         @media (width >= 800px) {
             grid-column: 2 / -1;
-            grid-row: 2 / -1;
+            grid-row: 1 / -1;
         }
     }
 
