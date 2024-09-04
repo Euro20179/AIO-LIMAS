@@ -80,7 +80,7 @@ customElements.define("display-entry", class extends HTMLElement {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
             applyUserRating(rating, ratingE)
-            ratingE.append(ratingA)
+            ratingE.innerHTML = ratingA
         }
 
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))
@@ -125,7 +125,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
     connectedCallback() {
         let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
         let titleText = this.getAttribute("data-title")
-        title.append(String(titleText))
+        title.innerText = String(titleText)
 
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         imgEl.src = String(this.getAttribute("data-thumbnail-src"))
@@ -142,7 +142,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
             applyUserRating(rating, ratingE)
-            ratingE.append(ratingA)
+            ratingE.innerHTML = ratingA
         }
     }
 })

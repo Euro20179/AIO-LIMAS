@@ -73,8 +73,14 @@ hr {
 section:has(.close) {
     float: left;
     gap: 20px;
-    width: 4cqw;
-    aspect-ratio: 1 / 2;
+    aspect-ratio: 2;
+
+    margin: 0.4em 0 0 0.4em;
+
+    button {
+        aspect-ratio: 1 / 1;
+        height: 3cap;
+    }
 }
 
 .delete {

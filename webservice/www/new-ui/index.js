@@ -341,6 +341,23 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                     })
             })
         })
+
+        let refreshBtn = root.querySelector(".refresh")
+        refreshBtn?.addEventListener("click", e => {
+            if (!confirm("Are you sure you want to overwrite the metadata with a refresh")) {
+                return
+            }
+
+            fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).then(res => {
+                if(res.status !== 200) {
+                    console.error(res)
+                    alert("Failed to get metadata")
+                    return
+                }
+                refreshInfo()
+                    .then(() => refreshDisplayItem(item))
+            })
+        })
     }
 }
 
