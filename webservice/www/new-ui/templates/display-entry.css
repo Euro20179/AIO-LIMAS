@@ -1,7 +1,13 @@
 @import "/css/general.css";
+@import "/new-ui/css-styles/rating-styles.css";
 
 * {
     box-sizing: border-box;
+}
+
+hr {
+    border-style: dashed;
+    border-color: white;
 }
 
 :host(display-entry) {

@@ -1,3 +1,4 @@
+@import "/new-ui/css-styles/rating-styles.css";
 
 :host(sidebar-entry) {
     @media (width < 800px) {
@@ -60,64 +61,5 @@
         position: absolute;
         bottom: 0;
     }
-
-
-    .splus-tier {
-        text-decoration: underline;
-        color: hsl(from var(--green) h 100% 50%);
-    }
-
-    .splus-tier::before {
-        content: "S+ "
-    }
-
-    .s-tier {
-        color: hsl(from var(--green) h 100% 50%)
-    }
-
-    .s-tier::before {
-        content: "S ";
-    }
-
-    .a-tier {
-        color: hsl(from var(--green) h 50% 50%);
-    }
-
-    .a-tier::before {
-        content: "A ";
-    }
-
-    .b-tier {
-        color: color-mix(in srgb, var(--green) 50%, var(--yellow) 50%)
-    }
-
-    .b-tier::before {
-        content: "B ";
-    }
-
-    .c-tier {
-        color: var(--yellow);
-    }
-
-    .c-tier::before {
-        content: "C "
-    }
-
-    .d-tier {
-        color: color-mix(in srgb, var(--yellow) 50%, var(--red) 50%)
-    }
-
-    .d-tier::before {
-        content: "D "
-    }
-
-    .f-tier {
-        color: var(--red)
-    }
-
-    .f-tier::before {
-        content: "F "
-    }
-
 }
 

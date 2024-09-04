@@ -4,12 +4,12 @@
  * @param {string} text
  * @param {"append" | "innerhtml"} [fillmode="append"] 
  */
-function fillElement(root, selector, text, fillmode="append") {
+function fillElement(root, selector, text, fillmode = "append") {
     let elem = /**@type {HTMLElement}*/(root.querySelector(selector))
-    if(!elem) {
+    if (!elem) {
         return
     }
-    if(fillmode === "append") {
+    if (fillmode === "append") {
         elem.innerText = text
     } else {
         elem.innerHTML = text
@@ -39,18 +39,40 @@ customElements.define("display-entry", class extends HTMLElement {
         }
 
         let costA = this.getAttribute("data-cost")
-        if(costA) {
+        if (costA) {
             fillElement(this.root, ".cost", `$${costA}`)
         }
 
         let descA = this.getAttribute("data-description")
-        if(descA) {
+        if (descA) {
             fillElement(this.root, ".description", descA, "innerhtml")
         }
 
         let notes = this.getAttribute("data-user-notes")
-        if(notes) {
+        if (notes) {
             fillElement(this.root, ".notes", notes, "innerhtml")
+        }
+
+        let ratingA = this.getAttribute("data-user-rating")
+        if (ratingA) {
+            let rating = Number(ratingA)
+            let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
+            if (rating > 100) {
+                ratingE.classList.add("splus-tier")
+            } else if (rating > 96) {
+                ratingE.classList.add("s-tier")
+            } else if (rating > 87) {
+                ratingE.classList.add("a-tier")
+            } else if (rating > 78) {
+                ratingE.classList.add("b-tier")
+            } else if (rating > 70) {
+                ratingE.classList.add("c-tier")
+            } else if (rating > 65) {
+                ratingE.classList.add("d-tier")
+            } else {
+                ratingE.classList.add('f-tier')
+            }
+            ratingE.append(ratingA)
         }
 
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))
@@ -70,9 +92,9 @@ customElements.define("display-entry", class extends HTMLElement {
                 let date = new Date(Number(ts))
                 let time = "unknown"
                 let dd = "unknown"
-                if(ts !== "0") {
-                    time = date.toLocaleTimeString("en", {timeZone: "America/Los_Angeles"})
-                    dd = date.toLocaleDateString("en", {timeZone: "America/Los_Angeles"})
+                if (ts !== "0") {
+                    time = date.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
+                    dd = date.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
                 }
                 html += `<tr><td>${name}</td><td title="${time}">${dd}</td></tr>`
             }
