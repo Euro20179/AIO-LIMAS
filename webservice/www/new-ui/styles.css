@@ -40,7 +40,7 @@
         }
 
         @media (width < 800px) {
-            grid-template-rows: 1fr 1fr 3fr;
+            grid-template-rows: max-content 1fr 3fr;
             grid-template-columns: 1fr 1fr 0.5fr;
             grid-template-areas:
                 "form form results"
@@ -58,10 +58,8 @@
 
         text-wrap: nowrap;
         overflow-x: auto;
-
-        [type="submit"] {
-            float: left;
-        }
+        display: flex;
+        flex-wrap: wrap;
 
         dialog {
             --btn-size: max(20px, 3cqi);
