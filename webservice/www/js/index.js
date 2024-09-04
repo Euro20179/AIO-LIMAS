@@ -622,6 +622,7 @@ async function loadInfoEntries() {
         .catch(console.error)
     if (!res) {
         alert("Could not load entries")
+        return
     } else {
         let itemsText = await res.text()
         /**@type {string[]}*/

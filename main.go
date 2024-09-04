@@ -52,17 +52,17 @@ func main() {
 	modEntry := api.ApiEndPoint{
 		Handler: api.ModEntry,
 		QueryParams: api.QueryParams{
-			"id":           api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-			"en-title":     api.MkQueryInfo(api.P_NotEmpty, false),
-			"native-title": api.MkQueryInfo(api.P_True, false),
-			"format":       api.MkQueryInfo(api.P_EntryFormat, false),
-			"parent-id":    api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"id":            api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"en-title":      api.MkQueryInfo(api.P_NotEmpty, false),
+			"native-title":  api.MkQueryInfo(api.P_True, false),
+			"format":        api.MkQueryInfo(api.P_EntryFormat, false),
+			"parent-id":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"become-orphan": api.MkQueryInfo(api.P_Bool, false),
-			"copy-id":      api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"price":        api.MkQueryInfo(api.P_Float64, false),
-			"location":     api.MkQueryInfo(api.P_True, false),
-			"tags":         api.MkQueryInfo(api.P_True, false),
-			"is-anime":     api.MkQueryInfo(api.P_Bool, false),
+			"copy-id":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"price":         api.MkQueryInfo(api.P_Float64, false),
+			"location":      api.MkQueryInfo(api.P_True, false),
+			"tags":          api.MkQueryInfo(api.P_True, false),
+			"is-anime":      api.MkQueryInfo(api.P_Bool, false),
 		},
 	}
 
@@ -73,40 +73,48 @@ func main() {
 		},
 	}
 
-	searchApi := api.ApiEndPoint {
+	searchApi := api.ApiEndPoint{
 		Handler: api.QueryEntries,
-		QueryParams: api.QueryParams {
-			"title": api.MkQueryInfo(api.P_True, false),
-			"native-title": api.MkQueryInfo(api.P_True, false),
-			"location": api.MkQueryInfo(api.P_True, false),
-			"purchase-gt": api.MkQueryInfo(api.P_Float64, false),
-			"purchase-lt": api.MkQueryInfo(api.P_Float64, false),
-			"formats": api.MkQueryInfo(api.P_True, false),
-			"tags": api.MkQueryInfo(api.P_True, false),
-			"types": api.MkQueryInfo(api.P_True, false),
-			"parents": api.MkQueryInfo(api.P_True, false),
-			"is-anime": api.MkQueryInfo(api.P_Bool, false),
-			"copy-ids": api.MkQueryInfo(api.P_True, false),
-			"user-status": api.MkQueryInfo(api.P_UserStatus, false),
+		QueryParams: api.QueryParams{
+			"title":          api.MkQueryInfo(api.P_True, false),
+			"native-title":   api.MkQueryInfo(api.P_True, false),
+			"location":       api.MkQueryInfo(api.P_True, false),
+			"purchase-gt":    api.MkQueryInfo(api.P_Float64, false),
+			"purchase-lt":    api.MkQueryInfo(api.P_Float64, false),
+			"formats":        api.MkQueryInfo(api.P_True, false),
+			"tags":           api.MkQueryInfo(api.P_True, false),
+			"types":          api.MkQueryInfo(api.P_True, false),
+			"parents":        api.MkQueryInfo(api.P_True, false),
+			"is-anime":       api.MkQueryInfo(api.P_Bool, false),
+			"copy-ids":       api.MkQueryInfo(api.P_True, false),
+			"user-status":    api.MkQueryInfo(api.P_UserStatus, false),
 			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
 			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
 		},
 	}
 
+	getAllEntry := api.ApiEndPoint{
+		Handler: api.GetAllForEntry,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
 	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
-		"add-entry":        addEntry.Listener,
-		"mod-entry":        modEntry.Listener,
-		"query":            searchApi.Listener,
-		"list-entries":     listApi.Listener,
-		"scan-folder":      api.ScanFolder,
-		"stream-entry":     api.Stream,
-		"delete-entry":     api.DeleteEntry,
-		"list-collections": api.ListCollections,
-		"list-copies":      api.GetCopies,
-		"list-descendants": api.GetDescendants,
-		"total-cost":       api.TotalCostOf,
-		"list-tree":        api.GetTree,
+		"add-entry":         addEntry.Listener,
+		"mod-entry":         modEntry.Listener,
+		"query":             searchApi.Listener,
+		"list-entries":      listApi.Listener,
+		"scan-folder":       api.ScanFolder,
+		"stream-entry":      api.Stream,
+		"delete-entry":      api.DeleteEntry,
+		"list-collections":  api.ListCollections,
+		"list-copies":       api.GetCopies,
+		"list-descendants":  api.GetDescendants,
+		"total-cost":        api.TotalCostOf,
+		"list-tree":         api.GetTree,
+		"get-all-for-entry": getAllEntry.Listener,
 	})
 
 	makeEndpoints(apiRoot+"/type", EndPointMap{
@@ -120,10 +128,10 @@ func main() {
 		},
 	}
 
-	finalizeIdentify := api.ApiEndPoint {
+	finalizeIdentify := api.ApiEndPoint{
 		Handler: api.FinalizeIdentification,
-		QueryParams: api.QueryParams {
-			"id": api.MkQueryInfo(api.P_NotEmpty, true),
+		QueryParams: api.QueryParams{
+			"id":       api.MkQueryInfo(api.P_NotEmpty, true),
 			"provider": api.MkQueryInfo(api.P_IdIdentifier, true),
 			"apply-to": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
@@ -131,11 +139,11 @@ func main() {
 
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
-		"fetch":        api.FetchMetadataForEntry,
-		"retrieve":     api.RetrieveMetadataForEntry,
-		"set":          api.SetMetadataForEntry,
-		"list-entries": api.ListMetadata,
-		"identify":     identify.Listener,
+		"fetch":             api.FetchMetadataForEntry,
+		"retrieve":          api.RetrieveMetadataForEntry,
+		"set":               api.SetMetadataForEntry,
+		"list-entries":      api.ListMetadata,
+		"identify":          identify.Listener,
 		"finalize-identify": finalizeIdentify.Listener,
 	})
 
@@ -162,9 +170,9 @@ func main() {
 		},
 	}
 
-	listEvents := api.ApiEndPoint {
-		Handler: api.ListEvents,
-		QueryParams: api.QueryParams {},
+	listEvents := api.ApiEndPoint{
+		Handler:     api.ListEvents,
+		QueryParams: api.QueryParams{},
 	}
 
 	// for stuff relating to user viewing info
@@ -182,7 +190,7 @@ func main() {
 		"list-entries": api.UserEntries,
 		"copy":         reassociate.Listener,
 		"get-events":   getEvents.Listener,
-		"list-events": listEvents.Listener,
+		"list-events":  listEvents.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)

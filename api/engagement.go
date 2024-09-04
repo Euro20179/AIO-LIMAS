@@ -277,32 +277,17 @@ func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedPar
 
 func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	id := parsedParams["id"].(db.InfoEntry)
-	events, err := db.Db.Query(`
-		SELECT * from userEventInfo
-		WHERE
-			itemId == ?
-		ORDER BY
-			CASE timestamp
-				WHEN 0 THEN
-					userEventInfo.after
-				ELSE timestamp
-			END`, id.ItemId)
+
+	events, err := db.GetEvents(id.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not fetch events\n%s", err.Error())
+		wError(w, 400, "Could not get events\n%s", err.Error())
 		return
 	}
-	defer events.Close()
 
 	w.WriteHeader(200)
-	for events.Next() {
-		var event db.UserViewingEvent
-		err := event.ReadEntry(events)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
 
-		j, err := event.ToJson()
+	for _, e := range events {
+		j, err := e.ToJson()
 		if err != nil {
 			println(err.Error())
 			continue

@@ -3,7 +3,7 @@
  * @type {object}
  * @property {UserEntry[]} userEntries
  * @property {MetadataEntry[]} metadataEntries
- * @property {EntryTree} tree
+ * @property {InfoEntry[]} entries
  * @property {UserEvent[]} events
  */
 /**@type {GlobalsNewUi}*/
@@ -11,7 +11,7 @@
 let globalsNewUi = {
     userEntries: [],
     metadataEntries: [],
-    tree: {},
+    entries: [],
     events: [],
 }
 
@@ -63,6 +63,22 @@ async function loadEntryTree() {
         const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
         let json = JSON.parse(itemsText, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
         return json
+    }
+}
+
+async function loadInfoEntries() {
+    const res = await fetch(`${apiPath}/list-entries`)
+        .catch(console.error)
+    if (!res) {
+        alert("Could not load entries")
+    } else {
+        let itemsText = await res.text()
+        /**@type {string[]}*/
+        let jsonL = itemsText.split("\n").filter(Boolean)
+        globalsNewUi.entries = jsonL
+            .map(mkStrItemId)
+            .map(parseJsonL)
+        return globalsNewUi.entries
     }
 }
 
@@ -122,10 +138,9 @@ function findUserEventsById(id) {
  * @returns {InfoEntry?}
  */
 function findInfoEntryById(id) {
-    for (let item in globalsNewUi.tree) {
-        let entry = globalsNewUi.tree[item]
-        if (entry.EntryInfo.ItemId === id) {
-            return entry.EntryInfo
+    for (let item of globalsNewUi.entries) {
+        if (item.ItemId === id) {
+            return item
         }
     }
     return null
@@ -160,10 +175,62 @@ function clearMainDisplay() {
 }
 
 /**
+ * @param {ShadowRoot} shadowRoot
+ * @param {InfoEntry} item 
+ */
+function hookActionButtons(shadowRoot, item) {
+    for (let btn of shadowRoot.querySelectorAll("[data-action]") || []) {
+        let action = btn.getAttribute("data-action")
+        btn.addEventListener("click", e => {
+            if (!confirm(`Are you sure you want to ${action} this entry`)) {
+                return
+            }
+
+            let queryParams = ""
+            if (action === "Finish") {
+                let rating = prompt("Rating")
+                while (isNaN(Number(rating))) {
+                    rating = prompt("Not a number\nrating")
+                }
+                queryParams += `&rating=${rating}`
+            }
+
+            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media?id=${item.ItemId}${queryParams}`)
+                .then(res => res.text())
+                .then(text => {
+                    alert(text)
+                    loadUserEntries()
+                        .then(loadUserEvents)
+                        .then(() => refreshDisplayItem(item))
+                })
+        })
+    }
+
+}
+
+/**
  * @param {InfoEntry} item
  */
-function renderDisplayItem(item) {
-    let el = document.createElement("display-entry")
+function refreshDisplayItem(item) {
+    let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
+    if (el) {
+        renderDisplayItem(item, el)
+    } else {
+        renderDisplayItem(item)
+    }
+}
+
+/**
+ * @param {InfoEntry} item
+ * @param {HTMLElement?} [el=null] 
+ */
+function renderDisplayItem(item, el = null) {
+    let doEventHooking = false
+    if (!el) {
+        el = document.createElement("display-entry")
+        doEventHooking = true
+    }
+
     el.setAttribute("data-title", item.En_Title)
     el.setAttribute("data-item-id", String(item.ItemId))
 
@@ -199,11 +266,19 @@ function renderDisplayItem(item) {
         el.setAttribute("data-user-events", eventsStr)
     }
 
-    let closeButton = el.shadowRoot?.querySelector(".close")
-    closeButton?.addEventListener("click", e => {
-        removeDisplayItem(item)
-    })
     displayItems.append(el)
+
+    let root = el.shadowRoot
+    if (!root) return
+
+    if (doEventHooking) {
+        hookActionButtons(root, item)
+
+        let closeButton = root.querySelector(".close")
+        closeButton?.addEventListener("click", e => {
+            removeDisplayItem(item)
+        })
+    }
 }
 
 /**
@@ -257,27 +332,6 @@ function renderSidebarItem(item) {
         elem.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
     }
 
-    for (let btn of elem.shadowRoot?.querySelectorAll("[data-action]") || []) {
-        let action = btn.getAttribute("data-action")
-        btn.addEventListener("click", e => {
-            if (!confirm(`Are you sure you want to ${action} this entry`)) {
-                return
-            }
-
-            let queryParams = ""
-            if (action === "Finish") {
-                let rating = prompt("Rating")
-                while (isNaN(Number(rating))) {
-                    rating = prompt("Not a number\nrating")
-                }
-                queryParams += `&rating=${rating}`
-            }
-
-            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media?id=${item.ItemId}${queryParams}`)
-                .then(res => res.text())
-                .then(alert)
-        })
-    }
 
     sidebarItems.append(elem)
 
@@ -384,22 +438,23 @@ async function treeFilterForm() {
 
 
 async function main() {
-    let tree = await loadEntryTree()
-    globalsNewUi.tree = tree
+    let tree = await loadInfoEntries()
+    if (!tree) return
+
+    globalsNewUi.entries = tree
+
     await loadMetadata()
     await loadUserEntries()
     await loadUserEvents()
 
-    tree = sortTree(tree, ([_, aInfo], [__, bInfo]) => {
-        let aUInfo = findUserEntryById(aInfo.EntryInfo.ItemId)
-        let bUInfo = findUserEntryById(bInfo.EntryInfo.ItemId)
+    tree = tree.sort((a, b) => {
+
+        let aUInfo = findUserEntryById(a.ItemId)
+        let bUInfo = findUserEntryById(b.ItemId)
         if (!aUInfo || !bUInfo) return 0
         return bUInfo?.UserRating - aUInfo?.UserRating
     })
-    let entries = []
-    for (let item in tree) {
-        entries.push(tree[item].EntryInfo)
-    }
-    renderSidebar(entries)
+
+    renderSidebar(tree)
 }
 main()

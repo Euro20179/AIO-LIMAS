@@ -578,6 +578,36 @@ func GetChildren(id int64) ([]InfoEntry, error) {
 	return mkRows(rows)
 }
 
+func GetEvents(id int64) ([]UserViewingEvent, error) {
+	var out []UserViewingEvent
+	events, err := Db.Query(`
+		SELECT * from userEventInfo
+		WHERE
+			itemId == ?
+		ORDER BY
+			CASE timestamp
+				WHEN 0 THEN
+					userEventInfo.after
+				ELSE timestamp
+			END`, id)
+	if err != nil{
+		return out, err
+	}
+
+	defer events.Close()
+
+	for events.Next() {
+		var event UserViewingEvent
+		err := event.ReadEntry(events)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		out = append(out, event)
+	}
+	return out, nil
+}
+
 func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, error) {
 	var out []InfoEntry
 	if recurse > maxRecurse {

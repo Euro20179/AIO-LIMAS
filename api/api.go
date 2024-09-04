@@ -30,6 +30,67 @@ func ListCollections(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	info := parsedParams["id"].(db.InfoEntry)
+
+	events, err := db.GetEvents(info.ItemId)
+	if err != nil {
+		wError(w, 500, "Could not get events\n%s", err.Error())
+		return
+	}
+
+	user, err := db.GetUserViewEntryById(info.ItemId)
+	if err != nil {
+		wError(w, 500, "Could not get user info\n%s", err.Error())
+		return
+	}
+
+	meta, err := db.GetMetadataEntryById(info.ItemId)
+	if err != nil {
+		wError(w, 500, "Could not get metadata info\n%s", err.Error())
+		return
+	}
+
+	uj, err := user.ToJson()
+	if err != nil {
+		wError(w, 500, "Could not marshal user info\n%s", err.Error())
+		return
+	}
+
+	mj, err := meta.ToJson()
+	if err != nil {
+		wError(w, 500, "Could not marshal metadata info\n%s", err.Error())
+		return
+	}
+
+	ij, err := info.ToJson()
+	if err != nil {
+		wError(w, 500, "Could not marshal main entry info\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+
+	w.Write(uj)
+	w.Write([]byte("\n"))
+
+	w.Write(mj)
+	w.Write([]byte("\n"))
+
+	w.Write(ij)
+	w.Write([]byte("\n"))
+
+	for _, event := range events {
+		ej, err := event.ToJson()
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		w.Write(ej)
+		w.Write([]byte("\n"))
+	}
+}
+
 func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	info := parsedParams["id"].(db.InfoEntry)
 

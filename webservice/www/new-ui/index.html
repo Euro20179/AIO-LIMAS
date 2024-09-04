@@ -135,6 +135,20 @@
 
                 text-align: center;
             }
+
+            .actions {
+                display: flex;
+                gap: 0.5cqi;
+
+                justify-content: center;
+
+                margin-bottom: 3cap;
+            }
+
+            .action {
+                font-size: max(20px, 1.5cqi);
+                aspect-ratio: 1 / 1;
+            }
         </style>
         <div class="root">
             <button class="close">X</button>
@@ -143,6 +157,14 @@
             <section class="header-subtitle">
                 <span class="rating"></span>
                 <span class="cost"></span>
+            </section>
+            <section class="actions">
+                <button data-action="Plan" class="action">🗓</button>
+                <button data-action="Begin" class="action">▶</button>
+                <button data-action="Finish" class="action">🏁</button>
+                <button data-action="Drop" class="action">⏹</button>
+                <button data-action="Pause" class="action">⏸</button>
+                <button data-action="Resume" class="action">⏩</button>
             </section>
             <table class="user-actions margin-center">
             </table>
@@ -176,13 +198,6 @@
                     overflow: auto;
 
                     font-size: 0.9em;
-                }
-
-                .actions {
-                    display: flex;
-
-                    position: absolute;
-                    bottom: 0;
                 }
 
                 .title {
@@ -224,10 +239,6 @@
                     bottom: 0;
                 }
 
-                .action {
-                    font-size: 3cqi;
-                    aspect-ratio: 1 / 1;
-                }
 
                 .splus-tier {
                     text-decoration: underline;
@@ -294,14 +305,6 @@
                 <h2 class="title"></h2>
                 <span class="rating"></span>
                 <span class="cost"></span>
-            </section>
-            <section class="actions">
-                <button data-action="Plan" class="action">🗓</button>
-                <button data-action="Begin" class="action">▶</button>
-                <button data-action="Finish" class="action">🏁</button>
-                <button data-action="Drop" class="action">⏹</button>
-                <button data-action="Pause" class="action">⏸</button>
-                <button data-action="Resume" class="action">⏩</button>
             </section>
         </div>
     </template>

@@ -10,7 +10,7 @@ function fillElement(root, selector, text, fillmode="append") {
         return
     }
     if(fillmode === "append") {
-        elem.append(text)
+        elem.innerText = text
     } else {
         elem.innerHTML = text
     }
@@ -29,7 +29,7 @@ customElements.define("display-entry", class extends HTMLElement {
     connectedCallback() {
         let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
         let titleText = this.getAttribute("data-title")
-        title.append(String(titleText))
+        title.innerText = String(titleText)
 
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         let thA = this.getAttribute("data-thumbnail-src")
