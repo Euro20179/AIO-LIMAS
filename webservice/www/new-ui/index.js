@@ -471,6 +471,11 @@ async function treeFilterForm() {
 
     let search = /**@type {string}*/(data.get("search-query"))
 
+    let tags = /**@type {string[]}*/(data.getAll("tags"))
+
+    let pgt = /**@type {string}*/(data.get("price-gt"))
+    let plt = /**@type {string}*/(data.get("price-lt"))
+
     let formatN = undefined
     if (format.length) {
         formatN = format.map(Number)
@@ -480,7 +485,10 @@ async function treeFilterForm() {
         status: status.join(","),
         type: type.join(","),
         format: formatN,
-        title: search
+        title: search,
+        tags,
+        purchasePriceGt: Number(pgt),
+        purchasePriceLt: Number(plt),
     })
 
     globalsNewUi.results = entries

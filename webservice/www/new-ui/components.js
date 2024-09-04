@@ -16,6 +16,28 @@ function fillElement(root, selector, text, fillmode = "append") {
     }
 }
 
+/**
+ * @param {number} rating
+ * @param {HTMLElement} root
+ */
+function applyUserRating(rating, root) {
+    if (rating > 100) {
+        root.classList.add("splus-tier")
+    } else if (rating > 96) {
+        root.classList.add("s-tier")
+    } else if (rating > 87) {
+        root.classList.add("a-tier")
+    } else if (rating > 78) {
+        root.classList.add("b-tier")
+    } else if (rating > 70) {
+        root.classList.add("c-tier")
+    } else if (rating > 65) {
+        root.classList.add("d-tier")
+    } else {
+        root.classList.add('f-tier')
+    }
+}
+
 customElements.define("display-entry", class extends HTMLElement {
     constructor() {
         super()
@@ -57,21 +79,7 @@ customElements.define("display-entry", class extends HTMLElement {
         if (ratingA) {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
-            if (rating > 100) {
-                ratingE.classList.add("splus-tier")
-            } else if (rating > 96) {
-                ratingE.classList.add("s-tier")
-            } else if (rating > 87) {
-                ratingE.classList.add("a-tier")
-            } else if (rating > 78) {
-                ratingE.classList.add("b-tier")
-            } else if (rating > 70) {
-                ratingE.classList.add("c-tier")
-            } else if (rating > 65) {
-                ratingE.classList.add("d-tier")
-            } else {
-                ratingE.classList.add('f-tier')
-            }
+            applyUserRating(rating, ratingE)
             ratingE.append(ratingA)
         }
 
@@ -133,21 +141,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         if (ratingA) {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
-            if (rating > 100) {
-                ratingE.classList.add("splus-tier")
-            } else if (rating > 96) {
-                ratingE.classList.add("s-tier")
-            } else if (rating > 87) {
-                ratingE.classList.add("a-tier")
-            } else if (rating > 78) {
-                ratingE.classList.add("b-tier")
-            } else if (rating > 70) {
-                ratingE.classList.add("c-tier")
-            } else if (rating > 65) {
-                ratingE.classList.add("d-tier")
-            } else {
-                ratingE.classList.add('f-tier')
-            }
+            applyUserRating(rating, ratingE)
             ratingE.append(ratingA)
         }
     }
