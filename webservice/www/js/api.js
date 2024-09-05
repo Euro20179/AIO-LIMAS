@@ -120,6 +120,10 @@ async function getCopies(id) {
 }
 
 /**
+ * @type {Record<string, number>}
+ */
+let costCache = {}
+/**
  * @param {InfoEntry} entry
  * @returns {Promise<number>} cost
  */
@@ -196,7 +200,7 @@ async function loadQueriedEntries(search) {
         .catch(console.error)
     if (!res) {
         alert("Could not query entries")
-        return
+        return []
     }
     let itemsText = await res.text()
     let jsonL = itemsText.split("\n")

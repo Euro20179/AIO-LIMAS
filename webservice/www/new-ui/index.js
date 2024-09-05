@@ -80,31 +80,7 @@ function changeResultStatsWithItem(item, multiplier = 1) {
  */
 function changeResultStatsWithItemList(items, multiplier = 1) {
     for (let item of items) {
-        if (item.PurchasePrice) {
-            console.log(item.En_Title, item.PurchasePrice)
-        }
         changeResultStatsWithItem(item, multiplier)
-    }
-}
-
-/**
-    * @returns {Promise<EntryTree>}
-*/
-async function loadEntryTree() {
-    const res = await fetch(`${apiPath}/list-tree`)
-        .catch(console.error)
-    if (!res) {
-        alert("Could not load entries")
-        return {}
-    } else {
-        let itemsText = await res.text()
-        itemsText = itemsText
-            .replaceAll(/"ItemId":\s*(\d+),/g, "\"ItemId\": \"$1\",")
-            .replaceAll(/"Parent":\s*(\d+),/g, "\"Parent\": \"$1\",")
-            .replaceAll(/"CopyOf":\s*(\d+),/g, "\"CopyOf\": \"$1\"")
-        const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
-        let json = JSON.parse(itemsText, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
-        return json
     }
 }
 
@@ -290,16 +266,19 @@ function saveItemChanges(root, item) {
     if (notes === "<br>") {
         notes = ""
     }
-    queryParams += `&notes=${encodeURI(notes)}`
+    queryParams += `&notes=${encodeURIComponent(notes)}`
 
     let rating = /**@type {HTMLElement}*/(root.querySelector(".rating")).innerHTML
     let newRating = parseFloat(rating)
     if (!isNaN(newRating)) {
         queryParams += `&rating=${newRating}`
     }
-    console.log(newRating, queryParams)
-
-    fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}${queryParams}`).catch(console.error)
+    fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}${queryParams}`)
+        .then(res => {
+            return res.text()
+        })
+        .then(console.log)
+        .catch(console.error)
 }
 
 /**
@@ -425,6 +404,10 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         saveBtn?.addEventListener("click", _ => {
             saveItemChanges(/**@type {ShadowRoot}*/(root), item)
         })
+
+        for(let el of root.querySelectorAll("[contenteditable]")) {
+            /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
+        }
     }
 }
 
@@ -535,27 +518,6 @@ function renderSidebar(entries) {
     }
 }
 
-/**
- * @param {EntryTree} tree
- * @param {(a: [string, TreeNode], b: [string, TreeNode]) => number} sorter
- */
-function sortTree(tree, sorter) {
-    return Object.fromEntries(
-        Object.entries(tree)
-            .sort(sorter)
-    )
-}
-
-/**
- * @param {EntryTree} tree
- * @param {(item: [string, TreeNode]) => boolean} filter
- */
-function filterTree(tree, filter) {
-    return Object.fromEntries(
-        Object.entries(tree).filter(filter)
-    )
-}
-
 async function treeFilterForm() {
     clearSidebar()
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
@@ -582,7 +544,7 @@ async function treeFilterForm() {
         type: type.join(","),
         format: formatN,
         title: search,
-        tags,
+        tags: tags.join(","),
         purchasePriceGt: Number(pgt),
         purchasePriceLt: Number(plt),
     })
@@ -621,6 +583,45 @@ async function refreshInfo() {
     ])
 }
 
+/**@param {KeyboardEvent} e*/
+function handleRichText(e) {
+    /**@type {Record<string, () => ([string, string[]] | [string, string[]][])>}*/
+    const actions = {
+        "b": () => ["bold", []],
+        "i": () => ["italic", []],
+        "h": () => ["hiliteColor", [prompt("highlight color (yellow)") || "yellow"]],
+        "f": () => ["foreColor", [prompt("Foreground color (black)") || "black"]],
+        "t": () => ["fontName", [prompt("Font name (sans-serif)") || "sans-serif"]],
+        "T": () => ["fontSize", [prompt("Font size (12pt)") || "12pt"]],
+        "I": () => ["insertImage", [prompt("Image url (/favicon.ico)") || "/favicon.ico"]],
+        "e": () => [
+            ["enableObjectResizing", []],
+            ["enableAbsolutePositionEditor", []],
+            ["enableInlineTableEditing", []],
+        ],
+        "s": () => ["strikeThrough", []],
+        "u": () => ['underline', []],
+        "m": () => ["insertHTML", [getSelection()?.toString() || prompt("html (html)") || "html"]],
+        "f12": () => ["removeFormat", []]
+    }
+    if(!e.ctrlKey) return
+    let key = e.key
+    if (key in actions) {
+        let res = actions[key]()
+        if(typeof res[0] === "string") {
+            let [name, args] = res
+            //@ts-ignore
+            document.execCommand(name, false, ...args)
+        } else {
+            for(let [name, args] of res) {
+                //@ts-ignore
+                document.execCommand(name, false, ...args)
+            }
+        }
+        e.preventDefault()
+    }
+
+}
 
 async function main() {
     await refreshInfo()
@@ -636,4 +637,5 @@ async function main() {
     globalsNewUi.results = tree
     renderSidebar(tree)
 }
+
 main()
