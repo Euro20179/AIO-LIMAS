@@ -73,6 +73,8 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] search based on a combination of various entries
     - [x] search filters
   - [x] Store purchace price
+  - [ ] store true title + native title in metadata instead of info entry
+    - the info entry title and native title can remain, but they will be user determined
   - [ ] monitor folders, automatically add items in them
     - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
 - [x] Ability to act as a proxy for the given {location} of an entry, and stream it
@@ -127,6 +129,10 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] by title
   - [x] add item
   - [ ] edit item
+    - [x] rating
+    - [x] notes
+    - [ ] thumbnail
+    - [ ] title
   - [x] delete item
   - [x] start/stop, etc
   - [x] fetch metadata

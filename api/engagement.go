@@ -296,3 +296,18 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 		w.Write([]byte("\n"))
 	}
 }
+
+func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	user := parsedParams["id"].(db.UserViewingEntry)
+
+	user.Notes = parsedParams.Get("notes", user.Notes).(string)
+	user.UserRating = parsedParams.Get("rating", user.UserRating).(float64)
+
+	err := db.UpdateUserViewingEntry(&user)
+	if err != nil{
+		wError(w, 500, "Could not update user entry\n%s", err.Error())
+		return
+	}
+
+	success(w)
+}

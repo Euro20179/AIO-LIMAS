@@ -175,6 +175,15 @@ func main() {
 		QueryParams: api.QueryParams{},
 	}
 
+	modUserEntry := api.ApiEndPoint{
+		Handler: api.ModUserEntry,
+		QueryParams: api.QueryParams{
+			"id":    api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"notes": api.MkQueryInfo(api.P_True, false),
+			"rating": api.MkQueryInfo(api.P_Float64, false),
+		},
+	}
+
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
@@ -191,6 +200,7 @@ func main() {
 		"copy":         reassociate.Listener,
 		"get-events":   getEvents.Listener,
 		"list-events":  listEvents.Listener,
+		"mod-entry":    modUserEntry.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)

@@ -86,3 +86,8 @@ section:has(.close) {
 .delete {
     color: var(--red);
 }
+
+.notes:empty::before {
+    content: "Edit me!";
+    opacity: 50%;
+}

@@ -268,12 +268,86 @@ function refreshDisplayItem(item) {
  */
 function refreshSidebarItem(item) {
     let el = /**@type {HTMLElement}*/(document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`))
-    if(el) {
+    if (el) {
         renderSidebarItem(item, el)
     } else {
         renderSidebarItem(item)
     }
 }
+
+/**
+ * @param {ShadowRoot} root
+ * @param {InfoEntry} item
+ */
+function saveItemChanges(root, item) {
+    if (!confirm("Are you sure you want to save changes?")) {
+        return
+    }
+
+    let queryParams = ""
+
+    let notes = /**@type {HTMLElement}*/(root?.querySelector(".notes")).innerHTML
+    if (notes === "<br>") {
+        notes = ""
+    }
+    queryParams += `&notes=${encodeURI(notes)}`
+
+    let rating = /**@type {HTMLElement}*/(root.querySelector(".rating")).innerHTML
+    let newRating = parseFloat(rating)
+    if (!isNaN(newRating)) {
+        queryParams += `&rating=${newRating}`
+    }
+    console.log(newRating, queryParams)
+
+    fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}${queryParams}`).catch(console.error)
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function deleteEntry(item) {
+    if (!confirm("Are you sure you want to delete this item")) {
+        return
+    }
+    fetch(`${apiPath}/delete-entry?id=${item.ItemId}`).then(res => {
+        if (res?.status != 200) {
+            console.error(res)
+            alert("Failed to delete item")
+            return
+        }
+        alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
+        refreshInfo()
+            .then(() => {
+                removeDisplayItem(item)
+                removeSidebarItem(item)
+            })
+    })
+}
+
+
+/**
+ * @param {ShadowRoot} root
+ * @param {InfoEntry} item
+ */
+function overwriteEntryMetadata(root, item) {
+    if (!confirm("Are you sure you want to overwrite the metadata with a refresh")) {
+        return
+    }
+
+    fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).then(res => {
+        if (res.status !== 200) {
+            console.error(res)
+            alert("Failed to get metadata")
+            return
+        }
+        refreshInfo()
+            .then(() => {
+                refreshDisplayItem(item)
+                refreshSidebarItem(item)
+            })
+    })
+}
+
 
 /**
  * @param {InfoEntry} item
@@ -293,7 +367,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
-    if(!user) return
+    if (!user) return
 
     if (updateStats) {
         changeResultStatsWithItem(item)
@@ -333,56 +407,23 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         hookActionButtons(root, item)
 
         let closeButton = root.querySelector(".close")
-        closeButton?.addEventListener("click", e => {
+        closeButton?.addEventListener("click", _ => {
             removeDisplayItem(item)
         })
 
         let deleteBtn = root.querySelector(".delete")
-        deleteBtn?.addEventListener("click", e => {
-            if (!confirm("Are you sure you want to delete this item")) {
-                return
-            }
-            fetch(`${apiPath}/delete-entry?id=${item.ItemId}`).then(res => {
-                if (res?.status != 200) {
-                    console.error(res)
-                    alert("Failed to delete item")
-                    return
-                }
-                alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
-                refreshInfo()
-                    .then(() => {
-                        removeDisplayItem(item)
-                        removeSidebarItem(item)
-                    })
-            })
+        deleteBtn?.addEventListener("click", _ => {
+            deleteEntry(item)
         })
 
         let refreshBtn = root.querySelector(".refresh")
-        refreshBtn?.addEventListener("click", e => {
-            if (!confirm("Are you sure you want to overwrite the metadata with a refresh")) {
-                return
-            }
-
-            fetch(`${apiPath}/metadata/fetch?id=${item.ItemId}`).then(res => {
-                if (res.status !== 200) {
-                    console.error(res)
-                    alert("Failed to get metadata")
-                    return
-                }
-                refreshInfo()
-                    .then(() => {
-                        refreshDisplayItem(item)
-                        refreshSidebarItem(item)
-                    })
-            })
+        refreshBtn?.addEventListener("click", _ => {
+            overwriteEntryMetadata(/**@type {ShadowRoot}*/(root), item)
         })
 
         let saveBtn = root.querySelector(".save")
-        saveBtn?.addEventListener("click", e => {
-            if(!confirm("Are you sure you want to save changes?")) {
-                return
-            }
-            //TODO: IMPLEMENT SAVING (start with notes)
+        saveBtn?.addEventListener("click", _ => {
+            saveItemChanges(/**@type {ShadowRoot}*/(root), item)
         })
     }
 }
@@ -432,7 +473,7 @@ function renderSidebarItem(item, elem = null) {
     }
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
-    if(!user) return
+    if (!user) return
 
     elem.setAttribute("data-entry-id", String(item.ItemId))
 
