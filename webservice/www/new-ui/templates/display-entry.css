@@ -63,6 +63,8 @@ hr {
     justify-content: center;
 
     margin: 3cap 0;
+
+    width: fit-content;
 }
 
 .action {
