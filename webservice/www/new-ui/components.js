@@ -33,7 +33,7 @@ function applyUserRating(rating, root) {
         root.classList.add("c-tier")
     } else if (rating > 65) {
         root.classList.add("d-tier")
-    } else if(rating > 0) {
+    } else if (rating > 0) {
         root.classList.add('f-tier')
     } else {
         root.classList.add("z-tier")
@@ -72,17 +72,21 @@ customElements.define("display-entry", class extends HTMLElement {
             fillElement(this.root, ".description", descA, "innerhtml")
         }
 
+        fillElement(this.root, ".item-id", String(this.getAttribute("data-item-id")), "innerhtml")
+
         let notes = this.getAttribute("data-user-notes")
         if (notes) {
             fillElement(this.root, ".notes", notes, "innerhtml")
         }
 
         let ratingA = this.getAttribute("data-user-rating")
+        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
         if (ratingA) {
             let rating = Number(ratingA)
-            let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
             applyUserRating(rating, ratingE)
             ratingE.innerHTML = ratingA
+        } else {
+            ratingE.innerText = "Unrated"
         }
 
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))

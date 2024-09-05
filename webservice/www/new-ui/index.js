@@ -268,15 +268,18 @@ function saveItemChanges(root, item) {
     }
     queryParams += `&notes=${encodeURIComponent(notes)}`
 
-    let rating = /**@type {HTMLElement}*/(root.querySelector(".rating")).innerHTML
-    let newRating = parseFloat(rating)
-    if (!isNaN(newRating)) {
-        queryParams += `&rating=${newRating}`
-    }
     fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}${queryParams}`)
         .then(res => {
             return res.text()
         })
+        .then(console.log)
+        .catch(console.error)
+
+    queryParams = ""
+    let title = /**@type {HTMLElement}*/(root.querySelector(".title")).innerText
+    queryParams += `&en-title=${encodeURIComponent(title)}`
+    fetch(`${apiPath}/mod-entry?id=${item.ItemId}${queryParams}`)
+        .then(res => res.text())
         .then(console.log)
         .catch(console.error)
 }
@@ -405,7 +408,24 @@ function renderDisplayItem(item, el = null, updateStats = true) {
             saveItemChanges(/**@type {ShadowRoot}*/(root), item)
         })
 
-        for(let el of root.querySelectorAll("[contenteditable]")) {
+        let ratingSpan = root.querySelector(".rating")
+        ratingSpan?.addEventListener("click", _ => {
+            let newRating = Number(prompt("New rating"))
+            if (isNaN(newRating)) {
+                return
+            }
+
+            fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
+                .then(refreshInfo)
+                .then(() => {
+                    let newItem = findEntryById(item.ItemId, globalsNewUi.entries)
+                    refreshDisplayItem(newItem)
+                    refreshSidebarItem(newItem)
+                })
+                .catch(console.error)
+        })
+
+        for (let el of root.querySelectorAll("[contenteditable]")) {
             /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
         }
     }
@@ -484,11 +504,7 @@ function renderSidebarItem(item, elem = null) {
         let img = elem.shadowRoot?.querySelector("img")
         if (img) {
             img.addEventListener("click", e => {
-                if (!isItemDisplayed(item.ItemId)) {
-                    renderDisplayItem(item)
-                } else {
-                    removeDisplayItem(item)
-                }
+                toggleDisplayItem(item)
             })
             img.addEventListener("dblclick", e => {
                 clearMainDisplay()
@@ -496,6 +512,18 @@ function renderSidebarItem(item, elem = null) {
             })
         }
     }
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function toggleDisplayItem(item) {
+    if (!isItemDisplayed(item.ItemId)) {
+        renderDisplayItem(item)
+    } else {
+        removeDisplayItem(item)
+    }
+
 }
 
 document.getElementById("view-all")?.addEventListener("change", e => {
@@ -604,16 +632,16 @@ function handleRichText(e) {
         "m": () => ["insertHTML", [getSelection()?.toString() || prompt("html (html)") || "html"]],
         "f12": () => ["removeFormat", []]
     }
-    if(!e.ctrlKey) return
+    if (!e.ctrlKey) return
     let key = e.key
     if (key in actions) {
         let res = actions[key]()
-        if(typeof res[0] === "string") {
+        if (typeof res[0] === "string") {
             let [name, args] = res
             //@ts-ignore
             document.execCommand(name, false, ...args)
         } else {
-            for(let [name, args] of res) {
+            for (let [name, args] of res) {
                 //@ts-ignore
                 document.execCommand(name, false, ...args)
             }

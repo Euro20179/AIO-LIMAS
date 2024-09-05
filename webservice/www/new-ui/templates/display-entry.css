@@ -49,7 +49,7 @@ hr {
 
 .header-subtitle {
     display: grid;
-    gap: 3ch;
+    gap: 1ex;
 
     font-size: 0.85em;
 
@@ -57,14 +57,11 @@ hr {
 }
 
 .actions {
-    display: flex;
     gap: 0.5cqi;
 
     justify-content: center;
 
     margin: 3cap 0;
-
-    width: fit-content;
 }
 
 .action {
@@ -72,7 +69,7 @@ hr {
     aspect-ratio: 1 / 1;
 }
 
-section:has(.close) {
+div:has( > .close ) {
     float: left;
     gap: 20px;
     aspect-ratio: 2;

@@ -1,3 +1,4 @@
+@import "/css/general.css";
 @import "/new-ui/css-styles/rating-styles.css";
 
 :host(sidebar-entry) {
@@ -21,6 +22,10 @@
         overflow: auto;
 
         font-size: 0.9em;
+    }
+
+    section:has(> .title) {
+        align-items: center;
     }
 
     .title {

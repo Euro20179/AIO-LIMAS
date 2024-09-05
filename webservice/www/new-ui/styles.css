@@ -177,6 +177,13 @@
         @media (width < 800px) {
             overflow-y: hidden;
         }
+
+        & > :first-child {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--main);
+        }
     }
 
     .sidebar--items {

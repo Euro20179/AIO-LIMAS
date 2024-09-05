@@ -10,7 +10,7 @@
 
 <body>
     <div id="main" class="flex column">
-        <section id="main-ui" class="overflow">
+        <div id="main-ui" class="overflow">
             <form action="javascript:treeFilterForm()" id="sidebar-form">
                 <input type="text" name="search-query" placeholder="search query">
                 <select name="sort-by" title="sort">
@@ -21,7 +21,7 @@
                 <button type="button" popovertarget="advanced-search">Advanced</button>
                 <dialog popover id="advanced-search">
                     <div class="grid">
-                        <section class="flex row wrap">
+                        <div class="flex row wrap">
                             <select name="format" multiple>
                                 <option value="">NONE</option>
                                 <option value="0">VHS</option>
@@ -59,20 +59,22 @@
                                 <option value="BoardGame">BoardGame</option>
                                 <option value="Collection">Collection</option>
                             </select>
-                            <section class="flex column">
+                            <div class="flex column">
                                 <input type="text" name="tags" placeholder="tags (',' seperated)">
-                                    <input type="number" step="0.01" name="price-gt" placeholder="price ⬆">
-                                    <input type="number" step="0.01" name="price-lt" placeholder="price ⬇">
-                            </section>
-                        </section>
+                                <input type="number" step="0.01" name="price-gt" placeholder="price ⬆">
+                                <input type="number" step="0.01" name="price-lt" placeholder="price ⬇">
+                            </div>
+                        </div>
                         <button class="close" tabindex="0" type="button" popovertarget="advanced-search">X</button>
                     </div>
                 </dialog>
                 <input type="submit" value="sort'n'search">
             </form>
             <nav class="sidebar overflow">
-                <label><input type="checkbox" name="view-all" id="view-all">View all</label>
-                <button popovertarget="new-entry">New</button>
+                <div class="flex row">
+                    <label class="grow"><input type="checkbox" name="view-all" id="view-all">View all</label>
+                    <button popovertarget="new-entry">➕︎</button>
+                </div>
                 <dialog id="new-entry" popover>
                     <h3>New Entry</h3>
                     <form id="new-item-form" action="javascript:newEntry()">
@@ -81,7 +83,7 @@
                         <input type="text" placeholder="location" name="location">
                         <label>Price <input type="number" min="0" step="0.01" name="price"></label>
                         <br>
-                        <section>
+                        <div>
                             <select name="type" title="The type of media" required>
                                 <option value="">Type</option>
                                 <option value="Show">Show</option>
@@ -94,8 +96,8 @@
                                 <option value="Collection">Collection</option>
                             </select>
                             <label for="is-anime">anime?: <input type="checkbox" id="is-anime" name="is-anime"></label>
-                        </section>
-                        <section>
+                        </div>
+                        <div>
                             <select name="format" required title="Format type">
                                 <option value="0">VHS</option>
                                 <option value="1">CD</option>
@@ -114,12 +116,12 @@
                             </select>
                             <label for="is-digital">digital? <input type="checkbox" id='is-digital'
                                     name="is-digital"></label>
-                        </section>
+                        </div>
                         <input type="text" placeholder="tags (',' separated)" name="tags" value="">
-                        <section>
+                        <div>
                             <input type="text" placeholder="parent id" name="parentId">
                             <input type="text" placeholder="copy of id" name="copyOf">
-                        </section>
+                        </div>
                         <input type="submit" value="CREATE!">
                     </form>
                 </dialog>
@@ -128,14 +130,14 @@
             </nav>
             <section id="viewing-area" class="flex column overflow">
                 <h3 class="center">Inspection Area</h3>
-                <section class="result-stats">
+                <div class="result-stats">
                     <span data-name="totalCost"></span>
                     <span data-name="count"></span>
-                </section>
+                </div>
                 <div id="entry-output" class="overflow">
                 </div>
             </section>
-        </section>
+        </div>
     </div>
 
     <template id="display-entry">
@@ -143,29 +145,36 @@
             @import "/new-ui/templates/display-entry.css"
         </style>
         <div class="root">
-            <section class="grid column">
+            <div class="grid column">
                 <button class="close" title="remove item from inspection area">X</button>
+                <button class="save" title="save any manual changes">💾︎</button>
                 <button class="refresh" title="refresh metadata">🗘</button>
                 <button class="delete" title="permanently delete item">🗑</button>
-                <button class="save" title="save any manual changes">💾︎</button>
-            </section>
+            </div>
             <img src="" alt="" class="thumbnail">
-            <h3 class="title center"></h3>
-            <section class="header-subtitle">
-                <span class="rating" contenteditable=""></span>
+            <h3 class="title center" contenteditable=""></h3>
+            <div class="header-subtitle">
+                <span class="item-id"></span>
+                <span class="rating"></span>
                 <span class="cost"></span>
-            </section>
+            </div>
             <hr>
-            <section class="actions">
-                <button data-action="Plan" class="action">🗓</button>
-                <button data-action="Begin" class="action">▶</button>
-                <button data-action="Finish" class="action">🏁</button>
-                <button data-action="Drop" class="action">⏹</button>
-                <button data-action="Pause" class="action">⏸</button>
-                <button data-action="Resume" class="action">⏩</button>
-            </section>
-            <table class="user-actions margin-center">
-            </table>
+            <div>
+                <div class="actions flex wrap">
+                    <div class="flex">
+                        <button data-action="Plan" class="action">🗓</button>
+                        <button data-action="Begin" class="action">▶</button>
+                        <button data-action="Finish" class="action">🏁</button>
+                    </div>
+                    <div class="flex">
+                        <button data-action="Drop" class="action">⏹</button>
+                        <button data-action="Pause" class="action">⏸</button>
+                        <button data-action="Resume" class="action">⏩</button>
+                    </div>
+                </div>
+                <table class="user-actions margin-center">
+                </table>
+            </div>
             <h4 class="center">Description</h4>
             <p class="description"></p>
             <hr>
@@ -179,7 +188,7 @@
         </style>
         <div class="root" part="root">
             <img part="thumbnail" class="thumbnail">
-            <section class="main">
+            <section class="main flex column">
                 <h2 class="title"></h2>
                 <span class="rating"></span>
                 <span class="cost"></span>
