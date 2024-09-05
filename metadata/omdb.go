@@ -90,6 +90,14 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 			out.Rating = res
 		}
 	}
+
+	mdStr, err := json.Marshal(mediaDep)
+	if err != nil{
+		return out, err
+	}
+
+	out.MediaDependant = string(mdStr)
+
 	out.Description = jData.Plot
 	out.Thumbnail = jData.Poster
 	if n, err := strconv.ParseInt(jData.Year, 10, 64); err == nil {
