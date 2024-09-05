@@ -507,6 +507,10 @@ function renderSidebarItem(item, elem = null) {
                     removeDisplayItem(item)
                 }
             })
+            img.addEventListener("dblclick", e => {
+                clearMainDisplay()
+                renderDisplayItem(item)
+            })
         }
     }
 }
