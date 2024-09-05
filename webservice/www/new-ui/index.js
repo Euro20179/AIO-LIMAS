@@ -380,7 +380,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         el.setAttribute("data-user-events", eventsStr)
     }
 
-    if(meta?.MediaDependant) {
+    if (meta?.MediaDependant) {
         el.setAttribute("data-media-dependant", meta.MediaDependant)
     }
 
@@ -397,6 +397,17 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         let closeButton = root.querySelector(".close")
         closeButton?.addEventListener("click", _ => {
             removeDisplayItem(item)
+        })
+
+        let copyToBtn = root.querySelector(".copy-to")
+        copyToBtn?.addEventListener("click", _ => {
+            let id, idInt
+            do {
+                id = prompt("Copy user info to (item id)")
+                idInt = BigInt(String(id))
+            }
+            while (isNaN(Number(idInt)))
+            copyUserInfo(item.ItemId, idInt)
         })
 
         let deleteBtn = root.querySelector(".delete")

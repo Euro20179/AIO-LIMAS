@@ -148,12 +148,15 @@
             <div class="grid column">
                 <button class="close" title="remove item from inspection area">X</button>
                 <button class="save" title="save any manual changes">💾︎</button>
+                <button class="copy-to" title="copy user info to another item">➡</button>
                 <button class="refresh" title="refresh metadata">🗘</button>
                 <button class="delete" title="permanently delete item">🗑</button>
             </div>
-            <figure class="thumbnail-fig">
+            <figure class="thumbnail-fig flex column">
                 <img src="" alt="" class="thumbnail">
                 <table class="media-info"></table>
+                <hr>
+                <table class="info-raw"></table>
             </figure>
             <h3 class="title center" contenteditable=""></h3>
             <div class="header-subtitle">
@@ -176,15 +179,18 @@
                 </div>
                 <div class="tables flex column">
                     <table class="user-actions"></table>
-                    <hr>
-                    <table class="info-raw"></table>
                 </div>
             </div>
-            <h4 class="center">Description</h4>
-            <p class="description"></p>
-            <hr>
-            <h4 class="center">Notes</h4>
-            <p class="notes" contenteditable=""></p>
+            <div class="descriptors">
+                <section>
+                    <h4 class="center">Description</h4>
+                    <p class="description"></p>
+                </section>
+                <section>
+                    <h4 class="center">Notes</h4>
+                    <p class="notes" contenteditable=""></p>
+                </section>
+            </div>
         </div>
     </template>
     <template id="sidebar-entry">

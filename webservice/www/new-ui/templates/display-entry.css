@@ -31,9 +31,24 @@ hr {
     float: right;
     margin: 0;
 
+    font-size: min(1em, 3cqw);
+
     .thumbnail {
         box-shadow: 2px 2px 10px var(--blue);
         border: 1px solid var(--blue);
+        align-self: center;
+
+        width: 20cqw;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    hr {
+        width: 100%;
+        opacity: 50%;
+        border-style: dotted;
     }
 }
 
@@ -65,11 +80,6 @@ table {
         height: fit-content;
     }
 
-    hr {
-        width: 100%;
-        opacity: 50%;
-        border-style: dotted;
-    }
 }
 
 .header-subtitle {
@@ -79,14 +89,19 @@ table {
     font-size: 0.85em;
 
     text-align: center;
+
 }
 
 .actions {
-    gap: 0.5cqi;
-
     justify-content: center;
 
     margin: 3cap 0;
+
+    /*There are a couple of flexboxes within here to group thigns together*/
+    &.flex,
+    & .flex {
+        gap: 20px;
+    }
 }
 
 .action {
@@ -97,7 +112,6 @@ table {
 div:has(> .close) {
     float: left;
     gap: 20px;
-    aspect-ratio: 2;
 
     margin: 0.4em 0 0 0.4em;
 
@@ -114,4 +128,20 @@ div:has(> .close) {
 .notes:empty::before {
     content: "Edit me!";
     opacity: 50%;
+}
+
+.descriptors {
+    display: block
+    /**/
+    /* @media (orientation: landscape) { */
+    /*     grid-auto-flow: row; */
+    /* } */
+    /**/
+    /* @media (orientation: portrait) { */
+    /*     display: block; */
+    /* } */
+}
+
+.title {
+    clear: left;
 }

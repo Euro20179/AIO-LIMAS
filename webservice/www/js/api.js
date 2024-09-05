@@ -209,3 +209,11 @@ async function loadQueriedEntries(search) {
         .map(parseJsonL)
     return jsonL
 }
+
+/**
+* @param {bigint} oldid
+* @param {bigint} newid
+*/
+async function copyUserInfo(oldid, newid) {
+    return await fetch(`${apiPath}/engagement/copy?src-id=${oldid}&dest-id=${newid}`)
+}

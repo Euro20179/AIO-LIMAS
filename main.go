@@ -181,6 +181,7 @@ func main() {
 			"id":    api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"notes": api.MkQueryInfo(api.P_True, false),
 			"rating": api.MkQueryInfo(api.P_Float64, false),
+			"view-count": api.MkQueryInfo(api.P_Int64, false),
 		},
 	}
 
