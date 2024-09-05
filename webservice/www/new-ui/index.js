@@ -380,6 +380,12 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         el.setAttribute("data-user-events", eventsStr)
     }
 
+    if(meta?.MediaDependant) {
+        el.setAttribute("data-media-dependant", meta.MediaDependant)
+    }
+
+    el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
+
     displayItems.append(el)
 
     let root = el.shadowRoot

@@ -72,8 +72,6 @@ customElements.define("display-entry", class extends HTMLElement {
             fillElement(this.root, ".description", descA, "innerhtml")
         }
 
-        fillElement(this.root, ".item-id", String(this.getAttribute("data-item-id")), "innerhtml")
-
         let notes = this.getAttribute("data-user-notes")
         if (notes) {
             fillElement(this.root, ".notes", notes, "innerhtml")
@@ -89,6 +87,41 @@ customElements.define("display-entry", class extends HTMLElement {
             ratingE.innerText = "Unrated"
         }
 
+
+        /**
+         * @param {HTMLElement} root
+         * @param {Record<any, any>} data
+         */
+        function mkGenericTbl(root, data) {
+            let html = `
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `
+
+            for (let key in data) {
+                html += `<tr><td>${key}</td><td>${data[key]}</td></tr>`
+            }
+            html += "</tbody>"
+            root.innerHTML = html
+        }
+
+        let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".info-raw"))
+        let infoRaw = this.getAttribute("data-info-raw")
+        if (infoRaw) {
+            mkGenericTbl(infoRawTbl, JSON.parse(infoRaw))
+        }
+
+        let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
+        let mediaInfoRaw = this.getAttribute("data-media-dependant")
+        if(mediaInfoRaw) {
+            mkGenericTbl(mediaInfoTbl, JSON.parse(mediaInfoRaw))
+        }
+
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))
         let eventsA = this.getAttribute("data-user-events")
         if (eventsA) {
@@ -100,7 +133,7 @@ customElements.define("display-entry", class extends HTMLElement {
                     </tr>
                 </thead>
                 <tbody>
-`
+            `
             for (let event of eventsA.split(",")) {
                 let [name, ts] = event.split(":")
                 let date = new Date(Number(ts))

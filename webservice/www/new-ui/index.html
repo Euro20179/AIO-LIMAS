@@ -151,10 +151,12 @@
                 <button class="refresh" title="refresh metadata">🗘</button>
                 <button class="delete" title="permanently delete item">🗑</button>
             </div>
-            <img src="" alt="" class="thumbnail">
+            <figure class="thumbnail-fig">
+                <img src="" alt="" class="thumbnail">
+                <table class="media-info"></table>
+            </figure>
             <h3 class="title center" contenteditable=""></h3>
             <div class="header-subtitle">
-                <span class="item-id"></span>
                 <span class="rating"></span>
                 <span class="cost"></span>
             </div>
@@ -172,8 +174,11 @@
                         <button data-action="Resume" class="action">⏩</button>
                     </div>
                 </div>
-                <table class="user-actions margin-center">
-                </table>
+                <div class="tables flex column">
+                    <table class="user-actions"></table>
+                    <hr>
+                    <table class="info-raw"></table>
+                </div>
             </div>
             <h4 class="center">Description</h4>
             <p class="description"></p>

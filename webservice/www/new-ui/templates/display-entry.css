@@ -27,23 +27,48 @@ hr {
     overflow: auto auto;
 }
 
-.thumbnail {
+.thumbnail-fig {
     float: right;
     margin: 0;
 
-    box-shadow: 2px 2px 10px var(--blue);
-    border: 1px solid var(--blue);
+    .thumbnail {
+        box-shadow: 2px 2px 10px var(--blue);
+        border: 1px solid var(--blue);
+    }
 }
 
-.user-actions {
+table {
     border-collapse: collapse;
-    width: 40cqw;
-
-    text-align: center;
 
     td,
     th {
         border: 1px solid white;
+    }
+}
+
+.user-actions {
+    width: 40cqw;
+
+    text-align: center;
+
+}
+
+.tables {
+    gap: 10px;
+    overflow: auto auto;
+
+    max-height: 20cqh;
+
+    table {
+        width: 100%;
+        margin: 0 auto;
+        height: fit-content;
+    }
+
+    hr {
+        width: 100%;
+        opacity: 50%;
+        border-style: dotted;
     }
 }
 
@@ -69,7 +94,7 @@ hr {
     aspect-ratio: 1 / 1;
 }
 
-div:has( > .close ) {
+div:has(> .close) {
     float: left;
     gap: 20px;
     aspect-ratio: 2;

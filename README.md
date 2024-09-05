@@ -136,7 +136,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [x] delete item
   - [x] start/stop, etc
   - [x] fetch metadata
-  - [ ] display metadata
+  - [x] display metadata
   - [ ] identify item
   - [x] display user info
   - [x] display general info
