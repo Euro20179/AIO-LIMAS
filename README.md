@@ -80,37 +80,6 @@ Physical content will need to be entered in manually, however metadata should be
 - [x] Ability to act as a proxy for the given {location} of an entry, and stream it
   - [ ] reencoding?
 
-<del>
-- [ ] ui
-  - [ ] sorting
-    - [ ] by price
-    - [ ] by rating
-    - [ ] alpha
-  - [ ] search
-    - [ ] by price
-    - [ ] by collection
-    - [ ] by rating
-    - [x] by type
-      - [x] multiple
-    - [x] by format
-      - [ ] multiple
-    - [x] by title
-  - [x] add item
-  - [ ] edit item
-  - [x] delete item
-  - [x] start/stop, etc
-  - [x] fetch metadata
-  - [ ] display metadata
-  - [x] display user info
-  - [x] display general info
-  - [x] display cost
-  - [ ] display total stats
-    - [ ] total stats
-    - [x] total items
-  - [x] thumbnails
-  - [ ] if an item is marked as a copy, display the copy user viewing entry
-</del>
-
 - [ ] new ui
   - [ ] sorting
     - [x] by price
@@ -120,7 +89,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [ ] by price
     - [ ] by collection
     - [x] by rating
-    - [ ] tags
+    - [x] tags
     - [x] by type
       - [x] multiple
     - [x] by format
@@ -136,7 +105,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [x] start/stop, etc
   - [x] fetch metadata
   - [x] display metadata
-  - [ ] identify item
+  - [x] identify item
   - [x] display user info
   - [x] display general info
   - [x] display cost
