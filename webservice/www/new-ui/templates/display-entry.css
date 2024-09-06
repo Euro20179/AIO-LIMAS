@@ -13,9 +13,17 @@ hr {
 :host(display-entry) {
     flex-grow: 1;
     min-width: 50%;
-    min-height: 50%;
 
     overflow: auto auto;
+
+    @container (aspect-ratio < 1) {
+        height: 50%;
+        width: 100%;
+    }
+
+    @container (width < 800px) {
+        min-height: 50%;
+    }
 }
 
 
@@ -146,6 +154,7 @@ div:has(> .close) {
 .title {
     clear: left;
 }
+
 .title::after {
-    content: " ("attr(data-type-icon)" ON " attr(data-format-name)")";
+    content: " (" attr(data-type-icon)" ON " attr(data-format-name)")";
 }

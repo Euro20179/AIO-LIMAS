@@ -40,7 +40,7 @@
                 "form main main"
                 "sidebar main main"
                 "sidebar main main";
-            grid-template-columns: 1fr 2.2fr;
+            grid-template-columns: 0.8fr 1fr 1fr;
             grid-template-rows: min-content 1fr 1fr;
         }
 
@@ -101,6 +101,7 @@
 
     #viewing-area {
         height: 100%;
+        container-type: size;
 
         .result-stats {
             border: 2px solid;
@@ -160,11 +161,11 @@
             flex-wrap: wrap;
         }
 
-        @media(aspect-ratio > 1) {
+        @container (orientation: landscape) {
             flex-direction: row;
         }
 
-        @media(aspect-ratio <=1) {
+        @container (orientation: portrait) {
             flex-direction: column;
         }
 

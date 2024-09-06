@@ -132,7 +132,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] rating
     - [x] notes
     - [ ] thumbnail
-    - [ ] title
+    - [x] title
   - [x] delete item
   - [x] start/stop, etc
   - [x] fetch metadata
