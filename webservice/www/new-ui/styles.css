@@ -21,11 +21,6 @@
         margin: 0;
     }
 
-    dialog {
-        top: revert;
-        transform: translateX(-50%);
-    }
-
     #main {
         height: 100%;
     }
@@ -149,6 +144,10 @@
 
     #entry-output {
         --grid-size: 50%;
+
+        --gap-size: 10px;
+
+        gap: var(--gap-size);
 
         height: 100%;
         overflow: auto auto;

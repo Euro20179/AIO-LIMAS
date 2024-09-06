@@ -9,6 +9,8 @@
     --secondary: hsl(from var(--main) h s calc(l * 1.8));
 
     --border-roundness: 5px;
+
+    --text-color: white;
 }
 
 @layer general {
@@ -99,11 +101,10 @@
         width: 80vmin;
         aspect-ratio: 1 / 1;
         position: fixed;
-        top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
 
-        container: dialog size;
+        container: dialog / size;
     }
 
     dialog::backdrop {

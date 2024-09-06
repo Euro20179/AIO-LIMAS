@@ -43,6 +43,8 @@
  * @property {string} Thumbnail
  * @property {string} MediaDependant
  * @property {string} Datapoints
+ * @property {string} Title
+ * @property {string} Native_Title
  */
 
 /**
@@ -287,4 +289,22 @@ function formatToName(format) {
         return `unknown ${out}`
     }
     return `${formats[format]} ${out}`
+}
+
+/**
+    * @param {string} title
+    */
+async function identify(title) {
+    return await fetch(`${apiPath}/metadata/identify?title=${encodeURIComponent(title)}`)
+}
+
+/**
+    * @param {string} identifiedId
+    * @param {string} provider
+    * @param {bigint} applyTo
+    */
+async function finalizeIdentify(identifiedId, provider, applyTo) {
+    identifiedId = encodeURIComponent(identifiedId)
+    provider = encodeURIComponent(provider)
+    return await fetch(`${apiPath}/metadata/finalize-identify?identified-id=${identifiedId}&provider=${provider}&apply-to=${applyTo}`)
 }

@@ -84,6 +84,12 @@ customElements.define("display-entry", class extends HTMLElement {
             fillElement(this.root, ".notes", notes, "innerhtml")
         }
 
+        let nativeTitle = this.getAttribute("data-native-title")
+        if(nativeTitle){
+            let el = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+            el.title = nativeTitle
+        }
+
         let ratingA = this.getAttribute("data-user-rating")
         let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
         if (ratingA) {

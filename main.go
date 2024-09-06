@@ -132,7 +132,7 @@ func main() {
 	finalizeIdentify := api.ApiEndPoint{
 		Handler: api.FinalizeIdentification,
 		QueryParams: api.QueryParams{
-			"id":       api.MkQueryInfo(api.P_NotEmpty, true),
+			"identified-id":       api.MkQueryInfo(api.P_NotEmpty, true),
 			"provider": api.MkQueryInfo(api.P_IdIdentifier, true),
 			"apply-to": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},

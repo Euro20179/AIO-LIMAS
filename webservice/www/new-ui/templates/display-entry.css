@@ -7,12 +7,17 @@
 
 hr {
     border-style: dashed;
-    border-color: white;
+    border-color: var(--text-color);
 }
 
 :host(display-entry) {
+    --text-color: rgb(230 230 230);
+
+    color: var(--text-color);
+
     flex-grow: 1;
-    min-width: 50%;
+    /*-10px just incase*/
+    min-width: calc(50cqw - var(--gap-size) - 10px);
 
     overflow: auto auto;
 
@@ -31,7 +36,7 @@ hr {
     width: 100%;
     height: 100%;
     container: entry / inline-size;
-    border: 1px solid white;
+    border: 2px solid hsl(from var(--secondary) h s 30%);
 
     overflow: auto auto;
 }
@@ -66,7 +71,7 @@ table {
 
     td,
     th {
-        border: 1px solid white;
+        border: 1px solid var(--text-color);
     }
 }
 
@@ -157,4 +162,9 @@ div:has(> .close) {
 
 .title::after {
     content: " (" attr(data-type-icon)" ON " attr(data-format-name)")";
+}
+
+#identify-items:popover-open {
+    display: flex;
+    flex-wrap: wrap;
 }

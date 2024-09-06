@@ -30,6 +30,18 @@ func dbHasCol(db *sql.DB, colName string) bool {
 	return false
 }
 
+func ensureMetadataTitles(db *sql.DB) error{
+	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN title default ''")
+	if err != nil{
+		return err
+	}
+	_, err = db.Exec("ALTER TABLE metadata ADD COLUMN native_title default ''")
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
 func InitDb(dbPath string) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	sqlite3.Version()
@@ -61,7 +73,9 @@ func InitDb(dbPath string) {
 			releaseYear INTEGER,
 			thumbnail TEXT,
 			mediaDependant TEXT,
-			dataPoints TEXT
+			dataPoints TEXT,
+			native_title TEXT,
+			title TEXT
 		)
 `)
 	if err != nil {
@@ -88,6 +102,7 @@ func InitDb(dbPath string) {
 	if err != nil {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
+	ensureMetadataTitles(conn)
 	Db = conn
 }
 
@@ -370,12 +385,14 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 			releaseYear = ?,
 			thumbnail = ?,
 			mediaDependant = ?,
-			dataPoints = ?
+			dataPoints = ?,
+			title = ?,
+			native_title = ?
 		WHERE
 			itemId = ?
 	`, entry.Rating, entry.Description,
 		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
-		entry.Datapoints, entry.ItemId)
+		entry.Datapoints, entry.Title, entry.Native_Title, entry.ItemId)
 	if err != nil {
 		return err
 	}

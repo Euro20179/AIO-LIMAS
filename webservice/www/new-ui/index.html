@@ -140,8 +140,11 @@
         </div>
     </div>
 
-        <!--TODO: display entries in column if aspect-ratio of container < 1-->
+
+    <!--TODO: display entries in column if aspect-ratio of container < 1-->
     <template id="display-entry">
+        <dialog id="identify-items" popover>
+        </dialog>
         <style>
             @import "/new-ui/templates/display-entry.css"
         </style>
@@ -151,6 +154,7 @@
                 <button class="save" title="save any manual changes">💾︎</button>
                 <button class="copy-to" title="copy user info to another item">➡</button>
                 <button class="refresh" title="refresh metadata">🗘</button>
+                <button class="identify" title="identify item" popovertarget="identify-items">ℹ</button>
                 <button class="delete" title="permanently delete item">🗑</button>
             </div>
             <figure class="thumbnail-fig flex column">

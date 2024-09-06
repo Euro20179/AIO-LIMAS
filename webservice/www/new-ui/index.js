@@ -361,6 +361,13 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
 
+    if (meta?.Title) {
+        el.setAttribute("data-true-title", meta.Title)
+    }
+    if (meta?.Native_Title) {
+        el.setAttribute("data-native-title", meta.Native_Title)
+    }
+
     if (user.ViewCount > 0) {
         el.setAttribute("data-user-rating", String(user.UserRating))
     }
@@ -427,6 +434,47 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         let saveBtn = root.querySelector(".save")
         saveBtn?.addEventListener("click", _ => {
             saveItemChanges(/**@type {ShadowRoot}*/(root), item)
+        })
+
+        let identifyBtn = /**@type {HTMLButtonElement}*/(root.querySelector(".identify"))
+        identifyBtn?.addEventListener("click", e => {
+            identify(item.En_Title)
+                .then(res => res.text())
+                .then(jsonL => {
+                    const data = jsonL
+                        .split("\n")
+                        .filter(Boolean)
+                        .map((v) => JSON.parse(v))
+                    let container = /**@type {HTMLDialogElement}*/(root?.getElementById("identify-items"))
+                    container.innerHTML = ""
+
+                    for(let result of data) {
+                        let fig = document.createElement("figure")
+
+                        let img = document.createElement("img")
+                        img.src = result.Thumbnail
+                        img.style.cursor = "pointer"
+                        
+                        let mediaDep = JSON.parse(result.MediaDependant)
+                        console.log(mediaDep)
+                        let provider = mediaDep.provider
+
+                        img.addEventListener("click", e => {
+                            finalizeIdentify(result.ItemId, provider, item.ItemId)
+                                .then(() => refreshDisplayItem(item))
+                        })
+                        
+                        let title = document.createElement("h3")
+                        title.innerText = result.Title
+                        title.title = result.Native_Title
+
+                        fig.append(title)
+                        fig.append(img)
+                        container.append(fig)
+                    }
+
+                })
+
         })
 
         let ratingSpan = root.querySelector(".rating")

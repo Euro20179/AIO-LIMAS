@@ -63,22 +63,23 @@ const (
 
 	F_MOD_DIGITAL Format = 0x1000
 )
-func ListFormats() map[Format] string {
-	return map[Format]string {
-		F_VHS: "VHS",
-		F_CD: "CD",
-		F_DVD: "DVD",
-		F_BLURAY: "BLURAY",
-		F_4KBLURAY: "4KBLURAY",
-		F_MANGA: "MANGA",
-		F_BOOK: "BOOK",
-		F_DIGITAL: "DIGITAL",
-		F_BOARDGAME: "BOARDGAME",
-		F_STEAM: "STEAM",
-		F_NIN_SWITCH: "NIN_SWITCH",
-		F_XBOXONE: "XBOXONE",
-		F_XBOX360: "XBOX360",
-		F_OTHER: "OTHER",
+
+func ListFormats() map[Format]string {
+	return map[Format]string{
+		F_VHS:         "VHS",
+		F_CD:          "CD",
+		F_DVD:         "DVD",
+		F_BLURAY:      "BLURAY",
+		F_4KBLURAY:    "4KBLURAY",
+		F_MANGA:       "MANGA",
+		F_BOOK:        "BOOK",
+		F_DIGITAL:     "DIGITAL",
+		F_BOARDGAME:   "BOARDGAME",
+		F_STEAM:       "STEAM",
+		F_NIN_SWITCH:  "NIN_SWITCH",
+		F_XBOXONE:     "XBOXONE",
+		F_XBOX360:     "XBOX360",
+		F_OTHER:       "OTHER",
 		F_MOD_DIGITAL: "MOD_DIGITAL",
 	}
 }
@@ -108,13 +109,13 @@ func IsValidFormat(format int64) bool {
 type MediaTypes string
 
 const (
-	TY_SHOW      MediaTypes = "Show"
-	TY_MOVIE     MediaTypes = "Movie"
-	TY_GAME      MediaTypes = "Game"
-	TY_BOARDGAME MediaTypes = "BoardGame"
-	TY_SONG      MediaTypes = "Song"
-	TY_BOOK      MediaTypes = "Book"
-	TY_MANGA     MediaTypes = "Manga"
+	TY_SHOW       MediaTypes = "Show"
+	TY_MOVIE      MediaTypes = "Movie"
+	TY_GAME       MediaTypes = "Game"
+	TY_BOARDGAME  MediaTypes = "BoardGame"
+	TY_SONG       MediaTypes = "Song"
+	TY_BOOK       MediaTypes = "Book"
+	TY_MANGA      MediaTypes = "Manga"
 	TY_COLLECTION MediaTypes = "Collection"
 )
 
@@ -138,9 +139,11 @@ type MetadataEntry struct {
 	Thumbnail      string
 	MediaDependant string // see docs/types.md
 	Datapoints     string // JSON {string: string} as a string
+	Title          string //this is different from infoentry in that it's automatically generated
+	Native_Title   string //same with this
 }
 
-func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error{
+func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 	return rows.Scan(
 		&self.ItemId,
 		&self.Rating,
@@ -149,15 +152,18 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error{
 		&self.Thumbnail,
 		&self.MediaDependant,
 		&self.Datapoints,
+		&self.Title,
+		&self.Native_Title,
 	)
 }
+
 func (self *MetadataEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
 
 type InfoEntry struct {
 	ItemId        int64
-	En_Title      string //doesn't have to be english, more like, the user's preferred language
+	En_Title      string // doesn't have to be english, more like, the user's preferred language
 	Native_Title  string
 	Format        Format
 	Location      string
@@ -190,11 +196,11 @@ func (self *InfoEntry) ToJson() ([]byte, error) {
 }
 
 type UserViewingEvent struct {
-	ItemId int64
-	Event string
+	ItemId    int64
+	Event     string
 	Timestamp uint64
-	After uint64 //this is also a timestamp, for when the exact timestamp is unknown
-				//this is to ensure that order can be determined
+	After     uint64 // this is also a timestamp, for when the exact timestamp is unknown
+	// this is to ensure that order can be determined
 }
 
 func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
@@ -218,7 +224,7 @@ type UserViewingEntry struct {
 	Notes      string
 }
 
-func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error{
+func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
 	return row.Scan(
 		&self.ItemId,
 		&self.Status,
@@ -242,10 +248,10 @@ func (self *UserViewingEntry) CanBegin() bool {
 
 func (self *UserViewingEntry) Begin() error {
 	err := RegisterBasicUserEvent("Viewing", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
-	
+
 	if self.Status != S_FINISHED {
 		self.Status = S_VIEWING
 	} else {
@@ -261,7 +267,7 @@ func (self *UserViewingEntry) CanFinish() bool {
 
 func (self *UserViewingEntry) Finish() error {
 	err := RegisterBasicUserEvent("Finished", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -277,7 +283,7 @@ func (self *UserViewingEntry) CanPlan() bool {
 
 func (self *UserViewingEntry) Plan() error {
 	err := RegisterBasicUserEvent("Planned", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -292,7 +298,7 @@ func (self *UserViewingEntry) CanDrop() bool {
 
 func (self *UserViewingEntry) Drop() error {
 	err := RegisterBasicUserEvent("Dropped", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -307,7 +313,7 @@ func (self *UserViewingEntry) CanPause() bool {
 
 func (self *UserViewingEntry) Pause() error {
 	err := RegisterBasicUserEvent("Paused", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -322,7 +328,7 @@ func (self *UserViewingEntry) CanResume() bool {
 
 func (self *UserViewingEntry) Resume() error {
 	err := RegisterBasicUserEvent("ReViewing", self.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -332,8 +338,8 @@ func (self *UserViewingEntry) Resume() error {
 
 type EntryTree struct {
 	EntryInfo InfoEntry
-	Children []string
-	Copies []string
+	Children  []string
+	Copies    []string
 }
 
 func (self *EntryTree) ToJson() ([]byte, error) {
@@ -344,20 +350,20 @@ func BuildEntryTree() (map[int64]EntryTree, error) {
 	out := map[int64]EntryTree{}
 
 	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 
 	for allRows.Next() {
 		var cur EntryTree
 		err := cur.EntryInfo.ReadEntry(allRows)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
 
 		children, err := GetChildren(cur.EntryInfo.ItemId)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -367,7 +373,7 @@ func BuildEntryTree() (map[int64]EntryTree, error) {
 		}
 
 		copies, err := GetCopiesOf(cur.EntryInfo.ItemId)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}

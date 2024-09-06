@@ -171,7 +171,7 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 
 func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	itemToApplyTo := parsedParams["apply-to"].(db.MetadataEntry)
-	id := parsedParams["id"].(string)
+	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)
 
 	data, err := metadata.GetMetadataById(id, provider)

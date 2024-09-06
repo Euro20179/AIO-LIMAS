@@ -146,15 +146,6 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 
 	mediaDependant := make(map[string]string)
 
-	if out.Title.Native != "" {
-		entry.Native_Title = out.Title.Native
-	}
-	if out.Title.English != "" {
-		entry.En_Title = out.Title.English
-	} else if out.Title.Romaji != "" {
-		entry.En_Title = out.Title.Romaji
-	}
-
 	mediaDependant[fmt.Sprintf("%s-episodes", entry.Type)] = strconv.Itoa(int(out.Episodes))
 	mediaDependant[fmt.Sprintf("%s-episode-duration", entry.Type)] = strconv.Itoa(int(out.Duration))
 	mediaDependant[fmt.Sprintf("%s-length", entry.Type)] = strconv.Itoa(int(out.Episodes) * int(out.Duration))
@@ -162,6 +153,16 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 
 	mdString, _ := json.Marshal(mediaDependant)
 
+	println(out.Title.Native, out.Title.English)
+
+	if out.Title.Native != "" {
+		outMeta.Native_Title = out.Title.Native
+	}
+	if out.Title.English != "" {
+		outMeta.Title = out.Title.English
+	} else if out.Title.Romaji != "" {
+		outMeta.Title = out.Title.Romaji
+	}
 	outMeta.Thumbnail = out.CoverImage.Large
 	outMeta.Rating = float64(out.AverageScore)
 	outMeta.Description = out.Description
@@ -216,12 +217,15 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 		cur.Description = entry.Description
 		cur.Rating = float64(entry.AverageScore)
 		cur.ItemId = entry.Id
-
-		if entry.Type == "ANIME" {
-			cur.MediaDependant = fmt.Sprintf("{\"Show-title-english\": \"%s\", \"Show-title-native\":\"%s\"}", entry.Title.English, entry.Title.Native)
-		} else {
-			cur.MediaDependant = fmt.Sprintf("{\"Manga-title-english\":  \"%s\", \"Manga-title-native\":\"%s\"}", entry.Title.English, entry.Title.Native)
+		if entry.Title.Native != "" {
+			cur.Native_Title = entry.Title.Native
 		}
+		if entry.Title.English != "" {
+			cur.Title = entry.Title.English
+		} else if entry.Title.Romaji != "" {
+			cur.Title = entry.Title.Romaji
+		}
+		cur.MediaDependant = "{\"provider\": \"anilist\"}"
 
 		outMeta = append(outMeta, cur)
 	}
