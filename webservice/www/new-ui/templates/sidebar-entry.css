@@ -6,6 +6,11 @@
         width: 300px;
     }
 
+
+    [data-type-icon]::after {
+        content: " (" attr(data-type-icon)")";
+    }
+
     .root {
         border-top: 1px solid white;
         border-bottom: 1px solid white;
@@ -67,4 +72,3 @@
         bottom: 0;
     }
 }
-

@@ -52,17 +52,18 @@ func main() {
 	modEntry := api.ApiEndPoint{
 		Handler: api.ModEntry,
 		QueryParams: api.QueryParams{
-			"id":            api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-			"en-title":      api.MkQueryInfo(api.P_NotEmpty, false),
-			"native-title":  api.MkQueryInfo(api.P_True, false),
-			"format":        api.MkQueryInfo(api.P_EntryFormat, false),
-			"parent-id":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"become-orphan": api.MkQueryInfo(api.P_Bool, false),
-			"copy-id":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"price":         api.MkQueryInfo(api.P_Float64, false),
-			"location":      api.MkQueryInfo(api.P_True, false),
-			"tags":          api.MkQueryInfo(api.P_True, false),
-			"is-anime":      api.MkQueryInfo(api.P_Bool, false),
+			"id":              api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"en-title":        api.MkQueryInfo(api.P_NotEmpty, false),
+			"native-title":    api.MkQueryInfo(api.P_True, false),
+			"format":          api.MkQueryInfo(api.P_EntryFormat, false),
+			"parent-id":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"become-orphan":   api.MkQueryInfo(api.P_Bool, false),
+			"become-original": api.MkQueryInfo(api.P_Bool, false),
+			"copy-id":         api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"price":           api.MkQueryInfo(api.P_Float64, false),
+			"location":        api.MkQueryInfo(api.P_True, false),
+			"tags":            api.MkQueryInfo(api.P_True, false),
+			"is-anime":        api.MkQueryInfo(api.P_Bool, false),
 		},
 	}
 
@@ -178,9 +179,9 @@ func main() {
 	modUserEntry := api.ApiEndPoint{
 		Handler: api.ModUserEntry,
 		QueryParams: api.QueryParams{
-			"id":    api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"notes": api.MkQueryInfo(api.P_True, false),
-			"rating": api.MkQueryInfo(api.P_Float64, false),
+			"id":         api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"notes":      api.MkQueryInfo(api.P_True, false),
+			"rating":     api.MkQueryInfo(api.P_Float64, false),
 			"view-count": api.MkQueryInfo(api.P_Int64, false),
 		},
 	}

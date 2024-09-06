@@ -51,9 +51,16 @@ customElements.define("display-entry", class extends HTMLElement {
     }
 
     connectedCallback() {
+        let type = this.getAttribute("data-type")
+        let typeIcon = typeToSymbol(String(type))
+        let format = this.getAttribute("data-format")
+        let formatName = formatToName(Number(format))
+
         let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
         let titleText = this.getAttribute("data-title")
         title.innerText = String(titleText)
+        title.setAttribute("data-type-icon", typeIcon)
+        title.setAttribute("data-format-name", formatName)
 
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         let thA = this.getAttribute("data-thumbnail-src")
@@ -162,9 +169,13 @@ customElements.define("sidebar-entry", class extends HTMLElement {
 
     }
     connectedCallback() {
+        let type = this.getAttribute("data-type")
+        let typeIcon = typeToSymbol(String(type))
+
         let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
         let titleText = this.getAttribute("data-title")
         title.innerText = String(titleText)
+        title.setAttribute("data-type-icon", typeIcon)
 
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         imgEl.src = String(this.getAttribute("data-thumbnail-src"))

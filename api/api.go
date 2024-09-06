@@ -118,6 +118,10 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Parent = 0
 	}
 
+	if original, exists := parsedParams["become-original"].(bool); exists && original {
+		info.CopyOf = 0
+	}
+
 	if itemCopy, exists := parsedParams["copy-id"].(db.InfoEntry); exists {
 		info.CopyOf = itemCopy.ItemId
 	}

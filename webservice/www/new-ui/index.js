@@ -344,6 +344,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
     el.setAttribute("data-title", item.En_Title)
     el.setAttribute("data-item-id", String(item.ItemId))
+    el.setAttribute("data-format", String(item.Format))
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
@@ -353,6 +354,8 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     if (updateStats) {
         changeResultStatsWithItem(item)
     }
+
+    el.setAttribute("data-type", item.Type)
 
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
@@ -497,8 +500,9 @@ function renderSidebarItem(item, elem = null) {
     if (!user) return
 
     elem.setAttribute("data-entry-id", String(item.ItemId))
-
     elem.setAttribute("data-title", item.En_Title)
+
+    elem.setAttribute("data-type", item.Type)
     if (meta?.Thumbnail) {
         elem.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
