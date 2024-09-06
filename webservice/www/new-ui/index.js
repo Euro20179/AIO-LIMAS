@@ -330,7 +330,6 @@ function overwriteEntryMetadata(root, item) {
     })
 }
 
-
 /**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
@@ -408,6 +407,8 @@ function renderDisplayItem(item, el = null, updateStats = true) {
             }
             while (isNaN(Number(idInt)))
             copyUserInfo(item.ItemId, idInt)
+                .then(res => res?.text())
+                .then(console.log)
         })
 
         let deleteBtn = root.querySelector(".delete")

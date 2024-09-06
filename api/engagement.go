@@ -12,11 +12,33 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 	userEntry := parsedParams["src-id"].(db.UserViewingEntry)
 	libraryEntry := parsedParams["dest-id"].(db.InfoEntry)
 
+	oldId := userEntry.ItemId
+
 	err := db.CopyUserViewingEntry(&userEntry, libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
 	}
+
+	err = db.ClearUserEventEntries(libraryEntry.ItemId)
+	if err != nil{
+		wError(w, 500, "Failed to clear event information\n%s", err.Error())
+		return
+	}
+
+	events, err := db.GetEvents(oldId)
+	if err != nil{
+		wError(w, 500, "Failed to get events for item\n%s", err.Error())
+		return
+	}
+
+	err = db.CopyUserEventEntries(events, libraryEntry.ItemId)
+	if err != nil{
+		wError(w, 500, "Failed to copy events\n%s", err.Error())
+		return
+	}
+	//TODO: FIXME
+
 	success(w)
 }
 

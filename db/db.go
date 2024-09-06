@@ -339,6 +339,28 @@ func CopyUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
 	return UpdateUserViewingEntry(oldEntry)
 }
 
+func CopyUserEventEntries(eventList []UserViewingEvent, newId int64) error {
+	for _, e := range eventList {
+		e.ItemId = newId
+		err := RegisterUserEvent(e)
+		if err != nil{
+			return err
+		}
+	}
+	return nil
+}
+
+func ClearUserEventEntries(id int64) error{
+	_, err := Db.Exec(`
+		DELETE FROM userEventInfo
+		WHERE itemId = ?
+	`, id)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
 func UpdateMetadataEntry(entry *MetadataEntry) error {
 	_, err := Db.Exec(`
 		UPDATE metadata
