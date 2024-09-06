@@ -44,13 +44,16 @@ type AnlistMediaEntry struct {
 
 	Duration   uint  `json:"duration"`
 	Episodes   uint  `json:"episodes"`
-	SeasonYear int64 `json:"seasonYear"`
+	StartDate struct  {
+		Year int `json:"year"`
+	} `json:"startDate"`
 
 	Status string `json:"status"`
 
-	Type   string `json:"type"`
-	Id     int64  `json:"id"`
-	Format string `json:"format"`
+	Type    string `json:"type"`
+	Id      int64  `json:"id"`
+	Format  string `json:"format"`
+	Volumes int    `json:"volumes"`
 }
 type AnilistResponse struct {
 	Data struct {
@@ -81,13 +84,9 @@ const ANILIST_MEDIA_QUERY_INFO = `
 	description,
 	type,
 	id,
-	format
+	format,
+	volumes
 `
-
-func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
-	var o db.MetadataEntry
-	return o, nil
-}
 
 func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, error) {
 	var out TOut
@@ -114,6 +113,51 @@ func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, erro
 		return out, err
 	}
 	return *jData, nil
+}
+
+func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
+	var o db.MetadataEntry
+	searchTitle := entry.En_Title
+	if searchTitle == "" {
+		searchTitle = entry.Native_Title
+	}
+
+	query := fmt.Sprintf(`
+		query ($search: String) {
+			Media(search: $search, type: MANGA) {
+				%s
+			}
+		}
+	`, ANILIST_MEDIA_QUERY_INFO)
+	anilistQuery := AnilistQuery[string]{
+		Query: query,
+		Variables: map[string]string{
+			"search": searchTitle,
+		},
+	}
+
+	jData, err := mkAnilistRequest[string, AnilistResponse](anilistQuery)
+	if err != nil {
+		return o, err
+	}
+
+	out := jData.Data.Media
+
+	mediaDependant := make(map[string]string)
+	mediaDependant["Manga-volumes"] = fmt.Sprintf("%d", out.Volumes)
+	mdString, _ := json.Marshal(mediaDependant)
+
+	o.MediaDependant = string(mdString)
+
+	o.Title = out.Title.English
+	o.Native_Title = out.Title.Native
+	o.Thumbnail = out.CoverImage.Medium
+	o.ReleaseYear = int64(out.StartDate.Year)
+	o.Description = out.Description
+	o.ItemId = out.Id
+	o.Rating = float64(out.AverageScore)
+
+	return o, nil
 }
 
 func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
@@ -167,7 +211,7 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	outMeta.Rating = float64(out.AverageScore)
 	outMeta.Description = out.Description
 	outMeta.MediaDependant = string(mdString)
-	outMeta.ReleaseYear = out.SeasonYear
+	outMeta.ReleaseYear = int64(out.StartDate.Year)
 
 	return outMeta, nil
 }
@@ -276,6 +320,6 @@ func AnilistById(id string) (db.MetadataEntry, error) {
 	outMeta.Rating = float64(out.AverageScore)
 	outMeta.Description = out.Description
 	outMeta.MediaDependant = string(mdString)
-	outMeta.ReleaseYear = out.SeasonYear
+	outMeta.ReleaseYear = int64(out.StartDate.Year)
 	return outMeta, nil
 }
