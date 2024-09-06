@@ -448,13 +448,13 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                     let container = /**@type {HTMLDialogElement}*/(root?.getElementById("identify-items"))
                     container.innerHTML = ""
 
-                    for(let result of data) {
+                    for (let result of data) {
                         let fig = document.createElement("figure")
 
                         let img = document.createElement("img")
                         img.src = result.Thumbnail
                         img.style.cursor = "pointer"
-                        
+
                         let mediaDep = JSON.parse(result.MediaDependant)
                         console.log(mediaDep)
                         let provider = mediaDep.provider
@@ -463,7 +463,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                             finalizeIdentify(result.ItemId, provider, item.ItemId)
                                 .then(() => refreshDisplayItem(item))
                         })
-                        
+
                         let title = document.createElement("h3")
                         title.innerText = result.Title
                         title.title = result.Native_Title
@@ -632,6 +632,9 @@ async function treeFilterForm() {
     let pgt = /**@type {string}*/(data.get("price-gt"))
     let plt = /**@type {string}*/(data.get("price-lt"))
 
+    let rgt = /**@type {string}*/(data.get("rating-gt"))
+    let rlt = /**@type {string}*/(data.get("rating-lt"))
+
     let formatN = undefined
     if (format.length) {
         formatN = format.map(Number)
@@ -645,6 +648,8 @@ async function treeFilterForm() {
         tags: tags.join(","),
         purchasePriceGt: Number(pgt),
         purchasePriceLt: Number(plt),
+        userRatingGt: Number(rgt),
+        userRatingLt: Number(rlt),
     })
 
     globalsNewUi.results = entries

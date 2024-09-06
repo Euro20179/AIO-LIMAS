@@ -78,7 +78,6 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] monitor folders, automatically add items in them
     - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
 - [x] Ability to act as a proxy for the given {location} of an entry, and stream it
-
   - [ ] reencoding?
 
 <del>
@@ -120,7 +119,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] search
     - [ ] by price
     - [ ] by collection
-    - [ ] by rating
+    - [x] by rating
     - [ ] tags
     - [x] by type
       - [x] multiple

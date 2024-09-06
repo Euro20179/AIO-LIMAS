@@ -159,7 +159,6 @@ div:has(> .close) {
 .title {
     clear: left;
 }
-
 .title::after {
     content: " (" attr(data-type-icon)" ON " attr(data-format-name)")";
 }
