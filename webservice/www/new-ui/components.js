@@ -86,7 +86,7 @@ customElements.define("display-entry", class extends HTMLElement {
         }
 
         let nativeTitle = this.getAttribute("data-native-title")
-        if(nativeTitle){
+        if (nativeTitle) {
             let el = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
             el.title = nativeTitle
         }
@@ -132,19 +132,17 @@ customElements.define("display-entry", class extends HTMLElement {
 
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         let mediaInfoRaw = this.getAttribute("data-media-dependant")
-        if(mediaInfoRaw) {
+        if (mediaInfoRaw) {
             let data = JSON.parse(mediaInfoRaw)
             mkGenericTbl(mediaInfoTbl, data)
-            if(data[`${type}-episodes`]) {
+            if (data[`${type}-episodes`] && this.getAttribute("data-user-status") === "Viewing") {
                 let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
                 let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
                 progress.max = data[`${type}-episodes`]
                 let pos = Number(this.getAttribute("data-user-current-position"))
-                if(!isNaN(pos) && pos != 0) {
-                    progress.value = pos
-                    caption.innerText = `${pos}/${progress.max}`
-                    caption.title = `${Math.round(pos/progress.max * 1000) / 10}%`
-                } 
+                progress.value = pos
+                caption.innerText = `${pos}/${progress.max}`
+                caption.title = `${Math.round(pos / progress.max * 1000) / 10}%`
             }
         }
 

@@ -47,6 +47,9 @@ hr {
 
     font-size: min(1em, 3cqw);
 
+    max-width: 45cqw;
+    overflow: auto auto;
+
     .thumbnail {
         box-shadow: 2px 2px 10px var(--blue);
         border: 1px solid var(--blue);
@@ -166,8 +169,17 @@ div:has(> .close) {
 
 figure.entry-progress {
     justify-self: center;
-        width: 50cqw;
-        margin: 0;
+    width: 25cqw;
+    margin-top: 0;
+
+    figcaption {
+        line-height: 0;
+        margin-top: -1cap;
+        text-align: right;
+        margin-right: calc(1ch);
+
+        color: var(--secondary);
+    }
 }
 
 #identify-items:popover-open {
@@ -180,8 +192,8 @@ progress:where(:not([max]), [value="0"]) {
 }
 
 progress {
-    background: var(--main);
-    width: 50%;
+    background: var(--blue);
+    width: 100%;
 }
 
 progress[max]::-moz-progress-bar,

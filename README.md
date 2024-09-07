@@ -55,7 +55,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [ ] automatic metadata
     - [x] anlist
       - [x] Anime
-      - [ ] Manga
+      - [x] Manga
     - [ ] Steam games
     - [ ] Books
     - [ ] ~tmdb~
@@ -101,6 +101,8 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] notes
     - [ ] thumbnail
     - [x] title
+  - [x] display progress (if it's a show)
+  - [ ] set current episode
   - [x] delete item
   - [x] start/stop, etc
   - [x] fetch metadata
@@ -116,7 +118,6 @@ Physical content will need to be entered in manually, however metadata should be
   - [x] thumbnails
   - [ ] if an item is marked as a copy, display the copy user viewing entry
   - [ ] if an item has children, display the children within the item (if the item is in the inspection area)
-  - [x] display progress (if it's a show)
 
 - [ ] terminal ui
   - simply a list of all items

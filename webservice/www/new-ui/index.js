@@ -379,6 +379,9 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     if (user.Notes) {
         el.setAttribute('data-user-notes', user.Notes)
     }
+    if (user?.Status) {
+        el.setAttribute("data-user-status", user.Status)
+    }
 
     if (item.PurchasePrice) {
         el.setAttribute("data-cost", String(item.PurchasePrice))
