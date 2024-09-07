@@ -325,6 +325,8 @@ func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	user.Notes = parsedParams.Get("notes", user.Notes).(string)
 	user.UserRating = parsedParams.Get("rating", user.UserRating).(float64)
 	user.ViewCount = parsedParams.Get("view-count", user.ViewCount).(int64)
+	user.CurrentPosition = parsedParams.Get("current-position", user.CurrentPosition).(string)
+	println(user.CurrentPosition)
 
 	err := db.UpdateUserViewingEntry(&user)
 	if err != nil{

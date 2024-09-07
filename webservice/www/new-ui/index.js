@@ -357,6 +357,10 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
     el.setAttribute("data-type", item.Type)
 
+    if(user.CurrentPosition) {
+        el.setAttribute('data-user-current-position', user.CurrentPosition)
+    }
+
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }

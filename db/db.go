@@ -41,6 +41,13 @@ func ensureMetadataTitles(db *sql.DB) error{
 	}
 	return nil
 }
+func ensureCurrentPosition(db *sql.DB) error {
+	_, err := db.Exec("ALTER TABLE userViewingInfo ADD COLUMN currentPosition default ''")
+	if err != nil{
+		return err
+	}
+	return nil
+}
 
 func InitDb(dbPath string) {
 	conn, err := sql.Open("sqlite3", dbPath)
@@ -88,7 +95,8 @@ func InitDb(dbPath string) {
 			status TEXT,
 			viewCount INTEGER,
 			userRating NUMERIC,
-			notes TEXT
+			notes TEXT,
+			currentPosition NUMERIC
 		)
 	`)
 	_, err = conn.Exec(`
@@ -102,7 +110,16 @@ func InitDb(dbPath string) {
 	if err != nil {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
-	ensureMetadataTitles(conn)
+
+	err = ensureMetadataTitles(conn)
+	if err != nil{
+		println(err.Error())
+	}
+	err = ensureCurrentPosition(conn)
+	if err != nil{
+		println(err.Error())
+	}
+
 	Db = conn
 }
 
@@ -341,10 +358,11 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 			status = ?,
 			viewCount = ?,
 			userRating = ?,
-			notes = ?
+			notes = ?,
+			currentPosition = ?
 		WHERE
 			itemId = ?
-	`, entry.Status, entry.ViewCount, entry.UserRating, entry.Notes, entry.ItemId)
+	`, entry.Status, entry.ViewCount, entry.UserRating, entry.Notes, entry.CurrentPosition, entry.ItemId)
 
 	return nil
 }

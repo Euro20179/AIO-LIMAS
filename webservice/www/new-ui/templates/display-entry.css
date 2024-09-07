@@ -159,11 +159,32 @@ div:has(> .close) {
 .title {
     clear: left;
 }
+
 .title::after {
     content: " (" attr(data-type-icon)" ON " attr(data-format-name)")";
+}
+
+figure.entry-progress {
+    justify-self: center;
+        width: 50cqw;
+        margin: 0;
 }
 
 #identify-items:popover-open {
     display: flex;
     flex-wrap: wrap;
+}
+
+progress:where(:not([max]), [value="0"]) {
+    display: none;
+}
+
+progress {
+    background: var(--main);
+    width: 50%;
+}
+
+progress[max]::-moz-progress-bar,
+progress[max]::-webkit-progress-bar {
+    background: var(--green);
 }

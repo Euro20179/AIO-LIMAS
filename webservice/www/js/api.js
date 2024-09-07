@@ -6,6 +6,7 @@
  * @property {number} ViewCount
  * @property {number} UserRating
  * @property {string} Notes
+ * @property {string} CurrentPosition
  */
 
 /**

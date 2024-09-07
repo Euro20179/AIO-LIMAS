@@ -52,7 +52,8 @@ customElements.define("display-entry", class extends HTMLElement {
 
     connectedCallback() {
         let type = this.getAttribute("data-type")
-        let typeIcon = typeToSymbol(String(type))
+        type = String(type)
+        let typeIcon = typeToSymbol(type)
         let format = this.getAttribute("data-format")
         let formatName = formatToName(Number(format))
 
@@ -132,7 +133,19 @@ customElements.define("display-entry", class extends HTMLElement {
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         let mediaInfoRaw = this.getAttribute("data-media-dependant")
         if(mediaInfoRaw) {
-            mkGenericTbl(mediaInfoTbl, JSON.parse(mediaInfoRaw))
+            let data = JSON.parse(mediaInfoRaw)
+            mkGenericTbl(mediaInfoTbl, data)
+            if(data[`${type}-episodes`]) {
+                let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
+                let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
+                progress.max = data[`${type}-episodes`]
+                let pos = Number(this.getAttribute("data-user-current-position"))
+                if(!isNaN(pos) && pos != 0) {
+                    progress.value = pos
+                    caption.innerText = `${pos}/${progress.max}`
+                    caption.title = `${Math.round(pos/progress.max * 1000) / 10}%`
+                } 
+            }
         }
 
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))

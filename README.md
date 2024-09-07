@@ -26,7 +26,7 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] drop
     - [x] pause
     - [x] continue
-  - [ ] Track current position as string
+  - [x] Track current position as string
     - Then whichever ui the user uses to play content, will send a request to the server saying that the user is now at position X
   - [x] Replace the start/end lists with event lists
     - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
@@ -116,6 +116,7 @@ Physical content will need to be entered in manually, however metadata should be
   - [x] thumbnails
   - [ ] if an item is marked as a copy, display the copy user viewing entry
   - [ ] if an item has children, display the children within the item (if the item is in the inspection area)
+  - [x] display progress (if it's a show)
 
 - [ ] terminal ui
   - simply a list of all items

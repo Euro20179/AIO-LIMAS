@@ -132,9 +132,9 @@ func main() {
 	finalizeIdentify := api.ApiEndPoint{
 		Handler: api.FinalizeIdentification,
 		QueryParams: api.QueryParams{
-			"identified-id":       api.MkQueryInfo(api.P_NotEmpty, true),
-			"provider": api.MkQueryInfo(api.P_IdIdentifier, true),
-			"apply-to": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+			"identified-id": api.MkQueryInfo(api.P_NotEmpty, true),
+			"provider":      api.MkQueryInfo(api.P_IdIdentifier, true),
+			"apply-to":      api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
 	}
 
@@ -179,10 +179,11 @@ func main() {
 	modUserEntry := api.ApiEndPoint{
 		Handler: api.ModUserEntry,
 		QueryParams: api.QueryParams{
-			"id":         api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"notes":      api.MkQueryInfo(api.P_True, false),
-			"rating":     api.MkQueryInfo(api.P_Float64, false),
-			"view-count": api.MkQueryInfo(api.P_Int64, false),
+			"id":               api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"notes":            api.MkQueryInfo(api.P_True, false),
+			"rating":           api.MkQueryInfo(api.P_Float64, false),
+			"view-count":       api.MkQueryInfo(api.P_Int64, false),
+			"current-position": api.MkQueryInfo(api.P_True, false),
 		},
 	}
 
