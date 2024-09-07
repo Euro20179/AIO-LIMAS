@@ -31,7 +31,7 @@ async function newEntry() {
         if (value == "") continue
         validEntries[name] = value
     }
-    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURI(String(v[1]))}`).join("&")
+    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURIComponent(String(v[1]))}`).join("&")
 
     let res = await fetch(`${apiPath}/add-entry${queryString}`)
     let text = await res.text()

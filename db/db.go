@@ -30,20 +30,21 @@ func dbHasCol(db *sql.DB, colName string) bool {
 	return false
 }
 
-func ensureMetadataTitles(db *sql.DB) error{
+func ensureMetadataTitles(db *sql.DB) error {
 	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN title default ''")
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	_, err = db.Exec("ALTER TABLE metadata ADD COLUMN native_title default ''")
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func ensureCurrentPosition(db *sql.DB) error {
 	_, err := db.Exec("ALTER TABLE userViewingInfo ADD COLUMN currentPosition default ''")
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
@@ -112,11 +113,11 @@ func InitDb(dbPath string) {
 	}
 
 	err = ensureMetadataTitles(conn)
-	if err != nil{
+	if err != nil {
 		println(err.Error())
 	}
 	err = ensureCurrentPosition(conn)
-	if err != nil{
+	if err != nil {
 		println(err.Error())
 	}
 
@@ -163,14 +164,14 @@ func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 func GetUserEventEntryById(id int64) (UserViewingEvent, error) {
 	var res UserViewingEvent
 	rows, err := Db.Query("SELECT * FROM userEventInfo WHERE itemId == ?", id)
-	if err != nil{
+	if err != nil {
 		return res, err
 	}
 	defer rows.Close()
 
 	rows.Next()
 	err = res.ReadEntry(rows)
-	if err != nil{
+	if err != nil {
 		return res, err
 	}
 	return res, nil
@@ -274,9 +275,10 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		userEventQuery := `INSERT INTO userEventInfo (
 		itemId,
 		timestamp,
-		event
-		) VALUES (?, ?, ?)`
-		_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()))
+		event,
+		after
+		) VALUES (?, ?, ?, 0)`
+		_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()), userViewingEntry.Status)
 		if err != nil {
 			return err
 		}
@@ -376,19 +378,19 @@ func CopyUserEventEntries(eventList []UserViewingEvent, newId int64) error {
 	for _, e := range eventList {
 		e.ItemId = newId
 		err := RegisterUserEvent(e)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func ClearUserEventEntries(id int64) error{
+func ClearUserEventEntries(id int64) error {
 	_, err := Db.Exec(`
 		DELETE FROM userEventInfo
 		WHERE itemId = ?
 	`, id)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil
@@ -487,6 +489,7 @@ func Delete(id int64) error {
 	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM metadata WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ?`, id)
+	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ?`, id)
 	return transact.Commit()
 }
 
@@ -647,7 +650,7 @@ func GetEvents(id int64) ([]UserViewingEvent, error) {
 					userEventInfo.after
 				ELSE timestamp
 			END`, id)
-	if err != nil{
+	if err != nil {
 		return out, err
 	}
 
@@ -656,7 +659,7 @@ func GetEvents(id int64) ([]UserViewingEvent, error) {
 	for events.Next() {
 		var event UserViewingEvent
 		err := event.ReadEntry(events)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}

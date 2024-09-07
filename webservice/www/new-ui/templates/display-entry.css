@@ -172,6 +172,11 @@ figure.entry-progress {
     width: 25cqw;
     margin-top: 0;
 
+
+    &:not([data-user-status="Viewing"]) figcaption {
+        display: none;
+    }
+
     figcaption {
         line-height: 0;
         margin-top: -1cap;
@@ -182,9 +187,8 @@ figure.entry-progress {
     }
 }
 
-#identify-items:popover-open {
-    display: flex;
-    flex-wrap: wrap;
+figure.entry-progress:not([data-user-status="Viewing"])::after {
+    content: attr(data-user-status)
 }
 
 progress:where(:not([max]), [value="0"]) {
@@ -199,4 +203,9 @@ progress {
 progress[max]::-moz-progress-bar,
 progress[max]::-webkit-progress-bar {
     background: var(--green);
+}
+
+#identify-items:popover-open {
+    display: flex;
+    flex-wrap: wrap;
 }

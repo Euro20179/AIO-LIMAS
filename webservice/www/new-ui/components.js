@@ -130,6 +130,12 @@ customElements.define("display-entry", class extends HTMLElement {
             mkGenericTbl(infoRawTbl, JSON.parse(infoRaw))
         }
 
+
+        let figure = /**@type {HTMLElement}*/(this.root.querySelector("figure.entry-progress"))
+        figure.setAttribute("data-user-status", String(this.getAttribute("data-user-status")))
+
+        let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
+
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         let mediaInfoRaw = this.getAttribute("data-media-dependant")
         if (mediaInfoRaw) {
@@ -137,7 +143,6 @@ customElements.define("display-entry", class extends HTMLElement {
             mkGenericTbl(mediaInfoTbl, data)
             if (data[`${type}-episodes`] && this.getAttribute("data-user-status") === "Viewing") {
                 let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
-                let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
                 progress.max = data[`${type}-episodes`]
                 let pos = Number(this.getAttribute("data-user-current-position"))
                 progress.value = pos
