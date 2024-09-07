@@ -486,8 +486,8 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
         let ratingSpan = root.querySelector(".rating")
         ratingSpan?.addEventListener("click", _ => {
-            let newRating = Number(prompt("New rating"))
-            if (isNaN(newRating)) {
+            let newRating = prompt("New rating")
+            if (isNaN(Number(newRating)) || newRating === null || newRating === "") {
                 return
             }
 

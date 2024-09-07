@@ -179,7 +179,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 		ty = "Movie"
 	case "MANGA":
 		ty = "Manga"
-	case "SHOW":
+	default:
 		ty = "Show"
 	}
 
