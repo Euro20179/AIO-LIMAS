@@ -66,8 +66,8 @@ func InitDb(dbPath string) {
 			 purchasePrice NUMERIC,
 			 collection TEXT,
 			 type TEXT,
-			 parentId INTEGER
-			 isAnime INTEGER
+			 parentId INTEGER,
+			 isAnime INTEGER,
 			copyOf INTEGER
 		)`)
 	if err != nil {
@@ -97,7 +97,7 @@ func InitDb(dbPath string) {
 			viewCount INTEGER,
 			userRating NUMERIC,
 			notes TEXT,
-			currentPosition NUMERIC
+			currentPosition TEXT
 		)
 	`)
 	_, err = conn.Exec(`
@@ -238,8 +238,10 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			mediaDependant,
 			releaseYear,
 			thumbnail,
-			dataPoints
-		) VALUES (?, ?, ?, ?, ?, ?, ?)`
+			dataPoints,
+			native_title,
+			title
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
@@ -247,7 +249,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		metadataEntry.MediaDependant,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
-		metadataEntry.Datapoints)
+		metadataEntry.Datapoints,
+		metadataEntry.Native_Title,
+		metadataEntry.Title)
 	if err != nil {
 		return err
 	}
@@ -257,8 +261,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			status,
 			viewCount,
 			userRating,
-			notes
-		) VALUES (?, ?, ?, ?, ?)`
+			notes,
+			currentPosition
+		) VALUES (?, ?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(userViewingQuery,
 		userViewingEntry.ItemId,
@@ -266,6 +271,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		userViewingEntry.ViewCount,
 		userViewingEntry.UserRating,
 		userViewingEntry.Notes,
+		userViewingEntry.CurrentPosition,
 	)
 	if err != nil {
 		return err
