@@ -132,7 +132,10 @@ customElements.define("display-entry", class extends HTMLElement {
 
 
         let figure = /**@type {HTMLElement}*/(this.root.querySelector("figure.entry-progress"))
-        figure.setAttribute("data-user-status", String(this.getAttribute("data-user-status")))
+
+        if(this.getAttribute("data-user-status")) {
+            figure.setAttribute("data-user-status", String(this.getAttribute("data-user-status")))
+        }
 
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
 

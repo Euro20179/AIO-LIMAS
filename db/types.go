@@ -60,6 +60,7 @@ const (
 	F_XBOXONE    Format = iota // 11
 	F_XBOX360    Format = iota // 12
 	F_OTHER      Format = iota // 13
+	F_VINYL      Format = iota // 14
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -80,6 +81,7 @@ func ListFormats() map[Format]string {
 		F_XBOXONE:     "XBOXONE",
 		F_XBOX360:     "XBOX360",
 		F_OTHER:       "OTHER",
+		F_VINYL:       "VINYL",
 		F_MOD_DIGITAL: "MOD_DIGITAL",
 	}
 }
@@ -103,7 +105,7 @@ func IsValidFormat(format int64) bool {
 	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}
-	return format >= int64(F_VHS) && format <= int64(F_OTHER)
+	return format >= int64(F_VHS) && format <= int64(F_VINYL)
 }
 
 type MediaTypes string
@@ -139,8 +141,8 @@ type MetadataEntry struct {
 	Thumbnail      string
 	MediaDependant string // see docs/types.md
 	Datapoints     string // JSON {string: string} as a string
-	Title          string //this is different from infoentry in that it's automatically generated
-	Native_Title   string //same with this
+	Title          string // this is different from infoentry in that it's automatically generated
+	Native_Title   string // same with this
 }
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
@@ -217,11 +219,11 @@ func (self *UserViewingEvent) ToJson() ([]byte, error) {
 }
 
 type UserViewingEntry struct {
-	ItemId     int64
-	Status     Status
-	ViewCount  int64
-	UserRating float64
-	Notes      string
+	ItemId          int64
+	Status          Status
+	ViewCount       int64
+	UserRating      float64
+	Notes           string
 	CurrentPosition string
 }
 

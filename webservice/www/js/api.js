@@ -241,24 +241,6 @@ function typeToSymbol(type) {
     }
     return type
 }
-/*
-	F_VHS        Format = iota // 0
-	F_CD         Format = iota // 1
-	F_DVD        Format = iota // 2
-	F_BLURAY     Format = iota // 3
-	F_4KBLURAY   Format = iota // 4
-	F_MANGA      Format = iota // 5
-	F_BOOK       Format = iota // 6
-	F_DIGITAL    Format = iota // 7
-	F_BOARDGAME  Format = iota // 8
-	F_STEAM      Format = iota // 9
-	F_NIN_SWITCH Format = iota // 10
-	F_XBOXONE    Format = iota // 11
-	F_XBOX360    Format = iota // 12
-	F_OTHER      Format = iota // 13
-
-	F_MOD_DIGITAL Format = 0x1000
-    */
 
 /**
     * @param {number} format
@@ -284,7 +266,8 @@ function formatToName(format) {
         "NIN SWITCH",
         "XBOX ONE",
         "XBOX 360",
-        "OTHER"
+        "OTHER",
+        "VINYL"
     ]
     if(format >= formats.length)  {
         return `unknown ${out}`
