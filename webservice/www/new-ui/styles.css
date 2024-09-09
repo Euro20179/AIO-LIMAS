@@ -212,7 +212,7 @@
         }
 
         .sidebar {
-            :not(.sidebar--items):not(.sidebar--items *) {
+            & > div:first-child {
                 position: sticky;
                 left: 0;
             }

@@ -336,6 +336,11 @@ function overwriteEntryMetadata(root, item) {
  * @param {boolean} [updateStats=true]
  */
 function renderDisplayItem(item, el = null, updateStats = true) {
+    //TODO:
+    //when the user clicks on the info table on the side
+    //open a dialog box with the information pre filled in with the information already there
+    //and allow the user to edit each item
+    //when the user clicks submit, it'll send a mod-entry request
     let doEventHooking = false
     if (!el) {
         el = document.createElement("display-entry")
