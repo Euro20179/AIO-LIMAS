@@ -152,12 +152,14 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 		Title: title,
 	}
 
-	infoList, err := metadata.Identify(search, "anilist")
+	infoList, provider, err := metadata.Identify(search, "anilist")
 	if err != nil{
 		wError(w, 500, "Could not identify\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
+	w.Write([]byte(provider))
+	w.Write([]byte("\x02")) //start of text
 	for _, entry  := range infoList {
 		text, err := json.Marshal(entry)
 		if err != nil{

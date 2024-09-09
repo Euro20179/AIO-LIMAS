@@ -26,13 +26,14 @@ func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override 
 	return out, nil
 }
 
-func Identify(identifySearch IdentifyMetadata, identifier string) ([]db.MetadataEntry, error) {
+func Identify(identifySearch IdentifyMetadata, identifier string) ([]db.MetadataEntry, string, error) {
 	fn, contains := IdentifyProviders[identifier]
 	if !contains {
-		return []db.MetadataEntry{}, fmt.Errorf("Invalid provider %s", identifier)
+		return []db.MetadataEntry{}, "", fmt.Errorf("Invalid provider %s", identifier)
 	}
 
-	return fn(identifySearch)
+	res, err := fn(identifySearch)
+	return res, identifier, err
 }
 
 func GetMetadataById(id string, provider string) (db.MetadataEntry, error) {

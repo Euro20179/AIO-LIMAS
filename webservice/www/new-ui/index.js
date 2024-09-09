@@ -255,7 +255,10 @@ function refreshDisplayItem(item) {
 function refreshSidebarItem(item) {
     let el = /**@type {HTMLElement}*/(document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`))
     if (el) {
-        renderSidebarItem(item, el)
+        let user = findUserEntryById(item.ItemId)
+        let meta = findMetadataById(item.ItemId)
+        if (!user || !meta) return
+        applySidebarAttrs(item, user, meta, el)
     } else {
         renderSidebarItem(item)
     }
@@ -482,6 +485,8 @@ function renderDisplayItem(item, el = null, updateStats = true) {
             identify(item.En_Title)
                 .then(res => res.text())
                 .then(jsonL => {
+                    let [provider, rest] = jsonL.split("\x02")
+                    jsonL = rest
                     const data = jsonL
                         .split("\n")
                         .filter(Boolean)
@@ -496,13 +501,15 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                         img.src = result.Thumbnail
                         img.style.cursor = "pointer"
 
-                        let mediaDep = JSON.parse(result.MediaDependant)
-                        console.log(mediaDep)
-                        let provider = mediaDep.provider
-
                         img.addEventListener("click", e => {
                             finalizeIdentify(result.ItemId, provider, item.ItemId)
-                                .then(() => refreshDisplayItem(item))
+                                .then(refreshInfo)
+                                .then(() => {
+                                    let newItem = findEntryById(item.ItemId, globalsNewUi.entries)
+                                    refreshDisplayItem(newItem)
+                                    refreshSidebarItem(newItem)
+                                })
+                                .catch(console.error)
                         })
 
                         let title = document.createElement("h3")
@@ -576,6 +583,34 @@ function removeSidebarItem(item) {
 
 /**
  * @param {InfoEntry} item
+ * @param {UserEntry} user
+ * @param {MetadataEntry} meta
+ * @param {HTMLElement} el
+ */
+function applySidebarAttrs(item, user, meta, el) {
+    el.setAttribute("data-entry-id", String(item.ItemId))
+    el.setAttribute("data-title", item.En_Title)
+
+    el.setAttribute("data-type", item.Type)
+    if (meta?.Thumbnail) {
+        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
+    }
+
+    if (user?.Status) {
+        el.setAttribute("data-user-status", user.Status)
+    }
+
+    if (user.ViewCount > 0) {
+        el.setAttribute("data-user-rating", String(user.UserRating))
+    }
+
+    if (item.PurchasePrice) {
+        el.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
+    }
+}
+
+/**
+ * @param {InfoEntry} item
  * @param {HTMLElement?} [elem=null] 
  */
 function renderSidebarItem(item, elem = null) {
@@ -586,28 +621,9 @@ function renderSidebarItem(item, elem = null) {
     }
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
-    if (!user) return
+    if (!user || !meta) return
 
-    elem.setAttribute("data-entry-id", String(item.ItemId))
-    elem.setAttribute("data-title", item.En_Title)
-
-    elem.setAttribute("data-type", item.Type)
-    if (meta?.Thumbnail) {
-        elem.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    }
-
-    if (user?.Status) {
-        elem.setAttribute("data-user-status", user.Status)
-    }
-
-    if (user.ViewCount > 0) {
-        elem.setAttribute("data-user-rating", String(user.UserRating))
-    }
-
-    if (item.PurchasePrice) {
-        elem.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
-    }
-
+    applySidebarAttrs(item, user, meta, elem)
 
     sidebarItems.append(elem)
 

@@ -134,14 +134,14 @@ customElements.define("display-entry", class extends HTMLElement {
         let figure = /**@type {HTMLElement}*/(this.root.querySelector("figure.entry-progress"))
 
         let userStatus = this.getAttribute("data-user-status")
-        if(userStatus) {
+        if (userStatus) {
             fillElement(this.root, ".entry-progress .status", userStatus, "innerhtml")
         }
 
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
-        
+
         let viewCount = this.getAttribute("data-view-count")
-        if(viewCount) {
+        if (viewCount) {
             fillElement(this.root, ".entry-progress .view-count", viewCount, "innerhtml")
         }
 
@@ -190,6 +190,14 @@ customElements.define("display-entry", class extends HTMLElement {
 })
 
 customElements.define("sidebar-entry", class extends HTMLElement {
+    /**@type {string[]}*/
+    static observedAttributes = [
+        "data-title",
+        "data-thumbnail-src",
+        "data-cost",
+        "data-user-rating",
+        "data-type"
+    ]
     constructor() {
         super()
         let template = /**@type {HTMLTemplateElement}*/(document.getElementById("sidebar-entry"))
@@ -199,31 +207,65 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         this.root = root
 
     }
-    connectedCallback() {
-        let type = this.getAttribute("data-type")
-        let typeIcon = typeToSymbol(String(type))
 
-        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-        let titleText = this.getAttribute("data-title")
-        title.innerText = String(titleText)
-        title.setAttribute("data-type-icon", typeIcon)
+    /**
+     * @param {string} val
+     */
+    ["data-title"](val) {
+        fillElement(this.shadowRoot, ".title", val)
+        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
+        imgEl.alt = `${val} thumbnail`
+    }
 
+    /**
+     * @param {string} val
+     */
+    ["data-thumbnail-src"](val) {
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         imgEl.src = String(this.getAttribute("data-thumbnail-src"))
-        imgEl.alt = `${titleText} thumbnail`
+    }
 
-        let costE = /**@type {HTMLElement}*/(this.root.querySelector(".cost"))
-        let cost = this.getAttribute("data-cost")
-        if (cost) {
-            costE.innerText = `$${cost}`
-        }
+    /**
+     * @param {string} val
+     */
+    ["data-cost"](val) {
+        fillElement(this.shadowRoot, ".cost", `$${val}`)
+    }
 
-        let ratingA = this.getAttribute("data-user-rating")
+    /**
+     * @param {string} val
+     */
+    ["data-user-rating"](val) {
+        let ratingA = val
         if (ratingA) {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
             applyUserRating(rating, ratingE)
             ratingE.innerHTML = ratingA
+        }
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-type"](val) {
+        let typeIcon = typeToSymbol(String(val))
+        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+        title.setAttribute("data-type-icon", typeIcon)
+    }
+
+    /**
+     * @param {string} name
+     * @param {string} ov
+     * @param {string} nv
+     */
+    attributeChangedCallback(name, ov, nv) {
+        let root = this.shadowRoot
+        if (!root) return
+
+        if (name in this) {
+            //@ts-ignore
+            this[name](nv)
         }
     }
 })
