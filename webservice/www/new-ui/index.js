@@ -738,6 +738,13 @@ async function treeFilterForm() {
             entries = entries.sort((a, b) => {
                 return b.PurchasePrice - a.PurchasePrice
             })
+        } else if (sortBy == "general-rating") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                if (!bm || !am) return 0
+                return bm.Rating - am.Rating
+            })
         }
     }
 
