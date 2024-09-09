@@ -681,17 +681,45 @@ async function treeFilterForm() {
         formatN = format.map(Number)
     }
 
-    let entries = await loadQueriedEntries({
+    /**@type {DBQuery}*/
+    let queryData = {
         status: status.join(","),
         type: type.join(","),
         format: formatN,
-        title: search,
         tags: tags.join(","),
         purchasePriceGt: Number(pgt),
         purchasePriceLt: Number(plt),
         userRatingGt: Number(rgt),
         userRatingLt: Number(rlt),
-    })
+    }
+
+    let shortcuts = {
+        "userRatingGt": "r>",
+        "userRatingLt": "r<",
+        "purchasePriceGt": "p>",
+        "purchasePriceLt": "p<",
+    }
+    for (let word of search.split(" ")) {
+        for (let property in queryData) {
+            //@ts-ignore
+            let shortcut = shortcuts[property]
+            let value
+            if (word.startsWith(shortcut)) {
+                value = word.slice(shortcut.length)
+            } else if (word.startsWith(`${property}:`)) {
+                value = word.slice(property.length + 1)
+            } else {
+                continue
+            }
+            search = search.replace(word, "").trim()
+            //@ts-ignore
+            queryData[property] = value
+        }
+    }
+
+    queryData.title = search
+
+    let entries = await loadQueriedEntries(queryData)
 
     globalsNewUi.results = entries
 
