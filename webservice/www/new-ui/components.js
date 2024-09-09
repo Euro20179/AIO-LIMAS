@@ -212,7 +212,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
      * @param {string} val
      */
     ["data-title"](val) {
-        fillElement(this.shadowRoot, ".title", val)
+        fillElement(this.root, ".title", val)
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         imgEl.alt = `${val} thumbnail`
     }
@@ -222,14 +222,14 @@ customElements.define("sidebar-entry", class extends HTMLElement {
      */
     ["data-thumbnail-src"](val) {
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        imgEl.src = String(this.getAttribute("data-thumbnail-src"))
+        imgEl.src = String(val)
     }
 
     /**
      * @param {string} val
      */
     ["data-cost"](val) {
-        fillElement(this.shadowRoot, ".cost", `$${val}`)
+        fillElement(this.root, ".cost", `$${val}`)
     }
 
     /**
