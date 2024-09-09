@@ -681,6 +681,9 @@ async function treeFilterForm() {
         formatN = format.map(Number)
     }
 
+    //TODO:
+    //Add hasTags, notHasTags, and maybeHasTags
+    //allow the user to type #tag #!tag and #?tag in the search bar
     /**@type {DBQuery}*/
     let queryData = {
         status: status.join(","),

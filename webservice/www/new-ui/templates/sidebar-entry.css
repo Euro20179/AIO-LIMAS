@@ -1,20 +1,25 @@
 @import "/css/general.css";
 @import "/new-ui/css-styles/rating-styles.css";
 
+:host(sidebar-entry)::before {
+    counter-increment: item-list;
+    content: counter(item-list);
+}
+
 :host(sidebar-entry) {
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
+        height: 100%;
+
     @media (width < 800px) {
         width: 300px;
     }
-
 
     [data-type-icon]::after {
         content: " (" attr(data-type-icon)")";
     }
 
     .root {
-        border-top: 1px solid white;
-        border-bottom: 1px solid white;
-
         @media (width < 800px) {
             border-left: 1px solid white;
             border-right: 1px solid white;

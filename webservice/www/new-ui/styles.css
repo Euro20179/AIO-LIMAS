@@ -199,6 +199,9 @@
         float: left;
 
         padding: 0;
+
+        counter-reset: item-list;
+
     }
 
     #result-info {
