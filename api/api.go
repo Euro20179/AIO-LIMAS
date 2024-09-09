@@ -238,7 +238,14 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		return
 	}
 
-	success(w)
+	j, err := entryInfo.ToJson()
+	if err != nil{
+		wError(w, 500, "Could not convert new entry to json\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(j)
 }
 
 // simply will list all entries as a json from the entryInfo table

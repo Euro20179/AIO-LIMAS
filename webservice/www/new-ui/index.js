@@ -24,6 +24,7 @@ const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-sta
 
 async function newEntry() {
     const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
+    document.getElementById("new-entry")?.hidePopover()
     const data = new FormData(form)
     /**@type {Record<string, FormDataEntryValue>}*/
     let validEntries = {}
@@ -35,9 +36,18 @@ async function newEntry() {
 
     let res = await fetch(`${apiPath}/add-entry${queryString}`)
     let text = await res.text()
-    alert(text)
-
+    if (res.status !== 200) {
+        alert(text)
+        return
+    }
     await refreshInfo()
+
+    clearMainDisplay()
+    clearSidebar()
+
+    let json = parseJsonL(mkStrItemId(text))
+    renderDisplayItem(json)
+    renderSidebarItem(json)
 }
 
 function resetResultStats() {
@@ -436,15 +446,15 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         })
 
         let viewCount = root.querySelector(".view-count")
-        if(viewCount) {
+        if (viewCount) {
             viewCount.addEventListener("click", e => {
                 let count
                 do {
                     count = prompt("New view count")
-                    if(count == null) {
+                    if (count == null) {
                         return
                     }
-                } while(isNaN(Number(count)))
+                } while (isNaN(Number(count)))
                 fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
                     .then(res => res.text())
                     .then(alert)
