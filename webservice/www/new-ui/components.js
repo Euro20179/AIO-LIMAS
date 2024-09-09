@@ -41,6 +41,23 @@ function applyUserRating(rating, root) {
 }
 
 customElements.define("display-entry", class extends HTMLElement {
+    static observedAttributes = [
+        "data-type",
+        "data-format",
+        "data-title",
+        "data-thumbnail-src",
+        "data-cost",
+        "data-description",
+        "data-user-notes",
+        "data-native-title",
+        "data-user-rating",
+        "data-info-raw",
+        "data-user-status",
+        "data-view-count",
+        "data-media-dependant",
+        "data-user-events",
+    ]
+
     constructor() {
         super()
         let template = /**@type {HTMLTemplateElement}*/(document.getElementById("display-entry"))
@@ -49,65 +66,12 @@ customElements.define("display-entry", class extends HTMLElement {
         root.appendChild(content)
         this.root = root
     }
-
-    connectedCallback() {
-        let type = this.getAttribute("data-type")
-        type = String(type)
-        let typeIcon = typeToSymbol(type)
-        let format = this.getAttribute("data-format")
-        let formatName = formatToName(Number(format))
-
-        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-        let titleText = this.getAttribute("data-title")
-        title.innerText = String(titleText)
-        title.setAttribute("data-type-icon", typeIcon)
-        title.setAttribute("data-format-name", formatName)
-
-        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        let thA = this.getAttribute("data-thumbnail-src")
-        if (thA) {
-            imgEl.src = thA
-            imgEl.alt = String(titleText)
-        }
-
-        let costA = this.getAttribute("data-cost")
-        if (costA) {
-            fillElement(this.root, ".cost", `$${costA}`)
-        }
-
-        let descA = this.getAttribute("data-description")
-        if (descA) {
-            fillElement(this.root, ".description", descA, "innerhtml")
-        }
-
-        let notes = this.getAttribute("data-user-notes")
-        if (notes) {
-            fillElement(this.root, ".notes", notes, "innerhtml")
-        }
-
-        let nativeTitle = this.getAttribute("data-native-title")
-        if (nativeTitle) {
-            let el = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-            el.title = nativeTitle
-        }
-
-        let ratingA = this.getAttribute("data-user-rating")
-        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
-        if (ratingA) {
-            let rating = Number(ratingA)
-            applyUserRating(rating, ratingE)
-            ratingE.innerHTML = ratingA
-        } else {
-            ratingE.innerText = "Unrated"
-        }
-
-
-        /**
-         * @param {HTMLElement} root
-         * @param {Record<any, any>} data
-         */
-        function mkGenericTbl(root, data) {
-            let html = `
+    /**
+     * @param {HTMLElement} root
+     * @param {Record<any, any>} data
+     */
+    mkGenericTbl(root, data) {
+        let html = `
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -117,52 +81,161 @@ customElements.define("display-entry", class extends HTMLElement {
                 <tbody>
             `
 
-            for (let key in data) {
-                html += `<tr><td>${key}</td><td>${data[key]}</td></tr>`
-            }
-            html += "</tbody>"
-            root.innerHTML = html
+        for (let key in data) {
+            html += `<tr><td>${key}</td><td>${data[key]}</td></tr>`
         }
+        html += "</tbody>"
+        root.innerHTML = html
+    }
 
+    /**
+     * @param {string} name
+     * @param {string} ov
+     * @param {string} nv
+     */
+    attributeChangedCallback(name, ov, nv) {
+        let root = this.shadowRoot
+        if (!root) return
+
+        if (name in this) {
+            //@ts-ignore
+            this[name](nv)
+        }
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-type"](val) {
+        let typeIcon = typeToSymbol(val)
+        this.setAttribute("data-type-icon", typeIcon)
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-format"](val) {
+        let formatName = formatToName(Number(val))
+        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+        title.setAttribute("data-format-name", formatName)
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-title"](val) {
+        fillElement(this.root, ".title", val)
+
+        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
+        imgEl.alt = val
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-thumbnail-src"](val) {
+        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
+        imgEl.src = val
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-cost"](val) {
+        fillElement(this.root, ".cost", `$${val}`)
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-description"](val) {
+        fillElement(this.root, ".description", val, "innerhtml")
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-user-notes"](val) {
+        fillElement(this.root, ".notes", val, "innerhtml")
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-native-title"](val) {
+        let el = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+        el.title = val
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-user-rating"](val) {
+        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
+        if (val) {
+            let rating = Number(val)
+            applyUserRating(rating, ratingE)
+            ratingE.innerHTML = val
+        } else {
+            ratingE.innerText = "Unrated"
+        }
+    }
+
+
+    /**
+     * @param {string} val
+     */
+    ["data-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".info-raw"))
-        let infoRaw = this.getAttribute("data-info-raw")
-        if (infoRaw) {
-            mkGenericTbl(infoRawTbl, JSON.parse(infoRaw))
-        }
+        this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+    }
 
+    /**
+     * @param {string} val
+     */
+    ["data-user-status"](val) {
+        fillElement(this.root, ".entry-progress .status", val, "innerhtml")
+    }
 
-        let figure = /**@type {HTMLElement}*/(this.root.querySelector("figure.entry-progress"))
+    /**
+     * @param {string} val
+     */
+    ["data-view-count"](val) {
+        fillElement(this.root, ".entry-progress .view-count", val, "innerhtml")
+    }
 
-        let userStatus = this.getAttribute("data-user-status")
-        if (userStatus) {
-            fillElement(this.root, ".entry-progress .status", userStatus, "innerhtml")
-        }
+    /**
+     * @param {string} val
+     */
+    ["data-media-dependant"](val) {
+        let type = this.getAttribute("data-type")
+        type = String(type)
 
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
 
-        let viewCount = this.getAttribute("data-view-count")
-        if (viewCount) {
-            fillElement(this.root, ".entry-progress .view-count", viewCount, "innerhtml")
-        }
+        let data = JSON.parse(val)
 
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
-        let mediaInfoRaw = this.getAttribute("data-media-dependant")
-        if (mediaInfoRaw) {
-            let data = JSON.parse(mediaInfoRaw)
-            mkGenericTbl(mediaInfoTbl, data)
-            if (data[`${type}-episodes`] && this.getAttribute("data-user-status") === "Viewing") {
-                let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
-                progress.max = data[`${type}-episodes`]
-                let pos = Number(this.getAttribute("data-user-current-position"))
-                progress.value = pos
-                caption.innerText = `${pos}/${progress.max}`
-                caption.title = `${Math.round(pos / progress.max * 1000) / 10}%`
-            }
-        }
+        this.mkGenericTbl(mediaInfoTbl, data)
 
+        if (data[`${type}-episodes`] && this.getAttribute("data-user-status") === "Viewing") {
+            let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
+            progress.max = data[`${type}-episodes`]
+
+            let pos = Number(this.getAttribute("data-user-current-position"))
+            progress.value = pos
+
+            caption.innerText = `${pos}/${progress.max}`
+            caption.title = `${Math.round(pos / progress.max * 1000) / 10}%`
+        }
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-user-events"](val) {
         let eventsTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".user-actions"))
-        let eventsA = this.getAttribute("data-user-events")
-        if (eventsA) {
+        if (val) {
             let html = `
                 <thead>
                     <tr>
@@ -172,7 +245,7 @@ customElements.define("display-entry", class extends HTMLElement {
                 </thead>
                 <tbody>
             `
-            for (let event of eventsA.split(",")) {
+            for (let event of val.split(",")) {
                 let [name, ts] = event.split(":")
                 let date = new Date(Number(ts))
                 let time = "unknown"

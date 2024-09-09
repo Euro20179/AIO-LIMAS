@@ -243,7 +243,11 @@ function hookActionButtons(shadowRoot, item) {
 function refreshDisplayItem(item) {
     let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
     if (el) {
-        renderDisplayItem(item, el, false)
+        let user = findUserEntryById(item.ItemId)
+        let events = findUserEventsById(item.ItemId)
+        let meta = findMetadataById(item.ItemId)
+        if (!user || !events || !meta) return
+        applyDisplayAttrs(item, user, meta, events, el)
     } else {
         renderDisplayItem(item, null, false)
     }
@@ -345,6 +349,68 @@ function overwriteEntryMetadata(root, item) {
 
 /**
  * @param {InfoEntry} item
+ * @param {UserEntry} user
+ * @param {MetadataEntry} meta
+ * @param {UserEvent[]} events
+ * @param {HTMLElement} el
+ */
+function applyDisplayAttrs(item, user, meta, events, el) {
+    el.setAttribute("data-title", item.En_Title)
+    el.setAttribute("data-item-id", String(item.ItemId))
+    el.setAttribute("data-format", String(item.Format))
+
+    el.setAttribute("data-view-count", String(user.ViewCount))
+
+    el.setAttribute("data-type", item.Type)
+
+    if (user.CurrentPosition) {
+        el.setAttribute('data-user-current-position', user.CurrentPosition)
+    }
+
+    if (meta.Thumbnail) {
+        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
+    }
+
+    if (meta.Title) {
+        el.setAttribute("data-true-title", meta.Title)
+    }
+    if (meta.Native_Title) {
+        el.setAttribute("data-native-title", meta.Native_Title)
+    }
+
+    if (user.ViewCount > 0) {
+        el.setAttribute("data-user-rating", String(user.UserRating))
+    }
+
+    if (user.Notes) {
+        el.setAttribute('data-user-notes', user.Notes)
+    }
+    if (user.Status) {
+        el.setAttribute("data-user-status", user.Status)
+    }
+
+    if (item.PurchasePrice) {
+        el.setAttribute("data-cost", String(item.PurchasePrice))
+    }
+
+    if (meta.Description) {
+        el.setAttribute("data-description", meta.Description)
+    }
+
+    if (events.length) {
+        let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}`).join(",")
+        el.setAttribute("data-user-events", eventsStr)
+    }
+
+    if (meta?.MediaDependant) {
+        el.setAttribute("data-media-dependant", meta.MediaDependant)
+    }
+
+    el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
+}
+
+/**
+ * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
  * @param {boolean} [updateStats=true]
  */
@@ -360,67 +426,17 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         doEventHooking = true
     }
 
-    el.setAttribute("data-title", item.En_Title)
-    el.setAttribute("data-item-id", String(item.ItemId))
-    el.setAttribute("data-format", String(item.Format))
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
-    if (!user) return
-
-    el.setAttribute("data-view-count", String(user.ViewCount))
+    if (!user || !meta || !events) return
 
     if (updateStats) {
         changeResultStatsWithItem(item)
     }
 
-    el.setAttribute("data-type", item.Type)
-
-    if (user.CurrentPosition) {
-        el.setAttribute('data-user-current-position', user.CurrentPosition)
-    }
-
-    if (meta?.Thumbnail) {
-        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    }
-
-    if (meta?.Title) {
-        el.setAttribute("data-true-title", meta.Title)
-    }
-    if (meta?.Native_Title) {
-        el.setAttribute("data-native-title", meta.Native_Title)
-    }
-
-    if (user.ViewCount > 0) {
-        el.setAttribute("data-user-rating", String(user.UserRating))
-    }
-
-    if (user.Notes) {
-        el.setAttribute('data-user-notes', user.Notes)
-    }
-    if (user?.Status) {
-        el.setAttribute("data-user-status", user.Status)
-    }
-
-    if (item.PurchasePrice) {
-        el.setAttribute("data-cost", String(item.PurchasePrice))
-    }
-
-    if (meta?.Description) {
-        el.setAttribute("data-description", meta.Description)
-    }
-
-    if (events.length) {
-        let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}`).join(",")
-        el.setAttribute("data-user-events", eventsStr)
-    }
-
-    if (meta?.MediaDependant) {
-        el.setAttribute("data-media-dependant", meta.MediaDependant)
-    }
-
-    el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
+    applyDisplayAttrs(item, user, meta, events, el)
 
     displayItems.append(el)
 
