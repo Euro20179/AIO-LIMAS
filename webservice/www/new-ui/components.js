@@ -133,11 +133,17 @@ customElements.define("display-entry", class extends HTMLElement {
 
         let figure = /**@type {HTMLElement}*/(this.root.querySelector("figure.entry-progress"))
 
-        if(this.getAttribute("data-user-status")) {
-            figure.setAttribute("data-user-status", String(this.getAttribute("data-user-status")))
+        let userStatus = this.getAttribute("data-user-status")
+        if(userStatus) {
+            fillElement(this.root, ".entry-progress .status", userStatus, "innerhtml")
         }
 
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
+        
+        let viewCount = this.getAttribute("data-view-count")
+        if(viewCount) {
+            fillElement(this.root, ".entry-progress .view-count", viewCount, "innerhtml")
+        }
 
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         let mediaInfoRaw = this.getAttribute("data-media-dependant")

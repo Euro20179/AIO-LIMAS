@@ -351,13 +351,15 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let events = findUserEventsById(item.ItemId)
     if (!user) return
 
+    el.setAttribute("data-view-count", String(user.ViewCount))
+
     if (updateStats) {
         changeResultStatsWithItem(item)
     }
 
     el.setAttribute("data-type", item.Type)
 
-    if(user.CurrentPosition) {
+    if (user.CurrentPosition) {
         el.setAttribute('data-user-current-position', user.CurrentPosition)
     }
 
@@ -427,6 +429,23 @@ function renderDisplayItem(item, el = null, updateStats = true) {
                 .then(res => res?.text())
                 .then(console.log)
         })
+
+        let viewCount = root.querySelector(".view-count")
+        if(viewCount) {
+            viewCount.addEventListener("click", e => {
+                let count
+                do {
+                    count = prompt("New view count")
+                    if(count == null) {
+                        return
+                    }
+                } while(isNaN(Number(count)))
+                fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
+                    .then(res => res.text())
+                    .then(alert)
+                    .catch(console.error)
+            })
+        }
 
         let deleteBtn = root.querySelector(".delete")
         deleteBtn?.addEventListener("click", _ => {

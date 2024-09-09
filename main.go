@@ -184,6 +184,7 @@ func main() {
 			"rating":           api.MkQueryInfo(api.P_Float64, false),
 			"view-count":       api.MkQueryInfo(api.P_Int64, false),
 			"current-position": api.MkQueryInfo(api.P_True, false),
+			"status": api.MkQueryInfo(api.P_UserStatus, false),
 		},
 	}
 

@@ -172,6 +172,13 @@ figure.entry-progress {
     width: 25cqw;
     margin-top: 0;
 
+    .view-count::before {
+        content: "Viewed: "
+    }
+
+    .view-count::after {
+        content: " times"
+    }
 
     &:not([data-user-status="Viewing"]) figcaption {
         display: none;
@@ -185,10 +192,6 @@ figure.entry-progress {
 
         color: var(--secondary);
     }
-}
-
-figure.entry-progress:not([data-user-status="Viewing"])::after {
-    content: attr(data-user-status)
 }
 
 progress:where(:not([max]), [value="0"]) {
