@@ -35,6 +35,7 @@ Physical content will need to be entered in manually, however metadata should be
     - this actually might be really good as it's own table that looks something like this
       `itemId | timestamp | event`
     - Even if the items are entered into the table out of order, and the ids aren't in order, we can always use `SELECT * FROM userEvents WHERE itemId = ? ORDER BY timestamp`
+    - [x] store item created/added as an event
 - [ ] Library features
   - [ ] internet search
     - i can do something like `/api/v1/internet-search` with similar params to addentry, except
@@ -85,8 +86,9 @@ Physical content will need to be entered in manually, however metadata should be
     - [x] by price
     - [x] by rating
     - [ ] alpha
+    - [ ] release year
   - [ ] search
-    - [ ] by price
+    - [x] by price
     - [ ] by collection
     - [x] by rating
     - [x] tags

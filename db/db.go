@@ -290,6 +290,11 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		}
 	}
 
+	err = RegisterBasicUserEvent("Added", metadataEntry.ItemId)
+	if err != nil{
+		return err
+	}
+
 	return nil
 }
 

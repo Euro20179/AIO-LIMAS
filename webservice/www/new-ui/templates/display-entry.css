@@ -29,6 +29,7 @@ hr {
     @container (width < 800px) {
         min-height: 50%;
     }
+
 }
 
 
