@@ -82,8 +82,13 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 	}
 
 	mediaDep := make(map[string]string)
-	mediaDep[fmt.Sprintf("%s-length", info.Type)] = strings.Split(jData.Runtime, " ")[0]
+	if info.Type == "Show" {
+		mediaDep["Show-episode-duration"] = strings.Split(jData.Runtime, " ")[0]
+	} else {
+		mediaDep[fmt.Sprintf("%s-length", info.Type)] = strings.Split(jData.Runtime, " ")[0]
+	}
 	mediaDep[fmt.Sprintf("%s-imdbid", info.Type)] = jData.ImdbID
+
 	if jData.ImdbRating != "N/A" {
 		res, err := strconv.ParseFloat(jData.ImdbRating, 64)
 		if err == nil{

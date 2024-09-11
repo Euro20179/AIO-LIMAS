@@ -51,6 +51,9 @@ async function newEntry() {
 }
 
 function resetResultStats() {
+    for(let node of statsOutput.querySelectorAll(".stat") || []) {
+        node.setAttribute("data-value", "0")
+    }
     return {
         totalCost: 0,
         count: 0
@@ -72,7 +75,7 @@ let resultStats = resetResultStats()
 function changeResultStats(key, value) {
     let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-name="${key}"]`))
     resultStats[key] += value
-    el.innerText = String(resultStats[key])
+    el.setAttribute("data-value", String(resultStats[key]))
 }
 
 /**
@@ -498,7 +501,8 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
         let identifyBtn = /**@type {HTMLButtonElement}*/(root.querySelector(".identify"))
         identifyBtn?.addEventListener("click", e => {
-            identify(item.En_Title)
+            let provider = prompt("provider: anilist")
+            identify(item.En_Title, provider || "anilist")
                 .then(res => res.text())
                 .then(jsonL => {
                     let [provider, rest] = jsonL.split("\x02")
@@ -676,6 +680,8 @@ document.getElementById("view-all")?.addEventListener("change", e => {
         for (let item of globalsNewUi.results) {
             renderDisplayItem(item, null, false)
         }
+    } else {
+        resultStats = resetResultStats()
     }
 })
 

@@ -126,6 +126,7 @@ func main() {
 		Handler: api.IdentifyWithSearch,
 		QueryParams: api.QueryParams{
 			"title": api.MkQueryInfo(api.P_NotEmpty, true),
+			"provider": api.MkQueryInfo(api.P_Identifier, true),
 		},
 	}
 

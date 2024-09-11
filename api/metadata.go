@@ -1,16 +1,17 @@
 package api
 
 import (
-	"aiolimas/db"
-	"aiolimas/metadata"
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"aiolimas/db"
+	"aiolimas/metadata"
 )
 
 func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
@@ -18,7 +19,7 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	mainEntry, err := db.GetInfoEntryById(entry.ItemId)
 
 	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
@@ -29,13 +30,13 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	}
 
 	newMeta, err := metadata.GetMetadata(&mainEntry, &metadataEntry, providerOverride)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
 	newMeta.ItemId = mainEntry.ItemId
 	err = db.UpdateMetadataEntry(&newMeta)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
@@ -45,19 +46,19 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 
 func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
 
 	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
 
 	data, err := json.Marshal(metadataEntry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
@@ -68,20 +69,20 @@ func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 
 func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not find entry\n")
 		return
 	}
 
 	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
 
 	rating := req.URL.Query().Get("rating")
 	ratingF, err := strconv.ParseFloat(rating, 64)
-	if err != nil{
+	if err != nil {
 		ratingF = metadataEntry.Rating
 	}
 	metadataEntry.Rating = ratingF
@@ -93,7 +94,7 @@ func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 
 	releaseYear := req.URL.Query().Get("release-year")
 	releaseYearInt, err := strconv.ParseInt(releaseYear, 10, 64)
-	if err != nil{
+	if err != nil {
 		releaseYearInt = metadataEntry.ReleaseYear
 	}
 	metadataEntry.ReleaseYear = releaseYearInt
@@ -120,7 +121,7 @@ func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 
 func ListMetadata(w http.ResponseWriter, req *http.Request) {
 	items, err := db.Db.Query("SELECT * FROM metadata")
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
@@ -131,7 +132,7 @@ func ListMetadata(w http.ResponseWriter, req *http.Request) {
 	for items.Next() {
 		var row db.MetadataEntry
 		err := row.ReadEntry(items)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -148,21 +149,21 @@ func ListMetadata(w http.ResponseWriter, req *http.Request) {
 
 func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms ParsedParams) {
 	title := parsedParsms["title"].(string)
-	search := metadata.IdentifyMetadata {
+	search := metadata.IdentifyMetadata{
 		Title: title,
 	}
 
-	infoList, provider, err := metadata.Identify(search, "anilist")
-	if err != nil{
+	infoList, provider, err := metadata.Identify(search, parsedParsms["provider"].(string))
+	if err != nil {
 		wError(w, 500, "Could not identify\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
 	w.Write([]byte(provider))
-	w.Write([]byte("\x02")) //start of text
-	for _, entry  := range infoList {
+	w.Write([]byte("\x02")) // start of text
+	for _, entry := range infoList {
 		text, err := json.Marshal(entry)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -177,16 +178,15 @@ func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedPara
 	provider := parsedParams["provider"].(string)
 
 	data, err := metadata.GetMetadataById(id, provider)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not get metadata\n%s", err.Error())
 		return
 	}
 
 	data.ItemId = itemToApplyTo.ItemId
 	err = db.UpdateMetadataEntry(&data)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to update metadata\n%s", err.Error())
 		return
 	}
-
 }

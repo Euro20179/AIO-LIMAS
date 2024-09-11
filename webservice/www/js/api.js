@@ -277,9 +277,10 @@ function formatToName(format) {
 
 /**
     * @param {string} title
+    * @param {string} provider
     */
-async function identify(title) {
-    return await fetch(`${apiPath}/metadata/identify?title=${encodeURIComponent(title)}`)
+async function identify(title, provider) {
+    return await fetch(`${apiPath}/metadata/identify?title=${encodeURIComponent(title)}&provider=${provider}`)
 }
 
 /**

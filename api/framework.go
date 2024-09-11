@@ -211,6 +211,13 @@ func P_IdIdentifier(in string) (any, error) {
 	return "", fmt.Errorf("Invalid id identifier: '%s'", in)
 }
 
+func P_Identifier(in string) (any, error) {
+	if metadata.IsValidIdentifier(in) {
+		return in, nil
+	}
+	return "", fmt.Errorf("Invalid identifier: '%s'", in)
+}
+
 func As_JsonMarshal(parser Parser) Parser {
 	return func(in string) (any, error) {
 		v, err := parser(in)

@@ -342,3 +342,17 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         }
     }
 })
+
+customElements.define("entries-statistic", class extends HTMLElement {
+    static observedAttributes = ["data-value"]
+
+    /**
+    * @param {string} name
+    * @param {string} ov
+    * @param {string} nv
+    */
+    attributeChangedCallback(name, ov, nv) {
+        if(name != "data-value") return
+        this.innerText = nv
+    }
+})
