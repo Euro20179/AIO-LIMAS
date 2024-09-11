@@ -64,6 +64,7 @@ func main() {
 			"location":        api.MkQueryInfo(api.P_True, false),
 			"tags":            api.MkQueryInfo(api.P_True, false),
 			"is-anime":        api.MkQueryInfo(api.P_Bool, false),
+			"type":            api.MkQueryInfo(api.P_EntryType, false),
 		},
 	}
 
@@ -125,7 +126,7 @@ func main() {
 	identify := api.ApiEndPoint{
 		Handler: api.IdentifyWithSearch,
 		QueryParams: api.QueryParams{
-			"title": api.MkQueryInfo(api.P_NotEmpty, true),
+			"title":    api.MkQueryInfo(api.P_NotEmpty, true),
 			"provider": api.MkQueryInfo(api.P_Identifier, true),
 		},
 	}
@@ -185,7 +186,7 @@ func main() {
 			"rating":           api.MkQueryInfo(api.P_Float64, false),
 			"view-count":       api.MkQueryInfo(api.P_Int64, false),
 			"current-position": api.MkQueryInfo(api.P_True, false),
-			"status": api.MkQueryInfo(api.P_UserStatus, false),
+			"status":           api.MkQueryInfo(api.P_UserStatus, false),
 		},
 	}
 

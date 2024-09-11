@@ -142,6 +142,8 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.IsAnime = isAnime
 	}
 
+	info.Type = parsedParams.Get("type", info.Type).(db.MediaTypes)
+
 	err := db.UpdateInfoEntry(&info)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())

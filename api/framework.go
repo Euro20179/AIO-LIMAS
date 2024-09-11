@@ -168,7 +168,7 @@ func P_EntryType(in string) (any, error) {
 	if db.IsValidType(in) {
 		return db.MediaTypes(in), nil
 	}
-	return "Show", fmt.Errorf("Invalid entry type: '%s'", in)
+	return db.MediaTypes("Show"), fmt.Errorf("Invalid entry type: '%s'", in)
 }
 
 func P_MetaProvider(in string) (any, error) {
