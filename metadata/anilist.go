@@ -136,6 +136,7 @@ func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
 	o.Description = out.Description
 	o.ItemId = out.Id
 	o.Rating = float64(out.AverageScore)
+	o.RatingMax = 100
 
 	return o, nil
 }
@@ -200,6 +201,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 	}
 	outMeta.Thumbnail = aniInfo.CoverImage.Large
 	outMeta.Rating = float64(aniInfo.AverageScore)
+	outMeta.RatingMax = 100
 	outMeta.Description = aniInfo.Description
 	outMeta.MediaDependant = string(mdString)
 	outMeta.ReleaseYear = int64(aniInfo.StartDate.Year)

@@ -134,8 +134,11 @@ func IsValidType(ty string) bool {
 }
 
 type MetadataEntry struct {
-	ItemId         int64
-	Rating         float64
+	ItemId int64
+	Rating float64
+	// different sources will do ratings differently,
+	// let them set the max rating
+	RatingMax      float64
 	Description    string
 	ReleaseYear    int64
 	Thumbnail      string
@@ -156,6 +159,7 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Datapoints,
 		&self.Title,
 		&self.Native_Title,
+		&self.RatingMax,
 	)
 }
 

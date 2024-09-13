@@ -95,6 +95,7 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 			out.Rating = res
 		}
 	}
+	out.RatingMax = 10
 
 	mdStr, err := json.Marshal(mediaDep)
 	if err != nil{

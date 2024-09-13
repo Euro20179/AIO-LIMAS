@@ -385,6 +385,11 @@ function applyDisplayAttrs(item, user, meta, events, el) {
         el.setAttribute("data-user-rating", String(user.UserRating))
     }
 
+    if(meta.Rating) {
+        el.setAttribute("data-audience-rating-max", String(meta.RatingMax))
+        el.setAttribute("data-audience-rating", String(meta.Rating))
+    }
+
     if (user.Notes) {
         el.setAttribute('data-user-notes', user.Notes)
     }

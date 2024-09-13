@@ -51,6 +51,8 @@ customElements.define("display-entry", class extends HTMLElement {
         "data-user-notes",
         "data-native-title",
         "data-user-rating",
+        "data-audience-rating",
+        "data-audience-rating-max",
         "data-info-raw",
         "data-user-status",
         "data-view-count",
@@ -177,6 +179,25 @@ customElements.define("display-entry", class extends HTMLElement {
         if (val) {
             let rating = Number(val)
             applyUserRating(rating, ratingE)
+            ratingE.innerHTML = val
+        } else {
+            ratingE.innerText = "Unrated"
+        }
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-audience-rating"](val) {
+        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".audience-rating"))
+        let max = Number(this.getAttribute("data-audience-rating-max"))
+        if(val) {
+            let rating = Number(val)
+            let normalizedRating = rating
+            if(max !== 0){
+                normalizedRating = rating / max * 100
+            }
+            applyUserRating(normalizedRating, ratingE)
             ratingE.innerHTML = val
         } else {
             ratingE.innerText = "Unrated"

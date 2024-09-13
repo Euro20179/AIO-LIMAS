@@ -42,6 +42,11 @@ func ensureMetadataTitles(db *sql.DB) error {
 	return nil
 }
 
+func ensureRatingMax(db *sql.DB) error {
+	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN ratingMax default 0")
+	return err
+}
+
 func ensureCurrentPosition(db *sql.DB) error {
 	_, err := db.Exec("ALTER TABLE userViewingInfo ADD COLUMN currentPosition default ''")
 	if err != nil {
@@ -83,7 +88,8 @@ func InitDb(dbPath string) {
 			mediaDependant TEXT,
 			dataPoints TEXT,
 			native_title TEXT,
-			title TEXT
+			title TEXT,
+			ratingMax NUMERIC
 		)
 `)
 	if err != nil {
@@ -118,6 +124,11 @@ func InitDb(dbPath string) {
 	}
 	err = ensureCurrentPosition(conn)
 	if err != nil {
+		println(err.Error())
+	}
+
+	err = ensureRatingMax(conn)
+	if err != nil{
 		println(err.Error())
 	}
 
@@ -240,18 +251,20 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			thumbnail,
 			dataPoints,
 			native_title,
-			title
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			title,
+			ratingMax
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
-		metadataEntry.Rating,
-		metadataEntry.Description,
+		_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
+			metadataEntry.Rating,
+			metadataEntry.Description,
 		metadataEntry.MediaDependant,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
 		metadataEntry.Datapoints,
 		metadataEntry.Native_Title,
-		metadataEntry.Title)
+		metadataEntry.Title,
+		metadataEntry.RatingMax)
 	if err != nil {
 		return err
 	}
@@ -418,12 +431,13 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 			mediaDependant = ?,
 			dataPoints = ?,
 			title = ?,
-			native_title = ?
+			native_title = ?,
+			ratingMax = ?
 		WHERE
 			itemId = ?
 	`, entry.Rating, entry.Description,
 		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
-		entry.Datapoints, entry.Title, entry.Native_Title, entry.ItemId)
+		entry.Datapoints, entry.Title, entry.Native_Title, entry.RatingMax, entry.ItemId)
 	if err != nil {
 		return err
 	}

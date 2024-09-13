@@ -39,6 +39,7 @@
  * @type {object}
  * @property {bigint} ItemId
  * @property {number} Rating
+ * @property {number} RatingMax
  * @property {string} Description
  * @property {number} ReleaseYear
  * @property {string} Thumbnail
