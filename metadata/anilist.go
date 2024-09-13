@@ -190,8 +190,6 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 
 	mdString, _ := json.Marshal(mediaDependant)
 
-	println(aniInfo.Title.Native, aniInfo.Title.English)
-
 	if aniInfo.Title.Native != "" {
 		outMeta.Native_Title = aniInfo.Title.Native
 	}
@@ -293,6 +291,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 				continue
 			}
 		}
+		cur.ItemId = entry.Id
 		outMeta = append(outMeta, cur)
 	}
 
@@ -345,5 +344,6 @@ func AnilistById(id string) (db.MetadataEntry, error) {
 			return outMeta, err
 		}
 	}
+	outMeta.ItemId = out.Id
 	return outMeta, nil
 }
