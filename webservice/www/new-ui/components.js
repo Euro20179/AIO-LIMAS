@@ -108,6 +108,8 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-type"](val) {
         let typeIcon = typeToSymbol(val)
+        let title = this.root.querySelector(".title")
+        title?.setAttribute("data-type-icon", typeIcon)
         this.setAttribute("data-type-icon", typeIcon)
     }
 
