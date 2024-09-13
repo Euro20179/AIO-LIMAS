@@ -51,7 +51,7 @@ async function newEntry() {
 }
 
 function resetResultStats() {
-    for(let node of statsOutput.querySelectorAll(".stat") || []) {
+    for (let node of statsOutput.querySelectorAll(".stat") || []) {
         node.setAttribute("data-value", "0")
     }
     return {
@@ -385,7 +385,7 @@ function applyDisplayAttrs(item, user, meta, events, el) {
         el.setAttribute("data-user-rating", String(user.UserRating))
     }
 
-    if(meta.Rating) {
+    if (meta.Rating) {
         el.setAttribute("data-audience-rating-max", String(meta.RatingMax))
         el.setAttribute("data-audience-rating", String(meta.Rating))
     }
@@ -786,7 +786,23 @@ async function treeFilterForm() {
                 let am = findMetadataById(a.ItemId)
                 let bm = findMetadataById(b.ItemId)
                 if (!bm || !am) return 0
-                return bm.Rating - am.Rating
+                return normalizeRating(bm.Rating, bm.RatingMax || 100) - normalizeRating(am.Rating, am.RatingMax || 100)
+            })
+        } else if (sortBy == "rating-disparity") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let au = findUserEntryById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                let bu = findUserEntryById(b.ItemId)
+                if (!bm || !am) return 0
+                let bGeneral = normalizeRating(bm.Rating, bm.RatingMax || 100)
+                let aGeneral = normalizeRating(am.Rating, am.RatingMax || 100)
+
+                let aUser = Number(au?.UserRating)
+                let bUser = Number(bu?.UserRating)
+
+
+                return (aGeneral - aUser) - (bGeneral - bUser)
             })
         }
     }
@@ -797,6 +813,14 @@ async function treeFilterForm() {
         return
     }
     renderSidebar(entries)
+}
+
+/**
+ * @param {number} rating
+ * @param {number} maxRating
+ */
+function normalizeRating(rating, maxRating) {
+    return rating / maxRating * 100
 }
 
 async function refreshInfo() {
