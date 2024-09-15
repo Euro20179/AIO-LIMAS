@@ -193,6 +193,9 @@ func OmdbIdIdentifier(id string) (db.MetadataEntry, error) {
 		return out, errors.New("No api key")
 	}
 
+	for len(id) < 7 {
+		id = "0" + id
+	}
 	url := fmt.Sprintf(
 		"https://www.omdbapi.com/?apikey=%s&i=%s",
 		key,
