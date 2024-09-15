@@ -121,6 +121,7 @@ func main() {
 
 	makeEndpoints(apiRoot+"/type", EndPointMap{
 		"format": api.ListFormats,
+		"type": api.ListTypes,
 	})
 
 	identify := api.ApiEndPoint{

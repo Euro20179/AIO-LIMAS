@@ -346,6 +346,8 @@ func (self *UserViewingEntry) Resume() error {
 
 type EntryTree struct {
 	EntryInfo InfoEntry
+	MetaInfo MetadataEntry
+	UserInfo UserViewingEntry
 	Children  []string
 	Copies    []string
 }
@@ -364,7 +366,19 @@ func BuildEntryTree() (map[int64]EntryTree, error) {
 
 	for allRows.Next() {
 		var cur EntryTree
+
 		err := cur.EntryInfo.ReadEntry(allRows)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		cur.UserInfo, err = GetUserViewEntryById(cur.EntryInfo.ItemId)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		cur.MetaInfo, err = GetMetadataEntryById(cur.EntryInfo.ItemId)
 		if err != nil {
 			println(err.Error())
 			continue

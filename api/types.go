@@ -15,3 +15,13 @@ func ListFormats(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 	w.Write(text)
 }
+
+func ListTypes(w http.ResponseWriter, req *http.Request) {
+	text, err := json.Marshal(db.ListMediaTypes())
+	if err != nil{
+		wError(w, 500, "Could not encode types\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(text)
+}
