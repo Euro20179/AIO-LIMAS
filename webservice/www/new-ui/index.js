@@ -506,7 +506,7 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
         let identifyBtn = /**@type {HTMLButtonElement}*/(root.querySelector(".identify"))
         identifyBtn?.addEventListener("click", e => {
-            let provider = prompt("provider: anilist")
+            let provider = prompt("provider: anilist, omdb")
             identify(item.En_Title, provider || "anilist")
                 .then(res => res.text())
                 .then(jsonL => {

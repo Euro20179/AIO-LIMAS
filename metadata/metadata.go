@@ -79,10 +79,12 @@ var Providers ProviderMap = ProviderMap{
 type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error) 
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
+	"omdb": OmdbIdentifier,
 }
 
 type IdIdentifier func(id string) (db.MetadataEntry, error)
 type IdIdentifiersMap = map[string]IdIdentifier
 var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap {
 	"anilist": AnilistById,
+	"omdb": OmdbIdIdentifier,
 }
