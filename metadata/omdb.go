@@ -83,8 +83,16 @@ func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
 	out.Description = result.Plot
 	out.Thumbnail = result.Poster
 
-	if n, err := strconv.ParseInt(result.Year, 10, 64); err == nil {
+	yearSep := "–"
+	if strings.Contains(result.Year, yearSep) {
+		result.Year = strings.Split(result.Year, yearSep)[0]
+	}
+
+	n, err := strconv.ParseInt(result.Year, 10, 64)
+	if err == nil {
 		out.ReleaseYear = n
+	} else {
+		println(err.Error())
 	}
 
 	return out, nil
