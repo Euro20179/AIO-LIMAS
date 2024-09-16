@@ -54,6 +54,7 @@ type AnlistMediaEntry struct {
 	Id      int64  `json:"id"`
 	Format  string `json:"format"`
 	Volumes int    `json:"volumes"`
+	SeasonYear int `json:"seasonYear"`
 }
 type AnilistResponse struct {
 	Data struct {
@@ -76,6 +77,9 @@ const ANILIST_MEDIA_QUERY_INFO = `
 	},
 	coverImage {
 		large
+	},
+	startDate {
+		year
 	},
 	averageScore,
 	duration,
@@ -199,6 +203,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 	} else if aniInfo.Title.Romaji != "" {
 		outMeta.Title = aniInfo.Title.Romaji
 	}
+	// println(aniInfo.StartDate.Year)
 	outMeta.Thumbnail = aniInfo.CoverImage.Large
 	outMeta.Rating = float64(aniInfo.AverageScore)
 	outMeta.RatingMax = 100
