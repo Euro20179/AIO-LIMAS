@@ -61,7 +61,7 @@ function typePieChart(json) {
 
 function ratingByYear(json) {
     let finishedValues = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0)
+        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0 && v.EntryInfo.CopyOf == 0)
     let data = Object.groupBy(finishedValues, i => i.MetaInfo.ReleaseYear)
 
     let highestYear = Object.keys(data).sort((a, b) => b - a)[0]
@@ -104,7 +104,7 @@ function ratingByYear(json) {
 
 function byYearChart(json) {
     let finishedValues = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0)
+        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0  && v.EntryInfo.CopyOf == 0)
 
     let data = Object.groupBy(finishedValues, i => i.MetaInfo.ReleaseYear)
     let highestYear = Object.keys(data).sort((a, b) => b - a)[0]
