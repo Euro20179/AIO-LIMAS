@@ -4,13 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Graph</title>
+
+    <style>
+        div:has(#by-year):has(#rating-by-year) {
+            margin: 0 2%;
+            display: flex;
+            div {
+                width: 100%;
+            }
+        }
+
+        div:has(#type-pie) {
+            height: 500px;
+            width: 400px;
+            margin: 0 2%;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="by-year"></canvas>
-    <canvas id="rating-by-year"></canvas>
-    <canvas id="general-rating-by-year"></canvas>
-    <div style="width: 60%">
+    <div>
+        <div>
+            <canvas id="by-year"></canvas>
+        </div>
+        <div>
+            <canvas id="rating-by-year"></canvas>
+        </div>
+    </div>
+
+    <div>
         <canvas id="type-pie"></canvas>
     </div>
 

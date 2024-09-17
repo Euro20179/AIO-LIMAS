@@ -68,6 +68,7 @@ function ratingByYear(json) {
     for (let year in data) {
         let yearInt = Number(year)
         if (highestYear == yearInt) break
+        if (yearInt < 1970) continue
         if (!((yearInt + 1) in data)) {
             fillGap(data, yearInt + 1)
         }
@@ -81,7 +82,7 @@ function ratingByYear(json) {
             .reduce((p, c, i) => (p * i + c) / (i + 1), 0)
         )
 
-    new Chart(rbyCtx, {
+    let chart = new Chart(rbyCtx, {
         type: 'bar',
         data: {
             labels: years,
@@ -104,13 +105,14 @@ function ratingByYear(json) {
 
 function byYearChart(json) {
     let finishedValues = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0  && v.EntryInfo.CopyOf == 0)
+        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0 && v.EntryInfo.CopyOf == 0)
 
     let data = Object.groupBy(finishedValues, i => i.MetaInfo.ReleaseYear)
     let highestYear = Object.keys(data).sort((a, b) => b - a)[0]
     for (let year in data) {
         let yearInt = Number(year)
         if (highestYear == yearInt) break
+        if (yearInt < 1970) continue
         if (!((yearInt + 1) in data)) {
             fillGap(data, yearInt + 1)
         }
@@ -138,8 +140,8 @@ function byYearChart(json) {
             scales: {
                 y: {
                     beginAtZero: true
-                }
-            }
+                },
+            },
         }
     });
 }
