@@ -9,15 +9,18 @@
         div:has(#by-year):has(#rating-by-year) {
             margin: 0 2%;
             display: flex;
+
             div {
                 width: 100%;
             }
         }
 
-        div:has(#type-pie) {
+        div:has(:where(#type-pie, #cost-by-format)) {
             height: 500px;
             width: 400px;
             margin: 0 2%;
+
+            display: flex;
         }
     </style>
 </head>
@@ -34,9 +37,17 @@
 
     <div>
         <canvas id="type-pie"></canvas>
+        <canvas id="cost-by-type"></canvas>
     </div>
 
+    <div>
+        <canvas id="count-by-format"></canvas>
+        <canvas id="cost-by-format"></canvas>
+    </div>
+
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/api.js"></script>
     <script src="/graph/index.js"></script>
 </body>
 

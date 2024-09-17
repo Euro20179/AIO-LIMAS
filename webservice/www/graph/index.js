@@ -3,45 +3,145 @@ function getCtx(id) {
     return canv.getContext("2d")
 }
 
+const typeColors = {
+    "Manga": "lightyellow",
+    "Show": "pink",
+    "Movie": "lightblue",
+    "Song": "lightgreen",
+    "Game": "#fed8b1",
+    "Book": "gainsboro",
+    "Collection": "violet"
+}
+
 const ctx = getCtx("by-year")
 const typePieCtx = getCtx("type-pie")
 const rbyCtx = getCtx("rating-by-year")
 
-const totalizer = {
-    id: 'totalizer',
-
-    beforeUpdate: function(chart) {
-        chart.$totalizer = {
-            totals: {},
-        };
-    },
-
-    afterDatasetUpdate: (chart, { index: datasetIndex }) => {
-        const dataset = chart.data.datasets[datasetIndex];
-        const meta = chart.getDatasetMeta(datasetIndex);
-        const total = dataset.data.reduce((total, value, index) => {
-            return total + (meta.data[index].hidden ? 0 : value);
-        }, 0);
-
-        chart.$totalizer.totals[datasetIndex] = total;
-    }
-};
-
+/**
+* @param {Record<any, any>} obj
+* @param {string} label
+*/
 function fillGap(obj, label) {
     obj[label] = []
     if (!((Number(label) + 1) in obj)) {
-        fillGap(obj, Number(label) + 1)
+        fillGap(obj, String(Number(label) + 1))
     }
+}
+
+function countByFormat(json) {
+    let values = Object.values(json)
+    let data = Object.groupBy(values, i => formatToName(i.EntryInfo.Format))
+
+    let labels = Object.keys(data)
+        .sort((a, b) => data[b].length - data[a].length)
+    let counts = Array.from(labels, (v, k) => data[v].length)
+
+    new Chart(getCtx("count-by-format"), {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Types",
+                data: counts,
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Format count",
+                }
+            },
+            responsive: true
+        }
+    });
+}
+
+function costByFormat(json) {
+    let values = Object.values(json)
+        .filter(v => v.EntryInfo.PurchasePrice > 0)
+    let data = Object.groupBy(values, i => formatToName(i.EntryInfo.Format))
+
+    let totals = Object.fromEntries(
+        Object.entries(data)
+            .map(([name, data]) => [name, data.reduce((p, c) => p + c.EntryInfo.PurchasePrice, 0)])
+            .sort((a, b) => b[1] - a[1])
+    )
+
+    let labels = Object.keys(data)
+    totals = Object.values(totals)
+
+    new Chart(getCtx("cost-by-format"), {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Types",
+                data: totals,
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Cost by format"
+                }
+            },
+            responsive: true
+        }
+    });
+}
+
+function costByTypePie(json) {
+    let values = Object.values(json)
+        .filter(v => v.EntryInfo.PurchasePrice > 0)
+    let data = Object.groupBy(values, i => i.EntryInfo.Type)
+
+    let totals = Object.fromEntries(
+        Object.entries(data)
+            .map(([name, data]) => [name, data.reduce((p, c) => p + c.EntryInfo.PurchasePrice, 0)])
+            .sort((a, b) => b[1] - a[1])
+    )
+    let labels = Object.keys(data)
+    let totalList = Object.values(totals)
+
+    let colors = labels.map(v => typeColors[v])
+
+    new Chart(getCtx("cost-by-type"), {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: "Types",
+                data: totalList,
+                borderWidth: 1,
+                backgroundColor: colors
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Cost by type"
+                }
+            },
+            responsive: true
+        }
+    });
 }
 
 function typePieChart(json) {
     let values = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" || v.UserInfo.Status == "Viewing")
     let data = Object.groupBy(values, i => i.EntryInfo.Type)
 
     let labels = Object.keys(data)
         .sort((a, b) => data[b].length - data[a].length)
     let counts = Array.from(labels, (v, k) => data[v].length)
+
+    let colors = labels.map(v => typeColors[v])
+    console.log(colors)
 
     new Chart(typePieCtx, {
         type: 'pie',
@@ -50,10 +150,17 @@ function typePieChart(json) {
             datasets: [{
                 label: "Types",
                 data: counts,
-                borderWidth: 1
+                borderWidth: 1,
+                backgroundColor: colors
             }]
         },
         options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Type count",
+                }
+            },
             responsive: true
         }
     });
@@ -152,4 +259,7 @@ fetch("http://localhost:8080/api/v1/list-tree")
         byYearChart(json)
         typePieChart(json)
         ratingByYear(json)
+        costByTypePie(json)
+        costByFormat(json)
+        countByFormat(json)
     })
