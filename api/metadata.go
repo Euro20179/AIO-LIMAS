@@ -89,6 +89,21 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
+
+	entry, err := db.GetUserViewEntryById(meta.ItemId)
+	if err != nil{
+		wError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
+		return
+	}
+
+	outJson, err := json.Marshal(entry)
+	if err != nil{
+		wError(w, 500, "Could not marshal new user entry\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(outJson)
 }
 
 func ModMetadataEntry(w http.ResponseWriter, req *http.Request) {
