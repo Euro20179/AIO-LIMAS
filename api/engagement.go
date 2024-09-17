@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	db "aiolimas/db"
@@ -21,23 +23,23 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 	}
 
 	err = db.ClearUserEventEntries(libraryEntry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to clear event information\n%s", err.Error())
 		return
 	}
 
 	events, err := db.GetEvents(oldId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
 	}
 
 	err = db.CopyUserEventEntries(events, libraryEntry.ItemId)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
 	}
-	//TODO: FIXME
+	// TODO: FIXME
 
 	success(w)
 }
@@ -217,6 +219,29 @@ func SetNote(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
+func SetUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	defer req.Body.Close()
+
+	data, err := io.ReadAll(req.Body)
+	if err != nil {
+		wError(w, 500, "Could not read body\n%s", err.Error())
+		return
+	}
+
+	var user db.UserViewingEntry
+	err = json.Unmarshal(data, &user)
+	if err != nil {
+		wError(w, 400, "Could not parse json\n%s", err.Error())
+		return
+	}
+
+	err = db.UpdateUserViewingEntry(&user)
+	if err != nil {
+		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		return
+	}
+}
+
 func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 	w.WriteHeader(200)
 	for items.Next() {
@@ -329,7 +354,7 @@ func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	user.Status = parsedParams.Get("status", user.Status).(db.Status)
 
 	err := db.UpdateUserViewingEntry(&user)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update user entry\n%s", err.Error())
 		return
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -67,7 +68,30 @@ func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	w.Write(data)
 }
 
-func SetMetadataForEntry(w http.ResponseWriter, req *http.Request) {
+func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	defer req.Body.Close()
+
+	data, err := io.ReadAll(req.Body)
+	if err != nil{
+		wError(w, 500, "Could not read body\n%s", err.Error())
+		return
+	}
+
+	var meta db.MetadataEntry
+	err = json.Unmarshal(data, &meta)
+	if err != nil{
+		wError(w, 400, "Could not parse json\n%s", err.Error())
+		return
+	}
+
+	err = db.UpdateMetadataEntry(&meta)
+	if err != nil{
+		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		return
+	}
+}
+
+func ModMetadataEntry(w http.ResponseWriter, req *http.Request) {
 	entry, err := verifyIdAndGetUserEntry(w, req)
 	if err != nil {
 		wError(w, 400, "Could not find entry\n")

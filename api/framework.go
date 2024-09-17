@@ -39,13 +39,31 @@ func (self *ParsedParams) Get(name string, backup any) any {
 	return backup
 }
 
+type Method string
+const (
+	GET Method = "GET"
+	POST Method = "POST"
+)
+
 type ApiEndPoint struct {
 	Handler     func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
 	QueryParams QueryParams
+	Method      Method
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	parsedParams := ParsedParams{}
+
+	method := self.Method
+	if method == "" {
+		method = "GET"
+	}
+
+	if req.Method != string(method) {
+		w.WriteHeader(401)
+		fmt.Fprintf(w, "Invalid method: %s", method)
+		return
+	}
 
 	query := req.URL.Query()
 	for name, info := range self.QueryParams {
@@ -145,7 +163,7 @@ func P_SqlSafe(in string) (any, error) {
 		return in, errors.New("Empty")
 	}
 	match, err := regexp.Match("[0-9A-Za-z-_\\.]", []byte(in))
-	if err != nil{
+	if err != nil {
 		return "", err
 	} else if match {
 		return in, nil

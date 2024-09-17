@@ -121,7 +121,7 @@ func main() {
 
 	makeEndpoints(apiRoot+"/type", EndPointMap{
 		"format": api.ListFormats,
-		"type": api.ListTypes,
+		"type":   api.ListTypes,
 	})
 
 	identify := api.ApiEndPoint{
@@ -141,11 +141,18 @@ func main() {
 		},
 	}
 
+	setMeta := api.ApiEndPoint{
+		Handler:     api.SetMetadataEntry,
+		Method:      "POST",
+		QueryParams: api.QueryParams{},
+	}
+
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":             api.FetchMetadataForEntry,
 		"retrieve":          api.RetrieveMetadataForEntry,
-		"set":               api.SetMetadataForEntry,
+		"mod-entry":         api.ModMetadataEntry,
+		"set-entry":         setMeta.Listener,
 		"list-entries":      api.ListMetadata,
 		"identify":          identify.Listener,
 		"finalize-identify": finalizeIdentify.Listener,
@@ -191,6 +198,12 @@ func main() {
 		},
 	}
 
+	setUserEntry := api.ApiEndPoint{
+		Handler:     api.SetUserEntry,
+		Method:      "POST",
+		QueryParams: api.QueryParams{},
+	}
+
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
@@ -208,6 +221,7 @@ func main() {
 		"get-events":   getEvents.Listener,
 		"list-events":  listEvents.Listener,
 		"mod-entry":    modUserEntry.Listener,
+		"set-entry":    setUserEntry.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)
