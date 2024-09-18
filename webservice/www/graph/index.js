@@ -256,6 +256,9 @@ function byYearChart(json) {
 fetch("http://localhost:8080/api/v1/list-tree")
     .then(res => res.json())
     .then(json => {
+        //TODO:
+        //have some way to let the user filter information in the json
+        //then display the filtered json in the charts
         byYearChart(json)
         typePieChart(json)
         ratingByYear(json)

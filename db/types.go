@@ -10,6 +10,7 @@ import (
 type Status string
 
 const (
+	S_NONE      Status = ""
 	S_VIEWING   Status = "Viewing"   // first viewing experience
 	S_FINISHED  Status = "Finished"  // when the user has finished viewing/reviewing
 	S_DROPPED   Status = "Dropped"   // if the user stops viewing, and does not plan to continue
@@ -26,6 +27,7 @@ func IsValidStatus(status string) bool {
 
 func ListStatuses() []Status {
 	return []Status{
+		"",
 		"Viewing",
 		"Finished",
 		"Dropped",
@@ -346,8 +348,8 @@ func (self *UserViewingEntry) Resume() error {
 
 type EntryTree struct {
 	EntryInfo InfoEntry
-	MetaInfo MetadataEntry
-	UserInfo UserViewingEntry
+	MetaInfo  MetadataEntry
+	UserInfo  UserViewingEntry
 	Children  []string
 	Copies    []string
 }
