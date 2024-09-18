@@ -159,7 +159,7 @@ async function loadList(endpoint) {
     }
 
     const lines = text.split("\n").filter(Boolean)
-   return  lines
+    return lines
         .map(mkStrItemId)
         .map(parseJsonL)
 }
@@ -229,6 +229,7 @@ function typeToSymbol(type) {
     const conversion = {
         "Show": "📺︎",
         "Movie": "📽",
+        "MovieShort": "⏯",
         "Book": "📚︎",
         "Manga": "本",
         "Game": "🎮︎",
@@ -236,7 +237,7 @@ function typeToSymbol(type) {
         "Collection": "🗄",
         "BoardGame": "🎲︎"
     }
-    if(type in conversion) {
+    if (type in conversion) {
         //@ts-ignore
         return conversion[type]
     }
@@ -249,7 +250,7 @@ function typeToSymbol(type) {
 function formatToName(format) {
     const DIGI_MOD = 0x1000
     let out = ""
-    if((format & DIGI_MOD) === DIGI_MOD) {
+    if ((format & DIGI_MOD) === DIGI_MOD) {
         format -= DIGI_MOD
         out = "+digital"
     }
@@ -270,7 +271,7 @@ function formatToName(format) {
         "OTHER",
         "VINYL"
     ]
-    if(format >= formats.length)  {
+    if (format >= formats.length) {
         return `unknown ${out}`
     }
     return `${formats[format]} ${out}`

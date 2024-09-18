@@ -7,6 +7,7 @@ const typeColors = {
     "Manga": "lightyellow",
     "Show": "pink",
     "Movie": "lightblue",
+    "MovieShort": "lightskyblue",
     "Song": "lightgreen",
     "Game": "#fed8b1",
     "Book": "gainsboro",
@@ -253,16 +254,21 @@ function byYearChart(json) {
     });
 }
 
+/**
+    * @param {object} json
+    */
+function makeGraphs(json) {
+    //TODO:
+    //have some way to let the user filter information in the json
+    //then display the filtered json in the charts
+    byYearChart(json)
+    typePieChart(json)
+    ratingByYear(json)
+    costByTypePie(json)
+    costByFormat(json)
+    countByFormat(json)
+}
+
 fetch("http://localhost:8080/api/v1/list-tree")
     .then(res => res.json())
-    .then(json => {
-        //TODO:
-        //have some way to let the user filter information in the json
-        //then display the filtered json in the charts
-        byYearChart(json)
-        typePieChart(json)
-        ratingByYear(json)
-        costByTypePie(json)
-        costByFormat(json)
-        countByFormat(json)
-    })
+    .then(makeGraphs)
