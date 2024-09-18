@@ -68,6 +68,12 @@ func main() {
 		},
 	}
 
+	setEntry := api.ApiEndPoint{
+		Handler:     api.SetEntry,
+		QueryParams: api.QueryParams{},
+		Method:      "POST",
+	}
+
 	listApi := api.ApiEndPoint{
 		Handler: api.ListEntries,
 		QueryParams: api.QueryParams{
@@ -106,6 +112,7 @@ func main() {
 	makeEndpoints(apiRoot, EndPointMap{
 		"add-entry":         addEntry.Listener,
 		"mod-entry":         modEntry.Listener,
+		"set-entry":         setEntry.Listener,
 		"query":             searchApi.Listener,
 		"list-entries":      listApi.Listener,
 		"scan-folder":       api.ScanFolder,

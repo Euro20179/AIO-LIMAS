@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -89,6 +90,30 @@ func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams Parse
 		w.Write(ej)
 		w.Write([]byte("\n"))
 	}
+}
+
+func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	defer req.Body.Close()
+
+	data, err := io.ReadAll(req.Body)
+	if err != nil{
+		wError(w, 500, "Could not ready body\n%s", err.Error())
+		return
+	}
+
+	var entry db.InfoEntry
+	err = json.Unmarshal(data, &entry)
+	if err != nil{
+		wError(w, 400, "Could not parse json into entry\n%s", err.Error())
+		return
+	}
+
+	err = db.UpdateInfoEntry(&entry)
+	if err != nil{
+		wError(w, 500, "Could not update info entry\n%s", err.Error())
+		return
+	}
+	success(w)
 }
 
 func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
