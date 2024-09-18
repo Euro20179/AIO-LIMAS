@@ -61,6 +61,7 @@ func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
 		mediaDep["Show-episode-duration"] = strings.Split(result.Runtime, " ")[0]
 		mediaDep["Show-imdbid"] = result.ImdbID
 	} else {
+		mediaDep[fmt.Sprintf("%s-director", titleCase(result.Type))] = result.Director
 		mediaDep[fmt.Sprintf("%s-length", titleCase(result.Type))] = strings.Split(result.Runtime, " ")[0]
 		mediaDep[fmt.Sprintf("%s-imdbid", titleCase(result.Type))] = result.ImdbID
 	}
