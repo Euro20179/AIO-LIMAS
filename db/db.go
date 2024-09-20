@@ -663,6 +663,19 @@ func GetChildren(id int64) ([]InfoEntry, error) {
 	return mkRows(rows)
 }
 
+func DeleteEvent(id int64, timestamp int64, after int64) error {
+	_, err := Db.Exec(`
+		DELETE FROM userEventInfo
+		WHERE 
+			itemId == ? and timestamp == ? and after == ?
+	`, id, timestamp, after)
+
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
 func GetEvents(id int64) ([]UserViewingEvent, error) {
 	var out []UserViewingEvent
 	events, err := Db.Query(`

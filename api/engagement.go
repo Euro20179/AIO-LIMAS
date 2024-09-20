@@ -359,6 +359,18 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	}
 }
 
+func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	id := parsedParams["id"].(db.InfoEntry)
+	timestamp := parsedParams["timestamp"].(int64)
+	after := parsedParams["after"].(int64)
+	err := db.DeleteEvent(id.ItemId, timestamp, after)
+	if err != nil{
+		wError(w, 500, "Could not delete event\n%s", err.Error())
+		return
+	}
+	success(w)
+}
+
 func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	user := parsedParams["id"].(db.UserViewingEntry)
 

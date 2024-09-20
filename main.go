@@ -9,9 +9,15 @@ import (
 	"aiolimas/webservice"
 )
 
+func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request){
+	return func(w http.ResponseWriter, req *http.Request) {
+		fn(w, req)
+	}
+}
+
 func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *http.Request)) {
 	for name, fn := range endPoints {
-		http.HandleFunc(root+"/"+name, fn)
+		http.HandleFunc(root+"/"+name, authorizationWrapper(fn))
 	}
 }
 
@@ -187,6 +193,14 @@ func main() {
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
+	deleteEvent := api.ApiEndPoint {
+		Handler: api.DeleteEvent,
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"timestamp": api.MkQueryInfo(api.P_Int64, true),
+			"after": api.MkQueryInfo(api.P_Int64, true),
+		},
+	}
 
 	listEvents := api.ApiEndPoint{
 		Handler:     api.ListEvents,
@@ -226,6 +240,7 @@ func main() {
 		"list-entries": api.UserEntries,
 		"copy":         reassociate.Listener,
 		"get-events":   getEvents.Listener,
+		"delete-event": deleteEvent.Listener,
 		"list-events":  listEvents.Listener,
 		"mod-entry":    modUserEntry.Listener,
 		"set-entry":    setUserEntry.Listener,
