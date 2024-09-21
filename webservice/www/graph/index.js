@@ -29,15 +29,22 @@ function fillGap(obj, label) {
     }
 }
 
-function countByFormat(json) {
-    let values = Object.values(json)
-    let data = Object.groupBy(values, i => formatToName(i.EntryInfo.Format))
+/**@type {any}*/
+let countByFormatChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+function countByFormat(entries) {
+    let data = Object.groupBy(entries, i => formatToName(i.Format))
 
     let labels = Object.keys(data)
         .sort((a, b) => data[b].length - data[a].length)
     let counts = Array.from(labels, (v, k) => data[v].length)
 
-    new Chart(getCtx("count-by-format"), {
+    if(countByFormatChart) {
+        countByFormatChart.destroy()
+    }
+    countByFormatChart = new Chart(getCtx("count-by-format"), {
         type: 'pie',
         data: {
             labels: labels,
@@ -58,22 +65,142 @@ function countByFormat(json) {
         }
     });
 }
+async function treeFilterForm() {
+    let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
+    let data = new FormData(form)
+    let sortBy = data.get("sort-by")
+    let status = /**@type {string[]}*/(data.getAll("status"))
+    let type = /**@type {string[]}*/(data.getAll("type"))
+    let format = /**@type {string[]}*/(data.getAll('format')).filter(n => n !== "")
 
-function costByFormat(json) {
-    let values = Object.values(json)
-        .filter(v => v.EntryInfo.PurchasePrice > 0)
-    let data = Object.groupBy(values, i => formatToName(i.EntryInfo.Format))
+    let search = /**@type {string}*/(data.get("search-query"))
+
+    let tags = /**@type {string[]}*/(data.getAll("tags"))
+
+    let pgt = /**@type {string}*/(data.get("price-gt"))
+    let plt = /**@type {string}*/(data.get("price-lt"))
+
+    let rgt = /**@type {string}*/(data.get("rating-gt"))
+    let rlt = /**@type {string}*/(data.get("rating-lt"))
+
+    let formatN = undefined
+    if (format.length) {
+        formatN = format.map(Number)
+    }
+
+    //TODO:
+    //Add hasTags, notHasTags, and maybeHasTags
+    //allow the user to type #tag #!tag and #?tag in the search bar
+    /**@type {DBQuery}*/
+    let queryData = {
+        status: status.join(","),
+        type: type.join(","),
+        format: formatN,
+        tags: tags.join(","),
+        purchasePriceGt: Number(pgt),
+        purchasePriceLt: Number(plt),
+        userRatingGt: Number(rgt),
+        userRatingLt: Number(rlt),
+    }
+
+    let shortcuts = {
+        "userRatingGt": "r>",
+        "userRatingLt": "r<",
+        "purchasePriceGt": "p>",
+        "purchasePriceLt": "p<",
+    }
+    for (let word of search.split(" ")) {
+        for (let property in queryData) {
+            //@ts-ignore
+            let shortcut = shortcuts[property]
+            let value
+            if (word.startsWith(shortcut)) {
+                value = word.slice(shortcut.length)
+            } else if (word.startsWith(`${property}:`)) {
+                value = word.slice(property.length + 1)
+            } else {
+                continue
+            }
+            search = search.replace(word, "").trim()
+            //@ts-ignore
+            queryData[property] = value
+        }
+    }
+
+    queryData.title = search
+
+    let entries = await loadQueriedEntries(queryData)
+
+    if (sortBy != "") {
+        if (sortBy == "rating") {
+            entries = entries.sort((a, b) => {
+                let aUInfo = findUserEntryById(a.ItemId)
+                let bUInfo = findUserEntryById(b.ItemId)
+                if (!aUInfo || !bUInfo) return 0
+                return bUInfo?.UserRating - aUInfo?.UserRating
+            })
+        } else if (sortBy == "cost") {
+            entries = entries.sort((a, b) => {
+                return b.PurchasePrice - a.PurchasePrice
+            })
+        } else if (sortBy == "general-rating") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                if (!bm || !am) return 0
+                return normalizeRating(bm.Rating, bm.RatingMax || 100) - normalizeRating(am.Rating, am.RatingMax || 100)
+            })
+        } else if (sortBy == "rating-disparity") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let au = findUserEntryById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                let bu = findUserEntryById(b.ItemId)
+                if (!bm || !am) return 0
+                let bGeneral = normalizeRating(bm.Rating, bm.RatingMax || 100)
+                let aGeneral = normalizeRating(am.Rating, am.RatingMax || 100)
+
+                let aUser = Number(au?.UserRating)
+                let bUser = Number(bu?.UserRating)
+
+
+                return (aGeneral - aUser) - (bGeneral - bUser)
+            })
+        } else if (sortBy == "release-year") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                return (bm?.ReleaseYear || 0) - (am?.ReleaseYear || 0)
+            })
+        }
+    }
+
+    makeGraphs(entries)
+}
+
+/**@type {any}*/
+let costChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+function costByFormat(entries) {
+    entries = entries.filter(v => v.PurchasePrice > 0)
+
+    let data = Object.groupBy(entries, i => formatToName(i.Format))
 
     let totals = Object.fromEntries(
         Object.entries(data)
-            .map(([name, data]) => [name, data.reduce((p, c) => p + c.EntryInfo.PurchasePrice, 0)])
+            .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
             .sort((a, b) => b[1] - a[1])
     )
 
     let labels = Object.keys(data)
     totals = Object.values(totals)
 
-    new Chart(getCtx("cost-by-format"), {
+    if(costChart) {
+        costChart.destroy()
+    }
+    costChart = new Chart(getCtx("cost-by-format"), {
         type: 'pie',
         data: {
             labels: labels,
@@ -95,14 +222,19 @@ function costByFormat(json) {
     });
 }
 
-function costByTypePie(json) {
-    let values = Object.values(json)
-        .filter(v => v.EntryInfo.PurchasePrice > 0)
-    let data = Object.groupBy(values, i => i.EntryInfo.Type)
+
+/**@type {any}*/
+let costByTypeChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+function costByTypePie(entries) {
+    entries = entries.filter(v => v.PurchasePrice > 0)
+    let data = Object.groupBy(entries, i => i.Type)
 
     let totals = Object.fromEntries(
         Object.entries(data)
-            .map(([name, data]) => [name, data.reduce((p, c) => p + c.EntryInfo.PurchasePrice, 0)])
+            .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
             .sort((a, b) => b[1] - a[1])
     )
     let labels = Object.keys(data)
@@ -110,12 +242,16 @@ function costByTypePie(json) {
 
     let colors = labels.map(v => typeColors[v])
 
-    new Chart(getCtx("cost-by-type"), {
+    if(costByTypeChart) {
+        costByTypeChart.destroy()
+    }
+
+    costByTypeChart = new Chart(getCtx("cost-by-type"), {
         type: 'pie',
         data: {
             labels: labels,
             datasets: [{
-                label: "Types",
+                label: "Cost",
                 data: totalList,
                 borderWidth: 1,
                 backgroundColor: colors
@@ -133,18 +269,25 @@ function costByTypePie(json) {
     });
 }
 
-function typePieChart(json) {
-    let values = Object.values(json)
-    let data = Object.groupBy(values, i => i.EntryInfo.Type)
+
+/**@type {any}*/
+let typechart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+function typePieChart(entries) {
+    let data = Object.groupBy(entries, i => i.Type)
 
     let labels = Object.keys(data)
         .sort((a, b) => data[b].length - data[a].length)
     let counts = Array.from(labels, (v, k) => data[v].length)
 
     let colors = labels.map(v => typeColors[v])
-    console.log(colors)
 
-    new Chart(typePieCtx, {
+    if(typechart) {
+        typechart.destroy()
+    }
+    typechart = new Chart(typePieCtx, {
         type: 'pie',
         data: {
             labels: labels,
@@ -167,12 +310,21 @@ function typePieChart(json) {
     });
 }
 
-function ratingByYear(json) {
-    let finishedValues = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0 && v.EntryInfo.CopyOf == 0)
-    let data = Object.groupBy(finishedValues, i => i.MetaInfo.ReleaseYear)
+/**@type {any}*/
+let rbyChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+async function ratingByYear(entries) {
+    let user = await loadList("/engagement/list-entries")
+    let met = await loadList("/metadata/list-entries")
 
-    let highestYear = Object.keys(data).sort((a, b) => b - a)[0]
+    let data = Object.groupBy(entries, i => {
+        let meta = findEntryById(i.ItemId, met)
+        return meta.ReleaseYear
+    })
+
+    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
     for (let year in data) {
         let yearInt = Number(year)
         if (highestYear == yearInt) break
@@ -186,11 +338,17 @@ function ratingByYear(json) {
     const years = Object.keys(data)
     const ratings = Object.values(data)
         .map(v => v
-            .map(i => i.UserInfo.UserRating)
+            .map(i => {
+                let thisUser = findEntryById(i.ItemId, user)
+                return thisUser.UserRating
+            })
             .reduce((p, c, i) => (p * i + c) / (i + 1), 0)
         )
 
-    let chart = new Chart(rbyCtx, {
+    if (rbyChart) {
+        rbyChart.destroy()
+    }
+    rbyChart = new Chart(rbyCtx, {
         type: 'bar',
         data: {
             labels: years,
@@ -211,18 +369,23 @@ function ratingByYear(json) {
     });
 }
 
-function byYearChart(json) {
-    let finishedValues = Object.values(json)
-        .filter(v => v.UserInfo.Status == "Finished" && v.MetaInfo.ReleaseYear != 0 && v.EntryInfo.CopyOf == 0)
-
-    let data = Object.groupBy(finishedValues, i => i.MetaInfo.ReleaseYear)
-    let highestYear = Object.keys(data).sort((a, b) => b - a)[0]
+let bycChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+async function byc(entries) {
+    let met = await loadList("metadata/list-entries")
+    let data = Object.groupBy(entries, i => {
+        let meta = findEntryById(i.ItemId, met)
+        return meta.ReleaseYear
+    })
+    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
     for (let year in data) {
         let yearInt = Number(year)
-        if (highestYear == yearInt) break
+        if (+highestYear == yearInt) break
         if (yearInt < 1970) continue
         if (!((yearInt + 1) in data)) {
-            fillGap(data, yearInt + 1)
+            fillGap(data, String(yearInt + 1))
         }
     }
 
@@ -233,7 +396,10 @@ function byYearChart(json) {
     let total = counts.reduce((p, c) => p + c, 0)
     console.log(`total items by year: ${total}`)
 
-    new Chart(ctx, {
+    if (bycChart) {
+        bycChart.destroy()
+    }
+    bycChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: years,
@@ -254,21 +420,47 @@ function byYearChart(json) {
     });
 }
 
-/**
-    * @param {object} json
-    */
-function makeGraphs(json) {
-    //TODO:
-    //have some way to let the user filter information in the json
-    //then display the filtered json in the charts
-    byYearChart(json)
-    typePieChart(json)
-    ratingByYear(json)
-    costByTypePie(json)
-    costByFormat(json)
-    countByFormat(json)
+function treeToEntriesList(tree) {
+    let entries = []
+    for (let id in tree) {
+        tree[id].EntryInfo.ItemId = BigInt(id)
+        entries.push(tree[id].EntryInfo)
+    }
+    return entries
 }
 
-fetch("http://localhost:8080/api/v1/list-tree")
-    .then(res => res.json())
-    .then(makeGraphs)
+/**
+ * @param {bigint} id
+ * @param {Record<string, any>} entryTable
+ * @returns {any}
+ */
+function findEntryById(id, entryTable) {
+    for (let item in entryTable) {
+        let entry = entryTable[item]
+        if (entry.ItemId === id) {
+            return entry
+        }
+    }
+    return null
+}
+
+/**
+* @param {object} json
+*/
+function makeGraphs(entries) {
+    byc(entries)
+    typePieChart(entries)
+    ratingByYear(entries)
+    costByTypePie(entries)
+    costByFormat(entries)
+    countByFormat(entries)
+}
+
+function makeGraphsWithTree(tree) {
+    const entries = treeToEntriesList(tree)
+    makeGraphs(entries)
+}
+
+let searchQueryElem = /**@type {HTMLInputElement}*/(document.getElementById("search-query"))
+searchQueryElem.value = "status:Finished"
+treeFilterForm()
