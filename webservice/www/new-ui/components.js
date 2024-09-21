@@ -292,7 +292,8 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         "data-thumbnail-src",
         "data-cost",
         "data-user-rating",
-        "data-type"
+        "data-type",
+        "data-release-year"
     ]
     constructor() {
         super()
@@ -339,6 +340,15 @@ customElements.define("sidebar-entry", class extends HTMLElement {
             applyUserRating(rating, ratingE)
             ratingE.innerHTML = ratingA
         }
+    }
+
+
+    /**
+     * @param {string} val
+     */
+    ["data-release-year"](val) {
+        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+        title.setAttribute("data-release-year", val)
     }
 
     /**

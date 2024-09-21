@@ -25,7 +25,7 @@
     }
 
     [data-type-icon]::after {
-        content: " (" attr(data-type-icon)")";
+        content: " (" attr(data-type-icon) " " attr(data-release-year) ")";
     }
 
     .root {

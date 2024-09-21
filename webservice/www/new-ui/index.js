@@ -621,6 +621,9 @@ function applySidebarAttrs(item, user, meta, el) {
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
+    if(meta.ReleaseYear) {
+        el.setAttribute("data-release-year", String(meta.ReleaseYear))
+    }
 
     if (user?.Status) {
         el.setAttribute("data-user-status", user.Status)
@@ -804,6 +807,12 @@ async function treeFilterForm() {
 
 
                 return (aGeneral - aUser) - (bGeneral - bUser)
+            })
+        } else if(sortBy == "release-year") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                return (bm?.ReleaseYear || 0) - (am?.ReleaseYear || 0)
             })
         }
     }
