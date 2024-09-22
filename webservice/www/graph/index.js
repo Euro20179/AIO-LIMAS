@@ -30,6 +30,79 @@ function fillGap(obj, label) {
 }
 
 /**@type {any}*/
+let adjRatingChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+async function adjRatingByYear(entries) {
+    let user = await loadList("/engagement/list-entries")
+    let met = await loadList("/metadata/list-entries")
+
+    let data = Object.groupBy(entries, i => {
+        let meta = findEntryById(i.ItemId, met)
+        return meta.ReleaseYear
+    })
+
+    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
+    for (let year in data) {
+        let yearInt = Number(year)
+        if (highestYear == yearInt) break
+        if (yearInt < 1970) continue
+        if (!((yearInt + 1) in data)) {
+            fillGap(data, yearInt + 1)
+        }
+    }
+
+    delete data["0"]
+    const years = Object.keys(data)
+    let items = Object.values(data)
+    let totalItems = 0
+    for (let item of items) {
+        totalItems += item.length
+    }
+    let avgItems = totalItems / items.length
+    const ratings = Object.values(data)
+        .map(v => {
+            let ratings = v.map(i => {
+                let thisUser = findEntryById(i.ItemId, user)
+                return thisUser.UserRating
+            })
+            let totalRating = ratings
+                .reduce((p, c) => (p + c), 0)
+            
+            let avgRating = totalRating / v.length
+            let max = Math.max(...ratings)
+            let min = Math.min(...ratings)
+        console.log(max, min, ratings)
+            return avgRating + v.length / (Math.log10(avgItems) / avgItems) - (max - min)
+        //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
+        })
+
+    if (adjRatingChart) {
+        adjRatingChart.destroy()
+    }
+    adjRatingChart = new Chart(getCtx("adj-rating-by-year"), {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'adj ratings',
+                data: ratings,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+/**@type {any}*/
 let countByFormatChart = null
 /**
  * @param {InfoEntry[]} entries
@@ -41,7 +114,7 @@ function countByFormat(entries) {
         .sort((a, b) => data[b].length - data[a].length)
     let counts = Array.from(labels, (v, k) => data[v].length)
 
-    if(countByFormatChart) {
+    if (countByFormatChart) {
         countByFormatChart.destroy()
     }
     countByFormatChart = new Chart(getCtx("count-by-format"), {
@@ -197,7 +270,7 @@ function costByFormat(entries) {
     let labels = Object.keys(data)
     totals = Object.values(totals)
 
-    if(costChart) {
+    if (costChart) {
         costChart.destroy()
     }
     costChart = new Chart(getCtx("cost-by-format"), {
@@ -242,7 +315,7 @@ function costByTypePie(entries) {
 
     let colors = labels.map(v => typeColors[v])
 
-    if(costByTypeChart) {
+    if (costByTypeChart) {
         costByTypeChart.destroy()
     }
 
@@ -284,7 +357,7 @@ function typePieChart(entries) {
 
     let colors = labels.map(v => typeColors[v])
 
-    if(typechart) {
+    if (typechart) {
         typechart.destroy()
     }
     typechart = new Chart(typePieCtx, {
@@ -451,6 +524,7 @@ function makeGraphs(entries) {
     byc(entries)
     typePieChart(entries)
     ratingByYear(entries)
+    adjRatingByYear(entries)
     costByTypePie(entries)
     costByFormat(entries)
     countByFormat(entries)
