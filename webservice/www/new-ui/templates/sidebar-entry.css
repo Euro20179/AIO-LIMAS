@@ -37,14 +37,22 @@
         overflow: auto;
 
         font-size: 0.9em;
+
     }
 
-    section:has(> .title) {
-        align-items: center;
-    }
+    figure {
+        display: flex;
+        gap: 0.4em;
+        margin: 10px 0 0 10px;
 
-    .title {
-        font-size: 1.3em;
+        .title {
+            font-size: 0.8em;
+        }
+
+        img {
+            cursor: pointer;
+            height: 80cqb;
+        }
     }
 
     .header {
@@ -53,32 +61,8 @@
         grid-template-columns: auto max-content;
     }
 
-    .thumbnail {
-        float: right;
-        width: 50cqh;
-
-        cursor: pointer;
-
-        border: 2px solid var(--blue);
-    }
-
     .status {
         margin: 0;
         padding: 0;
-    }
-
-    button {
-        color: white;
-        margin: 3px;
-        border: 1px solid currentColor;
-        border-radius: 5px;
-        background: var(--secondary);
-
-        cursor: pointer;
-    }
-
-    .view-button {
-        position: absolute;
-        bottom: 0;
     }
 }

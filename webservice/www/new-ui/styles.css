@@ -32,10 +32,10 @@
 
         @media (width >=800px) {
             grid-template-areas:
-                "form main main"
+                "sidebar form form"
                 "sidebar main main"
                 "sidebar main main";
-            grid-template-columns: 0.8fr 1fr 1fr;
+            grid-template-columns: 0.5fr 1fr 1fr;
             grid-template-rows: min-content 1fr 1fr;
         }
 
@@ -137,8 +137,7 @@
         }
 
         @media (width >=800px) {
-            grid-column: 2 / -1;
-            grid-row: 1 / -1;
+            grid-area: main;
         }
     }
 

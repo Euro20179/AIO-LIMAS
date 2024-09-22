@@ -231,12 +231,14 @@
             @import "/new-ui/templates/sidebar-entry.css"
         </style>
         <div class="root" part="root">
-            <img part="thumbnail" class="thumbnail">
-            <section class="main flex column">
-                <h2 class="title"></h2>
-                <span class="rating"></span>
-                <span class="cost"></span>
-            </section>
+            <figure>
+                <img part="thumbnail" class="thumbnail">
+                <figcaption>
+                    <p class="title"></p>
+                    <p class="rating"></p>
+                        <p class="cost"></p>
+                </figcaption>
+            </figure>
         </div>
     </template>
     <script src="/new-ui/components.js"></script>
