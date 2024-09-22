@@ -29,15 +29,14 @@
     }
 
     .root {
-
-        box-sizing: inline;
-
         container-type: size;
+
         height: 150px;
-        overflow: auto;
+        aspect-ratio: 1 / 1;
+
+        overflow: hidden;
 
         font-size: 0.9em;
-
     }
 
     figure {
@@ -45,13 +44,15 @@
         gap: 0.4em;
         margin: 10px 0 0 10px;
 
+        contain: inline-size;
+
         .title {
             font-size: 0.8em;
         }
 
         img {
             cursor: pointer;
-            height: 80cqb;
+            height: 70cqb;
         }
     }
 

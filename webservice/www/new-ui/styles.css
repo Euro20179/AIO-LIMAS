@@ -35,7 +35,7 @@
                 "sidebar form form"
                 "sidebar main main"
                 "sidebar main main";
-            grid-template-columns: 0.5fr 1fr 1fr;
+            grid-template-columns: max-content 1fr 1fr;
             grid-template-rows: min-content 1fr 1fr;
         }
 
