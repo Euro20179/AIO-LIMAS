@@ -6,7 +6,7 @@
     <title>Graph</title>
 
     <style>
-        div:has(#by-year):has(#rating-by-year) {
+        div:has(> div > canvas) {
             margin: 0 2%;
             display: flex;
 
@@ -26,6 +26,15 @@
 </head>
 
 <body>
+    <label>Group by
+        <select name="group-by" id="group-by">
+            <option value="Year">Year</option>
+            <option value="Type">Type</option>
+            <option value="Status">Status</option>
+            <option value="View-count">View Count</option>
+            <option value="Is-anime">Is Anime</option>
+        </select>
+    </label>
     <form action="javascript:treeFilterForm()" id="sidebar-form">
         <input type="text" name="search-query" id="search-query" placeholder="search query">
         <select name="sort-by" title="sort">
@@ -100,6 +109,12 @@
         <div>
             <canvas id="rating-by-year"></canvas>
         </div>
+    </div>
+
+    <div>
+        <div>
+            <canvas id="watch-time-by-year"></canvas>
+        </div>
         <div>
             <canvas id="adj-rating-by-year"></canvas>
         </div>
@@ -115,6 +130,9 @@
         <canvas id="cost-by-format"></canvas>
     </div>
 
+    <div>
+        <canvas id="finished-per-year"></canvas>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/globals.js"></script>

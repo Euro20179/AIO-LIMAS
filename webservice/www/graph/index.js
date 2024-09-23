@@ -18,6 +18,32 @@ const ctx = getCtx("by-year")
 const typePieCtx = getCtx("type-pie")
 const rbyCtx = getCtx("rating-by-year")
 
+const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
+
+/**
+ * @param {number} watchCount
+ * @param {MetadataEntry} meta
+ * @returns {number}
+ */
+function getWatchTime(watchCount, meta) {
+    if (!meta.MediaDependant) {
+        return 0
+    }
+    let data = JSON.parse(meta.MediaDependant)
+    let length = 0
+    for (let type of ["Show", "Movie"]) {
+        if (!(`${type}-length` in data)) {
+            continue
+        }
+        length = Number(data[`${type}-length`])
+        break
+    }
+    if (isNaN(length)) {
+        return 0
+    }
+    return length * watchCount
+}
+
 /**
 * @param {Record<any, any>} obj
 * @param {string} label
@@ -29,6 +55,104 @@ function fillGap(obj, label) {
     }
 }
 
+/**
+ * @param {InfoEntry[]} entries
+ */
+async function organizeData(entries) {
+    let met = await loadList("/metadata/list-entries")
+    let user = await loadList("/engagement/list-entries")
+
+    let groupBy = groupBySelect.value
+
+    let byYearGroup = i => {
+        let meta = findEntryById(i.ItemId, met)
+        return meta.ReleaseYear
+    }
+
+    const groupings = {
+        "Year": byYearGroup,
+        "Type": i => i.Type,
+        "Status": i => {
+            let u = findEntryById(i.ItemId, user)
+            return u.Status
+        },
+        "View-count": i => {
+            let u = findEntryById(i.ItemId, user)
+            return u.ViewCount
+        },
+        "Is-anime": i => {
+            return i.IsAnime
+        }
+    }
+
+    let data = Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)]))
+
+    if (groupBy === "Year") {
+        delete data['0']
+    }
+
+    if (groupBy === "Year") {
+        let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
+        for (let year in data) {
+            let yearInt = Number(year)
+            if (highestYear == yearInt) break
+            if (yearInt < 1970) continue
+            if (!((yearInt + 1) in data)) {
+                fillGap(data, yearInt + 1)
+            }
+        }
+    }
+    return data
+}
+
+/**@type {any}*/
+let wtbyChart = null
+/**
+ * @param {InfoEntry[]} entries
+ */
+async function watchTimeByYear(entries) {
+    let user = await loadList("/engagement/list-entries")
+    let met = await loadList("/metadata/list-entries")
+
+    let data = await organizeData(entries)
+
+    const years = Object.keys(data)
+
+    const watchTimes = Object.values(data)
+        .map(v => {
+            return v.map(i => {
+                let watchCount = findEntryById(i.ItemId, user).ViewCount
+                let thisMeta = findEntryById(i.ItemId, met)
+                let watchTime = getWatchTime(watchCount, thisMeta)
+                return watchTime / 60
+            }).reduce((p, c) => p + c, 0)
+        })
+    console.log(watchTimes)
+
+    if (wtbyChart) {
+        wtbyChart.destroy()
+    }
+    wtbyChart = new Chart(getCtx("watch-time-by-year"), {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: [{
+                label: 'watch time',
+                data: watchTimes,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
 /**@type {any}*/
 let adjRatingChart = null
 /**
@@ -36,25 +160,10 @@ let adjRatingChart = null
  */
 async function adjRatingByYear(entries) {
     let user = await loadList("/engagement/list-entries")
-    let met = await loadList("/metadata/list-entries")
+    let data = await organizeData(entries)
 
-    let data = Object.groupBy(entries, i => {
-        let meta = findEntryById(i.ItemId, met)
-        return meta.ReleaseYear
-    })
-
-    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
-    for (let year in data) {
-        let yearInt = Number(year)
-        if (highestYear == yearInt) break
-        if (yearInt < 1970) continue
-        if (!((yearInt + 1) in data)) {
-            fillGap(data, yearInt + 1)
-        }
-    }
-
-    delete data["0"]
     const years = Object.keys(data)
+
     let items = Object.values(data)
     let totalItems = 0
     for (let item of items) {
@@ -69,13 +178,14 @@ async function adjRatingByYear(entries) {
             })
             let totalRating = ratings
                 .reduce((p, c) => (p + c), 0)
-            
+
             let avgRating = totalRating / v.length
             let max = Math.max(...ratings)
             let min = Math.min(...ratings)
-        console.log(max, min, ratings)
-            return avgRating + v.length / (Math.log10(avgItems) / avgItems) - (max - min)
-        //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
+            let stdev = (max - min) / v.length || 1
+            return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min
+            // return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min - max
+            //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
         })
 
     if (adjRatingChart) {
@@ -390,24 +500,9 @@ let rbyChart = null
  */
 async function ratingByYear(entries) {
     let user = await loadList("/engagement/list-entries")
-    let met = await loadList("/metadata/list-entries")
 
-    let data = Object.groupBy(entries, i => {
-        let meta = findEntryById(i.ItemId, met)
-        return meta.ReleaseYear
-    })
+    let data = await organizeData(entries)
 
-    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
-    for (let year in data) {
-        let yearInt = Number(year)
-        if (highestYear == yearInt) break
-        if (yearInt < 1970) continue
-        if (!((yearInt + 1) in data)) {
-            fillGap(data, yearInt + 1)
-        }
-    }
-
-    delete data["0"]
     const years = Object.keys(data)
     const ratings = Object.values(data)
         .map(v => v
@@ -447,27 +542,11 @@ let bycChart = null
  * @param {InfoEntry[]} entries
  */
 async function byc(entries) {
-    let met = await loadList("metadata/list-entries")
-    let data = Object.groupBy(entries, i => {
-        let meta = findEntryById(i.ItemId, met)
-        return meta.ReleaseYear
-    })
-    let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
-    for (let year in data) {
-        let yearInt = Number(year)
-        if (+highestYear == yearInt) break
-        if (yearInt < 1970) continue
-        if (!((yearInt + 1) in data)) {
-            fillGap(data, String(yearInt + 1))
-        }
-    }
-
-    delete data["0"]
+    let data = await organizeData(entries)
 
     const years = Object.keys(data)
     const counts = Object.values(data).map(v => v.length)
     let total = counts.reduce((p, c) => p + c, 0)
-    console.log(`total items by year: ${total}`)
 
     if (bycChart) {
         bycChart.destroy()
@@ -528,11 +607,11 @@ function makeGraphs(entries) {
     costByTypePie(entries)
     costByFormat(entries)
     countByFormat(entries)
+    watchTimeByYear(entries)
 }
 
-function makeGraphsWithTree(tree) {
-    const entries = treeToEntriesList(tree)
-    makeGraphs(entries)
+groupBySelect.onchange = function() {
+    treeFilterForm()
 }
 
 let searchQueryElem = /**@type {HTMLInputElement}*/(document.getElementById("search-query"))
