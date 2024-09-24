@@ -295,3 +295,121 @@ async function finalizeIdentify(identifiedId, provider, applyTo) {
     provider = encodeURIComponent(provider)
     return await fetch(`${apiPath}/metadata/finalize-identify?identified-id=${identifiedId}&provider=${provider}&apply-to=${applyTo}`)
 }
+
+/**
+* @param {HTMLFormElement} form
+*/
+async function doQuery(form) {
+
+    let data = new FormData(form)
+    let status = /**@type {string[]}*/(data.getAll("status"))
+    let type = /**@type {string[]}*/(data.getAll("type"))
+    let format = /**@type {string[]}*/(data.getAll('format')).filter(n => n !== "")
+
+    let search = /**@type {string}*/(data.get("search-query"))
+
+    let tags = /**@type {string[]}*/(data.getAll("tags"))
+
+    let pgt = /**@type {string}*/(data.get("price-gt"))
+    let plt = /**@type {string}*/(data.get("price-lt"))
+
+    let rgt = /**@type {string}*/(data.get("rating-gt"))
+    let rlt = /**@type {string}*/(data.get("rating-lt"))
+
+    let formatN = undefined
+    if (format.length) {
+        formatN = format.map(Number)
+    }
+
+    //TODO:
+    //Add hasTags, notHasTags, and maybeHasTags
+    //allow the user to type #tag #!tag and #?tag in the search bar
+    /**@type {DBQuery}*/
+    let queryData = {
+        status: status.join(","),
+        type: type.join(","),
+        format: formatN,
+        tags: tags.join(","),
+        purchasePriceGt: Number(pgt),
+        purchasePriceLt: Number(plt),
+        userRatingGt: Number(rgt),
+        userRatingLt: Number(rlt),
+    }
+
+    let shortcuts = {
+        "r>": "userRatingGt",
+        "r<": "userRatingLt",
+        "p>": "purchasePriceGt",
+        "p<": "purchasePriceLt",
+    }
+
+    for (let word of search.split(" ")) {
+        let [property, value] = word.split(":")
+        for (let shortcut in shortcuts) {
+            if (word.startsWith(shortcut)) {
+                value = word.slice(shortcut.length)
+                property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
+                break
+            }
+        }
+        if (!value) continue
+        search = search.replace(word, "").trim()
+        //@ts-ignore
+        queryData[property] = value
+    }
+
+    queryData.title = search
+
+    return await loadQueriedEntries(queryData)
+}
+
+/**
+* @param {InfoEntry[]} entries
+* @param {string} sortBy
+*/
+function sortEntries(entries, sortBy) {
+    if (sortBy != "") {
+        if (sortBy == "rating") {
+            entries = entries.sort((a, b) => {
+                let aUInfo = findUserEntryById(a.ItemId)
+                let bUInfo = findUserEntryById(b.ItemId)
+                if (!aUInfo || !bUInfo) return 0
+                return bUInfo?.UserRating - aUInfo?.UserRating
+            })
+        } else if (sortBy == "cost") {
+            entries = entries.sort((a, b) => {
+                return b.PurchasePrice - a.PurchasePrice
+            })
+        } else if (sortBy == "general-rating") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                if (!bm || !am) return 0
+                return normalizeRating(bm.Rating, bm.RatingMax || 100) - normalizeRating(am.Rating, am.RatingMax || 100)
+            })
+        } else if (sortBy == "rating-disparity") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let au = findUserEntryById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                let bu = findUserEntryById(b.ItemId)
+                if (!bm || !am) return 0
+                let bGeneral = normalizeRating(bm.Rating, bm.RatingMax || 100)
+                let aGeneral = normalizeRating(am.Rating, am.RatingMax || 100)
+
+                let aUser = Number(au?.UserRating)
+                let bUser = Number(bu?.UserRating)
+
+
+                return (aGeneral - aUser) - (bGeneral - bUser)
+            })
+        } else if (sortBy == "release-year") {
+            entries = entries.sort((a, b) => {
+                let am = findMetadataById(a.ItemId)
+                let bm = findMetadataById(b.ItemId)
+                return (bm?.ReleaseYear || 0) - (am?.ReleaseYear || 0)
+            })
+        }
+    }
+    return entries
+}
