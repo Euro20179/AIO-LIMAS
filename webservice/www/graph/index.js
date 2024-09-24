@@ -95,12 +95,18 @@ function mkBarChart(ctx, x, y, labelText) {
             responsive: true,
             scales: {
                 y: {
+                    grid: {
+                        color: "grey"
+                    },
                     ticks: {
                         color: "white"
                     },
                     beginAtZero: true
                 },
                 x: {
+                    grid: {
+                        color: "grey"
+                    },
                     ticks: {
                         color: "white"
                     }

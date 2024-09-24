@@ -95,37 +95,46 @@
         </dialog>
         <input type="submit" value="sort'n'search">
     </form>
-    <div>
-        <div>
-            <canvas id="by-year"></canvas>
-        </div>
-        <div>
-            <canvas id="rating-by-year"></canvas>
-        </div>
-    </div>
 
-    <div>
+    <details open>
+        <summary>Items and watch time</summary>
         <div>
-            <canvas id="watch-time-by-year"></canvas>
+            <div>
+                <canvas id="by-year"></canvas>
+            </div>
+            <div>
+                <canvas id="watch-time-by-year"></canvas>
+            </div>
         </div>
+    </details>
+
+    <details open="">
+        <summary>Ratings</summary>
         <div>
-            <canvas id="adj-rating-by-year"></canvas>
+            <div>
+                <canvas id="rating-by-year"></canvas>
+            </div>
+            <div>
+                <canvas id="adj-rating-by-year"></canvas>
+            </div>
         </div>
-    </div>
+    </details>
 
-    <div id="pies">
-        <canvas id="type-pie"></canvas>
-        <canvas id="cost-by-type"></canvas>
-    </div>
+    <details open="">
+        <summary>Type pies</summary>
+        <div id="pies">
+            <canvas id="type-pie"></canvas>
+            <canvas id="cost-by-type"></canvas>
+        </div>
+    </details>
 
-    <div>
-        <canvas id="count-by-format"></canvas>
-        <canvas id="cost-by-format"></canvas>
-    </div>
-
-    <div>
-        <canvas id="finished-per-year"></canvas>
-    </div>
+    <details open="">
+        <summary>Format pies</summary>
+        <div>
+            <canvas id="count-by-format"></canvas>
+            <canvas id="cost-by-format"></canvas>
+        </div>
+    </details>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/js/globals.js"></script>
