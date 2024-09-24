@@ -23,6 +23,8 @@
             display: flex;
         }
     </style>
+
+    <link rel="stylesheet" href="/css/general.css">
 </head>
 
 <body>
@@ -37,15 +39,6 @@
     </label>
     <form action="javascript:treeFilterForm()" id="sidebar-form">
         <input type="text" name="search-query" id="search-query" placeholder="search query">
-        <select name="sort-by" title="sort">
-            <option value="">None</option>
-            <option value="rating">Rating</option>
-            <option value="general-rating">General rating</option>
-            <option value="rating-disparity" title="How different your rating is from the general consensous">
-                Rating disparity</option>
-            <option value="release-year">Release year</option>
-            <option value="cost">Cost</option>
-        </select>
         <button type="button" popovertarget="advanced-search">Advanced</button>
         <dialog popover id="advanced-search">
             <div class="grid">

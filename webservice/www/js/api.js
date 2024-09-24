@@ -192,7 +192,7 @@ async function loadQueriedEntries(search) {
         queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
     }
     if (search.isAnime) {
-        queryString += `&is-anime=${search.isAnime}`
+        queryString += `&is-anime=${Number(search.isAnime) + 1}`
     }
     if (search.purchasePriceGt) {
         queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`

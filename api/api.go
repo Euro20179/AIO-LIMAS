@@ -324,6 +324,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	status := parsedParams.Get("user-status", db.Status("")).(db.Status)
 	userRatingGt := parsedParams.Get("user-rating-gt", 0.0).(float64)
 	userRatingLt := parsedParams.Get("user-rating-lt", 0.0).(float64)
+	isAnime := parsedParams.Get("is-anime", int64(0)).(int64)
 
 	var fmts []db.Format
 	var pars []int64
@@ -381,6 +382,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	entrySearch.HasParent = pars
 	entrySearch.CopyIds = cos
 	entrySearch.UserStatus = db.Status(status)
+	entrySearch.IsAnime = int(isAnime)
 
 	rows, err := db.Search(entrySearch)
 	if err != nil {

@@ -621,7 +621,7 @@ function applySidebarAttrs(item, user, meta, el) {
     if (meta?.Thumbnail) {
         el.setAttribute("data-thumbnail-src", meta.Thumbnail)
     }
-    if(meta.ReleaseYear) {
+    if (meta.ReleaseYear) {
         el.setAttribute("data-release-year", String(meta.ReleaseYear))
     }
 
@@ -749,22 +749,18 @@ async function treeFilterForm() {
         "purchasePriceGt": "p>",
         "purchasePriceLt": "p<",
     }
+
     for (let word of search.split(" ")) {
-        for (let property in queryData) {
-            //@ts-ignore
-            let shortcut = shortcuts[property]
-            let value
-            if (word.startsWith(shortcut)) {
-                value = word.slice(shortcut.length)
-            } else if (word.startsWith(`${property}:`)) {
-                value = word.slice(property.length + 1)
-            } else {
-                continue
-            }
-            search = search.replace(word, "").trim()
-            //@ts-ignore
-            queryData[property] = value
+        let [property, value] = word.split(":")
+        if (!value) continue
+        //@ts-ignore
+        let shortcut = shortcuts[property]
+        if (word.startsWith(shortcut)) {
+            value = word.slice(shortcut.length)
         }
+        search = search.replace(word, "").trim()
+        //@ts-ignore
+        queryData[property] = value
     }
 
     queryData.title = search
@@ -808,7 +804,7 @@ async function treeFilterForm() {
 
                 return (aGeneral - aUser) - (bGeneral - bUser)
             })
-        } else if(sortBy == "release-year") {
+        } else if (sortBy == "release-year") {
             entries = entries.sort((a, b) => {
                 let am = findMetadataById(a.ItemId)
                 let bm = findMetadataById(b.ItemId)

@@ -4,6 +4,7 @@
     --light-blue: #b4e4ff;
     --blue: #95bdff;
     --yellow: #e5c890;
+    --lavender: #b4befe;
 
     --main: #121626;
     --secondary: hsl(from var(--main) h s calc(l * 1.8));

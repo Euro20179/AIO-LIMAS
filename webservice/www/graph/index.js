@@ -1,17 +1,20 @@
+/**
+ * @param {string} id
+ */
 function getCtx(id) {
     const canv = /**@type {HTMLCanvasElement}*/(document.getElementById(id))
-    return canv.getContext("2d")
+    return /**@type {CanvasRenderingContext2D}*/(canv.getContext("2d"))
 }
 
 const typeColors = {
-    "Manga": "lightyellow",
-    "Show": "pink",
-    "Movie": "lightblue",
-    "MovieShort": "lightskyblue",
-    "Song": "lightgreen",
+    "Manga": "#e5c890",
+    "Show": "#f7c8e0",
+    "Movie": "#95bdff",
+    "MovieShort": "#b4e4ff",
+    "Song": "#dfffd8",
     "Game": "#fed8b1",
     "Book": "gainsboro",
-    "Collection": "violet"
+    "Collection": "#b4befe"
 }
 
 const ctx = getCtx("by-year")
@@ -19,6 +22,93 @@ const typePieCtx = getCtx("type-pie")
 const rbyCtx = getCtx("rating-by-year")
 
 const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string[]} labels
+ * @param {number[]} data
+ * @param {string} labelText
+ * @param {string[]} [colors=[]]
+ */
+function mkPieChart(ctx, labels, data, labelText, colors=[]) {
+    let obj = {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label:labelText,
+                data: data,
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "white"
+                    }
+                },
+                title: {
+                    color: "white",
+                    display: true,
+                    text: "Format count",
+                }
+            },
+            responsive: true
+        }
+    }
+    if(colors.length) {
+        //@ts-ignore
+        obj.data.datasets[0].backgroundColor = colors
+    }
+    //@ts-ignore
+    return new Chart(ctx, obj)
+}
+
+/**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {any[]} x
+ * @param {any[]} y
+ * @param {string} labelText
+ */
+function mkBarChart(ctx, x, y, labelText) {
+    //@ts-ignore
+    return new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: x,
+            datasets: [{
+                label: labelText,
+                data: y,
+                borderWidth: 1,
+                backgroundColor: "#95bdff"
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "white"
+                    }
+                }
+            },
+            responsive: true,
+            scales: {
+                y: {
+                    ticks: {
+                        color: "white"
+                    },
+                    beginAtZero: true
+                },
+                x: {
+                    ticks: {
+                        color: "white"
+                    }
+                }
+            }
+        }
+    })
+}
 
 /**
  * @param {number} watchCount
@@ -57,6 +147,7 @@ function fillGap(obj, label) {
 
 /**
  * @param {InfoEntry[]} entries
+ * @returns {Promise<Record<string, InfoEntry[]>>}
  */
 async function organizeData(entries) {
     let met = await loadList("/metadata/list-entries")
@@ -64,13 +155,9 @@ async function organizeData(entries) {
 
     let groupBy = groupBySelect.value
 
-    let byYearGroup = i => {
-        let meta = findEntryById(i.ItemId, met)
-        return meta.ReleaseYear
-    }
-
+    /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
-        "Year": byYearGroup,
+        "Year": i => findEntryById(i.ItemId, met).ReleaseYear,
         "Type": i => i.Type,
         "Status": i => {
             let u = findEntryById(i.ItemId, user)
@@ -92,17 +179,17 @@ async function organizeData(entries) {
     }
 
     if (groupBy === "Year") {
-        let highestYear = Object.keys(data).sort((a, b) => +b - +a)[0]
+        let highestYear = +Object.keys(data).sort((a, b) => +b - +a)[0]
         for (let year in data) {
             let yearInt = Number(year)
             if (highestYear == yearInt) break
             if (yearInt < 1970) continue
             if (!((yearInt + 1) in data)) {
-                fillGap(data, yearInt + 1)
+                fillGap(data, String(yearInt + 1))
             }
         }
     }
-    return data
+    return /**@type {Record<string, InfoEntry[]>}*/(data)
 }
 
 /**@type {any}*/
@@ -132,25 +219,7 @@ async function watchTimeByYear(entries) {
     if (wtbyChart) {
         wtbyChart.destroy()
     }
-    wtbyChart = new Chart(getCtx("watch-time-by-year"), {
-        type: 'bar',
-        data: {
-            labels: years,
-            datasets: [{
-                label: 'watch time',
-                data: watchTimes,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    wtbyChart = mkBarChart(getCtx("watch-time-by-year"), years, watchTimes, "Watch time")
 }
 
 /**@type {any}*/
@@ -180,9 +249,7 @@ async function adjRatingByYear(entries) {
                 .reduce((p, c) => (p + c), 0)
 
             let avgRating = totalRating / v.length
-            let max = Math.max(...ratings)
             let min = Math.min(...ratings)
-            let stdev = (max - min) / v.length || 1
             return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min
             // return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min - max
             //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
@@ -191,25 +258,7 @@ async function adjRatingByYear(entries) {
     if (adjRatingChart) {
         adjRatingChart.destroy()
     }
-    adjRatingChart = new Chart(getCtx("adj-rating-by-year"), {
-        type: 'bar',
-        data: {
-            labels: years,
-            datasets: [{
-                label: 'adj ratings',
-                data: ratings,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    adjRatingChart = mkBarChart(getCtx("adj-rating-by-year"), years, ratings, 'adj ratings')
 }
 
 /**@type {any}*/
@@ -218,7 +267,7 @@ let countByFormatChart = null
  * @param {InfoEntry[]} entries
  */
 function countByFormat(entries) {
-    let data = Object.groupBy(entries, i => formatToName(i.Format))
+    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => formatToName(i.Format)))
 
     let labels = Object.keys(data)
         .sort((a, b) => data[b].length - data[a].length)
@@ -227,26 +276,7 @@ function countByFormat(entries) {
     if (countByFormatChart) {
         countByFormatChart.destroy()
     }
-    countByFormatChart = new Chart(getCtx("count-by-format"), {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Types",
-                data: counts,
-                borderWidth: 1,
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: "Format count",
-                }
-            },
-            responsive: true
-        }
-    });
+    countByFormatChart = mkPieChart(getCtx("count-by-format"),labels,counts, "Types")
 }
 async function treeFilterForm() {
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
@@ -292,22 +322,18 @@ async function treeFilterForm() {
         "purchasePriceGt": "p>",
         "purchasePriceLt": "p<",
     }
+
     for (let word of search.split(" ")) {
-        for (let property in queryData) {
-            //@ts-ignore
-            let shortcut = shortcuts[property]
-            let value
-            if (word.startsWith(shortcut)) {
-                value = word.slice(shortcut.length)
-            } else if (word.startsWith(`${property}:`)) {
-                value = word.slice(property.length + 1)
-            } else {
-                continue
-            }
-            search = search.replace(word, "").trim()
-            //@ts-ignore
-            queryData[property] = value
+        let [property, value] = word.split(":")
+        if (!value) continue
+        //@ts-ignore
+        let shortcut = shortcuts[property]
+        if (word.startsWith(shortcut)) {
+            value = word.slice(shortcut.length)
         }
+        search = search.replace(word, "").trim()
+        //@ts-ignore
+        queryData[property] = value
     }
 
     queryData.title = search
@@ -369,12 +395,12 @@ let costChart = null
 function costByFormat(entries) {
     entries = entries.filter(v => v.PurchasePrice > 0)
 
-    let data = Object.groupBy(entries, i => formatToName(i.Format))
+    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => formatToName(i.Format)))
 
     let totals = Object.fromEntries(
         Object.entries(data)
             .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
-            .sort((a, b) => b[1] - a[1])
+            .sort((a, b) => +b[1] - +a[1])
     )
 
     let labels = Object.keys(data)
@@ -383,26 +409,7 @@ function costByFormat(entries) {
     if (costChart) {
         costChart.destroy()
     }
-    costChart = new Chart(getCtx("cost-by-format"), {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Types",
-                data: totals,
-                borderWidth: 1,
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: "Cost by format"
-                }
-            },
-            responsive: true
-        }
-    });
+    costChart = mkPieChart(getCtx("cost-by-format"),labels,totals, "Types")
 }
 
 
@@ -413,43 +420,23 @@ let costByTypeChart = null
  */
 function costByTypePie(entries) {
     entries = entries.filter(v => v.PurchasePrice > 0)
-    let data = Object.groupBy(entries, i => i.Type)
+    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => i.Type))
 
     let totals = Object.fromEntries(
         Object.entries(data)
             .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
-            .sort((a, b) => b[1] - a[1])
+            .sort((a, b) => +b[1] - +a[1])
     )
     let labels = Object.keys(data)
     let totalList = Object.values(totals)
 
-    let colors = labels.map(v => typeColors[v])
+    let colors = labels.map(v => typeColors[/**@type {keyof typeof typeColors}*/(v)])
 
     if (costByTypeChart) {
         costByTypeChart.destroy()
     }
 
-    costByTypeChart = new Chart(getCtx("cost-by-type"), {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Cost",
-                data: totalList,
-                borderWidth: 1,
-                backgroundColor: colors
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: "Cost by type"
-                }
-            },
-            responsive: true
-        }
-    });
+    costByTypeChart = mkPieChart(getCtx("cost-by-type"), labels, totalList, "Cost", colors)
 }
 
 
@@ -459,38 +446,18 @@ let typechart = null
  * @param {InfoEntry[]} entries
  */
 function typePieChart(entries) {
-    let data = Object.groupBy(entries, i => i.Type)
+    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => i.Type))
 
     let labels = Object.keys(data)
         .sort((a, b) => data[b].length - data[a].length)
     let counts = Array.from(labels, (v, k) => data[v].length)
 
-    let colors = labels.map(v => typeColors[v])
+    let colors = labels.map(v => typeColors[/**@type {keyof typeof typeColors}*/(v)])
 
     if (typechart) {
         typechart.destroy()
     }
-    typechart = new Chart(typePieCtx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Types",
-                data: counts,
-                borderWidth: 1,
-                backgroundColor: colors
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: "Type count",
-                }
-            },
-            responsive: true
-        }
-    });
+    typechart = mkPieChart(typePieCtx, labels, counts, "Types", colors)
 }
 
 /**@type {any}*/
@@ -516,27 +483,10 @@ async function ratingByYear(entries) {
     if (rbyChart) {
         rbyChart.destroy()
     }
-    rbyChart = new Chart(rbyCtx, {
-        type: 'bar',
-        data: {
-            labels: years,
-            datasets: [{
-                label: 'ratings',
-                data: ratings,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
+    rbyChart = mkBarChart(rbyCtx, years, ratings, 'ratings')
 }
 
+/**@type {any}*/
 let bycChart = null
 /**
  * @param {InfoEntry[]} entries
@@ -546,40 +496,21 @@ async function byc(entries) {
 
     const years = Object.keys(data)
     const counts = Object.values(data).map(v => v.length)
-    let total = counts.reduce((p, c) => p + c, 0)
 
     if (bycChart) {
         bycChart.destroy()
     }
-    bycChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: years,
-            datasets: [{
-                label: '#items',
-                data: counts,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-            },
-        }
-    });
+    bycChart = mkBarChart(ctx, years, counts, '#items')
 }
 
-function treeToEntriesList(tree) {
-    let entries = []
-    for (let id in tree) {
-        tree[id].EntryInfo.ItemId = BigInt(id)
-        entries.push(tree[id].EntryInfo)
-    }
-    return entries
-}
+// function treeToEntriesList(tree) {
+//     let entries = []
+//     for (let id in tree) {
+//         tree[id].EntryInfo.ItemId = BigInt(id)
+//         entries.push(tree[id].EntryInfo)
+//     }
+//     return entries
+// }
 
 /**
  * @param {bigint} id
@@ -597,7 +528,7 @@ function findEntryById(id, entryTable) {
 }
 
 /**
-* @param {object} json
+* @param {InfoEntry[]} entries
 */
 function makeGraphs(entries) {
     byc(entries)

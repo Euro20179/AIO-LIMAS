@@ -99,7 +99,7 @@ func main() {
 			"tags":           api.MkQueryInfo(api.P_True, false),
 			"types":          api.MkQueryInfo(api.P_True, false),
 			"parents":        api.MkQueryInfo(api.P_True, false),
-			"is-anime":       api.MkQueryInfo(api.P_Bool, false),
+			"is-anime":       api.MkQueryInfo(api.P_Int64, false),
 			"copy-ids":       api.MkQueryInfo(api.P_True, false),
 			"user-status":    api.MkQueryInfo(api.P_UserStatus, false),
 			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
