@@ -1,3 +1,14 @@
+//TODO:
+//Instead of having /graph/ be a seperate page,
+//display the graphs in the display area when the user clicks on graph mode
+//then we can reuse the search stuff, group by can be added within the chart display area
+//
+//TODO:
+//display statistics eg:
+//  total watch time
+//  total items
+//  total spent
+
 /**
  * @param {string} id
  */
@@ -51,7 +62,7 @@ function mkPieChart(ctx, labels, data, labelText, colors=[]) {
                 title: {
                     color: "white",
                     display: true,
-                    text: "Format count",
+                    text:labelText,
                 }
             },
             responsive: true
@@ -181,10 +192,6 @@ async function organizeData(entries) {
     let data = Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)]))
 
     if (groupBy === "Year") {
-        delete data['0']
-    }
-
-    if (groupBy === "Year") {
         let highestYear = +Object.keys(data).sort((a, b) => +b - +a)[0]
         for (let year in data) {
             let yearInt = Number(year)
@@ -220,7 +227,6 @@ async function watchTimeByYear(entries) {
                 return watchTime / 60
             }).reduce((p, c) => p + c, 0)
         })
-    console.log(watchTimes)
 
     if (wtbyChart) {
         wtbyChart.destroy()
@@ -282,7 +288,7 @@ function countByFormat(entries) {
     if (countByFormatChart) {
         countByFormatChart.destroy()
     }
-    countByFormatChart = mkPieChart(getCtx("count-by-format"),labels,counts, "Types")
+    countByFormatChart = mkPieChart(getCtx("count-by-format"),labels,counts, "Formats")
 }
 async function treeFilterForm() {
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
@@ -351,6 +357,7 @@ let typechart = null
  * @param {InfoEntry[]} entries
  */
 function typePieChart(entries) {
+
     let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => i.Type))
 
     let labels = Object.keys(data)
@@ -451,5 +458,5 @@ groupBySelect.onchange = function() {
 }
 
 let searchQueryElem = /**@type {HTMLInputElement}*/(document.getElementById("search-query"))
-searchQueryElem.value = "status:Finished"
+searchQueryElem.value = "status:Finished y>=1"
 treeFilterForm()

@@ -9,7 +9,7 @@ import (
 	"aiolimas/webservice"
 )
 
-func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request){
+func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		fn(w, req)
 	}
@@ -104,6 +104,8 @@ func main() {
 			"user-status":    api.MkQueryInfo(api.P_UserStatus, false),
 			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
 			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
+			"released-ge":    api.MkQueryInfo(api.P_Int64, false),
+			"released-le":    api.MkQueryInfo(api.P_Int64, false),
 		},
 	}
 
@@ -193,12 +195,12 @@ func main() {
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
-	deleteEvent := api.ApiEndPoint {
+	deleteEvent := api.ApiEndPoint{
 		Handler: api.DeleteEvent,
-		QueryParams: api.QueryParams {
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		QueryParams: api.QueryParams{
+			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 			"timestamp": api.MkQueryInfo(api.P_Int64, true),
-			"after": api.MkQueryInfo(api.P_Int64, true),
+			"after":     api.MkQueryInfo(api.P_Int64, true),
 		},
 	}
 

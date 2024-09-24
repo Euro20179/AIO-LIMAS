@@ -128,7 +128,7 @@ func InitDb(dbPath string) {
 	}
 
 	err = ensureRatingMax(conn)
-	if err != nil{
+	if err != nil {
 		println(err.Error())
 	}
 
@@ -255,9 +255,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			ratingMax
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-		_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
-			metadataEntry.Rating,
-			metadataEntry.Description,
+	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
+		metadataEntry.Rating,
+		metadataEntry.Description,
 		metadataEntry.MediaDependant,
 		metadataEntry.ReleaseYear,
 		metadataEntry.Thumbnail,
@@ -304,7 +304,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	}
 
 	err = RegisterBasicUserEvent("Added", metadataEntry.ItemId)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -492,6 +492,8 @@ type EntryInfoSearch struct {
 	UserStatus        Status
 	UserRatingGt      float64
 	UserRatingLt      float64
+	ReleasedGE        int64
+	ReleasedLE        int64
 }
 
 func buildQString[T any](withList []T) string {
@@ -520,7 +522,8 @@ func Delete(id int64) error {
 
 func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
-	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId")
+	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
+
 	var queries []string
 	// query := `SELECT * FROM entryInfo WHERE true`
 
@@ -529,6 +532,20 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 			mainSearchInfo.Format,
 		}
 		queries = append(queries, query.In("format", sqlbuilder.Flatten(formats)...))
+	}
+
+	if mainSearchInfo.ReleasedLE == mainSearchInfo.ReleasedGE {
+		queries = append(queries, query.EQ("releaseYear", mainSearchInfo.ReleasedGE))
+	} else if mainSearchInfo.ReleasedGE < mainSearchInfo.ReleasedLE {
+		queries = append(queries, query.And(
+			query.GE("releaseYear", mainSearchInfo.ReleasedGE),
+			query.LE("releaseYear", mainSearchInfo.ReleasedLE),
+		))
+	} else if mainSearchInfo.ReleasedLE != 0 {
+		queries = append(queries, query.LE("releaseYear", mainSearchInfo.ReleasedLE))
+	} else if mainSearchInfo.ReleasedGE != 0 {
+
+		queries = append(queries, query.GE("releaseYear", mainSearchInfo.ReleasedGE))
 	}
 
 	if mainSearchInfo.LocationSearch != "" {
@@ -669,8 +686,7 @@ func DeleteEvent(id int64, timestamp int64, after int64) error {
 		WHERE 
 			itemId == ? and timestamp == ? and after == ?
 	`, id, timestamp, after)
-
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	return nil

@@ -63,6 +63,8 @@
  * @property {number} [userRatingGt]
  * @property {number} [purchasePriceGt]
  * @property {number} [purchasePriceLt]
+ * @property {number} [releasedGe]
+ * @property {number} [releasedLe]
  * @property {boolean} [isAnime]
  */
 
@@ -200,6 +202,12 @@ async function loadQueriedEntries(search) {
     if (search.purchasePriceLt) {
         queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
     }
+    if (search.releasedGe) {
+        queryString += `&released-ge=${encodeURIComponent(String(search.releasedGe))}`
+    }
+    if (search.releasedLe) {
+        queryString += `&released-le=${encodeURIComponent(String(search.releasedLe))}`
+    }
     const res = await fetch(`${apiPath}/query${queryString}`)
         .catch(console.error)
     if (!res) {
@@ -336,23 +344,40 @@ async function doQuery(form) {
         userRatingLt: Number(rlt),
     }
 
+    /**
+     * @type {Record<string, string | ((value: string) => Record<string, string>)>}
+     */
     let shortcuts = {
         "r>": "userRatingGt",
         "r<": "userRatingLt",
         "p>": "purchasePriceGt",
         "p<": "purchasePriceLt",
+        "y>=": "releasedGe",
+        "y<=": "releasedLe",
+        "y=": (value) => { return { "releasedGe": value, "releasedLe": value } }
     }
 
     for (let word of search.split(" ")) {
-        let [property, value] = word.split(":")
+        /**@type {string | ((value: string) => Record<string, string>)}*/
+        let property
+        let value
+        [property, value] = word.split(":")
         for (let shortcut in shortcuts) {
             if (word.startsWith(shortcut)) {
                 value = word.slice(shortcut.length)
+                //@ts-ignore
                 property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
                 break
             }
         }
         if (!value) continue
+        if (typeof property === 'function') {
+            let res = property(value)
+            for(let key in res) {
+                //@ts-ignore
+                queryData[key] = res[key]
+            }
+        }
         search = search.replace(word, "").trim()
         //@ts-ignore
         queryData[property] = value
@@ -360,6 +385,7 @@ async function doQuery(form) {
 
     queryData.title = search
 
+    console.log(queryData)
     return await loadQueriedEntries(queryData)
 }
 
