@@ -390,6 +390,14 @@ async function doQuery(form) {
 }
 
 /**
+ * @param {bigint} id
+ * @param {string} pos
+ */
+async function setPos(id, pos) {
+    return fetch(`${apiPath}/engagement/mod-entry?id=${id}&current-position=${pos}`)
+}
+
+/**
 * @param {InfoEntry[]} entries
 * @param {string} sortBy
 */

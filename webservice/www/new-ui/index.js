@@ -489,6 +489,18 @@ function renderDisplayItem(item, el = null, updateStats = true) {
             })
         }
 
+        let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
+        progress.addEventListener("click", async() => {
+            let newEp = prompt("Current position:")
+            if(!newEp) {
+                return
+            }
+            await setPos(item.ItemId, newEp)
+
+            el.setAttribute("data-user-current-position", newEp)
+            progress.value = Number(newEp)
+        })
+
         let deleteBtn = root.querySelector(".delete")
         deleteBtn?.addEventListener("click", _ => {
             deleteEntry(item)

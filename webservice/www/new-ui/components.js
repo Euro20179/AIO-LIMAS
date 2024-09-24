@@ -58,6 +58,7 @@ customElements.define("display-entry", class extends HTMLElement {
         "data-view-count",
         "data-media-dependant",
         "data-user-events",
+        "data-user-current-position"
     ]
 
     constructor() {
@@ -191,10 +192,10 @@ customElements.define("display-entry", class extends HTMLElement {
     ["data-audience-rating"](val) {
         let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".audience-rating"))
         let max = Number(this.getAttribute("data-audience-rating-max"))
-        if(val) {
+        if (val) {
             let rating = Number(val)
             let normalizedRating = rating
-            if(max !== 0){
+            if (max !== 0) {
                 normalizedRating = rating / max * 100
             }
             applyUserRating(normalizedRating, ratingE)
@@ -218,6 +219,19 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-user-status"](val) {
         fillElement(this.root, ".entry-progress .status", val, "innerhtml")
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-user-current-position"](val) {
+        let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector(".entry-progress progress"))
+
+        progress.title = `${val}`
+
+        if(progress.max) {
+            progress.title = `${val}/${progress.max}`
+        }
     }
 
     /**
@@ -247,6 +261,8 @@ customElements.define("display-entry", class extends HTMLElement {
 
             let pos = Number(this.getAttribute("data-user-current-position"))
             progress.value = pos
+
+            progress.title = `${pos}/${progress.max}`
 
             caption.innerText = `${pos}/${progress.max}`
             caption.title = `${Math.round(pos / progress.max * 1000) / 10}%`
@@ -385,7 +401,7 @@ customElements.define("entries-statistic", class extends HTMLElement {
     * @param {string} nv
     */
     attributeChangedCallback(name, ov, nv) {
-        if(name != "data-value") return
+        if (name != "data-value") return
         this.innerText = nv
     }
 })

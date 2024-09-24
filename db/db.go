@@ -534,7 +534,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.In("format", sqlbuilder.Flatten(formats)...))
 	}
 
-	if mainSearchInfo.ReleasedLE == mainSearchInfo.ReleasedGE {
+	if mainSearchInfo.ReleasedLE == mainSearchInfo.ReleasedGE && mainSearchInfo.ReleasedGE != 0 {
 		queries = append(queries, query.EQ("releaseYear", mainSearchInfo.ReleasedGE))
 	} else if mainSearchInfo.ReleasedGE < mainSearchInfo.ReleasedLE {
 		queries = append(queries, query.And(
