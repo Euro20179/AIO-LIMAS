@@ -464,21 +464,11 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func Stream(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n%s", err.Error())
-		return
-	}
-
-	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil {
-		wError(w, 500, "Could not get info entry\n%s", err.Error())
-		return
-	}
+func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	entry := parsedParams["id"].(db.InfoEntry)
 
 	w.WriteHeader(200)
-	http.ServeFile(w, req, info.Location)
+	http.ServeFile(w, req, entry.Location)
 }
 
 func DeleteEntry(w http.ResponseWriter, req *http.Request) {

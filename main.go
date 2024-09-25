@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"os"
 
 	api "aiolimas/api"
 	db "aiolimas/db"
@@ -21,16 +22,8 @@ func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *
 	}
 }
 
-func main() {
-	dbPathPtr := flag.String("db-path", "./all.db", "Path to the database file")
-	flag.Parse()
-	db.InitDb(*dbPathPtr)
-
-	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
-
-	apiRoot := "/api/v1"
-
-	addEntry := api.ApiEndPoint{
+var ( // `/` endpoints {{{
+	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
 		QueryParams: api.QueryParams{
 			"title":        api.MkQueryInfo(api.P_NotEmpty, true),
@@ -55,7 +48,7 @@ func main() {
 		},
 	}
 
-	modEntry := api.ApiEndPoint{
+	modEntry = api.ApiEndPoint{
 		Handler: api.ModEntry,
 		QueryParams: api.QueryParams{
 			"id":              api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
@@ -74,20 +67,27 @@ func main() {
 		},
 	}
 
-	setEntry := api.ApiEndPoint{
+	setEntry = api.ApiEndPoint{
 		Handler:     api.SetEntry,
 		QueryParams: api.QueryParams{},
 		Method:      "POST",
 	}
 
-	listApi := api.ApiEndPoint{
+	listApi = api.ApiEndPoint{
 		Handler: api.ListEntries,
 		QueryParams: api.QueryParams{
 			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
 		},
 	}
 
-	searchApi := api.ApiEndPoint{
+	stream = api.ApiEndPoint {
+		Handler: api.Stream,
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	searchApi = api.ApiEndPoint{
 		Handler: api.QueryEntries,
 		QueryParams: api.QueryParams{
 			"title":          api.MkQueryInfo(api.P_True, false),
@@ -109,12 +109,109 @@ func main() {
 		},
 	}
 
-	getAllEntry := api.ApiEndPoint{
+	getAllEntry = api.ApiEndPoint{
 		Handler: api.GetAllForEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
+) // }}}
+
+var ( // `/metadata` endpoints {{{
+	identify = api.ApiEndPoint{
+		Handler: api.IdentifyWithSearch,
+		QueryParams: api.QueryParams{
+			"title":    api.MkQueryInfo(api.P_NotEmpty, true),
+			"provider": api.MkQueryInfo(api.P_Identifier, true),
+		},
+	}
+
+	finalizeIdentify = api.ApiEndPoint{
+		Handler: api.FinalizeIdentification,
+		QueryParams: api.QueryParams{
+			"identified-id": api.MkQueryInfo(api.P_NotEmpty, true),
+			"provider":      api.MkQueryInfo(api.P_IdIdentifier, true),
+			"apply-to":      api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+		},
+	}
+
+	setMeta = api.ApiEndPoint{
+		Handler:     api.SetMetadataEntry,
+		Method:      "POST",
+		QueryParams: api.QueryParams{},
+	}
+) // }}}
+
+var (// `/engagement` endpoints {{{
+	finishEngagement = api.ApiEndPoint{
+		Handler: api.FinishMedia,
+		QueryParams: api.QueryParams{
+			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"rating": api.MkQueryInfo(api.P_Float64, true),
+		},
+	}
+
+	reassociate = api.ApiEndPoint{
+		Handler: api.CopyUserViewingEntry,
+		QueryParams: api.QueryParams{
+			"src-id":  api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"dest-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	getEvents = api.ApiEndPoint{
+		Handler: api.GetEventsOf,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+	deleteEvent = api.ApiEndPoint{
+		Handler: api.DeleteEvent,
+		QueryParams: api.QueryParams{
+			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"timestamp": api.MkQueryInfo(api.P_Int64, true),
+			"after":     api.MkQueryInfo(api.P_Int64, true),
+		},
+	}
+
+	listEvents = api.ApiEndPoint{
+		Handler:     api.ListEvents,
+		QueryParams: api.QueryParams{},
+	}
+
+	modUserEntry = api.ApiEndPoint{
+		Handler: api.ModUserEntry,
+		QueryParams: api.QueryParams{
+			"id":               api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"notes":            api.MkQueryInfo(api.P_True, false),
+			"rating":           api.MkQueryInfo(api.P_Float64, false),
+			"view-count":       api.MkQueryInfo(api.P_Int64, false),
+			"current-position": api.MkQueryInfo(api.P_True, false),
+			"status":           api.MkQueryInfo(api.P_UserStatus, false),
+		},
+	}
+
+	setUserEntry = api.ApiEndPoint{
+		Handler:     api.SetUserEntry,
+		Method:      "POST",
+		QueryParams: api.QueryParams{},
+	}
+)// }}}
+
+func main() {
+	dbPath, exists := os.LookupEnv("DB_PATH")
+	if !exists {
+		dbPath = "./all.db"
+	}
+
+	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
+	flag.Parse()
+
+	db.InitDb(*dbPathPtr)
+
+	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
+
+	apiRoot := "/api/v1"
 
 	// for db management type stuff
 	makeEndpoints(apiRoot, EndPointMap{
@@ -124,7 +221,7 @@ func main() {
 		"query":             searchApi.Listener,
 		"list-entries":      listApi.Listener,
 		"scan-folder":       api.ScanFolder,
-		"stream-entry":      api.Stream,
+		"stream-entry":      stream.Listener,
 		"delete-entry":      api.DeleteEntry,
 		"list-collections":  api.ListCollections,
 		"list-copies":       api.GetCopies,
@@ -139,29 +236,6 @@ func main() {
 		"type":   api.ListTypes,
 	})
 
-	identify := api.ApiEndPoint{
-		Handler: api.IdentifyWithSearch,
-		QueryParams: api.QueryParams{
-			"title":    api.MkQueryInfo(api.P_NotEmpty, true),
-			"provider": api.MkQueryInfo(api.P_Identifier, true),
-		},
-	}
-
-	finalizeIdentify := api.ApiEndPoint{
-		Handler: api.FinalizeIdentification,
-		QueryParams: api.QueryParams{
-			"identified-id": api.MkQueryInfo(api.P_NotEmpty, true),
-			"provider":      api.MkQueryInfo(api.P_IdIdentifier, true),
-			"apply-to":      api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
-		},
-	}
-
-	setMeta := api.ApiEndPoint{
-		Handler:     api.SetMetadataEntry,
-		Method:      "POST",
-		QueryParams: api.QueryParams{},
-	}
-
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":             api.FetchMetadataForEntry,
@@ -172,60 +246,6 @@ func main() {
 		"identify":          identify.Listener,
 		"finalize-identify": finalizeIdentify.Listener,
 	})
-
-	finishEngagement := api.ApiEndPoint{
-		Handler: api.FinishMedia,
-		QueryParams: api.QueryParams{
-			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"rating": api.MkQueryInfo(api.P_Float64, true),
-		},
-	}
-
-	reassociate := api.ApiEndPoint{
-		Handler: api.CopyUserViewingEntry,
-		QueryParams: api.QueryParams{
-			"src-id":  api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"dest-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-		},
-	}
-
-	getEvents := api.ApiEndPoint{
-		Handler: api.GetEventsOf,
-		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-		},
-	}
-	deleteEvent := api.ApiEndPoint{
-		Handler: api.DeleteEvent,
-		QueryParams: api.QueryParams{
-			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
-			"timestamp": api.MkQueryInfo(api.P_Int64, true),
-			"after":     api.MkQueryInfo(api.P_Int64, true),
-		},
-	}
-
-	listEvents := api.ApiEndPoint{
-		Handler:     api.ListEvents,
-		QueryParams: api.QueryParams{},
-	}
-
-	modUserEntry := api.ApiEndPoint{
-		Handler: api.ModUserEntry,
-		QueryParams: api.QueryParams{
-			"id":               api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"notes":            api.MkQueryInfo(api.P_True, false),
-			"rating":           api.MkQueryInfo(api.P_Float64, false),
-			"view-count":       api.MkQueryInfo(api.P_Int64, false),
-			"current-position": api.MkQueryInfo(api.P_True, false),
-			"status":           api.MkQueryInfo(api.P_UserStatus, false),
-		},
-	}
-
-	setUserEntry := api.ApiEndPoint{
-		Handler:     api.SetUserEntry,
-		Method:      "POST",
-		QueryParams: api.QueryParams{},
-	}
 
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
