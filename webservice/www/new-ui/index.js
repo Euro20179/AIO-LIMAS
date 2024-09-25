@@ -446,10 +446,32 @@ function renderDisplayItem(item, el = null, updateStats = true) {
 
     applyDisplayAttrs(item, user, meta, events, el)
 
+
     displayItems.append(el)
 
     let root = el.shadowRoot
     if (!root) return
+
+    loadList(`/list-descendants?id=${item.ItemId}`)
+        .then(res => {
+            for (let child of res) {
+                let el = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
+                let button = document.createElement("button")
+                button.innerText = child.En_Title
+                el.append(button)
+                button.onclick = () => toggleDisplayItem(child)
+            }
+        })
+    loadList(`/list-copies?id=${item.ItemId}`)
+        .then(res => {
+            for (let copy of res) {
+                let el = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
+                let button = document.createElement("button")
+                button.innerText = copy.En_Title
+                el.append(button)
+                button.onclick = () => toggleDisplayItem(copy)
+            }
+        })
 
     if (doEventHooking) {
         hookActionButtons(root, item)
@@ -490,9 +512,9 @@ function renderDisplayItem(item, el = null, updateStats = true) {
         }
 
         let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
-        progress.addEventListener("click", async() => {
+        progress.addEventListener("click", async () => {
             let newEp = prompt("Current position:")
-            if(!newEp) {
+            if (!newEp) {
                 return
             }
             await setPos(item.ItemId, newEp)
@@ -725,7 +747,7 @@ async function treeFilterForm() {
     let entries = await doQuery(form)
 
     let sortBy = /**@type {string}*/(data.get("sort-by"))
-    if(sortBy !== "") {
+    if (sortBy !== "") {
         entries = sortEntries(entries, sortBy)
     }
 

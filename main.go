@@ -112,14 +112,14 @@ var ( // `/` endpoints {{{
 	}
 
 	listDescendants = api.ApiEndPoint{
-		Handler: api.GetCopies,
+		Handler: api.GetDescendants,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
 
 	totalCostOf = api.ApiEndPoint{
-		Handler: api.GetCopies,
+		Handler: api.TotalCostOf,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},

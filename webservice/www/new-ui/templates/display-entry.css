@@ -213,3 +213,14 @@ progress[max]::-webkit-progress-bar {
     display: flex;
     flex-wrap: wrap;
 }
+
+:is(.descendants, .copies) div {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 2em;
+
+    button {
+        padding: 0.5em;
+    }
+}
