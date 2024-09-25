@@ -19,7 +19,7 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 	fmt.Fprintf(w, format, args...)
 }
 
-func ListCollections(w http.ResponseWriter, req *http.Request) {
+func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	collections, err := db.ListCollections()
 	if err != nil {
 		wError(w, 500, "Could not get collections\n%s", err.Error())
@@ -406,12 +406,8 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	}
 }
 
-func GetCopies(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.InfoEntry)
 
 	copies, err := db.GetCopiesOf(entry.ItemId)
 	if err != nil {
@@ -471,13 +467,9 @@ func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
 	http.ServeFile(w, req, entry.Location)
 }
 
-func DeleteEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n%s", err.Error())
-		return
-	}
-	err = db.Delete(entry.ItemId)
+func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.InfoEntry)
+	err := db.Delete(entry.ItemId)
 	if err != nil {
 		wError(w, 500, "Could not delete entry\n%s", err.Error())
 		return
@@ -485,12 +477,8 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func GetDescendants(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n%s", err.Error())
-		return
-	}
+func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.InfoEntry)
 
 	items, err := db.GetDescendants(entry.ItemId)
 	if err != nil {
@@ -511,7 +499,7 @@ func GetDescendants(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("\n"))
 }
 
-func GetTree(w http.ResponseWriter, req *http.Request) {
+func GetTree(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	tree, err := db.BuildEntryTree()
 	if err != nil {
 		wError(w, 500, "Could not build tree\n%s", err.Error())
@@ -528,18 +516,9 @@ func GetTree(w http.ResponseWriter, req *http.Request) {
 }
 
 // TODO: allow this to accept multiple ids
-func TotalCostOf(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n%s", err.Error())
-		return
-	}
-	info, err := db.GetInfoEntryById(entry.ItemId)
-	if err != nil {
-		wError(w, 500, "Could not get price info\n%s", err.Error())
-		return
-	}
-	desc, err := db.GetDescendants(entry.ItemId)
+func TotalCostOf(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	info := pp["id"].(db.InfoEntry)
+	desc, err := db.GetDescendants(info.ItemId)
 	if err != nil {
 		wError(w, 500, "Could not get descendants\n%s", err.Error())
 		return

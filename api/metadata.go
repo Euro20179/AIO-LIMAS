@@ -10,16 +10,10 @@ import (
 	"aiolimas/metadata"
 )
 
-func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	mainEntry := pp["id"].(db.InfoEntry)
 
-	mainEntry, err := db.GetInfoEntryById(entry.ItemId)
-
-	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
+	metadataEntry, err := db.GetMetadataEntryById(mainEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
@@ -45,20 +39,10 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.MetadataEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
-	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
-		return
-	}
-
-	data, err := json.Marshal(metadataEntry)
+	data, err := json.Marshal(entry)
 	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
@@ -106,59 +90,25 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 	w.Write(outJson)
 }
 
-func ModMetadataEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	metadataEntry := pp["id"].(db.MetadataEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(entry.ItemId)
-	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
-		return
-	}
+	metadataEntry.Rating = pp.Get("rating", metadataEntry.Rating).(float64)
 
-	rating := req.URL.Query().Get("rating")
-	ratingF, err := strconv.ParseFloat(rating, 64)
-	if err != nil {
-		ratingF = metadataEntry.Rating
-	}
-	metadataEntry.Rating = ratingF
+	metadataEntry.Description = pp.Get("description", metadataEntry.Description).(string) 
 
-	description := req.URL.Query().Get("description")
-	if description != "" {
-		metadataEntry.Description = description
-	}
+	metadataEntry.ReleaseYear = pp.Get("release-year", metadataEntry.ReleaseYear).(int64)
 
-	releaseYear := req.URL.Query().Get("release-year")
-	releaseYearInt, err := strconv.ParseInt(releaseYear, 10, 64)
-	if err != nil {
-		releaseYearInt = metadataEntry.ReleaseYear
-	}
-	metadataEntry.ReleaseYear = releaseYearInt
-
-	thumbnail := req.URL.Query().Get("thumbnail")
-	if thumbnail != "" {
-		metadataEntry.Thumbnail = thumbnail
-	}
-
-	mediaDependantJson := req.URL.Query().Get("media-dependant")
-	if mediaDependantJson != "" {
-		metadataEntry.MediaDependant = mediaDependantJson
-	}
-
-	datapointsJson := req.URL.Query().Get("datapoints")
-	if datapointsJson != "" {
-		metadataEntry.Datapoints = datapointsJson
-	}
+	metadataEntry.Thumbnail = pp.Get("thumbnail", metadataEntry.Thumbnail).(string)
+	metadataEntry.MediaDependant = pp.Get("media-dependant", metadataEntry.MediaDependant).(string)
+	metadataEntry.MediaDependant = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
 	db.UpdateMetadataEntry(&metadataEntry)
 
 	success(w)
 }
 
-func ListMetadata(w http.ResponseWriter, req *http.Request) {
+func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	items, err := db.Db.Query("SELECT * FROM metadata")
 	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())

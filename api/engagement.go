@@ -45,18 +45,8 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 }
 
 // engagement endpoints
-func BeginMedia(w http.ResponseWriter, req *http.Request) {
-	id, err := verifyIdQueryParam(req)
-	if err != nil {
-		wError(w, 400, err.Error())
-	}
-
-	entry, err := db.GetUserViewEntryById(id)
-	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprintf(w, "There is no entry with id %d\n", id)
-		return
-	}
+func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 
 	if !entry.CanBegin() {
 		w.WriteHeader(405)
@@ -69,14 +59,14 @@ func BeginMedia(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
 	w.WriteHeader(200)
-	fmt.Fprintf(w, "%d started\n", id)
+	fmt.Fprintf(w, "%d started\n", entry.ItemId)
 }
 
 func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
@@ -106,17 +96,8 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	fmt.Fprintf(w, "%d finished\n", entry.ItemId)
 }
 
-func PlanMedia(w http.ResponseWriter, req *http.Request) {
-	id, err := verifyIdQueryParam(req)
-	if err != nil {
-		wError(w, 400, err.Error())
-	}
-
-	entry, err := db.GetUserViewEntryById(id)
-	if err != nil {
-		wError(w, 400, "There is no entry with id %d\n", id)
-		return
-	}
+func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 
 	if !entry.CanPlan() {
 		wError(w, 400, "%d can not be planned\n", entry.ItemId)
@@ -124,7 +105,7 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	entry.Plan()
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -133,20 +114,11 @@ func PlanMedia(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func DropMedia(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
-
-	if !entry.CanDrop() {
-		wError(w, 400, "%d cannot be planned\n", entry.ItemId)
-		return
-	}
+func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 
 	entry.Drop()
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -155,12 +127,8 @@ func DropMedia(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func PauseMedia(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 
 	if !entry.CanPause() {
 		wError(w, 400, "%d cannot be dropped\n", entry.ItemId)
@@ -169,7 +137,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 
 	entry.Pause()
 
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -178,12 +146,8 @@ func PauseMedia(w http.ResponseWriter, req *http.Request) {
 	success(w)
 }
 
-func ResumeMedia(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 
 	if !entry.CanResume() {
 		wError(w, 400, "%d cannot be resumed\n", entry.ItemId)
@@ -191,26 +155,7 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request) {
 	}
 
 	entry.Resume()
-	err = db.UpdateUserViewingEntry(&entry)
-	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
-		return
-	}
-
-	success(w)
-}
-
-func SetNote(w http.ResponseWriter, req *http.Request) {
-	note := req.URL.Query().Get("note")
-
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
-
-	entry.Notes = note
-	err = db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -277,12 +222,8 @@ func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 	w.Write([]byte("\n"))
 }
 
-func GetUserEntry(w http.ResponseWriter, req *http.Request) {
-	entry, err := verifyIdAndGetUserEntry(w, req)
-	if err != nil {
-		wError(w, 400, "Could not find entry\n")
-		return
-	}
+func GetUserEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	entry := pp["id"].(db.UserViewingEntry)
 	items, err := db.Db.Query("SELECT * FROM userViewingInfo WHERE itemId = ?;", entry.ItemId)
 	if err != nil {
 		w.WriteHeader(500)
@@ -293,7 +234,7 @@ func GetUserEntry(w http.ResponseWriter, req *http.Request) {
 	outputUserEntries(items, w)
 }
 
-func UserEntries(w http.ResponseWriter, req *http.Request) {
+func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	items, err := db.Db.Query("SELECT * FROM userViewingInfo")
 	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())

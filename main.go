@@ -48,6 +48,11 @@ var ( // `/` endpoints {{{
 		},
 	}
 
+	getTree = api.ApiEndPoint{
+		Handler:     api.GetTree,
+		QueryParams: api.QueryParams{},
+	}
+
 	modEntry = api.ApiEndPoint{
 		Handler: api.ModEntry,
 		QueryParams: api.QueryParams{
@@ -80,9 +85,42 @@ var ( // `/` endpoints {{{
 		},
 	}
 
-	stream = api.ApiEndPoint {
+	stream = api.ApiEndPoint{
 		Handler: api.Stream,
-		QueryParams: api.QueryParams {
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	deleteEntry = api.ApiEndPoint{
+		Handler: api.DeleteEntry,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	listCollections = api.ApiEndPoint{
+		Handler:     api.ListCollections,
+		QueryParams: api.QueryParams{},
+	}
+
+	listCopies = api.ApiEndPoint{
+		Handler: api.GetCopies,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	listDescendants = api.ApiEndPoint{
+		Handler: api.GetCopies,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+
+	totalCostOf = api.ApiEndPoint{
+		Handler: api.GetCopies,
+		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
@@ -140,9 +178,42 @@ var ( // `/metadata` endpoints {{{
 		Method:      "POST",
 		QueryParams: api.QueryParams{},
 	}
+
+	fetchMetadataForEntry = api.ApiEndPoint{
+		Handler: api.FetchMetadataForEntry,
+		QueryParams: api.QueryParams{
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"provider": api.MkQueryInfo(api.P_NotEmpty, false),
+		},
+	}
+
+	retrieveMetadataForEntry = api.ApiEndPoint{
+		Handler: api.RetrieveMetadataForEntry,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+		},
+	}
+
+	modMetaEntry = api.ApiEndPoint{
+		Handler: api.ModMetadataEntry,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+			"rating": api.MkQueryInfo(api.P_Float64, false),
+			"description": api.MkQueryInfo(api.P_NotEmpty, false),
+			"release-year": api.MkQueryInfo(api.P_Int64, false),
+			"thumbnail": api.MkQueryInfo(api.P_NotEmpty, false),
+			"media-dependant": api.MkQueryInfo(api.P_NotEmpty, false),
+			"datapoints": api.MkQueryInfo(api.P_NotEmpty, false),
+		},
+	}
+
+	listMetadata = api.ApiEndPoint {
+		Handler: api.ListMetadata,
+		QueryParams: api.QueryParams{},
+	}
 ) // }}}
 
-var (// `/engagement` endpoints {{{
+var ( // `/engagement` endpoints {{{
 	finishEngagement = api.ApiEndPoint{
 		Handler: api.FinishMedia,
 		QueryParams: api.QueryParams{
@@ -196,7 +267,53 @@ var (// `/engagement` endpoints {{{
 		Method:      "POST",
 		QueryParams: api.QueryParams{},
 	}
-)// }}}
+
+	userEntries = api.ApiEndPoint {
+		Handler: api.UserEntries,
+	}
+
+	getUserEntry = api.ApiEndPoint {
+		Handler: api.GetUserEntry,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+
+	dropMedia = api.ApiEndPoint {
+		Handler: api.DropMedia,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+
+	resumeMedia = api.ApiEndPoint {
+		Handler: api.ResumeMedia,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+
+	pauseMedia = api.ApiEndPoint {
+		Handler: api.PauseMedia,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+
+	planMedia = api.ApiEndPoint {
+		Handler: api.PlanMedia,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+
+	beginMedia = api.ApiEndPoint {
+		Handler: api.BeginMedia,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+		},
+	}
+) // }}}
 
 func main() {
 	dbPath, exists := os.LookupEnv("DB_PATH")
@@ -222,12 +339,12 @@ func main() {
 		"list-entries":      listApi.Listener,
 		"scan-folder":       api.ScanFolder,
 		"stream-entry":      stream.Listener,
-		"delete-entry":      api.DeleteEntry,
-		"list-collections":  api.ListCollections,
-		"list-copies":       api.GetCopies,
-		"list-descendants":  api.GetDescendants,
-		"total-cost":        api.TotalCostOf,
-		"list-tree":         api.GetTree,
+		"delete-entry":      deleteEntry.Listener,
+		"list-collections":  listCollections.Listener,
+		"list-copies":       listCopies.Listener,
+		"list-descendants":  listDescendants.Listener,
+		"total-cost":        totalCostOf.Listener,
+		"list-tree":         getTree.Listener,
 		"get-all-for-entry": getAllEntry.Listener,
 	})
 
@@ -238,11 +355,11 @@ func main() {
 
 	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
-		"fetch":             api.FetchMetadataForEntry,
-		"retrieve":          api.RetrieveMetadataForEntry,
-		"mod-entry":         api.ModMetadataEntry,
+		"fetch":             fetchMetadataForEntry.Listener,
+		"retrieve":          retrieveMetadataForEntry.Listener,
+		"mod-entry":         modEntry.Listener,
 		"set-entry":         setMeta.Listener,
-		"list-entries":      api.ListMetadata,
+		"list-entries":      listMetadata.Listener,
 		"identify":          identify.Listener,
 		"finalize-identify": finalizeIdentify.Listener,
 	})
@@ -251,15 +368,14 @@ func main() {
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
-		"begin-media":  api.BeginMedia,
+		"begin-media":  beginMedia.Listener,
 		"finish-media": finishEngagement.Listener,
-		"plan-media":   api.PlanMedia,
-		"drop-media":   api.DropMedia,
-		"pause-media":  api.PauseMedia,
-		"resume-media": api.ResumeMedia,
-		"set-note":     api.SetNote,
-		"get-entry":    api.GetUserEntry,
-		"list-entries": api.UserEntries,
+		"plan-media":   planMedia.Listener,
+		"drop-media":   dropMedia.Listener,
+		"pause-media":  pauseMedia.Listener,
+		"resume-media": reassociate.Listener,
+		"get-entry":    getUserEntry.Listener,
+		"list-entries": userEntries.Listener,
 		"copy":         reassociate.Listener,
 		"get-events":   getEvents.Listener,
 		"delete-event": deleteEvent.Listener,

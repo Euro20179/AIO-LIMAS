@@ -7,6 +7,11 @@ import (
 	"slices"
 )
 
+type EntryRepresentor interface {
+	ToJson() ([]byte, error)
+	ReadEntry(rows *sql.Rows) error 
+}
+
 type Status string
 
 const (
