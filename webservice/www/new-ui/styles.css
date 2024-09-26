@@ -21,6 +21,22 @@
         margin: 0;
     }
 
+    :is(#entry-output, #graph-output){
+        &:target {
+            display: inherit;
+        }
+        &:not(:target) {
+            display: none;
+        }
+    }
+
+    :has(:where(#entry-output:target)) .view-toggle::before {
+        content: "graph view";
+    }
+    :has(:where(#graph-output:target)) .view-toggle::before {
+        content: "entry view";
+    }
+
     #main {
         height: 100%;
     }

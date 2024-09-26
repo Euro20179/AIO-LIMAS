@@ -176,12 +176,12 @@ customElements.define("display-entry", class extends HTMLElement {
      * @param {string} val
      */
     ["data-user-rating"](val) {
-        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
-        if (val) {
+        let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".rating"))
+        if (val && ratingE){
             let rating = Number(val)
             applyUserRating(rating, ratingE)
             ratingE.innerHTML = val
-        } else {
+        } else if(ratingE){
             ratingE.innerText = "Unrated"
         }
     }
@@ -190,9 +190,9 @@ customElements.define("display-entry", class extends HTMLElement {
      * @param {string} val
      */
     ["data-audience-rating"](val) {
-        let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".audience-rating"))
+        let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".audience-rating"))
         let max = Number(this.getAttribute("data-audience-rating-max"))
-        if (val) {
+        if (val && ratingE) {
             let rating = Number(val)
             let normalizedRating = rating
             if (max !== 0) {
@@ -200,7 +200,7 @@ customElements.define("display-entry", class extends HTMLElement {
             }
             applyUserRating(normalizedRating, ratingE)
             ratingE.innerHTML = val
-        } else {
+        } else if(ratingE){
             ratingE.innerText = "Unrated"
         }
     }
@@ -352,9 +352,11 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         let ratingA = val
         if (ratingA) {
             let rating = Number(ratingA)
-            let ratingE = /**@type {HTMLElement}*/(this.root.querySelector(".rating"))
-            applyUserRating(rating, ratingE)
-            ratingE.innerHTML = ratingA
+            let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".rating"))
+            if(ratingE) {
+                applyUserRating(rating, ratingE)
+                ratingE.innerHTML = ratingA
+            }
         }
     }
 

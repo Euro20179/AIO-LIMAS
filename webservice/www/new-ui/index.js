@@ -9,6 +9,7 @@
  * @property {InfoEntry[]} entries
  * @property {UserEvent[]} events
  * @property {InfoEntry[]} results
+ * @property {InfoEntry[]} selectedEntries
  */
 /**@type {GlobalsNewUi}*/
 
@@ -18,6 +19,7 @@ let globalsNewUi = {
     entries: [],
     results: [],
     events: [],
+    selectedEntries: []
 }
 
 const viewAllElem = /**@type {HTMLInputElement}*/(document.getElementById("view-all"))
@@ -26,6 +28,100 @@ const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--
 const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-output"))
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
+
+const modes = [mode_displayEntry, mode_graphView]
+const modeOutputIds = ["entry-output", "graph-output"]
+
+let mode = mode_displayEntry
+
+/**
+ * @param {InfoEntry | InfoEntry[]} entry
+ * @param {"add" | "sub" | "addList" | "subList"} addOrSub
+ * @param {HTMLElement?} [el=null]
+ * @param {boolean} [updateStats=true]
+ */
+function mode_displayEntry(entry, addOrSub, el = null, updateStats = true) {
+    if (updateStats) {
+        if(addOrSub === "addList") {
+            changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), 1)
+        } else if(addOrSub === "subList") {
+            changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), -1)
+        } else{
+            changeResultStatsWithItem(/**@type {InfoEntry}*/(entry), addOrSub === "add" ? 1 : -1)
+        }
+    }
+
+    if (addOrSub === "add") {
+        return renderDisplayItem(/**@type {InfoEntry}*/(entry), el)
+    } else if (addOrSub === "sub") {
+        removeDisplayItem(/**@type {InfoEntry}*/(entry))
+    } else if (addOrSub === "addList"){
+        for (let item of /**@type {InfoEntry[]}*/(entry)) {
+            renderDisplayItem(item, el)
+        }
+    } else {
+        for(let item of /**@type {InfoEntry[]}*/(entry)) {
+            removeDisplayItem(item)
+        }
+    }
+}
+
+/**
+ * @param {InfoEntry} item
+ * @param {Function} mode
+ * @param {boolean} [updateStats=true]
+ */
+function selectItem(item, mode, updateStats = true) {
+    globalsNewUi.selectedEntries.push(item)
+    mode(item, "add", null, updateStats)
+}
+
+/**
+ * @param {InfoEntry[]} itemList
+ * @param {Function} mode
+ * @param {boolean} [updateStats=true]
+ */
+function selectItemList(itemList, mode, updateStats = true) {
+    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.concat(itemList)
+    mode(itemList, "addList", null, updateStats)
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function toggleItem(item) {
+    let idx = globalsNewUi.selectedEntries.findIndex(i => i.ItemId === item.ItemId)
+    if (idx !== -1) {
+        globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter((_, i) => i !== idx)
+        mode(item, "sub")
+    } else {
+        globalsNewUi.selectedEntries.push(item)
+        mode(item, "add")
+    }
+}
+
+function clearItems() {
+    mode(globalsNewUi.selectedEntries, "subList")
+    globalsNewUi.selectedEntries = []
+}
+
+document.querySelector(".view-toggle")?.addEventListener("click", e => {
+    mode(globalsNewUi.selectedEntries, "subList", null, false)
+
+    let curModeIdx = modes.indexOf(mode)
+    curModeIdx++
+    if (curModeIdx >= modes.length) {
+        curModeIdx = 0
+    }
+
+    mode = modes[curModeIdx]
+    const id = modeOutputIds[curModeIdx]
+    console.log(id)
+    location.hash = id
+
+    mode(globalsNewUi.selectedEntries, "addList")
+})
+
 
 async function newEntry() {
     const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
@@ -47,11 +143,11 @@ async function newEntry() {
     }
     await refreshInfo()
 
-    clearMainDisplay()
+    clearItems()
     clearSidebar()
 
     let json = parseJsonL(mkStrItemId(text))
-    renderDisplayItem(json)
+    mode(json, "add")
     renderSidebarItem(json)
 }
 
@@ -203,12 +299,12 @@ function clearSidebar() {
     }
 }
 
-function clearMainDisplay() {
-    while (displayItems.children.length) {
-        displayItems.firstChild?.remove()
-    }
-    resultStats = resetResultStats()
-}
+// function clearMainDisplay() {
+//     while (displayItems.children.length) {
+//         displayItems.firstChild?.remove()
+//     }
+//     resultStats = resetResultStats()
+// }
 
 /**
  * @param {ShadowRoot} shadowRoot
@@ -257,7 +353,7 @@ function refreshDisplayItem(item) {
         if (!user || !events || !meta) return
         applyDisplayAttrs(item, user, meta, events, el)
     } else {
-        renderDisplayItem(item, null, false)
+        renderDisplayItem(item, null)
     }
 }
 
@@ -425,9 +521,8 @@ function applyDisplayAttrs(item, user, meta, events, el) {
 /**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
- * @param {boolean} [updateStats=true]
  */
-function renderDisplayItem(item, el = null, updateStats = true) {
+function renderDisplayItem(item, el = null) {
     //TODO:
     //when the user clicks on the info table on the side
     //open a dialog box with the information pre filled in with the information already there
@@ -444,10 +539,6 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
     if (!user || !meta || !events) return
-
-    if (updateStats) {
-        changeResultStatsWithItem(item)
-    }
 
     applyDisplayAttrs(item, user, meta, events, el)
 
@@ -629,7 +720,6 @@ function removeDisplayItem(item) {
     let el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
     if (el) {
         el.remove()
-        changeResultStatsWithItem(item, -1)
     }
 }
 
@@ -696,11 +786,11 @@ function renderSidebarItem(item, elem = null) {
         let img = elem.shadowRoot?.querySelector("img")
         if (img) {
             img.addEventListener("click", e => {
-                toggleDisplayItem(item)
+                toggleItem(item)
             })
             img.addEventListener("dblclick", e => {
-                clearMainDisplay()
-                renderDisplayItem(item)
+                clearItems()
+                selectItem(item, mode)
             })
         }
     }
@@ -719,12 +809,11 @@ function toggleDisplayItem(item) {
 }
 
 viewAllElem.addEventListener("change", e => {
-    clearMainDisplay()
+    clearItems()
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
-        changeResultStatsWithItemList(globalsNewUi.results)
-        for (let item of globalsNewUi.results) {
-            renderDisplayItem(item, null, false)
-        }
+        selectItemList(globalsNewUi.results, mode)
+        // changeResultStatsWithItemList(globalsNewUi.results)
+        // renderDisplayItem(item, null, false)
     } else {
         resultStats = resetResultStats()
     }
@@ -734,12 +823,11 @@ viewAllElem.addEventListener("change", e => {
 * @param {InfoEntry[]} entries
 */
 function renderSidebar(entries) {
-    if(viewAllElem.checked) {
-        for(let item of entries) {
-            renderDisplayItem(item)
-        }
+    console.log(entries)
+    if (viewAllElem.checked) {
+        selectItemList(entries, mode)
     } else {
-        renderDisplayItem(entries[0])
+        selectItem(entries[0], mode)
     }
     for (let item of entries) {
         renderSidebarItem(item)
@@ -759,7 +847,7 @@ async function treeFilterForm() {
         entries = sortEntries(entries, sortBy)
     }
 
-    clearMainDisplay()
+    clearItems()
     if (entries.length === 0) {
         alert("No results")
         return

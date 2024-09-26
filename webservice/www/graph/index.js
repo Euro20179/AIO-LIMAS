@@ -167,21 +167,18 @@ function fillGap(obj, label) {
  * @returns {Promise<Record<string, InfoEntry[]>>}
  */
 async function organizeData(entries) {
-    let met = await loadList("/metadata/list-entries")
-    let user = await loadList("/engagement/list-entries")
-
     let groupBy = groupBySelect.value
 
     /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
-        "Year": i => findEntryById(i.ItemId, met).ReleaseYear,
+        "Year": i => findEntryById(i.ItemId, globalsNewUi.metadataEntries).ReleaseYear,
         "Type": i => i.Type,
         "Status": i => {
-            let u = findEntryById(i.ItemId, user)
+            let u = findEntryById(i.ItemId, globalsNewUi.userEntries)
             return u.Status
         },
         "View-count": i => {
-            let u = findEntryById(i.ItemId, user)
+            let u = findEntryById(i.ItemId, globalsNewUi.userEntries)
             return u.ViewCount
         },
         "Is-anime": i => {
@@ -211,9 +208,6 @@ let wtbyChart = null
  * @param {InfoEntry[]} entries
  */
 async function watchTimeByYear(entries) {
-    let user = await loadList("/engagement/list-entries")
-    let met = await loadList("/metadata/list-entries")
-
     let data = await organizeData(entries)
 
     const years = Object.keys(data)
@@ -221,8 +215,8 @@ async function watchTimeByYear(entries) {
     const watchTimes = Object.values(data)
         .map(v => {
             return v.map(i => {
-                let watchCount = findEntryById(i.ItemId, user).ViewCount
-                let thisMeta = findEntryById(i.ItemId, met)
+                let watchCount = findEntryById(i.ItemId, globalsNewUi.userEntries).ViewCount
+                let thisMeta = findEntryById(i.ItemId, globalsNewUi.metadataEntries)
                 let watchTime = getWatchTime(watchCount, thisMeta)
                 return watchTime / 60
             }).reduce((p, c) => p + c, 0)

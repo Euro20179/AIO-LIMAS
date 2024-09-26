@@ -152,9 +152,51 @@
                 <div class="result-stats">
                     <entries-statistic data-name="totalCost" class="stat"></entries-statistic>
                     <entries-statistic data-name="count" data-value="" class="stat"></entries-statistic>
-                    <button class="graph-view">graph view</button>
+                    <button class="view-toggle"></button>
                 </div>
                 <div id="entry-output" class="overflow">
+                </div>
+                <div id="graph-output" class="overflow">
+                    <details open>
+                        <summary>Items and watch time</summary>
+                        <div>
+                            <div>
+                                <canvas id="by-year"></canvas>
+                            </div>
+                            <div>
+                                <canvas id="watch-time-by-year"></canvas>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details open="">
+                        <summary>Ratings</summary>
+                        <div>
+                            <div>
+                                <canvas id="rating-by-year"></canvas>
+                            </div>
+                            <div>
+                                <canvas id="adj-rating-by-year"></canvas>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details open="">
+                        <summary>Type pies</summary>
+                        <div id="pies">
+                            <canvas id="type-pie"></canvas>
+                            <canvas id="cost-by-type"></canvas>
+                        </div>
+                    </details>
+
+                    <details open="">
+                        <summary>Format pies</summary>
+                        <div>
+                            <canvas id="count-by-format"></canvas>
+                            <canvas id="cost-by-format"></canvas>
+                        </div>
+                    </details>
+
                 </div>
             </section>
         </div>
@@ -247,9 +289,11 @@
             </figure>
         </div>
     </template>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/new-ui/components.js"></script>
     <script src="/js/globals.js"></script>
     <script src="/js/api.js"></script>
+    <script src="/new-ui/view-modes/graph.js"></script>
     <script src="/new-ui/index.js"></script>
 </body>
 
