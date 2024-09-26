@@ -34,8 +34,9 @@ type AnlistMediaEntry struct {
 	Title AnilistTitles `json:"title"`
 
 	CoverImage struct {
-		Medium string `json:"medium"`
-		Large  string `json:"large"`
+		Medium     string `json:"medium"`
+		Large      string `json:"large"`
+		ExtraLarge string `json:"extraLarge"`
 	} `json:"coverImage"`
 
 	AverageScore uint64 `json:"averageScore"`
@@ -50,11 +51,11 @@ type AnlistMediaEntry struct {
 
 	Status string `json:"status"`
 
-	Type    string `json:"type"`
-	Id      int64  `json:"id"`
-	Format  string `json:"format"`
-	Volumes int    `json:"volumes"`
-	SeasonYear int `json:"seasonYear"`
+	Type       string `json:"type"`
+	Id         int64  `json:"id"`
+	Format     string `json:"format"`
+	Volumes    int    `json:"volumes"`
+	SeasonYear int    `json:"seasonYear"`
 }
 type AnilistResponse struct {
 	Data struct {
@@ -76,7 +77,8 @@ const ANILIST_MEDIA_QUERY_INFO = `
 		native
 	},
 	coverImage {
-		large
+		large,
+		extraLarge
 	},
 	startDate {
 		year
@@ -131,8 +133,8 @@ func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
 
 	o.Title = out.Title.English
 	o.Native_Title = out.Title.Native
-	if out.CoverImage.Medium != "" {
-		o.Thumbnail = out.CoverImage.Medium
+	if out.CoverImage.ExtraLarge != "" {
+		o.Thumbnail = out.CoverImage.ExtraLarge
 	} else {
 		o.Thumbnail = out.CoverImage.Large
 	}
@@ -204,7 +206,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 		outMeta.Title = aniInfo.Title.Romaji
 	}
 	// println(aniInfo.StartDate.Year)
-	outMeta.Thumbnail = aniInfo.CoverImage.Large
+	outMeta.Thumbnail = aniInfo.CoverImage.ExtraLarge
 	outMeta.Rating = float64(aniInfo.AverageScore)
 	outMeta.RatingMax = 100
 	outMeta.Description = aniInfo.Description

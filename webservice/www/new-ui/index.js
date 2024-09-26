@@ -1,3 +1,6 @@
+//TODO:
+//Detect if the thumbnail url is a data:image/X;base64, if not, download the url and turn it into one
+
 /**
  * @typedef GlobalsNewUi
  * @type {object}
@@ -16,6 +19,8 @@ let globalsNewUi = {
     results: [],
     events: [],
 }
+
+const viewAllElem = /**@type {HTMLInputElement}*/(document.getElementById("view-all"))
 
 const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
 const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-output"))
@@ -452,26 +457,23 @@ function renderDisplayItem(item, el = null, updateStats = true) {
     let root = el.shadowRoot
     if (!root) return
 
-    loadList(`/list-descendants?id=${item.ItemId}`)
-        .then(res => {
-            for (let child of res) {
-                let el = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
-                let button = document.createElement("button")
-                button.innerText = child.En_Title
-                el.append(button)
-                button.onclick = () => toggleDisplayItem(child)
-            }
-        })
-    loadList(`/list-copies?id=${item.ItemId}`)
-        .then(res => {
-            for (let copy of res) {
-                let el = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
-                let button = document.createElement("button")
-                button.innerText = copy.En_Title
-                el.append(button)
-                button.onclick = () => toggleDisplayItem(copy)
-            }
-        })
+    /**
+     * @param {string} endpoint
+     * @param {HTMLElement} el
+     */
+    const loadBtnListIntoEl = (endpoint, el) => {
+        loadList(endpoint)
+            .then(res => {
+                for (let child of res) {
+                    let button = document.createElement("button")
+                    button.innerText = child.En_Title
+                    el.append(button)
+                    button.onclick = () => toggleDisplayItem(child)
+                }
+            })
+    }
+    loadBtnListIntoEl(`/list-descendants?id=${item.ItemId}`,/**@type {HTMLElement}*/(root.querySelector(".descendants div")))
+    loadBtnListIntoEl(`/list-copies?id=${item.ItemId}`, /**@type {HTMLElement}*/(root.querySelector(".descendants div")))
 
     if (doEventHooking) {
         hookActionButtons(root, item)
@@ -716,7 +718,7 @@ function toggleDisplayItem(item) {
 
 }
 
-document.getElementById("view-all")?.addEventListener("change", e => {
+viewAllElem.addEventListener("change", e => {
     clearMainDisplay()
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
         changeResultStatsWithItemList(globalsNewUi.results)
@@ -732,7 +734,13 @@ document.getElementById("view-all")?.addEventListener("change", e => {
 * @param {InfoEntry[]} entries
 */
 function renderSidebar(entries) {
-    renderDisplayItem(entries[0])
+    if(viewAllElem.checked) {
+        for(let item of entries) {
+            renderDisplayItem(item)
+        }
+    } else {
+        renderDisplayItem(entries[0])
+    }
     for (let item of entries) {
         renderSidebarItem(item)
     }
