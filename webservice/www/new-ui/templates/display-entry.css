@@ -127,7 +127,7 @@ table {
 }
 
 .action {
-    font-size: max(20px, 1.5cqi);
+    font-size: 1.2rem;
     aspect-ratio: 1 / 1;
 }
 
