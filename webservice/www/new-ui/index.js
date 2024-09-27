@@ -44,27 +44,29 @@ let mode = modes[idx]
  */
 function mode_displayEntry(entry, addOrSub, el = null, updateStats = true) {
     if (updateStats) {
-        if(addOrSub === "addList") {
+        if (addOrSub === "addList") {
             changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), 1)
-        } else if(addOrSub === "subList") {
+        } else if (addOrSub === "subList") {
             changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), -1)
-        } else{
+        } else {
             changeResultStatsWithItem(/**@type {InfoEntry}*/(entry), addOrSub === "add" ? 1 : -1)
         }
     }
 
-    if (addOrSub === "add") {
-        return renderDisplayItem(/**@type {InfoEntry}*/(entry), el)
-    } else if (addOrSub === "sub") {
-        removeDisplayItem(/**@type {InfoEntry}*/(entry))
-    } else if (addOrSub === "addList"){
-        for (let item of /**@type {InfoEntry[]}*/(entry)) {
-            renderDisplayItem(item, el)
-        }
-    } else {
-        for(let item of /**@type {InfoEntry[]}*/(entry)) {
-            removeDisplayItem(item)
-        }
+    switch (addOrSub) {
+        case "add":
+            return renderDisplayItem(/**@type {InfoEntry}*/(entry), el)
+        case "sub":
+            return removeDisplayItem(/**@type {InfoEntry}*/(entry))
+        case "addList":
+            for (let item of /**@type {InfoEntry[]}*/(entry)) {
+                renderDisplayItem(item, el)
+            }
+            return
+        case "subList":
+            for (let item of /**@type {InfoEntry[]}*/(entry)) {
+                removeDisplayItem(item)
+            }
     }
 }
 
@@ -463,57 +465,28 @@ function applyDisplayAttrs(item, user, meta, events, el) {
     el.setAttribute("data-title", item.En_Title)
     el.setAttribute("data-item-id", String(item.ItemId))
     el.setAttribute("data-format", String(item.Format))
-
     el.setAttribute("data-view-count", String(user.ViewCount))
-
     el.setAttribute("data-type", item.Type)
 
-    if (user.CurrentPosition) {
-        el.setAttribute('data-user-current-position', user.CurrentPosition)
-    }
-
-    if (meta.Thumbnail) {
-        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    }
-
-    if (meta.Title) {
-        el.setAttribute("data-true-title", meta.Title)
-    }
-    if (meta.Native_Title) {
-        el.setAttribute("data-native-title", meta.Native_Title)
-    }
-
-    if (user.ViewCount > 0) {
-        el.setAttribute("data-user-rating", String(user.UserRating))
-    }
-
-    if (meta.Rating) {
-        el.setAttribute("data-audience-rating-max", String(meta.RatingMax))
-        el.setAttribute("data-audience-rating", String(meta.Rating))
-    }
-
-    if (user.Notes) {
-        el.setAttribute('data-user-notes', user.Notes)
-    }
-    if (user.Status) {
-        el.setAttribute("data-user-status", user.Status)
-    }
-
-    if (item.PurchasePrice) {
-        el.setAttribute("data-cost", String(item.PurchasePrice))
-    }
-
-    if (meta.Description) {
-        el.setAttribute("data-description", meta.Description)
-    }
+    user.CurrentPosition && el.setAttribute('data-user-current-position', user.CurrentPosition)
+    meta.Thumbnail && el.setAttribute("data-thumbnail-src", meta.Thumbnail)
+    meta.Title && el.setAttribute("data-true-title", meta.Title)
+    meta.Native_Title && el.setAttribute("data-native-title", meta.Native_Title)
+    user.ViewCount > 0 && el.setAttribute("data-user-rating", String(user.UserRating))
+    user.Notes && el.setAttribute('data-user-notes', user.Notes)
+    user.Status && el.setAttribute("data-user-status", user.Status)
+    item.PurchasePrice && el.setAttribute("data-cost", String(item.PurchasePrice))
+    meta.Description && el.setAttribute("data-description", meta.Description)
+    meta?.MediaDependant && el.setAttribute("data-media-dependant", meta.MediaDependant)
 
     if (events.length) {
         let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}`).join(",")
         el.setAttribute("data-user-events", eventsStr)
     }
 
-    if (meta?.MediaDependant) {
-        el.setAttribute("data-media-dependant", meta.MediaDependant)
+    if (meta.Rating) {
+        el.setAttribute("data-audience-rating-max", String(meta.RatingMax))
+        el.setAttribute("data-audience-rating", String(meta.Rating))
     }
 
     el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
@@ -522,8 +495,9 @@ function applyDisplayAttrs(item, user, meta, events, el) {
 /**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
+ * @param {HTMLElement | DocumentFragment} [parent=displayItems]
  */
-function renderDisplayItem(item, el = null) {
+function renderDisplayItem(item, el = null, parent = displayItems) {
     //TODO:
     //when the user clicks on the info table on the side
     //open a dialog box with the information pre filled in with the information already there
@@ -544,7 +518,7 @@ function renderDisplayItem(item, el = null) {
     applyDisplayAttrs(item, user, meta, events, el)
 
 
-    displayItems.append(el)
+    parent.append(el)
 
     let root = el.shadowRoot
     if (!root) return
