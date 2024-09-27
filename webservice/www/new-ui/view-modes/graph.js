@@ -4,7 +4,7 @@
 //  total items
 //  total spent
 //
-// TODO: add back group by
+// TODO: per item cost pie chart
 
 /**
  * @param {string} id

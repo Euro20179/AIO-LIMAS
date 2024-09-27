@@ -1,18 +1,66 @@
 package main
 
 import (
+	"encoding/base64"
+	"errors"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	api "aiolimas/api"
 	db "aiolimas/db"
 	"aiolimas/webservice"
 )
 
+func ckAuthorizationHeader(text string) (bool, error) {
+	var estring string
+
+	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 0 {
+		b64 := b64L[1]
+		info, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			estring = "You're bad at encoding base64 😀\n"
+			println(err.Error())
+			goto unauthorized
+		}
+		_, password, found := strings.Cut(string(info), ":")
+		if !found {
+			estring = "Invalid credentials\n"
+			goto unauthorized
+		}
+
+		accNumber := os.Getenv("ACCOUNT_NUMBER")
+		if(password == accNumber) {
+			return true, nil
+		}
+	} else {
+		goto unauthorized
+	}
+
+unauthorized:
+	return false, errors.New(estring)
+}
+
 func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-		fn(w, req)
+		auth := req.Header.Get("Authorization")
+
+		if auth == "" {
+			w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
+			w.WriteHeader(401)
+			return
+		}
+
+		authorized, err := ckAuthorizationHeader(auth)
+		if authorized {
+			fn(w, req)
+			return
+		}
+
+		w.WriteHeader(401)
+		w.Write([]byte(err.Error()))
 	}
 }
 
@@ -197,18 +245,18 @@ var ( // `/metadata` endpoints {{{
 	modMetaEntry = api.ApiEndPoint{
 		Handler: api.ModMetadataEntry,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
-			"rating": api.MkQueryInfo(api.P_Float64, false),
-			"description": api.MkQueryInfo(api.P_NotEmpty, false),
-			"release-year": api.MkQueryInfo(api.P_Int64, false),
-			"thumbnail": api.MkQueryInfo(api.P_NotEmpty, false),
+			"id":              api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+			"rating":          api.MkQueryInfo(api.P_Float64, false),
+			"description":     api.MkQueryInfo(api.P_NotEmpty, false),
+			"release-year":    api.MkQueryInfo(api.P_Int64, false),
+			"thumbnail":       api.MkQueryInfo(api.P_NotEmpty, false),
 			"media-dependant": api.MkQueryInfo(api.P_NotEmpty, false),
-			"datapoints": api.MkQueryInfo(api.P_NotEmpty, false),
+			"datapoints":      api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 	}
 
-	listMetadata = api.ApiEndPoint {
-		Handler: api.ListMetadata,
+	listMetadata = api.ApiEndPoint{
+		Handler:     api.ListMetadata,
 		QueryParams: api.QueryParams{},
 	}
 ) // }}}
@@ -268,46 +316,46 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{},
 	}
 
-	userEntries = api.ApiEndPoint {
+	userEntries = api.ApiEndPoint{
 		Handler: api.UserEntries,
 	}
 
-	getUserEntry = api.ApiEndPoint {
+	getUserEntry = api.ApiEndPoint{
 		Handler: api.GetUserEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
 
-	dropMedia = api.ApiEndPoint {
+	dropMedia = api.ApiEndPoint{
 		Handler: api.DropMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
 
-	resumeMedia = api.ApiEndPoint {
+	resumeMedia = api.ApiEndPoint{
 		Handler: api.ResumeMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
 
-	pauseMedia = api.ApiEndPoint {
+	pauseMedia = api.ApiEndPoint{
 		Handler: api.PauseMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
 
-	planMedia = api.ApiEndPoint {
+	planMedia = api.ApiEndPoint{
 		Handler: api.PlanMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
 
-	beginMedia = api.ApiEndPoint {
+	beginMedia = api.ApiEndPoint{
 		Handler: api.BeginMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
