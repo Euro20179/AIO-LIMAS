@@ -32,6 +32,23 @@ const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("gr
 const typeSelection = /**@type {HTMLSelectElement}*/(document.getElementById("chart-type"))
 
 /**
+ * @param {(entries: InfoEntry[]) => Promise<any>} mkChart
+ */
+function ChartManager(mkChart) {
+    /**@type {any}*/
+    let chrt = null
+    /**
+     * @param {InfoEntry[]} entries
+     */
+    return async function(entries) {
+        if (chrt) {
+            chrt.destroy()
+        }
+        chrt = await mkChart(entries)
+    }
+}
+
+/**
  * @param {CanvasRenderingContext2D} ctx
  * @param {string[]} labels
  * @param {number[]} data
@@ -201,40 +218,30 @@ function fillGap(obj, label) {
  * @returns {Promise<Record<string, InfoEntry[]>>}
  */
 async function organizeData(entries) {
-    let met = await loadList("/metadata/list-entries")
-    let user = await loadList("/engagement/list-entries")
-
     let groupBy = groupBySelect.value
 
     /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
-        "Year": i => findEntryById(i.ItemId, met).ReleaseYear,
+        "Year": i => findEntryById(i.ItemId, globalsNewUi.metadataEntries).ReleaseYear,
         "Type": i => i.Type,
         "Format": i => formatToName(i.Format),
-        "Status": i => {
-            let u = findEntryById(i.ItemId, user)
-            return u.Status
-        },
-        "View-count": i => {
-            let u = findEntryById(i.ItemId, user)
-            return u.ViewCount
-        },
-        "Is-anime": i => {
-            return i.IsAnime
-        },
-        "Item-name": i => {
-            return i.En_Title
-        }
+        "Status": i => findEntryById(i.ItemId, globalsNewUi.userEntries).Status,
+        "View-count": i => findEntryById(i.ItemId, globalsNewUi.userEntries).ViewCount,
+        "Is-anime": i => i.IsAnime,
+        "Item-name": i => i.En_Title
     }
 
     let data = Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)]))
 
+    //this is the cutoff year because this is when jaws came out and changed how movies were produced
+    const cutoffYear = 1975
+
     if (groupBy === "Year") {
         let highestYear = +Object.keys(data).sort((a, b) => +b - +a)[0]
         for (let year in data) {
-            let yearInt = Number(year)
-            if (highestYear == yearInt) break
-            if (yearInt < 1970) continue
+            let yearInt = +year
+            if (highestYear === yearInt) break
+            if (yearInt < cutoffYear) continue
             if (!((yearInt + 1) in data)) {
                 fillGap(data, String(yearInt + 1))
             }
@@ -243,15 +250,7 @@ async function organizeData(entries) {
     return /**@type {Record<string, InfoEntry[]>}*/(data)
 }
 
-/**@type {any}*/
-let wtbyChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-async function watchTimeByYear(entries) {
-    let user = await loadList("/engagement/list-entries")
-    let met = await loadList("/metadata/list-entries")
-
+const watchTimeByYear = ChartManager(async (entries) => {
     let data = await organizeData(entries)
 
     const years = Object.keys(data)
@@ -259,26 +258,17 @@ async function watchTimeByYear(entries) {
     const watchTimes = Object.values(data)
         .map(v => {
             return v.map(i => {
-                let watchCount = findEntryById(i.ItemId, user).ViewCount
-                let thisMeta = findEntryById(i.ItemId, met)
+                let watchCount = findEntryById(i.ItemId, globalsNewUi.userEntries).ViewCount
+                let thisMeta = findEntryById(i.ItemId, globalsNewUi.metadataEntries)
                 let watchTime = getWatchTime(watchCount, thisMeta)
                 return watchTime / 60
             }).reduce((p, c) => p + c, 0)
         })
 
-    if (wtbyChart) {
-        wtbyChart.destroy()
-    }
-    wtbyChart = mkXTypeChart(getCtx2("watch-time-by-year"), years, watchTimes, "Watch time")
-}
+    return mkXTypeChart(getCtx2("watch-time-by-year"), years, watchTimes, "Watch time")
+})
 
-/**@type {any}*/
-let adjRatingChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-async function adjRatingByYear(entries) {
-    let user = await loadList("/engagement/list-entries")
+const adjRatingByYear = ChartManager(async (entries) => {
     let data = await organizeData(entries)
 
     const years = Object.keys(data)
@@ -292,7 +282,7 @@ async function adjRatingByYear(entries) {
     const ratings = Object.values(data)
         .map(v => {
             let ratings = v.map(i => {
-                let thisUser = findEntryById(i.ItemId, user)
+                let thisUser = findEntryById(i.ItemId, globalsNewUi.userEntries)
                 return thisUser.UserRating
             })
             let totalRating = ratings
@@ -305,11 +295,8 @@ async function adjRatingByYear(entries) {
             //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
         })
 
-    if (adjRatingChart) {
-        adjRatingChart.destroy()
-    }
-    adjRatingChart = mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
-}
+    return mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
+})
 
 async function treeFilterForm() {
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
@@ -319,75 +306,40 @@ async function treeFilterForm() {
     makeGraphs(entries)
 }
 
-/**@type {any}*/
-let costChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-async function costByFormat(entries) {
+const costByFormat = ChartManager(async (entries) => {
     entries = entries.filter(v => v.PurchasePrice > 0)
     let data = await organizeData(entries)
 
     let labels = Object.keys(data)
     let totals = Object.values(data).map(v => v.reduce((p, c) => p + c.PurchasePrice, 0))
 
-    if (costChart) {
-        costChart.destroy()
-    }
-    costChart = mkXTypeChart(getCtx2("cost-by-format"), labels, totals, "Cost by")
-}
+    return mkXTypeChart(getCtx2("cost-by-format"), labels, totals, "Cost by")
+})
 
-/**@type {any}*/
-let rbyChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-async function ratingByYear(entries) {
-    let user = await loadList("/engagement/list-entries")
-
+const ratingByYear = ChartManager(async (entries) => {
     let data = await organizeData(entries)
 
     const years = Object.keys(data)
     const ratings = Object.values(data)
         .map(v => v
             .map(i => {
-                let thisUser = findEntryById(i.ItemId, user)
+                let thisUser = findEntryById(i.ItemId, globalsNewUi.userEntries)
                 return thisUser.UserRating
             })
             .reduce((p, c, i) => (p * i + c) / (i + 1), 0)
         )
 
-    if (rbyChart) {
-        rbyChart.destroy()
-    }
-    rbyChart = mkXTypeChart(rbyCtx, years, ratings, 'ratings')
-}
+    return mkXTypeChart(rbyCtx, years, ratings, 'ratings')
+})
 
-/**@type {any}*/
-let bycChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-async function byc(entries) {
+const byc = ChartManager(async (entries) => {
     let data = await organizeData(entries)
 
     const years = Object.keys(data)
     const counts = Object.values(data).map(v => v.length)
 
-    if (bycChart) {
-        bycChart.destroy()
-    }
-    bycChart = mkXTypeChart(ctx, years, counts, '#items')
-}
-
-// function treeToEntriesList(tree) {
-//     let entries = []
-//     for (let id in tree) {
-//         tree[id].EntryInfo.ItemId = BigInt(id)
-//         entries.push(tree[id].EntryInfo)
-//     }
-//     return entries
-// }
+    return mkXTypeChart(ctx, years, counts, '#items')
+})
 
 /**
  * @param {bigint} id
@@ -435,7 +387,6 @@ const modeGraphView = {
 
     addList(entries, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entries)
-
         makeGraphs(globalsNewUi.selectedEntries)
     },
 
