@@ -222,7 +222,7 @@ async function organizeData(entries) {
 
     /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
-        "Year": i => findEntryById(i.ItemId, globalsNewUi.metadataEntries).ReleaseYear,
+        "Year": i => globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear,
         "Type": i => i.Type,
         "Format": i => formatToName(i.Format),
         "Status": i => globalsNewUi.userEntries[String(i.ItemId)].Status,
@@ -259,7 +259,7 @@ const watchTimeByYear = ChartManager(async (entries) => {
         .map(v => {
             return v.map(i => {
                 let watchCount = globalsNewUi.userEntries[String(i.ItemId)].ViewCount
-                let thisMeta = findEntryById(i.ItemId, globalsNewUi.metadataEntries)
+                let thisMeta = globalsNewUi.metadataEntries[String(i.ItemId)]
                 let watchTime = getWatchTime(watchCount, thisMeta)
                 return watchTime / 60
             }).reduce((p, c) => p + c, 0)

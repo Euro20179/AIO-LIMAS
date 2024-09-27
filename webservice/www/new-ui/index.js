@@ -17,8 +17,8 @@
  * @typedef GlobalsNewUi
  * @type {object}
  * @property {Record<string, UserEntry>} userEntries
- * @property {MetadataEntry[]} metadataEntries
- * @property {InfoEntry[]} entries
+ * @property {Record<string, MetadataEntry>} metadataEntries
+ * @property {Record<string, InfoEntry>} entries
  * @property {UserEvent[]} events
  * @property {InfoEntry[]} results
  * @property {InfoEntry[]} selectedEntries
@@ -27,8 +27,8 @@
 
 let globalsNewUi = {
     userEntries: {},
-    metadataEntries: [],
-    entries: [],
+    metadataEntries: {},
+    entries: {},
     results: [],
     events: [],
     selectedEntries: []
@@ -38,9 +38,10 @@ let globalsNewUi = {
  * @param {bigint} itemId
  */
 function* findDescendants(itemId) {
-    for (let i = 0; i < globalsNewUi.entries.length; i++) {
-        if (globalsNewUi.entries[i].Parent === itemId) {
-            yield globalsNewUi.entries[i]
+    let entries = Object.values(globalsNewUi.entries)
+    for (let i = 0; i < entries.length; i++) {
+        if (entries[i].Parent === itemId) {
+            yield entries[i]
         }
     }
 }
@@ -49,9 +50,10 @@ function* findDescendants(itemId) {
  * @param {bigint} itemId
  */
 function* findCopies(itemId) {
-    for (let i = 0; i < globalsNewUi.entries.length; i++) {
-        if (globalsNewUi.entries[i].CopyOf === itemId) {
-            yield globalsNewUi.entries[i]
+    let entries = Object.values(globalsNewUi.entries)
+    for (let i = 0; i < entries.length; i++) {
+        if (entries[i].CopyOf === itemId) {
+            yield entries[i]
         }
     }
 }
@@ -246,10 +248,15 @@ async function loadInfoEntries() {
         let itemsText = await res.text()
         /**@type {string[]}*/
         let jsonL = itemsText.split("\n").filter(Boolean)
-        globalsNewUi.entries = jsonL
+        /**@type {Record<string, InfoEntry>}*/
+        let obj = {}
+        for (let item of jsonL
             .map(mkStrItemId)
             .map(parseJsonL)
-        return globalsNewUi.entries
+        ) {
+            obj[item.ItemId] = item
+        }
+        return globalsNewUi.entries = obj
     }
 }
 
@@ -272,7 +279,7 @@ function findEntryById(id, entryTable) {
  * @returns {MetadataEntry?}
  */
 function findMetadataById(id) {
-    return findEntryById(id, globalsNewUi.metadataEntries)
+    return globalsNewUi.metadataEntries[String(id)]
 }
 
 /**@type {Record<string, UserEntry>}*/
@@ -308,7 +315,7 @@ function findUserEventsById(id) {
  * @returns {InfoEntry?}
  */
 function findInfoEntryById(id) {
-    for (let item of globalsNewUi.entries) {
+    for (let item of Object.values(globalsNewUi.entries)) {
         if (item.ItemId === id) {
             return item
         }
@@ -322,7 +329,7 @@ async function loadUserEntries() {
     let items = await loadList("engagement/list-entries")
     /**@type {Record<string, UserEntry>}*/
     let obj = {}
-    for(let item of items) {
+    for (let item of items) {
         obj[item.ItemId] = item
     }
     return globalsNewUi.userEntries = obj
@@ -332,9 +339,15 @@ async function loadUserEvents() {
     return globalsNewUi.events = await loadList("engagement/list-events")
 }
 
-/**@returns {Promise<MetadataEntry[]>}*/
+/**@returns {Promise<Record<string, MetadataEntry>>}*/
 async function loadMetadata() {
-    return globalsNewUi.metadataEntries = await loadList("metadata/list-entries")
+    let items = await loadList("metadata/list-entries")
+    /**@type {Record<string, MetadataEntry>}*/
+    let obj = {}
+    for (let item of items) {
+        obj[item.ItemId] = item
+    }
+    return globalsNewUi.metadataEntries = obj
 }
 
 function clearSidebar() {
@@ -667,7 +680,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
                         let img = document.createElement("img")
                         img.src = result.Thumbnail
                         img.style.cursor = "pointer"
-                        img.width =100
+                        img.width = 100
 
                         img.addEventListener("click", e => {
                             finalizeIdentify(result.ItemId, provider, item.ItemId)
@@ -908,7 +921,7 @@ function handleRichText(e) {
 async function main() {
     await refreshInfo()
 
-    let tree = globalsNewUi.entries.sort((a, b) => {
+    let tree = Object.values(globalsNewUi.entries).sort((a, b) => {
         let aUInfo = findUserEntryById(a.ItemId)
         let bUInfo = findUserEntryById(b.ItemId)
         if (!aUInfo || !bUInfo) return 0
