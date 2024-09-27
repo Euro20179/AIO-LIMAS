@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"

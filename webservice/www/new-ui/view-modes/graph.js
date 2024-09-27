@@ -30,6 +30,7 @@ const typePieCtx = getCtx2("type-pie")
 const rbyCtx = getCtx2("rating-by-year")
 
 const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
+const typeSelection = /**@type {HTMLSelectElement}*/(document.getElementById("chart-type"))
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -125,6 +126,43 @@ function mkBarChart(ctx, x, y, labelText) {
 }
 
 /**
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {any[]} x
+ * @param {any[]} y
+ * @param {string} labelText
+ */
+function mkXTypeChart(ctx, x, y, labelText) {
+    const ty = typeSelection.value
+    if (ty === "bar") {
+        return mkBarChart(ctx, x, y, labelText)
+    } else {
+        let totalY = ty === "pie-percentage"
+            ? y.reduce((p, c) => p + c, 0)
+            : 0
+
+        //sort y values, keep x in same order as y
+        //this makes the pie chart look better
+
+        //put x, y into a dict so that a given x can be assigned to a given y easily
+        /**@type {Record<any, any>}*/
+        let dict = {}
+        for (let i = 0; i < y.length; i++) {
+            dict[x[i]] = ty === 'pie-percentage' ? y[i] / totalY * 100 : y[i]
+        }
+
+        //sort entries based on y value
+        const sorted = Object.entries(dict).sort(([_, a], [__, b]) => b - a)
+
+        //y is the 2nd item in the entry list
+        y = sorted.map(i => i[1])
+        //x is the 1st item in the entry list
+        x = sorted.map(i => i[0])
+
+        return mkPieChart(ctx, x, y, labelText)
+    }
+}
+
+/**
  * @param {number} watchCount
  * @param {MetadataEntry} meta
  * @returns {number}
@@ -183,6 +221,9 @@ async function organizeData(entries) {
         },
         "Is-anime": i => {
             return i.IsAnime
+        },
+        "Item-name": i => {
+            return i.En_Title
         }
     }
 
@@ -228,7 +269,7 @@ async function watchTimeByYear(entries) {
     if (wtbyChart) {
         wtbyChart.destroy()
     }
-    wtbyChart = mkBarChart(getCtx2("watch-time-by-year"), years, watchTimes, "Watch time")
+    wtbyChart = mkXTypeChart(getCtx2("watch-time-by-year"), years, watchTimes, "Watch time")
 }
 
 /**@type {any}*/
@@ -267,7 +308,7 @@ async function adjRatingByYear(entries) {
     if (adjRatingChart) {
         adjRatingChart.destroy()
     }
-    adjRatingChart = mkBarChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
+    adjRatingChart = mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
 }
 
 /**@type {any}*/
@@ -392,7 +433,7 @@ async function ratingByYear(entries) {
     if (rbyChart) {
         rbyChart.destroy()
     }
-    rbyChart = mkBarChart(rbyCtx, years, ratings, 'ratings')
+    rbyChart = mkXTypeChart(rbyCtx, years, ratings, 'ratings')
 }
 
 /**@type {any}*/
@@ -409,7 +450,7 @@ async function byc(entries) {
     if (bycChart) {
         bycChart.destroy()
     }
-    bycChart = mkBarChart(ctx, years, counts, '#items')
+    bycChart = mkXTypeChart(ctx, years, counts, '#items')
 }
 
 // function treeToEntriesList(tree) {
@@ -450,8 +491,8 @@ function makeGraphs(entries) {
     watchTimeByYear(entries)
 }
 
-groupBySelect.onchange = function() {
-    treeFilterForm()
+groupBySelect.onchange = typeSelection.onchange = function() {
+    makeGraphs(globalsNewUi.selectedEntries)
 }
 
 /**
