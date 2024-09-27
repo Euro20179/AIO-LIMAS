@@ -32,7 +32,9 @@ const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-sta
 const modes = [mode_displayEntry, mode_graphView]
 const modeOutputIds = ["entry-output", "graph-output"]
 
-let mode = mode_displayEntry
+let idx = modeOutputIds.indexOf(location.hash.slice(1))
+
+let mode = modes[idx]
 
 /**
  * @param {InfoEntry | InfoEntry[]} entry
@@ -116,7 +118,6 @@ document.querySelector(".view-toggle")?.addEventListener("click", e => {
 
     mode = modes[curModeIdx]
     const id = modeOutputIds[curModeIdx]
-    console.log(id)
     location.hash = id
 
     mode(globalsNewUi.selectedEntries, "addList")
@@ -823,7 +824,6 @@ viewAllElem.addEventListener("change", e => {
 * @param {InfoEntry[]} entries
 */
 function renderSidebar(entries) {
-    console.log(entries)
     if (viewAllElem.checked) {
         selectItemList(entries, mode)
     } else {
@@ -841,6 +841,8 @@ async function treeFilterForm() {
     let data = new FormData(form)
 
     let entries = await doQuery(form)
+
+    globalsNewUi.results = entries
 
     let sortBy = /**@type {string}*/(data.get("sort-by"))
     if (sortBy !== "") {
