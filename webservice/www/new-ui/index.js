@@ -60,7 +60,6 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
-//TODO: add graph version of this
 /**
  * @type {DisplayMode}
  */
@@ -660,6 +659,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
                         let img = document.createElement("img")
                         img.src = result.Thumbnail
                         img.style.cursor = "pointer"
+                        img.width =100
 
                         img.addEventListener("click", e => {
                             finalizeIdentify(result.ItemId, provider, item.ItemId)
@@ -673,8 +673,8 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
                         })
 
                         let title = document.createElement("h3")
-                        title.innerText = result.Title
-                        title.title = result.Native_Title
+                        title.innerText = result.Title || result.Native_Title
+                        title.title = result.Native_Title || result.Title
 
                         fig.append(title)
                         fig.append(img)

@@ -131,7 +131,12 @@ func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
 
 	o.MediaDependant = string(mdString)
 
-	o.Title = out.Title.English
+	if out.Title.English != ""{
+		o.Title = out.Title.English
+	} else if out.Title.Romaji != "" {
+		o.Title = out.Title.Romaji
+	}
+
 	o.Native_Title = out.Title.Native
 	if out.CoverImage.ExtraLarge != "" {
 		o.Thumbnail = out.CoverImage.ExtraLarge
