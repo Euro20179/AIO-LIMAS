@@ -314,14 +314,6 @@ const adjRatingByYear = ChartManager(async (entries) => {
     return mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
 })
 
-async function treeFilterForm() {
-    let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
-
-    let entries = await doQuery(form)
-
-    makeGraphs(entries)
-}
-
 const costByFormat = ChartManager(async (entries) => {
     entries = entries.filter(v => v.PurchasePrice > 0)
     let data = await organizeData(entries)

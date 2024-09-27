@@ -840,18 +840,74 @@ function renderSidebar(entries) {
     sidebarItems.append(frag)
 }
 
-async function treeFilterForm() {
+/**
+ * @typedef ClientSearchFilters
+ * @type {object}
+ * @property {number} start
+ * @property {number} end
+ * @property {string} newSearch
+ * @property {string} sortBy
+
+/**
+ * @param {FormData} searchForm
+ * @returns {ClientSearchFilters}
+ *
+ * @description pulls out relevant filters for the client
+ * has the side effect of modifying search-query, removing any parts deemed filters for the client
+ * eg: \[start:end\]
+ */
+function parseClientsideSearchFiltering(searchForm) {
+    let start = 0
+    let end = -1
+
+    let search = /**@type {string}*/(searchForm.get("search-query"))
+
+    let slicematch = search.match(/\[(\d*):(-?\d*)\]/)
+    if (slicematch) {
+        start = +slicematch[1]
+        end = +slicematch[2]
+        search = search.replace(slicematch[0], "")
+
+        searchForm.set("search-query", search)
+    }
+
+    let sortBy = /**@type {string}*/(searchForm.get("sort-by"))
+
+    return {
+        start,
+        end,
+        newSearch: search,
+        sortBy
+    }
+}
+
+/**
+ * @param {InfoEntry[]} entries
+ * @param {ClientSearchFilters} filters
+ */
+function applyClientsideSearchFiltering(entries, filters) {
+    if (filters.sortBy !== "") {
+        entries = sortEntries(entries, filters.sortBy)
+    }
+
+    if (filters.end < 0) {
+        filters.end += entries.length + 1
+    }
+    return entries.slice(filters.start, filters.end)
+}
+
+async function loadSearch() {
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
-    let data = new FormData(form)
+
+    let formData = new FormData(form)
+
+    let filters = parseClientsideSearchFiltering(formData)
 
     let entries = await doQuery(form)
 
-    globalsNewUi.results = entries
+    entries = applyClientsideSearchFiltering(entries, filters)
 
-    let sortBy = /**@type {string}*/(data.get("sort-by"))
-    if (sortBy !== "") {
-        entries = sortEntries(entries, sortBy)
-    }
+    globalsNewUi.results = entries
 
     clearItems()
     if (entries.length === 0) {

@@ -300,7 +300,7 @@ async function doQuery(form) {
         "p<": "purchasePriceLt",
         "y>=": "releasedGe",
         "y<=": "releasedLe",
-        "y=": (value) => { return { "releasedGe": value, "releasedLe": value } }
+        "y=": (value) => { return { "releasedGe": value, "releasedLe": value } },
     }
 
     for (let word of search.split(" ")) {
