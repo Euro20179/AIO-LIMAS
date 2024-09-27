@@ -108,6 +108,15 @@ function selectItem(item, mode, updateStats = true) {
 }
 
 /**
+ * @param {InfoEntry} item
+ * @param {boolean} [updateStats=true]
+ */
+function deselectItem(item, updateStats = true) {
+    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter((_, i) => i !== idx)
+    mode.sub(item, updateStats)
+}
+
+/**
  * @param {InfoEntry[]} itemList
  * @param {DisplayMode} mode
  * @param {boolean} [updateStats=true]
@@ -451,7 +460,7 @@ function deleteEntry(item) {
         alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
         refreshInfo()
             .then(() => {
-                removeDisplayItem(item)
+                deselectItem(item)
                 removeSidebarItem(item)
             })
     })
@@ -571,7 +580,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
 
         let closeButton = root.querySelector(".close")
         closeButton?.addEventListener("click", _ => {
-            removeDisplayItem(item)
+            deselectItem(item)
         })
 
         let copyToBtn = root.querySelector(".copy-to")
