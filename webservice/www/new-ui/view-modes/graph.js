@@ -231,7 +231,23 @@ async function organizeData(entries) {
         "Item-name": i => i.En_Title
     }
 
-    let data = Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)]))
+    /**@type {Record<string, InfoEntry[]>}*/
+    let data
+    if(groupBy === "Tags") {
+        data = {}
+        for(let item of entries) {
+            for(let tag of item.Collection.split(",")) {
+                if(data[tag]) {
+                    data[tag].push(item)
+                } else {
+                    data[tag] = [item]
+                }
+            }
+        }
+    }
+    else {
+        data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)])))
+    }
 
     //this is the cutoff year because this is when jaws came out and changed how movies were produced
     const cutoffYear = 1975

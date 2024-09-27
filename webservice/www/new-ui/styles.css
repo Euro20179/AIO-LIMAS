@@ -135,12 +135,12 @@
             padding-right: 10px;
         }
 
-        [data-name="totalCost"]::before {
+        [data-stat-name="totalCost"]::before {
             content: "$"
         }
 
-        [data-name="count"]::before {
-            content: "Count: "
+        [data-stat-name]:not([data-stat-name="totalCost"])::before {
+            content: attr(data-stat-name) ": "
         }
 
         &:has(display-entry) h3 {

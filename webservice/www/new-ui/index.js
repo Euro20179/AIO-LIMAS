@@ -215,7 +215,7 @@ let resultStats = resetResultStats()
  * @param {number} value
  */
 function changeResultStats(key, value) {
-    let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-name="${key}"]`))
+    let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-stat-name="${key}"]`))
     resultStats[key] += value
     el.setAttribute("data-value", String(resultStats[key]))
 }
