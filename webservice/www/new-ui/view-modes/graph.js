@@ -3,6 +3,8 @@
 //  total watch time
 //  total items
 //  total spent
+//
+// TODO: add back group by
 
 /**
  * @param {string} id
@@ -27,7 +29,7 @@ const ctx = getCtx2("by-year")
 const typePieCtx = getCtx2("type-pie")
 const rbyCtx = getCtx2("rating-by-year")
 
-// const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
+const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
 
 /**
  * @param {CanvasRenderingContext2D} ctx
@@ -165,8 +167,7 @@ async function organizeData(entries) {
     let met = await loadList("/metadata/list-entries")
     let user = await loadList("/engagement/list-entries")
 
-    // let groupBy = groupBySelect.value
-    let groupBy = "Year"
+    let groupBy = groupBySelect.value
 
     /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
@@ -449,9 +450,9 @@ function makeGraphs(entries) {
     watchTimeByYear(entries)
 }
 
-// groupBySelect.onchange = function() {
-//     treeFilterForm()
-// }
+groupBySelect.onchange = function() {
+    treeFilterForm()
+}
 
 /**
  * @param {InfoEntry | InfoEntry[]} entry

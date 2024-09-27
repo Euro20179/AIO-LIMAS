@@ -156,34 +156,44 @@
                 <div id="entry-output" class="overflow">
                 </div>
                 <div id="graph-output" class="overflow">
+                    <form action="javascript:void()">
+                        <select id="group-by" title="Group by">
+                            <option value="Year">Year</option>
+                            <option value="Type">Type</option>
+                            <option value="Status">Status</option>
+                            <option value="View-count">View Count</option>
+                            <option value="Is-anime">Is Anime</option>
+                        </select>
+                    </form>
                     <div>
-                        <canvas id="by-year"></canvas>
-                    </div>
-                    <div>
-                        <canvas id="watch-time-by-year"></canvas>
-                    </div>
+                        <div>
+                            <canvas id="by-year"></canvas>
+                        </div>
+                        <div>
+                            <canvas id="watch-time-by-year"></canvas>
+                        </div>
 
-                    <div>
-                        <canvas id="rating-by-year"></canvas>
-                    </div>
-                    <div>
-                        <canvas id="adj-rating-by-year"></canvas>
-                    </div>
+                        <div>
+                            <canvas id="rating-by-year"></canvas>
+                        </div>
+                        <div>
+                            <canvas id="adj-rating-by-year"></canvas>
+                        </div>
 
-                    <div>
-                        <canvas id="type-pie"></canvas>
-                    </div>
-                    <div>
-                        <canvas id="cost-by-type"></canvas>
-                    </div>
+                        <div>
+                            <canvas id="type-pie"></canvas>
+                        </div>
+                        <div>
+                            <canvas id="cost-by-type"></canvas>
+                        </div>
 
-                    <div>
-                        <canvas id="count-by-format"></canvas>
+                        <div>
+                            <canvas id="count-by-format"></canvas>
+                        </div>
+                        <div>
+                            <canvas id="cost-by-format"></canvas>
+                        </div>
                     </div>
-                    <div>
-                        <canvas id="cost-by-format"></canvas>
-                    </div>
-
                 </div>
             </section>
         </div>
