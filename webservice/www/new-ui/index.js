@@ -31,6 +31,28 @@ let globalsNewUi = {
     selectedEntries: []
 }
 
+/**
+ * @param {bigint} itemId
+ */
+function* findDescendants(itemId) {
+    for (let i = 0; i < globalsNewUi.entries.length; i++) {
+        if (globalsNewUi.entries[i].Parent === itemId) {
+            yield globalsNewUi.entries[i]
+        }
+    }
+}
+
+/**
+ * @param {bigint} itemId
+ */
+function* findCopies(itemId) {
+    for (let i = 0; i < globalsNewUi.entries.length; i++) {
+        if (globalsNewUi.entries[i].CopyOf === itemId) {
+            yield globalsNewUi.entries[i]
+        }
+    }
+}
+
 const viewAllElem = /**@type {HTMLInputElement}*/(document.getElementById("view-all"))
 
 const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
@@ -528,23 +550,21 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
     let root = el.shadowRoot
     if (!root) return
 
-    /**
-     * @param {string} endpoint
-     * @param {HTMLElement} el
-     */
-    const loadBtnListIntoEl = (endpoint, el) => {
-        loadList(endpoint)
-            .then(res => {
-                for (let child of res) {
-                    let button = document.createElement("button")
-                    button.innerText = child.En_Title
-                    el.append(button)
-                    button.onclick = () => toggleDisplayItem(child)
-                }
-            })
+    let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
+    for (let child of findDescendants(item.ItemId)) {
+        let button = document.createElement("button")
+        button.innerText = child.En_Title
+        childEl.append(button)
+        button.onclick = () => toggleDisplayItem(child)
     }
-    loadBtnListIntoEl(`/list-descendants?id=${item.ItemId}`,/**@type {HTMLElement}*/(root.querySelector(".descendants div")))
-    loadBtnListIntoEl(`/list-copies?id=${item.ItemId}`, /**@type {HTMLElement}*/(root.querySelector(".descendants div")))
+
+    let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
+    for (let child of findCopies(item.ItemId)) {
+        let button = document.createElement("button")
+        button.innerText = child.En_Title
+        copyEl.append(button)
+        button.onclick = () => toggleDisplayItem(child)
+    }
 
     if (doEventHooking) {
         hookActionButtons(root, item)
@@ -747,8 +767,9 @@ function applySidebarAttrs(item, user, meta, el) {
 /**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [elem=null] 
+ * @param {HTMLElement | DocumentFragment} [sidebarParent=sidebarItems]
  */
-function renderSidebarItem(item, elem = null) {
+function renderSidebarItem(item, elem = null, sidebarParent = sidebarItems) {
     let doEventHooking = false
     if (!elem) {
         doEventHooking = true
@@ -760,7 +781,7 @@ function renderSidebarItem(item, elem = null) {
 
     applySidebarAttrs(item, user, meta, elem)
 
-    sidebarItems.append(elem)
+    sidebarParent.append(elem)
 
     if (doEventHooking) {
         let img = elem.shadowRoot?.querySelector("img")
@@ -808,14 +829,15 @@ function renderSidebar(entries) {
     } else {
         selectItem(entries[0], mode)
     }
+    let frag = document.createDocumentFragment()
     for (let item of entries) {
-        renderSidebarItem(item)
+        renderSidebarItem(item, null, frag)
     }
+    clearSidebar()
+    sidebarItems.append(frag)
 }
 
 async function treeFilterForm() {
-    clearSidebar()
-
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
     let data = new FormData(form)
 
@@ -897,7 +919,6 @@ async function main() {
     await refreshInfo()
 
     let tree = globalsNewUi.entries.sort((a, b) => {
-
         let aUInfo = findUserEntryById(a.ItemId)
         let bUInfo = findUserEntryById(b.ItemId)
         if (!aUInfo || !bUInfo) return 0
