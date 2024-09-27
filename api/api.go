@@ -329,6 +329,9 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	releasedGe := parsedParams.Get("released-ge", int64(0)).(int64)
 	releasedLe := parsedParams.Get("released-le", int64(0)).(int64)
 
+	nStart := parsedParams.Get("n-start", int64(0)).(int64)
+	nEnd := parsedParams.Get("n-end", int64(-1)).(int64)
+
 	var fmts []db.Format
 	var pars []int64
 	var cos []int64
@@ -395,7 +398,16 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 		return
 	}
 	w.WriteHeader(200)
-	for _, row := range rows {
+	if(nEnd < 0) {
+		nEnd += int64(len(rows))
+	}
+	for i, row := range rows {
+		if(i < int(nStart)) {
+			continue
+		}
+		if(i > int(nEnd)) {
+			break
+		}
 		j, err := row.ToJson()
 		if err != nil {
 			println(err.Error())

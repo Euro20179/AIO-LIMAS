@@ -191,6 +191,8 @@ var ( // `/` endpoints {{{
 			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
 			"released-ge":    api.MkQueryInfo(api.P_Int64, false),
 			"released-le":    api.MkQueryInfo(api.P_Int64, false),
+			"n-start": api.MkQueryInfo(api.P_Int64, false),
+			"n-end": api.MkQueryInfo(api.P_Int64, false),
 		},
 	}
 
