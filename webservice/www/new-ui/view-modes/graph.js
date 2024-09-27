@@ -455,23 +455,26 @@ groupBySelect.onchange = function() {
 }
 
 /**
- * @param {InfoEntry | InfoEntry[]} entry
- * @param {"add" | "sub" | "addList" | "subList"} addOrSub
- * @param {HTMLElement?} [el=null]
- * @param {boolean} [updateStats=true]
+ * @type {DisplayMode}
  */
-function mode_graphView(entry, addOrSub, el = null, updateStats = true) {
-    if (updateStats) {
-        if (["addList", "subList"].includes(addOrSub)) {
-            changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), addOrSub === "addList" ? 1 : -1)
-        }
-        else {
-            changeResultStatsWithItem(/**@type {InfoEntry}*/(entry), addOrSub === "add" ? 1 : -1)
-        }
+const modeGraphView = {
+    add(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItem(entry)
+        makeGraphs(globalsNewUi.selectedEntries)
+    },
+
+    sub(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItem(entry, -1)
+        makeGraphs(globalsNewUi.selectedEntries)
+    },
+
+    addList(entries, updateStats = true) {
+        updateStats && changeResultStatsWithItemList(entries)
+
+        makeGraphs(globalsNewUi.selectedEntries)
+    },
+
+    subList(entries, updateStats = true) {
+        updateStats && changeResultStatsWithItemList(entries, -1)
     }
-    if (addOrSub === "subList") {
-        return
-    }
-    makeGraphs(globalsNewUi.selectedEntries)
-    // return renderDisplayItem(entry, el)
 }

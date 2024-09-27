@@ -2,6 +2,15 @@
 //Detect if the thumbnail url is a data:image/X;base64, if not, download the url and turn it into one
 
 /**
+ * @typedef DisplayMode
+ * @type {object}
+ * @property {(entry: InfoEntry, updateStats?: boolean) => any} add
+ * @property {(entry: InfoEntry, updateStats?: boolean) => any} sub
+ * @property {(entry: InfoEntry[], updateStats?: boolean) => any} addList
+ * @property {(entry: InfoEntry[], updateStats?: boolean) => any} subList
+ */
+
+/**
  * @typedef GlobalsNewUi
  * @type {object}
  * @property {UserEntry[]} userEntries
@@ -29,7 +38,37 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
-const modes = [mode_displayEntry, mode_graphView]
+//TODO: add graph version of this
+/**
+ * @type {DisplayMode}
+ */
+const modeDisplayEntry = {
+    add(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItem(entry)
+        renderDisplayItem(entry)
+    },
+
+    sub(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItem(entry, -1)
+        removeDisplayItem(entry)
+    },
+
+    addList(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItemList(entry, 1)
+        for (let item of /**@type {InfoEntry[]}*/(entry)) {
+            renderDisplayItem(item)
+        }
+    },
+
+    subList(entry, updateStats = true) {
+        updateStats && changeResultStatsWithItemList(entry, -1)
+        for (let item of entry) {
+            removeDisplayItem(item)
+        }
+    }
+}
+
+const modes = [modeDisplayEntry, modeGraphView]
 const modeOutputIds = ["entry-output", "graph-output"]
 
 let idx = modeOutputIds.indexOf(location.hash.slice(1))
@@ -37,57 +76,23 @@ let idx = modeOutputIds.indexOf(location.hash.slice(1))
 let mode = modes[idx]
 
 /**
- * @param {InfoEntry | InfoEntry[]} entry
- * @param {"add" | "sub" | "addList" | "subList"} addOrSub
- * @param {HTMLElement?} [el=null]
- * @param {boolean} [updateStats=true]
- */
-function mode_displayEntry(entry, addOrSub, el = null, updateStats = true) {
-    if (updateStats) {
-        if (addOrSub === "addList") {
-            changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), 1)
-        } else if (addOrSub === "subList") {
-            changeResultStatsWithItemList(/**@type {InfoEntry[]}*/(entry), -1)
-        } else {
-            changeResultStatsWithItem(/**@type {InfoEntry}*/(entry), addOrSub === "add" ? 1 : -1)
-        }
-    }
-
-    switch (addOrSub) {
-        case "add":
-            return renderDisplayItem(/**@type {InfoEntry}*/(entry), el)
-        case "sub":
-            return removeDisplayItem(/**@type {InfoEntry}*/(entry))
-        case "addList":
-            for (let item of /**@type {InfoEntry[]}*/(entry)) {
-                renderDisplayItem(item, el)
-            }
-            return
-        case "subList":
-            for (let item of /**@type {InfoEntry[]}*/(entry)) {
-                removeDisplayItem(item)
-            }
-    }
-}
-
-/**
  * @param {InfoEntry} item
- * @param {Function} mode
+ * @param {DisplayMode} mode
  * @param {boolean} [updateStats=true]
  */
 function selectItem(item, mode, updateStats = true) {
     globalsNewUi.selectedEntries.push(item)
-    mode(item, "add", null, updateStats)
+    mode.add(item, updateStats)
 }
 
 /**
  * @param {InfoEntry[]} itemList
- * @param {Function} mode
+ * @param {DisplayMode} mode
  * @param {boolean} [updateStats=true]
  */
 function selectItemList(itemList, mode, updateStats = true) {
     globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.concat(itemList)
-    mode(itemList, "addList", null, updateStats)
+    mode.addList(itemList, updateStats)
 }
 
 /**
@@ -97,20 +102,20 @@ function toggleItem(item) {
     let idx = globalsNewUi.selectedEntries.findIndex(i => i.ItemId === item.ItemId)
     if (idx !== -1) {
         globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter((_, i) => i !== idx)
-        mode(item, "sub")
+        mode.sub(item)
     } else {
         globalsNewUi.selectedEntries.push(item)
-        mode(item, "add")
+        mode.add(item)
     }
 }
 
 function clearItems() {
-    mode(globalsNewUi.selectedEntries, "subList")
+    mode.subList(globalsNewUi.selectedEntries)
     globalsNewUi.selectedEntries = []
 }
 
 document.querySelector(".view-toggle")?.addEventListener("click", e => {
-    mode(globalsNewUi.selectedEntries, "subList", null, false)
+    mode.subList(globalsNewUi.selectedEntries)
 
     let curModeIdx = modes.indexOf(mode)
     curModeIdx++
@@ -122,7 +127,7 @@ document.querySelector(".view-toggle")?.addEventListener("click", e => {
     const id = modeOutputIds[curModeIdx]
     location.hash = id
 
-    mode(globalsNewUi.selectedEntries, "addList")
+    mode.addList(globalsNewUi.selectedEntries)
 })
 
 
@@ -150,7 +155,7 @@ async function newEntry() {
     clearSidebar()
 
     let json = parseJsonL(mkStrItemId(text))
-    mode(json, "add")
+    mode.add(json)
     renderSidebarItem(json)
 }
 
