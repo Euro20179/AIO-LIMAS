@@ -26,7 +26,6 @@ const typeColors = {
 }
 
 const ctx = getCtx2("by-year")
-const typePieCtx = getCtx2("type-pie")
 const rbyCtx = getCtx2("rating-by-year")
 
 const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
@@ -211,6 +210,7 @@ async function organizeData(entries) {
     const groupings = {
         "Year": i => findEntryById(i.ItemId, met).ReleaseYear,
         "Type": i => i.Type,
+        "Format": i => formatToName(i.Format),
         "Status": i => {
             let u = findEntryById(i.ItemId, user)
             return u.Status
@@ -311,23 +311,6 @@ async function adjRatingByYear(entries) {
     adjRatingChart = mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
 }
 
-/**@type {any}*/
-let countByFormatChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-function countByFormat(entries) {
-    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => formatToName(i.Format)))
-
-    let labels = Object.keys(data)
-        .sort((a, b) => data[b].length - data[a].length)
-    let counts = Array.from(labels, (v, k) => data[v].length)
-
-    if (countByFormatChart) {
-        countByFormatChart.destroy()
-    }
-    countByFormatChart = mkPieChart(getCtx2("count-by-format"), labels, counts, "Formats")
-}
 async function treeFilterForm() {
     let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
 
@@ -341,73 +324,17 @@ let costChart = null
 /**
  * @param {InfoEntry[]} entries
  */
-function costByFormat(entries) {
+async function costByFormat(entries) {
     entries = entries.filter(v => v.PurchasePrice > 0)
-
-    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => formatToName(i.Format)))
-
-    let totals = Object.fromEntries(
-        Object.entries(data)
-            .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
-            .sort((a, b) => +b[1] - +a[1])
-    )
+    let data = await organizeData(entries)
 
     let labels = Object.keys(data)
-    totals = Object.values(totals)
+    let totals = Object.values(data).map(v => v.reduce((p, c) => p + c.PurchasePrice, 0))
 
     if (costChart) {
         costChart.destroy()
     }
-    costChart = mkPieChart(getCtx2("cost-by-format"), labels, totals, "Types")
-}
-
-
-/**@type {any}*/
-let costByTypeChart = null
-/**
- * @param {InfoEntry[]} entries
- */
-function costByTypePie(entries) {
-    entries = entries.filter(v => v.PurchasePrice > 0)
-    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => i.Type))
-
-    let totals = Object.fromEntries(
-        Object.entries(data)
-            .map(([name, data]) => [name, data.reduce((p, c) => p + c.PurchasePrice, 0)])
-            .sort((a, b) => +b[1] - +a[1])
-    )
-    let labels = Object.keys(data)
-    let totalList = Object.values(totals)
-
-    let colors = labels.map(v => typeColors[/**@type {keyof typeof typeColors}*/(v)])
-
-    if (costByTypeChart) {
-        costByTypeChart.destroy()
-    }
-
-    costByTypeChart = mkPieChart(getCtx2("cost-by-type"), labels, totalList, "Cost", colors)
-}
-
-
-/**@type {any}*/
-let typechart = null
-/**
- * @param {InfoEntry[]} entries
- */
-function typePieChart(entries) {
-
-    let data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, i => i.Type))
-
-    let labels = Object.keys(data)
-        .sort((a, b) => data[b].length - data[a].length)
-    let counts = Array.from(labels, (v, k) => data[v].length)
-
-    let colors = labels.map(v => typeColors[/**@type {keyof typeof typeColors}*/(v)])
-
-    if (typechart) {
-        typechart.destroy()
-    }
-    typechart = mkPieChart(typePieCtx, labels, counts, "Types", colors)
+    costChart = mkXTypeChart(getCtx2("cost-by-format"), labels, totals, "Cost by")
 }
 
 /**@type {any}*/
@@ -482,12 +409,9 @@ function findEntryById(id, entryTable) {
 */
 function makeGraphs(entries) {
     byc(entries)
-    typePieChart(entries)
     ratingByYear(entries)
     adjRatingByYear(entries)
-    costByTypePie(entries)
     costByFormat(entries)
-    countByFormat(entries)
     watchTimeByYear(entries)
 }
 
