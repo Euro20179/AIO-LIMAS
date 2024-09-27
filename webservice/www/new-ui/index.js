@@ -555,7 +555,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
         let button = document.createElement("button")
         button.innerText = child.En_Title
         childEl.append(button)
-        button.onclick = () => toggleDisplayItem(child)
+        button.onclick = () => toggleItem(child)
     }
 
     let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
@@ -563,7 +563,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
         let button = document.createElement("button")
         button.innerText = child.En_Title
         copyEl.append(button)
-        button.onclick = () => toggleDisplayItem(child)
+        button.onclick = () => toggleItem(child)
     }
 
     if (doEventHooking) {
@@ -702,18 +702,6 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
 }
 
 /**
- * @param {bigint} id
- * @returns {boolean}
- */
-function isItemDisplayed(id) {
-    let elem = document.querySelector(`[data-item-id="${id}"]`)
-    if (elem) {
-        return true
-    }
-    return false
-}
-
-/**
  * @param {InfoEntry} item
  */
 function removeDisplayItem(item) {
@@ -797,24 +785,11 @@ function renderSidebarItem(item, elem = null, sidebarParent = sidebarItems) {
     }
 }
 
-/**
- * @param {InfoEntry} item
- */
-function toggleDisplayItem(item) {
-    if (!isItemDisplayed(item.ItemId)) {
-        renderDisplayItem(item)
-    } else {
-        removeDisplayItem(item)
-    }
-
-}
 
 viewAllElem.addEventListener("change", e => {
     clearItems()
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
         selectItemList(globalsNewUi.results, mode)
-        // changeResultStatsWithItemList(globalsNewUi.results)
-        // renderDisplayItem(item, null, false)
     } else {
         resultStats = resetResultStats()
     }
