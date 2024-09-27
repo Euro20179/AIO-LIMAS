@@ -385,7 +385,6 @@ async function doQuery(form) {
 
     queryData.title = search
 
-    console.log(queryData)
     return await loadQueriedEntries(queryData)
 }
 
