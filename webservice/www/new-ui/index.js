@@ -10,10 +10,13 @@
  * @property {(entry: InfoEntry[], updateStats?: boolean) => any} subList
  */
 
+
+//TODO:
+//refactor the rest of these to be like userEntires because having an array is awful
 /**
  * @typedef GlobalsNewUi
  * @type {object}
- * @property {UserEntry[]} userEntries
+ * @property {Record<string, UserEntry>} userEntries
  * @property {MetadataEntry[]} metadataEntries
  * @property {InfoEntry[]} entries
  * @property {UserEvent[]} events
@@ -23,7 +26,7 @@
 /**@type {GlobalsNewUi}*/
 
 let globalsNewUi = {
-    userEntries: [],
+    userEntries: {},
     metadataEntries: [],
     entries: [],
     results: [],
@@ -252,14 +255,13 @@ async function loadInfoEntries() {
 
 /**
  * @param {bigint} id
- * @param {Record<string, any>} entryTable
+ * @param {Array<any>} entryTable
  * @returns {any}
  */
 function findEntryById(id, entryTable) {
-    for (let item in entryTable) {
-        let entry = entryTable[item]
-        if (entry.ItemId === id) {
-            return entry
+    for (let item of entryTable) {
+        if (item.ItemId === id) {
+            return item
         }
     }
     return null
@@ -283,7 +285,7 @@ function findUserEntryById(id) {
     if (userEntryCache[`${id}`]) {
         return userEntryCache[`${id}`]
     }
-    return findEntryById(id, globalsNewUi.userEntries)
+    return globalsNewUi.userEntries[String(id)]
 }
 
 /**
@@ -314,10 +316,16 @@ function findInfoEntryById(id) {
     return null
 }
 
-/**@returns {Promise<UserEntry[]>}*/
+/**@returns {Promise<Record<string, UserEntry>>}*/
 async function loadUserEntries() {
     userEntryCache = {}
-    return globalsNewUi.userEntries = await loadList("engagement/list-entries")
+    let items = await loadList("engagement/list-entries")
+    /**@type {Record<string, UserEntry>}*/
+    let obj = {}
+    for(let item of items) {
+        obj[item.ItemId] = item
+    }
+    return globalsNewUi.userEntries = obj
 }
 
 async function loadUserEvents() {

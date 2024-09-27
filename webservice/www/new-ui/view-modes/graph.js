@@ -225,8 +225,8 @@ async function organizeData(entries) {
         "Year": i => findEntryById(i.ItemId, globalsNewUi.metadataEntries).ReleaseYear,
         "Type": i => i.Type,
         "Format": i => formatToName(i.Format),
-        "Status": i => findEntryById(i.ItemId, globalsNewUi.userEntries).Status,
-        "View-count": i => findEntryById(i.ItemId, globalsNewUi.userEntries).ViewCount,
+        "Status": i => globalsNewUi.userEntries[String(i.ItemId)].Status,
+        "View-count": i => globalsNewUi.userEntries[String(i.ItemId)].ViewCount,
         "Is-anime": i => i.IsAnime,
         "Item-name": i => i.En_Title
     }
@@ -258,7 +258,7 @@ const watchTimeByYear = ChartManager(async (entries) => {
     const watchTimes = Object.values(data)
         .map(v => {
             return v.map(i => {
-                let watchCount = findEntryById(i.ItemId, globalsNewUi.userEntries).ViewCount
+                let watchCount = globalsNewUi.userEntries[String(i.ItemId)].ViewCount
                 let thisMeta = findEntryById(i.ItemId, globalsNewUi.metadataEntries)
                 let watchTime = getWatchTime(watchCount, thisMeta)
                 return watchTime / 60
@@ -282,7 +282,7 @@ const adjRatingByYear = ChartManager(async (entries) => {
     const ratings = Object.values(data)
         .map(v => {
             let ratings = v.map(i => {
-                let thisUser = findEntryById(i.ItemId, globalsNewUi.userEntries)
+                let thisUser = globalsNewUi.userEntries[String(i.ItemId)]
                 return thisUser.UserRating
             })
             let totalRating = ratings
@@ -323,7 +323,7 @@ const ratingByYear = ChartManager(async (entries) => {
     const ratings = Object.values(data)
         .map(v => v
             .map(i => {
-                let thisUser = findEntryById(i.ItemId, globalsNewUi.userEntries)
+                let thisUser = globalsNewUi.userEntries[String(i.ItemId)]
                 return thisUser.UserRating
             })
             .reduce((p, c, i) => (p * i + c) / (i + 1), 0)
