@@ -88,60 +88,6 @@ function parseJsonL(jsonl) {
     const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
     return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
 }
-/**
- * @param {bigint} id 
- * @returns {Promise<InfoEntry[]>}
- */
-async function getChildren(id) {
-    let res = await fetch(`${apiPath}/query?parent-ids=${id}`)
-    let text = await res.text()
-    return /**@type {InfoEntry[]}*/ text.split("\n")
-        .filter(Boolean)
-        .map(mkStrItemId)
-        .map(parseJsonL)
-}
-
-/**
- * @param {bigint} id 
- * @returns {Promise<InfoEntry[]>}
- */
-async function getDescendants(id) {
-    let res = await fetch(`${apiPath}/list-descendants?id=${id}`)
-    let text = await res.text()
-    return /**@type {InfoEntry[]}*/ text.split("\n")
-        .filter(Boolean)
-        .map(mkStrItemId)
-        .map(parseJsonL)
-}
-
-/**
- * @param {bigint} id 
- * @returns {Promise<InfoEntry[]>}
- */
-async function getCopies(id) {
-    let res = await fetch(`${apiPath}/query?copy-ids=${id}`)
-    let text = await res.text()
-    return /**@type {InfoEntry[]}*/ text.split("\n")
-        .filter(Boolean).map(mkStrItemId).map(parseJsonL)
-}
-
-/**
- * @type {Record<string, number>}
- */
-let costCache = {}
-/**
- * @param {InfoEntry} entry
- * @returns {Promise<number>} cost
- */
-async function getTotalCostDeep(entry) {
-    if (String(entry.ItemId) in costCache) {
-        return costCache[String(entry.ItemId)]
-    }
-    let res = await fetch(`${apiPath}/total-cost?id=${entry.ItemId}`)
-    let text = await res.text()
-    costCache[String(entry.ItemId)] = Number(text)
-    return Number(text)
-}
 
 /**
  * @function
