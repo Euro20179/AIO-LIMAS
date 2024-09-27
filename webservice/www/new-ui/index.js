@@ -112,7 +112,7 @@ function selectItem(item, mode, updateStats = true) {
  * @param {boolean} [updateStats=true]
  */
 function deselectItem(item, updateStats = true) {
-    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter((_, i) => i !== idx)
+    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter(a => a.ItemId !== item.ItemId)
     mode.sub(item, updateStats)
 }
 
@@ -128,15 +128,13 @@ function selectItemList(itemList, mode, updateStats = true) {
 
 /**
  * @param {InfoEntry} item
+ * @param {boolean} [updateStats=true]
  */
-function toggleItem(item) {
-    let idx = globalsNewUi.selectedEntries.findIndex(i => i.ItemId === item.ItemId)
-    if (idx !== -1) {
-        globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter((_, i) => i !== idx)
-        mode.sub(item)
+function toggleItem(item, updateStats = true) {
+    if (globalsNewUi.selectedEntries.find(a => a.ItemId === item.ItemId)) {
+        deselectItem(item, updateStats)
     } else {
-        globalsNewUi.selectedEntries.push(item)
-        mode.add(item)
+        selectItem(item, mode, updateStats)
     }
 }
 
