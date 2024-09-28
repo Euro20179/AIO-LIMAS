@@ -369,6 +369,13 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
+
+	downloadThumb = api.ApiEndPoint {
+		Handler: api.DownloadThumbnail,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
+		},
+	}
 	//}}}
 )
 
@@ -467,6 +474,7 @@ func main() {
 	//For resources, such as entry thumbnails
 	makeEndpoints(apiRoot + "/resource", EndPointMap {
 		"thumbnail": thumbResource.Listener,
+		"download-thumbnail": downloadThumb.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)
