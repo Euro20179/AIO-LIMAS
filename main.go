@@ -32,7 +32,7 @@ func ckAuthorizationHeader(text string) (bool, error) {
 		}
 
 		accNumber := os.Getenv("ACCOUNT_NUMBER")
-		if(password == accNumber) {
+		if password == accNumber {
 			return true, nil
 		}
 	} else {
@@ -361,15 +361,25 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
-) // }}}
+	 // }}}
+	// `/resource` endpoints {{{
+	thumbResource = api.ApiEndPoint {
+		Handler: api.ThumbnailResource,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+		},
+	}
+	//}}}
+)
 
-func setupAIODir() string{
+
+func setupAIODir() string {
 	dir, envExists := os.LookupEnv("AIO_DIR")
 	if !envExists {
 		dataDir, envExists := os.LookupEnv("XDG_DATA_HOME")
 		if !envExists {
 			home, envEenvExists := os.LookupEnv("HOME")
-			if!envEenvExists {
+			if !envEenvExists {
 				panic("Could not setup aio directory, $HOME does not exist")
 			}
 			dataDir = fmt.Sprintf("%s/.local/share", home)
@@ -378,8 +388,8 @@ func setupAIODir() string{
 	}
 
 	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
-		os.MkdirAll(dir, 0755)
-	} else if err != nil{
+		os.MkdirAll(dir, 0o755)
+	} else if err != nil {
 		panic(fmt.Sprintf("Could not create directory %s\n%s", dir, err.Error()))
 	}
 	return dir
@@ -387,6 +397,8 @@ func setupAIODir() string{
 
 func main() {
 	aioPath := setupAIODir()
+	os.Setenv("AIO_DIR", aioPath)
+
 	dbPath := fmt.Sprintf("%s/all.db", aioPath)
 	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
 
@@ -450,6 +462,11 @@ func main() {
 		"list-events":  listEvents.Listener,
 		"mod-entry":    modUserEntry.Listener,
 		"set-entry":    setUserEntry.Listener,
+	})
+
+	//For resources, such as entry thumbnails
+	makeEndpoints(apiRoot + "/resource", EndPointMap {
+		"thumbnail": thumbResource.Listener,
 	})
 
 	http.HandleFunc("/", webservice.Root)
