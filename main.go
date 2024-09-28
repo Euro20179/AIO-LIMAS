@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -362,13 +363,33 @@ var ( // `/engagement` endpoints {{{
 	}
 ) // }}}
 
-func main() {
-	dbPath, exists := os.LookupEnv("DB_PATH")
-	if !exists {
-		dbPath = "./all.db"
+func setupAIODir() string{
+	dir, envExists := os.LookupEnv("AIO_DIR")
+	if !envExists {
+		dataDir, envExists := os.LookupEnv("XDG_DATA_HOME")
+		if !envExists {
+			home, envEenvExists := os.LookupEnv("HOME")
+			if!envEenvExists {
+				panic("Could not setup aio directory, $HOME does not exist")
+			}
+			dataDir = fmt.Sprintf("%s/.local/share", home)
+		}
+		dir = fmt.Sprintf("%s/aio-limas", dataDir)
 	}
 
+	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+		os.MkdirAll(dir, 0755)
+	} else if err != nil{
+		panic(fmt.Sprintf("Could not create directory %s\n%s", dir, err.Error()))
+	}
+	return dir
+}
+
+func main() {
+	aioPath := setupAIODir()
+	dbPath := fmt.Sprintf("%s/all.db", aioPath)
 	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
+
 	flag.Parse()
 
 	db.InitDb(*dbPathPtr)
