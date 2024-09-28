@@ -5,6 +5,12 @@
     counter-increment: item-list;
     content: counter(item-list);
     float: left;
+
+}
+@media (width < 800px) {
+    :host(sidebar-entry)::before {
+        content: ''
+    }
 }
 
 :host(sidebar-entry) {
@@ -21,7 +27,15 @@
     height: 100%;
 
     @media (width < 800px) {
-        width: 300px;
+        width: fit-content;
+
+        figure {
+            width: fit-content;
+
+            .title {
+                display: none;
+            }
+        }
     }
 
     [data-type-icon]::after {
@@ -29,7 +43,7 @@
     }
 
     .root {
-        container-type: size;
+        container-type: inline-size;
 
         height: 150px;
         aspect-ratio: 1 / 1;
@@ -37,6 +51,16 @@
         overflow: hidden;
 
         font-size: 0.9em;
+
+        @media (width < 800px) {
+            width: 25vw;
+            height: min-content;
+            aspect-ratio: initial;
+
+            figure .title {
+                display: none;
+            }
+        }
     }
 
     figure {
@@ -52,7 +76,7 @@
 
         img {
             cursor: pointer;
-            height: 70cqb;
+            height: 70cqi;
         }
     }
 

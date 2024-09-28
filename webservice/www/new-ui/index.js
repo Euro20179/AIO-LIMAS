@@ -676,7 +676,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
                             finalizeIdentify(result.ItemId, provider, item.ItemId)
                                 .then(refreshInfo)
                                 .then(() => {
-                                    let newItem = findEntryById(item.ItemId, globalsNewUi.entries)
+                                    let newItem = globalsNewUi.entries[String(item.ItemId)]
                                     refreshDisplayItem(newItem)
                                     refreshSidebarItem(newItem)
                                 })
