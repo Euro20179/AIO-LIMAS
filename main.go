@@ -361,24 +361,23 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 	}
-	 // }}}
+	// }}}
+
 	// `/resource` endpoints {{{
-	thumbResource = api.ApiEndPoint {
+	thumbResource = api.ApiEndPoint{
 		Handler: api.ThumbnailResource,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 	}
 
-	downloadThumb = api.ApiEndPoint {
+	downloadThumb = api.ApiEndPoint{
 		Handler: api.DownloadThumbnail,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
 	}
-	//}}}
-)
-
+) //}}}
 
 func setupAIODir() string {
 	dir, envExists := os.LookupEnv("AIO_DIR")
@@ -471,9 +470,9 @@ func main() {
 		"set-entry":    setUserEntry.Listener,
 	})
 
-	//For resources, such as entry thumbnails
-	makeEndpoints(apiRoot + "/resource", EndPointMap {
-		"thumbnail": thumbResource.Listener,
+	// For resources, such as entry thumbnails
+	makeEndpoints(apiRoot+"/resource", EndPointMap{
+		"thumbnail":          thumbResource.Listener,
 		"download-thumbnail": downloadThumb.Listener,
 	})
 

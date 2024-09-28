@@ -199,18 +199,33 @@
 
 
     <template id="display-entry">
-        <dialog id="identify-items" popover>
-        </dialog>
         <style>
             @import "/new-ui/templates/display-entry.css"
         </style>
+
+        <dialog id="item-identification-form" popover>
+            <form onsubmit="itemIdentification(this)" action="javascript:void(0)">
+                <select name="provider" required>
+                    <option value="anilist">Anilist</option>
+                    <option value="omdb">open movie database (omdb)</option>
+                </select>
+                <select name="query-type" required>
+                    <option value="by-title">By title</option>
+                    <option value="by-id">By id</option>
+                </select>
+                <input type="text" name="search" placeholder="search/id (id must be numeric)" required>
+            </form>
+        </dialog>
+        <dialog id="identify-items" popover>
+        </dialog>
         <div class="root">
             <div class="grid column">
                 <button class="close" title="remove item from inspection area">X</button>
                 <button class="save" title="save any manual changes">💾︎</button>
                 <button class="copy-to" title="copy user info to another item">➡</button>
                 <button class="refresh" title="refresh metadata">🗘</button>
-                <button class="identify" title="identify item" popovertarget="identify-items">ℹ</button>
+                <!-- <button class="identify" title="identify item" popovertarget="identify-items">ℹ</button> -->
+                <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
                 <button class="delete" title="permanently delete item">🗑</button>
             </div>
             <figure class="thumbnail-fig flex column">

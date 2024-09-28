@@ -119,34 +119,34 @@ async function loadList(endpoint) {
 async function loadQueriedEntries(search) {
     let queryString = "?_"
     if (search.title) {
-        queryString += `&title=${encodeURI(search.title)}`
+        queryString += `&title=${encodeURIComponent(search.title)}`
     }
     if (search.format && search.format?.[0] != -1) {
-        queryString += `&formats=${encodeURI(search.format.join(","))}`
+        queryString += `&formats=${encodeURIComponent(search.format.join(","))}`
     }
     if (search.type) {
-        queryString += `&types=${encodeURI(search.type)}`
+        queryString += `&types=${encodeURIComponent(search.type)}`
     }
     if (search.tags) {
-        queryString += `&tags=${encodeURI(search.tags)}`
+        queryString += `&tags=${encodeURIComponent(search.tags)}`
     }
     if (search.status) {
-        queryString += `&user-status=${encodeURI(search.status)}`
+        queryString += `&user-status=${encodeURIComponent(search.status)}`
     }
     if (search.userRatingGt) {
-        queryString += `&user-rating-gt=${encodeURI(String(search.userRatingGt))}`
+        queryString += `&user-rating-gt=${encodeURIComponent(String(search.userRatingGt))}`
     }
     if (search.userRatingLt) {
-        queryString += `&user-rating-lt=${encodeURI(String(search.userRatingLt))}`
+        queryString += `&user-rating-lt=${encodeURIComponent(String(search.userRatingLt))}`
     }
     if (search.isAnime) {
         queryString += `&is-anime=${Number(search.isAnime) + 1}`
     }
     if (search.purchasePriceGt) {
-        queryString += `&purchase-gt=${encodeURI(String(search.purchasePriceGt))}`
+        queryString += `&purchase-gt=${encodeURIComponent(String(search.purchasePriceGt))}`
     }
     if (search.purchasePriceLt) {
-        queryString += `&purchase-lt=${encodeURI(String(search.purchasePriceLt))}`
+        queryString += `&purchase-lt=${encodeURIComponent(String(search.purchasePriceLt))}`
     }
     if (search.releasedGe) {
         queryString += `&released-ge=${encodeURIComponent(String(search.releasedGe))}`

@@ -537,6 +537,92 @@ function applyDisplayAttrs(item, user, meta, events, el) {
 }
 
 /**
+ * @param {string} provider
+ * @param {string} search
+ * @param {HTMLElement} selectionElemOutput
+ * @returns {Promise<string>}
+ */
+async function titleIdentification(provider, search, selectionElemOutput) {
+    let res = await identify(search, provider)
+    let text = await res.text()
+    let [_, rest] = text.split("\x02")
+
+    let items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
+
+    while(selectionElemOutput.children.length) {
+        selectionElemOutput.firstChild?.remove()
+    }
+
+    selectionElemOutput.showPopover()
+
+    return await new Promise(res => {
+        for (let result of items) {
+            let fig = document.createElement("figure")
+
+            let img = document.createElement("img")
+            img.src = result.Thumbnail
+            img.style.cursor = "pointer"
+            img.width = 100
+
+            img.addEventListener("click", e => {
+                selectionElemOutput.hidePopover()
+                res(result.ItemId)
+            })
+
+            let title = document.createElement("h3")
+            title.innerText = result.Title || result.Native_Title
+            title.title = result.Native_Title || result.Title
+
+            fig.append(title)
+            fig.append(img)
+            selectionElemOutput.append(fig)
+        }
+    })
+}
+
+/**
+ * @param {HTMLFormElement} form
+ */
+async function itemIdentification(form) {
+    form.parentElement?.hidePopover()
+    let data = new FormData(form)
+
+    let provider = /**@type {string}*/(data.get("provider"))
+
+    let queryType = /**@type {"by-title" | "by-id"}*/(data.get("query-type"))
+
+    let search = /**@type {string}*/(data.get("search"))
+
+    let shadowRoot = /**@type {ShadowRoot}*/(form.getRootNode())
+
+    let itemId = shadowRoot.host.getAttribute("data-item-id")
+
+    if (!itemId) {
+        alert("Could not get item id")
+        return
+    }
+
+    let finalItemId = ""
+
+    switch (queryType) {
+        case "by-title":
+            let titleSearchContainer = /**@type {HTMLDialogElement}*/(shadowRoot.getElementById("identify-items"))
+            finalItemId = await titleIdentification(provider, search, titleSearchContainer)
+            break
+        case "by-id":
+            finalItemId = search
+            break
+    }
+    finalizeIdentify(finalItemId, provider, BigInt(itemId))
+        .then(refreshInfo)
+        .then(() => {
+            let newItem = globalsNewUi.entries[itemId]
+            refreshDisplayItem(newItem)
+            refreshSidebarItem(newItem)
+        })
+}
+
+/**
  * @param {InfoEntry} item
  * @param {HTMLElement?} [el=null] 
  * @param {HTMLElement | DocumentFragment} [parent=displayItems]
@@ -646,54 +732,6 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
         let saveBtn = root.querySelector(".save")
         saveBtn?.addEventListener("click", _ => {
             saveItemChanges(/**@type {ShadowRoot}*/(root), item)
-        })
-
-        let identifyBtn = /**@type {HTMLButtonElement}*/(root.querySelector(".identify"))
-        identifyBtn?.addEventListener("click", e => {
-            let provider = prompt("provider: anilist, omdb")
-            let title = prompt("title search: ")
-            identify(String(title), provider || "anilist")
-                .then(res => res.text())
-                .then(jsonL => {
-                    let [provider, rest] = jsonL.split("\x02")
-                    jsonL = rest
-                    const data = jsonL
-                        .split("\n")
-                        .filter(Boolean)
-                        .map((v) => JSON.parse(v))
-                    let container = /**@type {HTMLDialogElement}*/(root?.getElementById("identify-items"))
-                    container.innerHTML = ""
-
-                    for (let result of data) {
-                        let fig = document.createElement("figure")
-
-                        let img = document.createElement("img")
-                        img.src = result.Thumbnail
-                        img.style.cursor = "pointer"
-                        img.width = 100
-
-                        img.addEventListener("click", e => {
-                            finalizeIdentify(result.ItemId, provider, item.ItemId)
-                                .then(refreshInfo)
-                                .then(() => {
-                                    let newItem = globalsNewUi.entries[String(item.ItemId)]
-                                    refreshDisplayItem(newItem)
-                                    refreshSidebarItem(newItem)
-                                })
-                                .catch(console.error)
-                        })
-
-                        let title = document.createElement("h3")
-                        title.innerText = result.Title || result.Native_Title
-                        title.title = result.Native_Title || result.Title
-
-                        fig.append(title)
-                        fig.append(img)
-                        container.append(fig)
-                    }
-
-                })
-
         })
 
         let ratingSpan = root.querySelector(".rating")
