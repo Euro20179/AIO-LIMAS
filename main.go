@@ -404,7 +404,7 @@ func main() {
 	makeEndpoints(apiRoot+"/metadata", EndPointMap{
 		"fetch":             fetchMetadataForEntry.Listener,
 		"retrieve":          retrieveMetadataForEntry.Listener,
-		"mod-entry":         modEntry.Listener,
+		"mod-entry":         modMetaEntry.Listener,
 		"set-entry":         setMeta.Listener,
 		"list-entries":      listMetadata.Listener,
 		"identify":          identify.Listener,

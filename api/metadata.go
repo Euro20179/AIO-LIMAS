@@ -102,7 +102,11 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 	metadataEntry.MediaDependant = pp.Get("media-dependant", metadataEntry.MediaDependant).(string)
 	metadataEntry.MediaDependant = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
-	db.UpdateMetadataEntry(&metadataEntry)
+	err := db.UpdateMetadataEntry(&metadataEntry)
+	if err != nil{
+		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		return
+	}
 
 	success(w)
 }

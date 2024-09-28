@@ -11,8 +11,6 @@
  */
 
 
-//TODO:
-//refactor the rest of these to be like userEntires because having an array is awful
 /**
  * @typedef GlobalsNewUi
  * @type {object}
@@ -157,8 +155,7 @@ document.querySelector(".view-toggle")?.addEventListener("click", e => {
     }
 
     mode = modes[curModeIdx]
-    const id = modeOutputIds[curModeIdx]
-    location.hash = id
+    location.hash = modeOutputIds[curModeIdx]
 
     mode.addList(globalsNewUi.selectedEntries)
 })
@@ -356,13 +353,6 @@ function clearSidebar() {
     }
 }
 
-// function clearMainDisplay() {
-//     while (displayItems.children.length) {
-//         displayItems.firstChild?.remove()
-//     }
-//     resultStats = resetResultStats()
-// }
-
 /**
  * @param {ShadowRoot} shadowRoot
  * @param {InfoEntry} item 
@@ -375,7 +365,7 @@ function hookActionButtons(shadowRoot, item) {
                 return
             }
 
-            let queryParams = ""
+            let queryParams = `?id=${item.ItemId}`
             if (action === "Finish") {
                 let rating = prompt("Rating")
                 while (isNaN(Number(rating))) {
@@ -384,7 +374,7 @@ function hookActionButtons(shadowRoot, item) {
                 queryParams += `&rating=${rating}`
             }
 
-            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media?id=${item.ItemId}${queryParams}`)
+            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media${queryParams}`)
                 .then(res => res.text())
                 .then(text => {
                     alert(text)
@@ -989,3 +979,38 @@ async function main() {
 }
 
 main()
+
+let servicing = false
+async function imageURLToB64URLService() {
+    if (servicing) return
+
+    servicing = true
+    for (let item in globalsNewUi.metadataEntries) {
+        let metadata = globalsNewUi.metadataEntries[item]
+        let thumbnail = metadata.Thumbnail
+
+        let userTitle = globalsNewUi.entries[item].En_Title
+        let userNativeTitle = globalsNewUi.entries[item].Native_Title
+
+        if (!thumbnail) continue
+        if (thumbnail.startsWith("data:")) continue
+
+        console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, inlining`)
+
+        const res = await fetch(thumbnail)
+        const blob = await res.blob()
+
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            metadata.Thumbnail = String(reader.result)
+            updateThumbnail(metadata.ItemId, metadata.Thumbnail).then(res => res.text()).then(console.log)
+        }
+        reader.readAsDataURL(blob)
+
+        await new Promise(res => setTimeout(res, 1000))
+
+        if (!servicing) break
+    }
+    console.log("ALL IMAGES HAVE BEEN INLINED")
+    servicing = false
+}

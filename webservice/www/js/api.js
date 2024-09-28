@@ -251,6 +251,14 @@ async function finalizeIdentify(identifiedId, provider, applyTo) {
 }
 
 /**
+ * @param {bigint} id
+ * @param {string} thumbnail
+ */
+async function updateThumbnail(id, thumbnail) {
+    return await fetch(`${apiPath}/metadata/mod-entry?id=${id}&thumbnail=${encodeURIComponent(thumbnail)}`)
+}
+
+/**
 * @param {HTMLFormElement} form
 */
 async function doQuery(form) {
@@ -319,7 +327,7 @@ async function doQuery(form) {
         if (!value) continue
         if (typeof property === 'function') {
             let res = property(value)
-            for(let key in res) {
+            for (let key in res) {
                 //@ts-ignore
                 queryData[key] = res[key]
             }
