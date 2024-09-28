@@ -335,7 +335,6 @@ customElements.define("sidebar-entry", class extends HTMLElement {
      */
     ["data-thumbnail-src"](val) {
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        console.log(imgEl.src, val)
         if(imgEl.src === val) return
         imgEl.src = String(val)
     }

@@ -981,7 +981,7 @@ async function main() {
 main()
 
 let servicing = false
-async function imageURLToB64URLService() {
+async function remote2LocalThumbService() {
     if (servicing) return
 
     servicing = true
@@ -993,24 +993,20 @@ async function imageURLToB64URLService() {
         let userNativeTitle = globalsNewUi.entries[item].Native_Title
 
         if (!thumbnail) continue
-        if (thumbnail.startsWith("data:")) continue
+        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) continue
 
-        console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, inlining`)
+        console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
-        const res = await fetch(thumbnail)
-        const blob = await res.blob()
+        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
 
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            metadata.Thumbnail = String(reader.result)
-            updateThumbnail(metadata.ItemId, metadata.Thumbnail).then(res => res.text()).then(console.log)
-        }
-        reader.readAsDataURL(blob)
+        updateThumbnail(metadata.ItemId, `${location.origin}${apiPath}/resource/thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
 
-        await new Promise(res => setTimeout(res, 1000))
+        await new Promise(res => setTimeout(res, 200))
 
         if (!servicing) break
     }
+
     console.log("ALL IMAGES HAVE BEEN INLINED")
+
     servicing = false
 }
