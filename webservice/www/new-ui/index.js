@@ -555,7 +555,7 @@ async function titleIdentification(provider, search, selectionElemOutput) {
 
     selectionElemOutput.showPopover()
 
-    return await new Promise(res => {
+    return await new Promise(RETURN => {
         for (let result of items) {
             let fig = document.createElement("figure")
 
@@ -566,7 +566,7 @@ async function titleIdentification(provider, search, selectionElemOutput) {
 
             img.addEventListener("click", e => {
                 selectionElemOutput.hidePopover()
-                res(result.ItemId)
+                RETURN(result.ItemId)
             })
 
             let title = document.createElement("h3")

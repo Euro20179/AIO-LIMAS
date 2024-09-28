@@ -30,12 +30,12 @@ func dbHasCol(db *sql.DB, colName string) bool {
 	return false
 }
 
-func ensureMetadataTitles(db *sql.DB) error {
-	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN title default ''")
+func ensureProviderColumns(db *sql.DB) error {
+	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN provider default ''")
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec("ALTER TABLE metadata ADD COLUMN native_title default ''")
+	_, err = db.Exec("ALTER TABLE metadata ADD COLUMN providerID default ''")
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,9 @@ func InitDb(dbPath string) {
 			dataPoints TEXT,
 			native_title TEXT,
 			title TEXT,
-			ratingMax NUMERIC
+			ratingMax NUMERIC,
+			provider TEXT,
+			providerID TEXT
 		)
 `)
 	if err != nil {
@@ -118,7 +120,7 @@ func InitDb(dbPath string) {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
 	}
 
-	err = ensureMetadataTitles(conn)
+	err = ensureProviderColumns(conn)
 	if err != nil {
 		println(err.Error())
 	}
@@ -252,8 +254,10 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			dataPoints,
 			native_title,
 			title,
-			ratingMax
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			ratingMax,
+			provider,
+			providerID
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
 		metadataEntry.Rating,
@@ -264,7 +268,9 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		metadataEntry.Datapoints,
 		metadataEntry.Native_Title,
 		metadataEntry.Title,
-		metadataEntry.RatingMax)
+		metadataEntry.RatingMax,
+		metadataEntry.Provider,
+		metadataEntry.ProviderID)
 	if err != nil {
 		return err
 	}
@@ -432,12 +438,15 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 			dataPoints = ?,
 			title = ?,
 			native_title = ?,
-			ratingMax = ?
+			ratingMax = ?,
+			provider = ?,
+			providerID = ?
 		WHERE
 			itemId = ?
 	`, entry.Rating, entry.Description,
 		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
-		entry.Datapoints, entry.Title, entry.Native_Title, entry.RatingMax, entry.ItemId)
+		entry.Datapoints, entry.Title, entry.Native_Title, entry.RatingMax,
+		entry.Provider, entry.ProviderID, entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -544,7 +553,6 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 	} else if mainSearchInfo.ReleasedLE != 0 {
 		queries = append(queries, query.LE("releaseYear", mainSearchInfo.ReleasedLE))
 	} else if mainSearchInfo.ReleasedGE != 0 {
-
 		queries = append(queries, query.GE("releaseYear", mainSearchInfo.ReleasedGE))
 	}
 

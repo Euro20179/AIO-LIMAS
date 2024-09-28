@@ -149,6 +149,9 @@ func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
 	o.Rating = float64(out.AverageScore)
 	o.RatingMax = 100
 
+	o.Provider = "anilist"
+	o.ProviderID = fmt.Sprintf("%d", out.Id)
+
 	return o, nil
 }
 
@@ -217,6 +220,8 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 	outMeta.Description = aniInfo.Description
 	outMeta.MediaDependant = string(mdString)
 	outMeta.ReleaseYear = int64(aniInfo.StartDate.Year)
+	outMeta.Provider = "anilist"
+	outMeta.ProviderID = fmt.Sprintf("%d", aniInfo.Id)
 
 	return outMeta, nil
 }
@@ -306,6 +311,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 			}
 		}
 		cur.ItemId = entry.Id
+
 		outMeta = append(outMeta, cur)
 	}
 
@@ -358,6 +364,8 @@ func AnilistById(id string) (db.MetadataEntry, error) {
 			return outMeta, err
 		}
 	}
+
 	outMeta.ItemId = out.Id
+
 	return outMeta, nil
 }

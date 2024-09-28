@@ -84,6 +84,9 @@ func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
 	out.Description = result.Plot
 	out.Thumbnail = result.Poster
 
+	out.Provider = "omdb"
+	out.ProviderID = result.ImdbID[2:]
+
 	yearSep := "–"
 	if strings.Contains(result.Year, yearSep) {
 		result.Year = strings.Split(result.Year, yearSep)[0]
@@ -172,6 +175,7 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	jData := struct {
 		Search []OMDBSearchItem
 	}{}
+
 	err = json.Unmarshal(body, &jData)
 	if err != nil {
 		return outMeta, err
@@ -188,6 +192,10 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 		cur.ItemId = imdbIdInt
 		cur.Title = entry.Title
 		cur.Thumbnail = entry.Poster
+
+		cur.Provider = "omdb"
+		cur.ProviderID = imdbId
+
 		outMeta = append(outMeta, cur)
 	}
 

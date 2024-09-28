@@ -9,7 +9,7 @@ import (
 
 type EntryRepresentor interface {
 	ToJson() ([]byte, error)
-	ReadEntry(rows *sql.Rows) error 
+	ReadEntry(rows *sql.Rows) error
 }
 
 type Status string
@@ -154,6 +154,8 @@ type MetadataEntry struct {
 	Datapoints     string // JSON {string: string} as a string
 	Title          string // this is different from infoentry in that it's automatically generated
 	Native_Title   string // same with this
+	Provider       string // the provider that generated the metadata
+	ProviderID     string // the id that the provider used
 }
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
@@ -168,6 +170,8 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Title,
 		&self.Native_Title,
 		&self.RatingMax,
+		&self.Provider,
+		&self.ProviderID,
 	)
 }
 
