@@ -148,10 +148,8 @@ func StructNamesToDict(entity any) map[string]any{
 
 	val := reflect.ValueOf(entity)
 
-	t := val.Type()
-
 	for i := range val.NumField() {
-		name := t.Field(i).Name
+		name := val.Type().Field(i).Name
 
 		value := val.FieldByName(name).Interface()
 

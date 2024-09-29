@@ -215,85 +215,31 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	metadataEntry.ItemId = id
 	userViewingEntry.ItemId = id
 
-	entryQuery := `INSERT INTO entryInfo (
-			itemId,
-			en_title,
-			native_title,
-			format,
-			location,
-			purchasePrice,
-			collection,
-			parentId,
-			type,
-			isAnime,
-			copyOf
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-	_, err := Db.Exec(entryQuery, id,
-		entryInfo.En_Title,
-		entryInfo.Native_Title,
-		entryInfo.Format,
-		entryInfo.Location,
-		entryInfo.PurchasePrice,
-		entryInfo.Collection,
-		entryInfo.ParentId,
-		entryInfo.Type,
-		entryInfo.IsAnime,
-		entryInfo.CopyOf)
-	if err != nil {
-		return err
+	entries := map[string]TableRepresentation{
+		"entryInfo": *entryInfo,
+		"metadata": *metadataEntry,
+		"userViewingInfo": *userViewingEntry,
 	}
 
-	metadataQuery := `INSERT INTO metadata (
-			itemId,
-			rating,
-			description,
-			mediaDependant,
-			releaseYear,
-			thumbnail,
-			dataPoints,
-			native_title,
-			title,
-			ratingMax,
-			provider,
-			providerID
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	for entryName, entry := range entries {
+		entryData := StructNamesToDict(entry)
 
-	_, err = Db.Exec(metadataQuery, metadataEntry.ItemId,
-		metadataEntry.Rating,
-		metadataEntry.Description,
-		metadataEntry.MediaDependant,
-		metadataEntry.ReleaseYear,
-		metadataEntry.Thumbnail,
-		metadataEntry.Datapoints,
-		metadataEntry.Native_Title,
-		metadataEntry.Title,
-		metadataEntry.RatingMax,
-		metadataEntry.Provider,
-		metadataEntry.ProviderID)
-	if err != nil {
-		return err
-	}
+		var entryArgs []any
+		questionMarks := ""
+		entryQ := `INSERT INTO ` + entryName + ` (`
+		for k, v := range entryData {
+			entryQ += k + ","
+			entryArgs = append(entryArgs, v)
+			questionMarks += "?,"
+		}
+		//cut off trailing comma
+		entryQ = entryQ[:len(entryQ)-1] + ")"
 
-	userViewingQuery := `INSERT INTO userViewingInfo (
-			itemId,
-			status,
-			viewCount,
-			userRating,
-			notes,
-			currentPosition
-		) VALUES (?, ?, ?, ?, ?, ?)`
-
-	_, err = Db.Exec(userViewingQuery,
-		userViewingEntry.ItemId,
-		userViewingEntry.Status,
-		userViewingEntry.ViewCount,
-		userViewingEntry.UserRating,
-		userViewingEntry.Notes,
-		userViewingEntry.CurrentPosition,
-	)
-	if err != nil {
-		return err
+		entryQ += "VALUES(" + questionMarks[:len(questionMarks)-1] + ")"
+		_, err := Db.Exec(entryQ, entryArgs...)
+		if err != nil {
+			return err
+		}
 	}
 
 	if userViewingEntry.Status != Status("") {
@@ -303,13 +249,13 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		event,
 		after
 		) VALUES (?, ?, ?, 0)`
-		_, err = Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()), userViewingEntry.Status)
+		_, err := Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()), userViewingEntry.Status)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = RegisterBasicUserEvent("Added", metadataEntry.ItemId)
+	err := RegisterBasicUserEvent("Added", metadataEntry.ItemId)
 	if err != nil {
 		return err
 	}
