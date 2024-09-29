@@ -2,126 +2,64 @@
 
 ### AIO LIMAS For short
 
----
+![entries](./readme-assets/entries.png)
+![graph](./readme-assets/graph.png)
 
-# Goals
+### The Point
 
-The goal of this project is to be a management system for your physical, and digital content library
+I made this program because i had a system for managing which shows/movies i had watched/planned,
 
-The user should be able to serach for something (with certain criteria like dvd, blu ray, digital, etc) and it will show matching results
+And I had another system for keeping track of how much I've spent on Manga, DVDS, and the like.
 
-In addition, it will contain a myanimelist/letterboxd like experience for all media managed by the LIMAS
+I realized that I could make a program that combines both of these problems into one massive
+inventory management thingy
 
-Physical content will need to be entered in manually, however metadata should be fetched automatically (similar to how manual entries in jellyfin work)
+For some extra challenge, I also want to support as many media types as possible on as many
+formats as possible
 
-- [x] MAL/letterboxd system
-  - [x] user rating system
-  - [x] notes
-  - [x] watch dates table
-  - [x] ability to plan, start, stop shows
-    - [x] status (planning, viewing, etc)
-    - [x] start
-    - [x] finish
-    - [x] plan
-    - [x] drop
-    - [x] pause
-    - [x] continue
-  - [x] Track current position as string
-    - Then whichever ui the user uses to play content, will send a request to the server saying that the user is now at position X
-  - [x] Replace the start/end lists with event lists
-    - eg: `[["Planned", <unixtime>], ["Viewing", <unixtime>], ["Finished", <unixtime>]]`
-    - The events should be the same as statuses
-    - unixtime is when that status was set
-    - this actually might be really good as it's own table that looks something like this
-      `itemId | timestamp | event`
-    - Even if the items are entered into the table out of order, and the ids aren't in order, we can always use `SELECT * FROM userEvents WHERE itemId = ? ORDER BY timestamp`
-    - [x] store item created/added as an event
-- [ ] Library features
-  - [ ] internet search
-    - i can do something like `/api/v1/internet-search` with similar params to addentry, except
-    - instead of adding an entry, it uses the (yet to be implemented) identify feature to gather search results
-    - [ ] search
-      - as described above
-    - [ ] lookup
-      - will lookup a specific entry using a specific provider
-  - [x] copy of (id)
-    - that way if the user has say, a digital movie and blu ray of something
-    - they can have 2 entries, and the ui can know to display the same user/metadata for both
-  - [x] media dependant metadata
-  - [x] proper collections
-    - [x] create collection
-    - [x] delete collection
-    - [x] cannot put entry in a collection unless collection exists
-    - the way this is accomplished is simply by having a Collection TY.
-  - [ ] automatic metadata
-    - [x] anlist
-      - [x] Anime
-      - [x] Manga
-    - [ ] Steam games
-    - [ ] Books
-    - [ ] ~tmdb~
-      - requires billing address
-    - [x] omdb
-  - [ ] ~nfo files~
-    - impossibly non-standard format
-  - [x] allow user to change metadata
-  - [x] allow user to identify a media, and pull related metadata (like how jellyfin does)
-  - [x] scanning folders
-  - [ ] search
-    - [ ] search based on metadata entries
-    - [ ] search based on user info entries
-    - [x] search based on info entries
-    - [x] search based on a combination of various entries
-    - [x] search filters
-  - [x] Store purchace price
-  - [x] store true title + native title in metadata instead of info entry
-    - the info entry title and native title can remain, but they will be user determined
-  - [ ] monitor folders, automatically add items in them
-    - [ ] allow user to specify type of media, metadata source, and other stuff for everything in the folder
-- [x] Ability to act as a proxy for the given {location} of an entry, and stream it
-  - [ ] reencoding?
+example formats:
+xbox 360
+digital
+blu ray
+dvd
 
-- [ ] new ui
-  - [ ] sorting
-    - [x] by price
-    - [x] by rating
-    - [ ] alpha
-    - [ ] release year
-  - [ ] search
-    - [x] by price
-    - [ ] by collection
-    - [x] by rating
-    - [x] tags
-    - [x] by type
-      - [x] multiple
-    - [x] by format
-      - [x] multiple
-    - [ ] by title
-  - [x] add item
-  - [ ] edit item
-    - [x] rating
-    - [x] notes
-    - [ ] thumbnail
-    - [x] title
-  - [x] display progress (if it's a show)
-  - [ ] set current episode
-  - [x] delete item
-  - [x] start/stop, etc
-  - [x] fetch metadata
-  - [x] display metadata
-  - [x] identify item
-  - [x] display user info
-  - [x] display general info
-  - [x] display cost
-  - [ ] ability to view pie chart of which tags cost the most money
-  - [x] display total stats
-    - [x] total cost of inspected items
-    - [x] total items
-  - [x] thumbnails
-  - [ ] if an item is marked as a copy, display the copy user viewing entry
-  - [ ] if an item has children, display the children within the item (if the item is in the inspection area)
+example media types:
+Movie
+Show
+Manga
+Book
+Game
+BoardGame
+Song
 
-- [ ] terminal ui
-  - simply a list of all items
-  - [ ] allow user to filter by status
-  - [ ] start/stop, etc
+### Running
+
+
+> [!IMPORTANT]
+Be sure to export the ACCOUNT_NUMBER env var
+This is used as the login password
+(plans to disable this by default)
+
+
+> [!TIP]
+To use the omdb provider, get an omdb key and export the OMDB_KEY variable
+
+
+> [!NOTE]
+Only tested on linux
+
+```bash
+git clone https://github.com/euro20179/aio-limas
+
+cd aio-limas
+
+go run .
+```
+
+A server and web ui will then be running on `localhost:8080`
+
+
+### TODO
+
+- [ ] documentation
+    - [ ] ui
