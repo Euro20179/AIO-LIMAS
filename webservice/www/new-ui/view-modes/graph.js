@@ -350,21 +350,6 @@ const byc = ChartManager(async (entries) => {
 })
 
 /**
- * @param {bigint} id
- * @param {Record<string, any>} entryTable
- * @returns {any}
- */
-function findEntryById(id, entryTable) {
-    for (let item in entryTable) {
-        let entry = entryTable[item]
-        if (entry.ItemId === id) {
-            return entry
-        }
-    }
-    return null
-}
-
-/**
 * @param {InfoEntry[]} entries
 */
 function makeGraphs(entries) {

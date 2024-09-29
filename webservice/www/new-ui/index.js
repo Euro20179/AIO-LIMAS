@@ -259,36 +259,17 @@ async function loadInfoEntries() {
 
 /**
  * @param {bigint} id
- * @param {Array<any>} entryTable
- * @returns {any}
- */
-function findEntryById(id, entryTable) {
-    for (let item of entryTable) {
-        if (item.ItemId === id) {
-            return item
-        }
-    }
-    return null
-}
-
-/**
- * @param {bigint} id
  * @returns {MetadataEntry?}
  */
 function findMetadataById(id) {
     return globalsNewUi.metadataEntries[String(id)]
 }
 
-/**@type {Record<string, UserEntry>}*/
-let userEntryCache = {}
 /**
  * @param {bigint} id
  * @returns {UserEntry?}
  */
 function findUserEntryById(id) {
-    if (userEntryCache[`${id}`]) {
-        return userEntryCache[`${id}`]
-    }
     return globalsNewUi.userEntries[String(id)]
 }
 
@@ -312,17 +293,11 @@ function findUserEventsById(id) {
  * @returns {InfoEntry?}
  */
 function findInfoEntryById(id) {
-    for (let item of Object.values(globalsNewUi.entries)) {
-        if (item.ItemId === id) {
-            return item
-        }
-    }
-    return null
+    return globalsNewUi.entries[String(id)]
 }
 
 /**@returns {Promise<Record<string, UserEntry>>}*/
 async function loadUserEntries() {
-    userEntryCache = {}
     let items = await loadList("engagement/list-entries")
     /**@type {Record<string, UserEntry>}*/
     let obj = {}
@@ -744,7 +719,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
             fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
                 .then(refreshInfo)
                 .then(() => {
-                    let newItem = findEntryById(item.ItemId, globalsNewUi.entries)
+                    let newItem = globalsNewUi.entries[String(item.ItemId)]
                     refreshDisplayItem(newItem)
                     refreshSidebarItem(newItem)
                 })
