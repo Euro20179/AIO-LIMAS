@@ -61,5 +61,6 @@ A server and web ui will then be running on `localhost:8080`
 
 ### TODO
 
+- [ ] disable ACCOUNT_NUMBER by default
 - [ ] documentation
     - [ ] ui
