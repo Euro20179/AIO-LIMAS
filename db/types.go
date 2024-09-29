@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"slices"
+	"strings"
 )
 
 type EntryRepresentor interface {
@@ -141,6 +143,36 @@ func IsValidType(ty string) bool {
 	return slices.Contains(ListMediaTypes(), MediaTypes(ty))
 }
 
+func StructNamesToDict(entity any) map[string]any{
+	items := make(map[string]any)
+
+	val := reflect.ValueOf(entity)
+
+	t := val.Type()
+
+	for i := range val.NumField() {
+		name := t.Field(i).Name
+
+		value := val.FieldByName(name).Interface()
+
+		words := strings.Split(name, "_")
+		for i, word := range words {
+			lowerLetter := strings.ToLower(string(word[0]))
+			words[i] = lowerLetter + word[1:]
+		}
+		name = strings.Join(words, "_")
+
+		items[name] = value
+	}
+
+	return items
+}
+
+type TableRepresentation interface {
+	Id() int64
+}
+
+//names here MUST match names in the metadta sqlite table
 type MetadataEntry struct {
 	ItemId int64
 	Rating float64
@@ -156,6 +188,10 @@ type MetadataEntry struct {
 	Native_Title   string // same with this
 	Provider       string // the provider that generated the metadata
 	ProviderID     string // the id that the provider used
+}
+
+func (self MetadataEntry) Id() int64 {
+	return self.ItemId
 }
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
@@ -187,10 +223,14 @@ type InfoEntry struct {
 	Location      string
 	PurchasePrice float64
 	Collection    string
-	Parent        int64
+	ParentId        int64
 	Type          MediaTypes
 	IsAnime       bool
 	CopyOf        int64
+}
+
+func (self InfoEntry) Id() int64 {
+	return self.ItemId
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
@@ -203,7 +243,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.PurchasePrice,
 		&self.Collection,
 		&self.Type,
-		&self.Parent,
+		&self.ParentId,
 		&self.IsAnime,
 		&self.CopyOf,
 	)
@@ -241,6 +281,10 @@ type UserViewingEntry struct {
 	UserRating      float64
 	Notes           string
 	CurrentPosition string
+}
+
+func (self UserViewingEntry) Id() int64 {
+	return self.ItemId
 }
 
 func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {

@@ -236,7 +236,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		entryInfo.Location,
 		entryInfo.PurchasePrice,
 		entryInfo.Collection,
-		entryInfo.Parent,
+		entryInfo.ParentId,
 		entryInfo.Type,
 		entryInfo.IsAnime,
 		entryInfo.CopyOf)
@@ -340,7 +340,7 @@ func ScanFolderWithParent(path string, collection string, parent int64) []error 
 
 		fullPath := filepath.Join(path, entry.Name())
 		info.En_Title = name
-		info.Parent = parent
+		info.ParentId = parent
 		info.Format = F_DIGITAL
 		info.Location = fullPath
 		info.Collection = collection
@@ -384,19 +384,7 @@ func RegisterBasicUserEvent(event string, itemId int64) error {
 }
 
 func UpdateUserViewingEntry(entry *UserViewingEntry) error {
-	Db.Exec(`
-		UPDATE userViewingInfo
-		SET
-			status = ?,
-			viewCount = ?,
-			userRating = ?,
-			notes = ?,
-			currentPosition = ?
-		WHERE
-			itemId = ?
-	`, entry.Status, entry.ViewCount, entry.UserRating, entry.Notes, entry.CurrentPosition, entry.ItemId)
-
-	return nil
+	return updateTable(*entry, "userViewingInfo")
 }
 
 func CopyUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
@@ -426,27 +414,29 @@ func ClearUserEventEntries(id int64) error {
 	return nil
 }
 
-func UpdateMetadataEntry(entry *MetadataEntry) error {
-	_, err := Db.Exec(`
-		UPDATE metadata
-		SET
-			rating = ?,
-			description = ?,
-			releaseYear = ?,
-			thumbnail = ?,
-			mediaDependant = ?,
-			dataPoints = ?,
-			title = ?,
-			native_title = ?,
-			ratingMax = ?,
-			provider = ?,
-			providerID = ?
-		WHERE
-			itemId = ?
-	`, entry.Rating, entry.Description,
-		entry.ReleaseYear, entry.Thumbnail, entry.MediaDependant,
-		entry.Datapoints, entry.Title, entry.Native_Title, entry.RatingMax,
-		entry.Provider, entry.ProviderID, entry.ItemId)
+func updateTable(tblRepr TableRepresentation, tblName string) error{
+	updateStr := `UPDATE ` + tblName + ` SET `
+
+	data := StructNamesToDict(tblRepr)
+
+	var updateArgs []any
+
+	for k, v := range data {
+		updateArgs = append(updateArgs, v)
+
+		updateStr += k + "= ?,"
+	}
+
+	//needs itemid for checking which item to update
+	updateArgs = append(updateArgs, tblRepr.Id())
+
+	//remove final trailing comma
+	updateStr = updateStr[:len(updateStr)-1]
+	updateStr += "\nWHERE itemId = ?"
+
+	println(updateStr)
+
+	_, err := Db.Exec(updateStr, updateArgs...)
 	if err != nil {
 		return err
 	}
@@ -454,36 +444,12 @@ func UpdateMetadataEntry(entry *MetadataEntry) error {
 	return nil
 }
 
+func UpdateMetadataEntry(entry *MetadataEntry) error {
+	return updateTable(*entry, "metadata")
+}
+
 func UpdateInfoEntry(entry *InfoEntry) error {
-	/*
-		itemId INTEGER,
-		en_title TEXT,
-		native_title TEXT,
-		format INTEGER,
-		location TEXT,
-		purchasePrice NUMERIC,
-		collection TEXT,
-		parentId INTEGER
-	*/
-	_, err := Db.Exec(`
-		UPDATE entryInfo
-		SET
-			en_title = ?,
-			native_title = ?,
-			format = ?,
-			location = ?,
-			purchasePrice = ?,
-			collection = ?,
-			parentId = ?,
-			type = ?,
-			isAnime = ?,
-			copyOf = ?
-		WHERE
-			itemId = ?
-	`, entry.En_Title, entry.Native_Title, entry.Format,
-		entry.Location, entry.PurchasePrice, entry.Collection,
-		entry.Parent, entry.Type, entry.IsAnime, entry.CopyOf, entry.ItemId)
-	return err
+	return updateTable(*entry, "entryInfo")
 }
 
 type EntryInfoSearch struct {

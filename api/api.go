@@ -136,11 +136,11 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	parent, exists := parsedParams["parent-id"].(db.InfoEntry)
 	if exists {
-		info.Parent = parent.ItemId
+		info.ParentId = parent.ItemId
 	}
 
 	if orphan, exists := parsedParams["become-orphan"].(bool); exists && orphan {
-		info.Parent = 0
+		info.ParentId = 0
 	}
 
 	if original, exists := parsedParams["become-original"].(bool); exists && original {
@@ -229,7 +229,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 	entryInfo.Collection = tags
 	entryInfo.Location = location
 	entryInfo.Format = db.Format(formatInt)
-	entryInfo.Parent = parentId
+	entryInfo.ParentId = parentId
 	entryInfo.IsAnime = isAnime
 	entryInfo.CopyOf = copyOfId
 	entryInfo.Type = parsedParams["type"].(db.MediaTypes)
