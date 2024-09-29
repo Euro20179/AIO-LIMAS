@@ -189,8 +189,7 @@ func (self MetadataEntry) Id() int64 {
 }
 
 func (self MetadataEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
-	err := self.ReadEntry(rows)
-	return self, err
+	return self, self.ReadEntry(rows)
 }
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
@@ -233,8 +232,7 @@ func (self InfoEntry) Id() int64 {
 }
 
 func (self InfoEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
-	err := self.ReadEntry(rows)
-	return self, err
+	return self, self.ReadEntry(rows)
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
@@ -270,8 +268,7 @@ func (self UserViewingEvent) Id() int64 {
 }
 
 func (self UserViewingEvent) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
-	err := self.ReadEntry(rows)
-	return self, err
+	return self, self.ReadEntry(rows)
 }
 
 func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
@@ -301,8 +298,7 @@ func (self UserViewingEntry) Id() int64 {
 }
 
 func (self UserViewingEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
-	err := self.ReadEntry(rows)
-	return self, err
+	return self, self.ReadEntry(rows)
 }
 
 func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
