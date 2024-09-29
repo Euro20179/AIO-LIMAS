@@ -420,6 +420,7 @@ function saveItemChanges(root, item) {
 
     queryParams = ""
     let title = /**@type {HTMLElement}*/(root.querySelector(".title")).innerText
+    title = title.replaceAll("<br>", "")
     queryParams += `&en-title=${encodeURIComponent(title)}`
     fetch(`${apiPath}/mod-entry?id=${item.ItemId}${queryParams}`)
         .then(res => res.text())
