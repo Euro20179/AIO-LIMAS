@@ -137,74 +137,49 @@ func InitDb(dbPath string) {
 	Db = conn
 }
 
-func GetInfoEntryById(id int64) (InfoEntry, error) {
-	var res InfoEntry
-	query := "SELECT * FROM entryInfo WHERE itemId == ?;"
+func getById[T TableRepresentation](id int64, tblName string, out *T) error{
+	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
+
 	rows, err := Db.Query(query, id)
 	if err != nil {
-		return res, err
+		return err
 	}
+
 	defer rows.Close()
 
 	hasEntry := rows.Next()
 	if !hasEntry {
-		return res, fmt.Errorf("Could not find id %d", id)
+		return fmt.Errorf("Could not find id %d", id)
 	}
-	err = res.ReadEntry(rows)
-	if err != nil {
-		return res, err
+
+	newEntry, err := (*out).ReadEntryCopy(rows)
+	if err != nil{
+		return err
 	}
-	return res, nil
+
+	*out = newEntry.(T)
+
+	return nil
+}
+
+func GetInfoEntryById(id int64) (InfoEntry, error) {
+	var res InfoEntry
+	return res, getById(id, "entryInfo", &res)
 }
 
 func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
 	var res UserViewingEntry
-	query := "SELECT * FROM userViewingInfo WHERE itemId == ?;"
-	rows, err := Db.Query(query, id)
-	if err != nil {
-		return res, err
-	}
-	defer rows.Close()
-
-	rows.Next()
-	err = res.ReadEntry(rows)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	return res, getById(id, "userViewingInfo", &res)
 }
 
 func GetUserEventEntryById(id int64) (UserViewingEvent, error) {
 	var res UserViewingEvent
-	rows, err := Db.Query("SELECT * FROM userEventInfo WHERE itemId == ?", id)
-	if err != nil {
-		return res, err
-	}
-	defer rows.Close()
-
-	rows.Next()
-	err = res.ReadEntry(rows)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	return res, getById(id, "userEventInfo", &res)
 }
 
 func GetMetadataEntryById(id int64) (MetadataEntry, error) {
 	var res MetadataEntry
-	query := "SELECT * FROM metadata WHERE itemId == ?;"
-	rows, err := Db.Query(query, id)
-	if err != nil {
-		return res, err
-	}
-	defer rows.Close()
-
-	rows.Next()
-	err = res.ReadEntry(rows)
-	if err != nil {
-		return res, err
-	}
-	return res, nil
+	return res, getById(id, "metadata", &res)
 }
 
 // **WILL ASSIGN THE ENTRYINFO.ID**

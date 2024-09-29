@@ -9,11 +9,6 @@ import (
 	"strings"
 )
 
-type EntryRepresentor interface {
-	ToJson() ([]byte, error)
-	ReadEntry(rows *sql.Rows) error
-}
-
 type Status string
 
 const (
@@ -168,6 +163,7 @@ func StructNamesToDict(entity any) map[string]any{
 
 type TableRepresentation interface {
 	Id() int64
+	ReadEntryCopy(*sql.Rows) (TableRepresentation, error)
 }
 
 //names here MUST match names in the metadta sqlite table
@@ -190,6 +186,11 @@ type MetadataEntry struct {
 
 func (self MetadataEntry) Id() int64 {
 	return self.ItemId
+}
+
+func (self MetadataEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
+	err := self.ReadEntry(rows)
+	return self, err
 }
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
@@ -231,6 +232,11 @@ func (self InfoEntry) Id() int64 {
 	return self.ItemId
 }
 
+func (self InfoEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
+	err := self.ReadEntry(rows)
+	return self, err
+}
+
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 	return rows.Scan(
 		&self.ItemId,
@@ -259,6 +265,15 @@ type UserViewingEvent struct {
 	// this is to ensure that order can be determined
 }
 
+func (self UserViewingEvent) Id() int64 {
+	return self.ItemId
+}
+
+func (self UserViewingEvent) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
+	err := self.ReadEntry(rows)
+	return self, err
+}
+
 func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 	return rows.Scan(
 		&self.ItemId,
@@ -283,6 +298,11 @@ type UserViewingEntry struct {
 
 func (self UserViewingEntry) Id() int64 {
 	return self.ItemId
+}
+
+func (self UserViewingEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
+	err := self.ReadEntry(rows)
+	return self, err
 }
 
 func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
