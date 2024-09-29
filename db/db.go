@@ -216,8 +216,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	userViewingEntry.ItemId = id
 
 	entries := map[string]TableRepresentation{
-		"entryInfo": *entryInfo,
-		"metadata": *metadataEntry,
+		"entryInfo":       *entryInfo,
+		"metadata":        *metadataEntry,
 		"userViewingInfo": *userViewingEntry,
 	}
 
@@ -232,7 +232,7 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 			entryArgs = append(entryArgs, v)
 			questionMarks += "?,"
 		}
-		//cut off trailing comma
+		// cut off trailing comma
 		entryQ = entryQ[:len(entryQ)-1] + ")"
 
 		entryQ += "VALUES(" + questionMarks[:len(questionMarks)-1] + ")"
@@ -243,13 +243,12 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 	}
 
 	if userViewingEntry.Status != Status("") {
-		userEventQuery := `INSERT INTO userEventInfo (
-		itemId,
-		timestamp,
-		event,
-		after
-		) VALUES (?, ?, ?, 0)`
-		_, err := Db.Exec(userEventQuery, userViewingEntry.ItemId, uint(time.Now().UnixMilli()), userViewingEntry.Status)
+		err := RegisterUserEvent(UserViewingEvent{
+			ItemId:    userViewingEntry.ItemId,
+			Timestamp: uint64(time.Now().UnixMilli()),
+			Event:     string(userViewingEntry.Status),
+			After:     0,
+		})
 		if err != nil {
 			return err
 		}
@@ -360,7 +359,7 @@ func ClearUserEventEntries(id int64) error {
 	return nil
 }
 
-func updateTable(tblRepr TableRepresentation, tblName string) error{
+func updateTable(tblRepr TableRepresentation, tblName string) error {
 	updateStr := `UPDATE ` + tblName + ` SET `
 
 	data := StructNamesToDict(tblRepr)
@@ -373,10 +372,10 @@ func updateTable(tblRepr TableRepresentation, tblName string) error{
 		updateStr += k + "= ?,"
 	}
 
-	//needs itemid for checking which item to update
+	// needs itemid for checking which item to update
 	updateArgs = append(updateArgs, tblRepr.Id())
 
-	//remove final trailing comma
+	// remove final trailing comma
 	updateStr = updateStr[:len(updateStr)-1]
 	updateStr += "\nWHERE itemId = ?"
 
