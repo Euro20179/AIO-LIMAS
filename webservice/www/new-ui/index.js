@@ -185,7 +185,7 @@ async function newEntry() {
     clearSidebar()
 
     let json = parseJsonL(mkStrItemId(text))
-    mode.add(json)
+    selectItem(json, mode, true)
     renderSidebarItem(json)
 }
 
