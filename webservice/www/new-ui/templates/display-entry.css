@@ -172,7 +172,8 @@ div:has(> .close) {
 }
 
 .title::after {
-    content: " (ON " attr(data-format-name)")";
+    text-transform: lowercase;
+    content: " (on " attr(data-format-name)")";
 }
 
 .title::before {

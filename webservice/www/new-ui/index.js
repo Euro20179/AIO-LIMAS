@@ -640,7 +640,7 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
             let el
             if (meta?.Thumbnail) {
                 el = document.createElement("img")
-                el.title = child.En_Title
+                el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${formatToName(child.Format)})`
                 el.src = meta.Thumbnail
             } else {
                 el = document.createElement("button")
@@ -924,6 +924,7 @@ function applyClientsideSearchFiltering(entries, filters) {
     if (filters.end < 0) {
         filters.end += entries.length + 1
     }
+
     return entries.slice(filters.start, filters.end)
 }
 

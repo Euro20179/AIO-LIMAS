@@ -80,7 +80,7 @@ function mkStrItemId(jsonl) {
     return jsonl
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
         .replace(/"ParentId":\s*(\d+),/, "\"ParentId\": \"$1\",")
-        .replace(/"CopyOf":\s*(\d+),/, "\"CopyOf\": \"$1\"")
+        .replace(/"CopyOf":\s*(\d+)(,)?/, "\"CopyOf\": \"$1\"$2")
 }
 
 /**@param {string} jsonl*/
