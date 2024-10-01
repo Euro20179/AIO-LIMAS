@@ -321,7 +321,7 @@ func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	types := parsedParams.Get("types", "").(string)
 	parents := parsedParams.Get("parent-ids", "").(string)
 	copyIds := parsedParams.Get("copy-ids", "").(string)
-	status := parsedParams.Get("user-status", []db.Status{db.Status("")}).([]db.Status)
+	status := parsedParams.Get("user-status", []db.Status{}).([]db.Status)
 	userRatingGt := parsedParams.Get("user-rating-gt", 0.0).(float64)
 	userRatingLt := parsedParams.Get("user-rating-lt", 0.0).(float64)
 	isAnime := parsedParams.Get("is-anime", int64(0)).(int64)

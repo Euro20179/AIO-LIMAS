@@ -490,7 +490,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime-1))
 	}
 
-	if len(mainSearchInfo.UserStatus) != 0 {
+	if len(mainSearchInfo.UserStatus) != 0{
 		items := []interface{}{
 			mainSearchInfo.UserStatus,
 		}

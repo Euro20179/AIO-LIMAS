@@ -201,6 +201,41 @@ function typeToSymbol(type) {
 }
 
 /**
+ * @param {string} name
+ * @returns {number}
+ */
+function nameToFormat(name) {
+    const DIGI_MOD = 0x1000
+    let val = 0
+    name = name.toLowerCase()
+    if (name.includes("+digital")) {
+        name = name.replace("+digital", "")
+        val |= DIGI_MOD
+    }
+    const formats = {
+        "vhs": 0,
+        "cd": 1,
+        "dvd": 2,
+        "bluray": 3,
+        "4k BLURAY": 4,
+        "manga": 5,
+        "book": 6,
+        "digital": 7,
+        "boardgame": 8,
+        "steam": 9,
+        "nin SWITCH": 10,
+        "xbox ONE": 11,
+        "xbox 360": 12,
+        "other": 13,
+        "vinyl": 14,
+        "image": 15
+    }
+    val |= formats[/**@type {keyof typeof formats}*/(name)]
+    return val
+
+}
+
+/**
     * @param {number} format
     */
 function formatToName(format) {
@@ -291,7 +326,6 @@ async function doQuery(form) {
     //allow the user to type #tag #!tag and #?tag in the search bar
     /**@type {DBQuery}*/
     let queryData = {
-        status: status.join(","),
         type: type.join(","),
         format: formatN,
         tags: tags.join(","),
@@ -300,9 +334,12 @@ async function doQuery(form) {
         userRatingGt: Number(rgt),
         userRatingLt: Number(rlt),
     }
+    if(status.length >= 1) {
+        queryData["status"] = status.join(",")
+    }
 
     /**
-     * @type {Record<string, string | ((value: string) => Record<string, string>)>}
+     * @type {Record<string, string | ((value: string) => Record<string, any>)>}
      */
     let shortcuts = {
         "r>": "userRatingGt",
@@ -312,6 +349,13 @@ async function doQuery(form) {
         "y>=": "releasedGe",
         "y<=": "releasedLe",
         "y=": (value) => { return { "releasedGe": value, "releasedLe": value } },
+        "format:": value => {
+            let formats = []
+            for(let name of value.split(",")) {
+                formats.push(nameToFormat(name))
+            }
+            return { "format": formats }
+        }
     }
 
     for (let word of search.split(" ")) {
@@ -339,6 +383,7 @@ async function doQuery(form) {
         //@ts-ignore
         queryData[property] = value
     }
+    console.log(queryData)
 
     queryData.title = search
 
