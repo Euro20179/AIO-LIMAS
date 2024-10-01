@@ -126,7 +126,7 @@ const (
 	TY_BOOK        MediaTypes = "Book"
 	TY_MANGA       MediaTypes = "Manga"
 	TY_COLLECTION  MediaTypes = "Collection"
-	TY_IMAGE       MediaTypes = "Image"
+	TY_PICTURE     MediaTypes = "Picture"
 	TY_MEME        MediaTypes = "Meme"
 )
 
