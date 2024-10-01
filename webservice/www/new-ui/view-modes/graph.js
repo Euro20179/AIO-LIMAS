@@ -223,6 +223,23 @@ async function organizeData(entries) {
     /**@type {Record<string, (i: InfoEntry) => any>}*/
     const groupings = {
         "Year": i => globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear,
+        "Decade": i => {
+            const year = String(globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear)
+            if(year == "0") {
+                return "0"
+            }
+            let century = year.slice(0, 2)
+            let decade = year.slice(2)[0]
+            return `${century}${decade}0s`
+        },
+        "Century": i => {
+            const year = String(globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear)
+            if(year == "0") {
+                return "0"
+            }
+            let century = year.slice(0, 2)
+            return `${century}00s`
+        },
         "Type": i => i.Type,
         "Format": i => formatToName(i.Format),
         "Status": i => globalsNewUi.userEntries[String(i.ItemId)].Status,
@@ -263,6 +280,7 @@ async function organizeData(entries) {
             }
         }
     }
+
     return /**@type {Record<string, InfoEntry[]>}*/(data)
 }
 
