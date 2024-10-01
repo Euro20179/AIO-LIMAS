@@ -407,6 +407,40 @@ const ratingByYear = ChartManager(async (entries) => {
     return mkXTypeChart(rbyCtx, years, ratings, 'ratings')
 })
 
+const generalRating = ChartManager(async(entries) => {
+    let [years, data] = await organizeData(entries)
+    const ratings = data.map(v => {
+        return v.map(i => {
+            let meta = findMetadataById(i.ItemId)
+            let rating = meta?.Rating
+            let max = meta?.RatingMax
+            if(rating && max) {
+                return (rating / max) * 100
+            }
+            return 0
+        }).reduce((p, c, i) => (p * i + c) / (i + 1), 0)
+    })
+    return mkXTypeChart(getCtx2("general-rating-by-year"), years, ratings, "general ratings")
+})
+
+const ratingDisparityGraph = ChartManager(async(entries) => {
+    let [years, data] = await organizeData(entries)
+    const disparity = data.map(v => {
+        return v.map(i => {
+            let meta = findMetadataById(i.ItemId)
+            let user = findUserEntryById(i.ItemId)
+            let rating = meta?.Rating
+            let max = meta?.RatingMax
+            if(rating && max) {
+                let general =  (rating / max) * 100
+                return (user?.UserRating || 0) - general
+            }
+            return user?.UserRating || 0
+        }).reduce((p, c) => p + c, 0)
+    })
+    return mkXTypeChart(getCtx2("rating-disparity-graph"), years, disparity, "Rating disparity")
+})
+
 const byc = ChartManager(async (entries) => {
     let [years, data] = await organizeData(entries)
     const counts = data.map(v => v.length)
@@ -423,6 +457,8 @@ function makeGraphs(entries) {
     adjRatingByYear(entries)
     costByFormat(entries)
     watchTimeByYear(entries)
+    generalRating(entries)
+    ratingDisparityGraph(entries)
 }
 
 groupBySelect.onchange = typeSelection.onchange = function() {
