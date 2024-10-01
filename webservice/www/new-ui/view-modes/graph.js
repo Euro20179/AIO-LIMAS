@@ -215,7 +215,7 @@ function fillGap(obj, label) {
 
 /**
  * @param {InfoEntry[]} entries
- * @returns {Promise<Record<string, InfoEntry[]>>}
+ * @returns {Promise<[string[], InfoEntry[][]]>}
  */
 async function organizeData(entries) {
     let groupBy = groupBySelect.value
@@ -225,7 +225,7 @@ async function organizeData(entries) {
         "Year": i => globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear,
         "Decade": i => {
             const year = String(globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear)
-            if(year == "0") {
+            if (year == "0") {
                 return "0"
             }
             let century = year.slice(0, 2)
@@ -234,7 +234,7 @@ async function organizeData(entries) {
         },
         "Century": i => {
             const year = String(globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear)
-            if(year == "0") {
+            if (year == "0") {
                 return "0"
             }
             let century = year.slice(0, 2)
@@ -266,30 +266,81 @@ async function organizeData(entries) {
         data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)])))
     }
 
-    //this is the cutoff year because this is when jaws came out and changed how movies were produced
-    const cutoffYear = 1975
 
-    if (groupBy === "Year") {
-        let highestYear = +Object.keys(data).sort((a, b) => +b - +a)[0]
-        for (let year in data) {
-            let yearInt = +year
-            if (highestYear === yearInt) break
-            if (yearInt < cutoffYear) continue
-            if (!((yearInt + 1) in data)) {
-                fillGap(data, String(yearInt + 1))
+    let sortBy = /**@type {HTMLInputElement}*/(document.getElementsByName("sort-by")[0])
+
+    //filling in years messes up the sorting, idk why
+    if (sortBy.value == "") {
+        //this is the cutoff year because this is when jaws came out and changed how movies were produced
+        const cutoffYear = 1975
+        if (groupBy === "Year") {
+            let highestYear = +Object.keys(data).sort((a, b) => +b - +a)[0]
+            for (let year in data) {
+                let yearInt = +year
+                if (highestYear === yearInt) break
+                if (yearInt < cutoffYear) continue
+                if (!((yearInt + 1) in data)) {
+                    fillGap(data, String(yearInt + 1))
+                }
             }
         }
     }
 
-    return /**@type {Record<string, InfoEntry[]>}*/(data)
+    let x = Object.keys(data)
+    let y = Object.values(data)
+    if (sortBy.value == "rating") {
+        let sorted = Object.entries(data).sort((a, b) => {
+            let aRating = a[1].reduce((p, c) => {
+                let user = findUserEntryById(c.ItemId)
+                return p + (user?.UserRating || 0)
+            }, 0)
+            let bRating = b[1].reduce((p, c) => {
+                let user = findUserEntryById(c.ItemId)
+                return p + (user?.UserRating || 0)
+            }, 0)
+
+            return bRating / b[1].length - aRating / a[1].length
+        })
+        x = sorted.map(v => v[0])
+        y = sorted.map(v => v[1])
+    } else if(sortBy.value === "cost") {
+        let sorted = Object.entries(data).sort((a, b) => {
+            let aCost = a[1].reduce((p, c) => {
+                return p + (c?.PurchasePrice || 0)
+            }, 0)
+            let bCost = b[1].reduce((p, c) => {
+                return p + (c?.PurchasePrice || 0)
+            }, 0)
+
+            return bCost - aCost
+        })
+        x = sorted.map(v => v[0])
+        y = sorted.map(v => v[1])
+    }
+    return [x, y]
+}
+
+/**
+ * @param {string[]} x
+ * @param {any[]} y
+ */
+function sortXY(x, y) {
+    /**@type {Record<string, any>}*/
+    let associated = {}
+    for (let i = 0; i < x.length; i++) {
+        associated[x[i]] = y[i]
+    }
+
+    let associatedList = Object.entries(associated).sort(([_, a], [__, b]) => b - a)
+    x = associatedList.map(x => x[0])
+    y = associatedList.map(x => x[1])
+    return [x, y]
 }
 
 const watchTimeByYear = ChartManager(async (entries) => {
-    let data = await organizeData(entries)
+    let [years, data] = await organizeData(entries)
 
-    const years = Object.keys(data)
-
-    const watchTimes = Object.values(data)
+    let watchTimes = data
         .map(v => {
             return v.map(i => {
                 let watchCount = globalsNewUi.userEntries[String(i.ItemId)].ViewCount
@@ -297,17 +348,15 @@ const watchTimeByYear = ChartManager(async (entries) => {
                 let watchTime = getWatchTime(watchCount, thisMeta)
                 return watchTime / 60
             }).reduce((p, c) => p + c, 0)
-        })
+        });
 
     return mkXTypeChart(getCtx2("watch-time-by-year"), years, watchTimes, "Watch time")
 })
 
 const adjRatingByYear = ChartManager(async (entries) => {
-    let data = await organizeData(entries)
+    let [years, data] = await organizeData(entries)
 
-    const years = Object.keys(data)
-
-    let items = Object.values(data)
+    let items = data
     let totalItems = 0
     let totalRating = 0
     for (let item of items) {
@@ -316,7 +365,7 @@ const adjRatingByYear = ChartManager(async (entries) => {
     }
     let avgItems = totalItems / items.length
     let generalAvgRating = totalRating / totalItems
-    const ratings = Object.values(data)
+    const ratings = data
         .map(v => {
             let ratings = v.map(i => {
                 let thisUser = globalsNewUi.userEntries[String(i.ItemId)]
@@ -338,19 +387,15 @@ const adjRatingByYear = ChartManager(async (entries) => {
 
 const costByFormat = ChartManager(async (entries) => {
     entries = entries.filter(v => v.PurchasePrice > 0)
-    let data = await organizeData(entries)
-
-    let labels = Object.keys(data)
-    let totals = Object.values(data).map(v => v.reduce((p, c) => p + c.PurchasePrice, 0))
+    let [labels, data] = await organizeData(entries)
+    let totals = data.map(v => v.reduce((p, c) => p + c.PurchasePrice, 0))
 
     return mkXTypeChart(getCtx2("cost-by-format"), labels, totals, "Cost by")
 })
 
 const ratingByYear = ChartManager(async (entries) => {
-    let data = await organizeData(entries)
-
-    const years = Object.keys(data)
-    const ratings = Object.values(data)
+    let [years, data] = await organizeData(entries)
+    const ratings = data
         .map(v => v
             .map(i => {
                 let thisUser = globalsNewUi.userEntries[String(i.ItemId)]
@@ -363,10 +408,8 @@ const ratingByYear = ChartManager(async (entries) => {
 })
 
 const byc = ChartManager(async (entries) => {
-    let data = await organizeData(entries)
-
-    const years = Object.keys(data)
-    const counts = Object.values(data).map(v => v.length)
+    let [years, data] = await organizeData(entries)
+    const counts = data.map(v => v.length)
 
     return mkXTypeChart(ctx, years, counts, '#items')
 })
