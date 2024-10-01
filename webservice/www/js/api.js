@@ -217,15 +217,15 @@ function nameToFormat(name) {
         "cd": 1,
         "dvd": 2,
         "bluray": 3,
-        "4k BLURAY": 4,
+        "4kBLURAY": 4,
         "manga": 5,
         "book": 6,
         "digital": 7,
         "boardgame": 8,
         "steam": 9,
-        "nin SWITCH": 10,
-        "xbox ONE": 11,
-        "xbox 360": 12,
+        "ninSWITCH": 10,
+        "xboxONE": 11,
+        "xbox360": 12,
         "other": 13,
         "vinyl": 14,
         "image": 15
@@ -383,7 +383,6 @@ async function doQuery(form) {
         //@ts-ignore
         queryData[property] = value
     }
-    console.log(queryData)
 
     queryData.title = search
 

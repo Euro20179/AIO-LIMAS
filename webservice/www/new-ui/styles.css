@@ -31,6 +31,10 @@
         }
     }
 
+    #view-all {
+        vertical-align: bottom;
+    }
+
     :has(:where(#entry-output:target)) .view-toggle::before {
         content: "graph view";
     }
