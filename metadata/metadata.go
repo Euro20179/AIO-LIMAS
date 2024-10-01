@@ -1,8 +1,9 @@
 package metadata
 
 import (
-	"aiolimas/db"
 	"fmt"
+
+	"aiolimas/db"
 )
 
 type IdentifyMetadata struct {
@@ -17,10 +18,16 @@ func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override 
 	switch entry.Type {
 	case db.TY_MANGA:
 		return AnilistManga(entry, metadataEntry)
+
 	case db.TY_SHOW:
-		return OMDBProvider(entry, metadataEntry)
+		fallthrough
 	case db.TY_MOVIE:
 		return OMDBProvider(entry, metadataEntry)
+
+	case db.TY_PICTURE:
+		fallthrough
+	case db.TY_MEME:
+		return ImageProvider(entry, metadataEntry)
 	}
 	var out db.MetadataEntry
 	return out, nil
@@ -74,17 +81,22 @@ var Providers ProviderMap = ProviderMap{
 	"anilist-manga": AnilistManga,
 	"anilist-show":  AnilistShow,
 	"omdb":          OMDBProvider,
+	"image":         ImageProvider,
 }
 
-type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error) 
+type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error)
+
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
-	"omdb": OmdbIdentifier,
+	"omdb":    OmdbIdentifier,
 }
 
-type IdIdentifier func(id string) (db.MetadataEntry, error)
-type IdIdentifiersMap = map[string]IdIdentifier
-var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap {
+type (
+	IdIdentifier     func(id string) (db.MetadataEntry, error)
+	IdIdentifiersMap = map[string]IdIdentifier
+)
+
+var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"anilist": AnilistById,
-	"omdb": OmdbIdIdentifier,
+	"omdb":    OmdbIdIdentifier,
 }

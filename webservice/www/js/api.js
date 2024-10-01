@@ -27,7 +27,7 @@
  * @property {boolean} IsAnime
  * @property {string} Location
  * @property {string} Native_Title
- * @property {bigint} Parent
+ * @property {bigint} ParentId
  * @property {number} PurchasePrice
  * @property {string} Type
  * @property {string} En_Title
@@ -79,13 +79,13 @@
 function mkStrItemId(jsonl) {
     return jsonl
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
-        .replace(/"Parent":\s*(\d+),/, "\"Parent\": \"$1\",")
+        .replace(/"ParentId":\s*(\d+),/, "\"ParentId\": \"$1\",")
         .replace(/"CopyOf":\s*(\d+),/, "\"CopyOf\": \"$1\"")
 }
 
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
-    const bigIntProperties = ["ItemId", "Parent", "CopyOf"]
+    const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
     return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
 }
 
@@ -189,7 +189,9 @@ function typeToSymbol(type) {
         "Game": "🎮︎",
         "Song": "♫",
         "Collection": "🗄",
-        "BoardGame": "🎲︎"
+        "BoardGame": "🎲︎",
+        "Picture": "🖼",
+        "Meme": "🃏",
     }
     if (type in conversion) {
         //@ts-ignore
@@ -223,7 +225,8 @@ function formatToName(format) {
         "XBOX ONE",
         "XBOX 360",
         "OTHER",
-        "VINYL"
+        "VINYL",
+        "IMAGE"
     ]
     if (format >= formats.length) {
         return `unknown ${out}`

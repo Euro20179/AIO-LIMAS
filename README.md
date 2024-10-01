@@ -64,7 +64,7 @@ A server and web ui will then be running on `localhost:8080`
 - [ ] enable/disable children/copies
 - [ ] enable/disable the "collection" type's stats being the sum of it's children's stats
 - [ ] steam account linking
-- [ ] image media type
+- [x] image media type
     - [ ] when fetching metadata, use ai to generate a description of the image
 - [ ] search by description
 - [ ] disable ACCOUNT_NUMBER by default

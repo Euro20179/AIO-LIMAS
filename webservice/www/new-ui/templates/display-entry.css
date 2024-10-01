@@ -99,7 +99,8 @@ table {
         margin: 0 auto;
         height: fit-content;
 
-        td, th {
+        td,
+        th {
             border-color: hsl(from var(--text-color) h s calc(l * 0.5))
         }
     }
@@ -232,5 +233,9 @@ progress[max]::-webkit-progress-bar {
 
     button {
         padding: 0.5em;
+    }
+
+    img {
+        width: 10cqi;
     }
 }

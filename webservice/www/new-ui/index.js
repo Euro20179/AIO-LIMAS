@@ -38,7 +38,8 @@ let globalsNewUi = {
 function* findDescendants(itemId) {
     let entries = Object.values(globalsNewUi.entries)
     for (let i = 0; i < entries.length; i++) {
-        if (entries[i].Parent === itemId) {
+        if (!entries[i].ParentId) continue
+        if (entries[i].ParentId === itemId) {
             yield entries[i]
         }
     }
@@ -525,7 +526,7 @@ async function titleIdentification(provider, search, selectionElemOutput) {
 
     let items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
 
-    while(selectionElemOutput.children.length) {
+    while (selectionElemOutput.children.length) {
         selectionElemOutput.firstChild?.remove()
     }
 
@@ -631,10 +632,18 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
 
     let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
     for (let child of findDescendants(item.ItemId)) {
-        let button = document.createElement("button")
-        button.innerText = child.En_Title
-        childEl.append(button)
-        button.onclick = () => toggleItem(child)
+        let meta = findMetadataById(child.ItemId)
+        let el
+        if (meta?.Thumbnail) {
+            el = document.createElement("img")
+            el.title = child.En_Title
+            el.src = meta.Thumbnail
+        } else {
+            el = document.createElement("button")
+            el.innerText = child.En_Title
+        }
+        childEl.append(el)
+        el.onclick = () => toggleItem(child)
     }
 
     let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
