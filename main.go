@@ -47,20 +47,28 @@ func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http
 	return func(w http.ResponseWriter, req *http.Request) {
 		auth := req.Header.Get("Authorization")
 
-		if auth == "" {
+		accNumber := os.Getenv("ACCOUNT_NUMBER")
+
+		if auth == "" && accNumber != ""{
 			w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
 			w.WriteHeader(401)
 			return
 		}
 
-		authorized, err := ckAuthorizationHeader(auth)
+		authorized := true
+		if accNumber != "" {
+			var err error
+			authorized, err = ckAuthorizationHeader(auth)
+			if !authorized {
+				w.WriteHeader(401)
+				w.Write([]byte(err.Error()))
+			}
+		}
 		if authorized {
 			fn(w, req)
 			return
 		}
 
-		w.WriteHeader(401)
-		w.Write([]byte(err.Error()))
 	}
 }
 
