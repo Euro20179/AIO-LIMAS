@@ -93,6 +93,15 @@
         cursor: pointer;
     }
 
+    input[type="checkbox"] {
+        appearance: none;
+        border-style: solid;
+        &:checked {
+            border-color: var(--green);
+            background: var(--green);
+        }
+    }
+
     dialog {
         color: white;
 
