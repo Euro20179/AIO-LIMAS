@@ -100,7 +100,7 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 
 	metadataEntry.Thumbnail = pp.Get("thumbnail", metadataEntry.Thumbnail).(string)
 	metadataEntry.MediaDependant = pp.Get("media-dependant", metadataEntry.MediaDependant).(string)
-	metadataEntry.MediaDependant = pp.Get("datapoints", metadataEntry.Datapoints).(string)
+	metadataEntry.Datapoints = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
 	err := db.UpdateMetadataEntry(&metadataEntry)
 	if err != nil{
