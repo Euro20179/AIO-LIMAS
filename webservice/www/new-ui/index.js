@@ -630,29 +630,32 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
     let root = el.shadowRoot
     if (!root) return
 
-    let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
-    for (let child of findDescendants(item.ItemId)) {
-        let meta = findMetadataById(child.ItemId)
-        let el
-        if (meta?.Thumbnail) {
-            el = document.createElement("img")
-            el.title = child.En_Title
-            el.src = meta.Thumbnail
-        } else {
-            el = document.createElement("button")
-            el.innerText = child.En_Title
+    /**
+     * @param {HTMLElement} elementParent
+     * @param {Generator<InfoEntry>} relationGenerator
+     */
+    function createRelationButtons(elementParent, relationGenerator) {
+        for (let child of relationGenerator) {
+            let meta = findMetadataById(child.ItemId)
+            let el
+            if (meta?.Thumbnail) {
+                el = document.createElement("img")
+                el.title = child.En_Title
+                el.src = meta.Thumbnail
+            } else {
+                el = document.createElement("button")
+                el.innerText = child.En_Title
+            }
+            elementParent.append(el)
+            el.onclick = () => toggleItem(child)
         }
-        childEl.append(el)
-        el.onclick = () => toggleItem(child)
     }
 
+    let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
+    createRelationButtons(childEl, findDescendants(item.ItemId))
+
     let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
-    for (let child of findCopies(item.ItemId)) {
-        let button = document.createElement("button")
-        button.innerText = child.En_Title
-        copyEl.append(button)
-        button.onclick = () => toggleItem(child)
-    }
+    createRelationButtons(copyEl, findCopies(item.ItemId))
 
     if (doEventHooking) {
         hookActionButtons(root, item)
