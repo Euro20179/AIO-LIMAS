@@ -83,7 +83,7 @@ func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams Parse
 
 	for _, event := range events {
 		ej, err := event.ToJson()
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
@@ -96,20 +96,20 @@ func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 	defer req.Body.Close()
 
 	data, err := io.ReadAll(req.Body)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not ready body\n%s", err.Error())
 		return
 	}
 
 	var entry db.InfoEntry
 	err = json.Unmarshal(data, &entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 400, "Could not parse json into entry\n%s", err.Error())
 		return
 	}
 
 	err = db.UpdateInfoEntry(&entry)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not update info entry\n%s", err.Error())
 		return
 	}
@@ -266,7 +266,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 	}
 
 	j, err := entryInfo.ToJson()
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Could not convert new entry to json\n%s", err.Error())
 		return
 	}

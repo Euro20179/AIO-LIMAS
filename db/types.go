@@ -65,6 +65,7 @@ const (
 	F_XBOX360    Format = iota // 12
 	F_OTHER      Format = iota // 13
 	F_VINYL      Format = iota // 14
+	F_IMAGE      Format = iota // 15
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -86,6 +87,7 @@ func ListFormats() map[Format]string {
 		F_XBOX360:     "XBOX360",
 		F_OTHER:       "OTHER",
 		F_VINYL:       "VINYL",
+		F_IMAGE:       "IMAGE",
 		F_MOD_DIGITAL: "MOD_DIGITAL",
 	}
 }
@@ -109,7 +111,7 @@ func IsValidFormat(format int64) bool {
 	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}
-	return format >= int64(F_VHS) && format <= int64(F_VINYL)
+	return format >= int64(F_VHS) && format <= int64(F_IMAGE)
 }
 
 type MediaTypes string
@@ -124,6 +126,8 @@ const (
 	TY_BOOK        MediaTypes = "Book"
 	TY_MANGA       MediaTypes = "Manga"
 	TY_COLLECTION  MediaTypes = "Collection"
+	TY_IMAGE       MediaTypes = "Image"
+	TY_MEME        MediaTypes = "Meme"
 )
 
 func ListMediaTypes() []MediaTypes {
@@ -131,6 +135,7 @@ func ListMediaTypes() []MediaTypes {
 		TY_SHOW, TY_MOVIE, TY_GAME,
 		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
 		TY_COLLECTION, TY_MOVIE_SHORT,
+		TY_IMAGE, TY_MEME,
 	}
 }
 
@@ -138,7 +143,7 @@ func IsValidType(ty string) bool {
 	return slices.Contains(ListMediaTypes(), MediaTypes(ty))
 }
 
-func StructNamesToDict(entity any) map[string]any{
+func StructNamesToDict(entity any) map[string]any {
 	items := make(map[string]any)
 
 	val := reflect.ValueOf(entity)
@@ -166,7 +171,7 @@ type TableRepresentation interface {
 	ReadEntryCopy(*sql.Rows) (TableRepresentation, error)
 }
 
-//names here MUST match names in the metadta sqlite table
+// names here MUST match names in the metadta sqlite table
 type MetadataEntry struct {
 	ItemId int64
 	Rating float64
@@ -221,7 +226,7 @@ type InfoEntry struct {
 	Location      string
 	PurchasePrice float64
 	Collection    string
-	ParentId        int64
+	ParentId      int64
 	Type          MediaTypes
 	IsAnime       bool
 	CopyOf        int64
