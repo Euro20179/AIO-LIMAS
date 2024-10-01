@@ -863,6 +863,9 @@ function renderSidebar(entries) {
  * @property {number} end
  * @property {string} newSearch
  * @property {string} sortBy
+ * @property {boolean} children
+ * @property {boolean} copies
+ */
 
 /**
  * @param {FormData} searchForm
@@ -889,11 +892,16 @@ function parseClientsideSearchFiltering(searchForm) {
 
     let sortBy = /**@type {string}*/(searchForm.get("sort-by"))
 
+    let children = /**@type {string}*/(searchForm.get("children"))
+    let copies = /**@type {string}*/(searchForm.get("copies"))
+
     return {
         start,
         end,
         newSearch: search,
-        sortBy
+        sortBy,
+        children: children === "on",
+        copies: copies === "on"
     }
 }
 
@@ -902,6 +910,13 @@ function parseClientsideSearchFiltering(searchForm) {
  * @param {ClientSearchFilters} filters
  */
 function applyClientsideSearchFiltering(entries, filters) {
+    if(!filters.children) {
+        entries = entries.filter(v => v.ParentId === 0n)
+    }
+    if(!filters.copies) {
+        entries = entries.filter(v => v.CopyOf === 0n)
+    }
+
     if (filters.sortBy !== "") {
         entries = sortEntries(entries, filters.sortBy)
     }
@@ -1020,12 +1035,13 @@ async function remote2LocalThumbService() {
 
         if (!thumbnail) continue
         if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) continue
+        if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
 
         console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
         fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
 
-        updateThumbnail(metadata.ItemId, `${location.origin}${apiPath}/resource/thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
+        updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
 
         await new Promise(res => setTimeout(res, 200))
 
