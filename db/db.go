@@ -354,8 +354,6 @@ func updateTable(tblRepr TableRepresentation, tblName string) error {
 	updateStr = updateStr[:len(updateStr)-1]
 	updateStr += "\nWHERE itemId = ?"
 
-	println(updateStr)
-
 	_, err := Db.Exec(updateStr, updateArgs...)
 	if err != nil {
 		return err

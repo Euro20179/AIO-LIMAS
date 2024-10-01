@@ -233,11 +233,11 @@ async function organizeData(entries) {
 
     /**@type {Record<string, InfoEntry[]>}*/
     let data
-    if(groupBy === "Tags") {
+    if (groupBy === "Tags") {
         data = {}
-        for(let item of entries) {
-            for(let tag of item.Collection.split(",")) {
-                if(data[tag]) {
+        for (let item of entries) {
+            for (let tag of item.Collection.split(",")) {
+                if (data[tag]) {
                     data[tag].push(item)
                 } else {
                     data[tag] = [item]
@@ -291,10 +291,13 @@ const adjRatingByYear = ChartManager(async (entries) => {
 
     let items = Object.values(data)
     let totalItems = 0
+    let totalRating = 0
     for (let item of items) {
         totalItems += item.length
+        totalRating += item.reduce((p, c) => p + globalsNewUi.userEntries[String(c.ItemId)].UserRating, 0)
     }
     let avgItems = totalItems / items.length
+    let generalAvgRating = totalRating / totalItems
     const ratings = Object.values(data)
         .map(v => {
             let ratings = v.map(i => {
@@ -306,9 +309,10 @@ const adjRatingByYear = ChartManager(async (entries) => {
 
             let avgRating = totalRating / v.length
             let min = Math.min(...ratings)
-            return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min
-            // return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min - max
-            //avg + (ROOT(count/avgItems, (count/(<digit-count> * 10))))
+
+            return (avgRating - generalAvgRating) + (v.length - avgItems)
+
+            // return (avgRating + v.length / (Math.log10(avgItems) / avgItems)) + min
         })
 
     return mkXTypeChart(getCtx2("adj-rating-by-year"), years, ratings, 'adj ratings')
