@@ -49,7 +49,7 @@ func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http
 
 		accNumber := os.Getenv("ACCOUNT_NUMBER")
 
-		if auth == "" && accNumber != ""{
+		if auth == "" && accNumber != "" {
 			w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
 			w.WriteHeader(401)
 			return
@@ -68,7 +68,6 @@ func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http
 			fn(w, req)
 			return
 		}
-
 	}
 }
 
@@ -195,7 +194,15 @@ var ( // `/` endpoints {{{
 			"parents":        api.MkQueryInfo(api.P_True, false),
 			"is-anime":       api.MkQueryInfo(api.P_Int64, false),
 			"copy-ids":       api.MkQueryInfo(api.P_True, false),
-			"user-status":    api.MkQueryInfo(api.P_UserStatus, false),
+			"user-status":    api.MkQueryInfo(
+				api.P_TList(
+					",",
+					func(in string) db.Status {
+						return db.Status(in)
+					},
+				),
+				false,
+			),
 			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
 			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
 			"released-ge":    api.MkQueryInfo(api.P_Int64, false),

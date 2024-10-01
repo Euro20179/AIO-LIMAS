@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"aiolimas/db"
 	"aiolimas/metadata"
@@ -201,6 +202,17 @@ func P_UserStatus(in string) (any, error) {
 		return db.Status(in), nil
 	}
 	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
+}
+
+func P_TList[T any](sep string, toT func(in string) T) func(string) (any, error){
+	return func(in string) (any, error) {
+		var arr []T
+		items := strings.Split(in, sep)
+		for _, i := range items {
+			arr = append(arr, toT(i))
+		}
+		return arr, nil
+	}
 }
 
 func P_Uint64Array(in string) (any, error) {

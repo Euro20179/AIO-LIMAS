@@ -405,6 +405,6 @@ customElements.define("entries-statistic", class extends HTMLElement {
     */
     attributeChangedCallback(name, ov, nv) {
         if (name != "data-value") return
-        this.innerText = nv
+        this.innerText = String(Math.round(Number(nv) * 100) / 100)
     }
 })

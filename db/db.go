@@ -382,7 +382,7 @@ type EntryInfoSearch struct {
 	Type              []MediaTypes
 	IsAnime           int
 	CopyIds           []int64
-	UserStatus        Status
+	UserStatus        []Status
 	UserRatingGt      float64
 	UserRatingLt      float64
 	ReleasedGE        int64
@@ -490,8 +490,11 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime-1))
 	}
 
-	if mainSearchInfo.UserStatus != "" {
-		queries = append(queries, query.Equal("userViewingInfo.status", mainSearchInfo.UserStatus))
+	if len(mainSearchInfo.UserStatus) != 0 {
+		items := []interface{}{
+			mainSearchInfo.UserStatus,
+		}
+		queries = append(queries, query.In("userViewingInfo.status", sqlbuilder.Flatten(items)...))
 	}
 
 	query = query.Where(queries...)
