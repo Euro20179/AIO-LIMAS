@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	db "aiolimas/db"
 )
@@ -310,6 +311,22 @@ func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 		return
 	}
 	success(w)
+}
+
+func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+	id := parsedParams["id"].(db.InfoEntry)
+	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
+	after := parsedParams.Get("after", 0).(int64)
+
+	err := db.RegisterUserEvent(db.UserViewingEvent{
+		ItemId: id.ItemId,
+		Timestamp: uint64(ts),
+		After: uint64(after),
+	})
+	if err != nil{
+		wError(w, 500, "Could not register event\n%s", err.Error())
+		return
+	}
 }
 
 func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {

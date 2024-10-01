@@ -293,6 +293,15 @@ var ( // `/engagement` endpoints {{{
 		},
 	}
 
+	registerEvent = api.ApiEndPoint{
+		Handler: api.RegisterEvent,
+		QueryParams: api.QueryParams{
+			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"timestamp": api.MkQueryInfo(api.P_Int64, false),
+			"after":     api.MkQueryInfo(api.P_Int64, false),
+		},
+	}
+
 	listEvents = api.ApiEndPoint{
 		Handler:     api.ListEvents,
 		QueryParams: api.QueryParams{},
@@ -454,20 +463,21 @@ func main() {
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
 	makeEndpoints(apiRoot+"/engagement", EndPointMap{
-		"begin-media":  beginMedia.Listener,
-		"finish-media": finishEngagement.Listener,
-		"plan-media":   planMedia.Listener,
-		"drop-media":   dropMedia.Listener,
-		"pause-media":  pauseMedia.Listener,
-		"resume-media": reassociate.Listener,
-		"get-entry":    getUserEntry.Listener,
-		"list-entries": userEntries.Listener,
-		"copy":         reassociate.Listener,
-		"get-events":   getEvents.Listener,
-		"delete-event": deleteEvent.Listener,
-		"list-events":  listEvents.Listener,
-		"mod-entry":    modUserEntry.Listener,
-		"set-entry":    setUserEntry.Listener,
+		"begin-media":    beginMedia.Listener,
+		"finish-media":   finishEngagement.Listener,
+		"plan-media":     planMedia.Listener,
+		"drop-media":     dropMedia.Listener,
+		"pause-media":    pauseMedia.Listener,
+		"resume-media":   reassociate.Listener,
+		"get-entry":      getUserEntry.Listener,
+		"list-entries":   userEntries.Listener,
+		"copy":           reassociate.Listener,
+		"get-events":     getEvents.Listener,
+		"delete-event":   deleteEvent.Listener,
+		"register-event": registerEvent.Listener,
+		"list-events":    listEvents.Listener,
+		"mod-entry":      modUserEntry.Listener,
+		"set-entry":      setUserEntry.Listener,
 	})
 
 	// For resources, such as entry thumbnails
