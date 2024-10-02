@@ -17,7 +17,7 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 
 	oldId := userEntry.ItemId
 
-	err := db.CopyUserViewingEntry(&userEntry, libraryEntry.ItemId)
+	err := db.MoveUserViewingEntry(&userEntry, libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
@@ -35,7 +35,7 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 		return
 	}
 
-	err = db.CopyUserEventEntries(events, libraryEntry.ItemId)
+	err = db.MoveUserEventEntries(events, libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
@@ -317,11 +317,13 @@ func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams Parsed
 	id := parsedParams["id"].(db.InfoEntry)
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
+	name := parsedParams["name"].(string)
 
 	err := db.RegisterUserEvent(db.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),
+		Event: name,
 	})
 	if err != nil{
 		wError(w, 500, "Could not register event\n%s", err.Error())

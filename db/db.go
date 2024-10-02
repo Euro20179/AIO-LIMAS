@@ -307,12 +307,12 @@ func UpdateUserViewingEntry(entry *UserViewingEntry) error {
 	return updateTable(*entry, "userViewingInfo")
 }
 
-func CopyUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
+func MoveUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
 	oldEntry.ItemId = newId
 	return UpdateUserViewingEntry(oldEntry)
 }
 
-func CopyUserEventEntries(eventList []UserViewingEvent, newId int64) error {
+func MoveUserEventEntries(eventList []UserViewingEvent, newId int64) error {
 	for _, e := range eventList {
 		e.ItemId = newId
 		err := RegisterUserEvent(e)

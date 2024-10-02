@@ -463,7 +463,6 @@ func ScanFolder(w http.ResponseWriter, req *http.Request) {
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	entry := parsedParams["id"].(db.InfoEntry)
 
-	w.WriteHeader(200)
 	http.ServeFile(w, req, entry.Location)
 }
 
