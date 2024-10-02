@@ -631,22 +631,17 @@ func main() {
 
 	db.InitDb(*dbPathPtr)
 
-	apiRoot := "/api/v1"
+	const apiRoot = "/api/v1"
 
 	// for db management type stuff
 	makeEndpoints(apiRoot, mainEndpoints)
-
 	typeEndpoints := EndPointMap{
 		"format": api.ListFormats,
 		"type":   api.ListTypes,
 	}
 	makeEndpoints(apiRoot+"/type", typeEndpoints)
-
-	// for metadata stuff
 	makeEndpoints(apiRoot+"/metadata", metadataEndpoints)
-
 	makeEndpoints(apiRoot+"/engagement", engagementEndpoints)
-
 	// For resources, such as entry thumbnails
 	makeEndpoints(apiRoot+"/resource", resourceEndpoints)
 

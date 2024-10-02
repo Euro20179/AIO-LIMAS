@@ -432,15 +432,15 @@ function saveItemChanges(root, item) {
 
     let infoTable = root.querySelector("table.info-raw")
 
-    for(let row of infoTable?.querySelectorAll("tr") || []) {
+    for (let row of infoTable?.querySelectorAll("tr") || []) {
         let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
         let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
         let name = nameChild.innerText.trim()
         let value = valueChild.innerText.trim()
-        if(!(name in item))  {
+        if (!(name in item)) {
             console.log(`${name} NOT IN ITEM`)
             continue
-        } else if(name === "ItemId") {
+        } else if (name === "ItemId") {
             console.log("Skipping ItemId")
             continue
         }
@@ -636,20 +636,15 @@ async function itemIdentification(form) {
 
 /**
  * @param {InfoEntry} item
- * @param {HTMLElement?} [el=null] 
  * @param {HTMLElement | DocumentFragment} [parent=displayItems]
  */
-function renderDisplayItem(item, el = null, parent = displayItems) {
+function renderDisplayItem(item, parent = displayItems) {
     //TODO:
     //when the user clicks on the info table on the side
     //open a dialog box with the information pre filled in with the information already there
     //and allow the user to edit each item
     //when the user clicks submit, it'll send a mod-entry request
-    let doEventHooking = false
-    if (!el) {
-        el = document.createElement("display-entry")
-        doEventHooking = true
-    }
+    let el = document.createElement("display-entry")
 
 
     let meta = findMetadataById(item.ItemId)
@@ -692,91 +687,89 @@ function renderDisplayItem(item, el = null, parent = displayItems) {
     let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
     createRelationButtons(copyEl, findCopies(item.ItemId))
 
-    if (doEventHooking) {
-        hookActionButtons(root, item)
+    hookActionButtons(root, item)
 
-        let closeButton = root.querySelector(".close")
-        closeButton?.addEventListener("click", _ => {
-            deselectItem(item)
-        })
+    let closeButton = root.querySelector(".close")
+    closeButton?.addEventListener("click", _ => {
+        deselectItem(item)
+    })
 
-        let copyToBtn = root.querySelector(".copy-to")
-        copyToBtn?.addEventListener("click", _ => {
-            let id, idInt
-            do {
-                id = prompt("Copy user info to (item id)")
-                idInt = BigInt(String(id))
-            }
-            while (isNaN(Number(idInt)))
-            copyUserInfo(item.ItemId, idInt)
-                .then(res => res?.text())
-                .then(console.log)
-        })
-
-        let viewCount = root.querySelector(".view-count")
-        if (viewCount) {
-            viewCount.addEventListener("click", e => {
-                let count
-                do {
-                    count = prompt("New view count")
-                    if (count == null) {
-                        return
-                    }
-                } while (isNaN(Number(count)))
-                fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
-                    .then(res => res.text())
-                    .then(alert)
-                    .catch(console.error)
-            })
+    let copyToBtn = root.querySelector(".copy-to")
+    copyToBtn?.addEventListener("click", _ => {
+        let id, idInt
+        do {
+            id = prompt("Copy user info to (item id)")
+            idInt = BigInt(String(id))
         }
+        while (isNaN(Number(idInt)))
+        copyUserInfo(item.ItemId, idInt)
+            .then(res => res?.text())
+            .then(console.log)
+    })
 
-        let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
-        progress.addEventListener("click", async () => {
-            let newEp = prompt("Current position:")
-            if (!newEp) {
-                return
-            }
-            await setPos(item.ItemId, newEp)
-
-            el.setAttribute("data-user-current-position", newEp)
-            progress.value = Number(newEp)
-        })
-
-        let deleteBtn = root.querySelector(".delete")
-        deleteBtn?.addEventListener("click", _ => {
-            deleteEntry(item)
-        })
-
-        let refreshBtn = root.querySelector(".refresh")
-        refreshBtn?.addEventListener("click", _ => {
-            overwriteEntryMetadata(/**@type {ShadowRoot}*/(root), item)
-        })
-
-        let saveBtn = root.querySelector(".save")
-        saveBtn?.addEventListener("click", _ => {
-            saveItemChanges(/**@type {ShadowRoot}*/(root), item)
-        })
-
-        let ratingSpan = root.querySelector(".rating")
-        ratingSpan?.addEventListener("click", _ => {
-            let newRating = prompt("New rating")
-            if (isNaN(Number(newRating)) || newRating === null || newRating === "") {
-                return
-            }
-
-            fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
-                .then(refreshInfo)
-                .then(() => {
-                    let newItem = globalsNewUi.entries[String(item.ItemId)]
-                    refreshDisplayItem(newItem)
-                    refreshSidebarItem(newItem)
-                })
+    let viewCount = root.querySelector(".view-count")
+    if (viewCount) {
+        viewCount.addEventListener("click", e => {
+            let count
+            do {
+                count = prompt("New view count")
+                if (count == null) {
+                    return
+                }
+            } while (isNaN(Number(count)))
+            fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
+                .then(res => res.text())
+                .then(alert)
                 .catch(console.error)
         })
+    }
 
-        for (let el of root.querySelectorAll("[contenteditable]")) {
-            /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
+    let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
+    progress.addEventListener("click", async () => {
+        let newEp = prompt("Current position:")
+        if (!newEp) {
+            return
         }
+        await setPos(item.ItemId, newEp)
+
+        el.setAttribute("data-user-current-position", newEp)
+        progress.value = Number(newEp)
+    })
+
+    let deleteBtn = root.querySelector(".delete")
+    deleteBtn?.addEventListener("click", _ => {
+        deleteEntry(item)
+    })
+
+    let refreshBtn = root.querySelector(".refresh")
+    refreshBtn?.addEventListener("click", _ => {
+        overwriteEntryMetadata(/**@type {ShadowRoot}*/(root), item)
+    })
+
+    let saveBtn = root.querySelector(".save")
+    saveBtn?.addEventListener("click", _ => {
+        saveItemChanges(/**@type {ShadowRoot}*/(root), item)
+    })
+
+    let ratingSpan = root.querySelector(".rating")
+    ratingSpan?.addEventListener("click", _ => {
+        let newRating = prompt("New rating")
+        if (isNaN(Number(newRating)) || newRating === null || newRating === "") {
+            return
+        }
+
+        fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
+            .then(refreshInfo)
+            .then(() => {
+                let newItem = globalsNewUi.entries[String(item.ItemId)]
+                refreshDisplayItem(newItem)
+                refreshSidebarItem(newItem)
+            })
+            .catch(console.error)
+    })
+
+    for (let el of root.querySelectorAll("[contenteditable]")) {
+            /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
     }
 }
 
@@ -809,39 +802,21 @@ function removeSidebarItem(item) {
 function applySidebarAttrs(item, user, meta, el) {
     el.setAttribute("data-entry-id", String(item.ItemId))
     el.setAttribute("data-title", item.En_Title)
-
     el.setAttribute("data-type", item.Type)
-    if (meta?.Thumbnail) {
-        el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    }
-    if (meta.ReleaseYear) {
-        el.setAttribute("data-release-year", String(meta.ReleaseYear))
-    }
 
-    if (user?.Status) {
-        el.setAttribute("data-user-status", user.Status)
-    }
-
-    if (user.ViewCount > 0) {
-        el.setAttribute("data-user-rating", String(user.UserRating))
-    }
-
-    if (item.PurchasePrice) {
-        el.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
-    }
+    meta?.Thumbnail && el.setAttribute("data-thumbnail-src", meta.Thumbnail)
+    meta.ReleaseYear && el.setAttribute("data-release-year", String(meta.ReleaseYear))
+    user?.Status && el.setAttribute("data-user-status", user.Status)
+    user.ViewCount > 0 && el.setAttribute("data-user-rating", String(user.UserRating))
+    item.PurchasePrice && el.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
 }
 
 /**
  * @param {InfoEntry} item
- * @param {HTMLElement?} [elem=null] 
  * @param {HTMLElement | DocumentFragment} [sidebarParent=sidebarItems]
  */
-function renderSidebarItem(item, elem = null, sidebarParent = sidebarItems) {
-    let doEventHooking = false
-    if (!elem) {
-        doEventHooking = true
-        elem = document.createElement("sidebar-entry")
-    }
+function renderSidebarItem(item, sidebarParent = sidebarItems) {
+    let elem = document.createElement("sidebar-entry")
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
     if (!user || !meta) return
@@ -850,17 +825,15 @@ function renderSidebarItem(item, elem = null, sidebarParent = sidebarItems) {
 
     sidebarParent.append(elem)
 
-    if (doEventHooking) {
-        let img = elem.shadowRoot?.querySelector("img")
-        if (img) {
-            img.addEventListener("click", e => {
-                toggleItem(item)
-            })
-            img.addEventListener("dblclick", e => {
-                clearItems()
-                selectItem(item, mode)
-            })
-        }
+    let img = elem.shadowRoot?.querySelector("img")
+    if (img) {
+        img.addEventListener("click", e => {
+            toggleItem(item)
+        })
+        img.addEventListener("dblclick", e => {
+            clearItems()
+            selectItem(item, mode)
+        })
     }
 }
 
@@ -885,7 +858,7 @@ function renderSidebar(entries) {
     }
     let frag = document.createDocumentFragment()
     for (let item of entries) {
-        renderSidebarItem(item, null, frag)
+        renderSidebarItem(item, frag)
     }
     clearSidebar()
     sidebarItems.append(frag)
