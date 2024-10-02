@@ -385,7 +385,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:     api.ListEvents,
 		QueryParams: api.QueryParams{},
 		Description: "Lists all events associated with an entry",
-		Returns: "JSONL<EventEntry>",
+		Returns:     "JSONL<EventEntry>",
 	}
 
 	modUserEntry = api.ApiEndPoint{
@@ -411,10 +411,10 @@ var ( // `/engagement` endpoints {{{
 	}
 
 	userEntries = api.ApiEndPoint{
-		EndPoint: "list-entries",
-		Handler:  api.UserEntries,
+		EndPoint:    "list-entries",
+		Handler:     api.UserEntries,
 		Description: "Lists all user entries",
-		Returns: "JSONL<UserEntry>",
+		Returns:     "JSONL<UserEntry>",
 	}
 
 	getUserEntry = api.ApiEndPoint{
@@ -424,7 +424,7 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
 		Description: "Gets a user entry by id",
-		Returns: "UserEntry",
+		Returns:     "UserEntry",
 	}
 
 	dropMedia = api.ApiEndPoint{
@@ -491,7 +491,8 @@ var ( // `/engagement` endpoints {{{
 		},
 		Description: "If the id has a remote thumbnail, download it, does not update metadata",
 	}
-) //}}}
+	//}}}
+)
 
 func setupAIODir() string {
 	dir, envExists := os.LookupEnv("AIO_DIR")
@@ -515,29 +516,54 @@ func setupAIODir() string {
 	return dir
 }
 
-func main() {
-	aioPath := setupAIODir()
-	os.Setenv("AIO_DIR", aioPath)
+type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 
-	dbPath := fmt.Sprintf("%s/all.db", aioPath)
-	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
-
-	flag.Parse()
-
-	db.InitDb(*dbPathPtr)
-
-	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
-
-	apiRoot := "/api/v1"
-
-	// for db management type stuff
-	makeEndpoints(apiRoot, EndPointMap{
+var (
+	endPointList = []api.ApiEndPoint{
+		addEntry,
+		modEntry,
+		setEntry,
+		searchApi,
+		listApi,
+		stream,
+		deleteEntry,
+		listCollections,
+		listCopies,
+		listDescendants,
+		totalCostOf,
+		getTree,
+		getAllEntry,
+		fetchMetadataForEntry,
+		retrieveMetadataForEntry,
+		modMetaEntry,
+		setMeta,
+		listMetadata,
+		identify,
+		finalizeIdentify,
+		beginMedia,
+		finishEngagement,
+		planMedia,
+		dropMedia,
+		pauseMedia,
+		reassociate,
+		getUserEntry,
+		userEntries,
+		resumeMedia,
+		getEvents,
+		deleteEvent,
+		registerEvent,
+		listEvents,
+		modUserEntry,
+		setUserEntry,
+		thumbResource,
+		downloadThumb,
+	}
+	mainEndpoints = EndPointMap{
 		addEntry.EndPoint:        addEntry.Listener,
 		modEntry.EndPoint:        modEntry.Listener,
 		setEntry.EndPoint:        setEntry.Listener,
 		searchApi.EndPoint:       searchApi.Listener,
 		listApi.EndPoint:         listApi.Listener,
-		"scan-folder":            api.ScanFolder,
 		stream.EndPoint:          stream.Listener,
 		deleteEntry.EndPoint:     deleteEntry.Listener,
 		listCollections.EndPoint: listCollections.Listener,
@@ -546,15 +572,10 @@ func main() {
 		totalCostOf.EndPoint:     totalCostOf.Listener,
 		getTree.EndPoint:         getTree.Listener,
 		getAllEntry.EndPoint:     getAllEntry.Listener,
-	})
+		"scan-folder":            api.ScanFolder,
+	}
 
-	makeEndpoints(apiRoot+"/type", EndPointMap{
-		"format": api.ListFormats,
-		"type":   api.ListTypes,
-	})
-
-	// for metadata stuff
-	makeEndpoints(apiRoot+"/metadata", EndPointMap{
+	metadataEndpoints = EndPointMap{
 		fetchMetadataForEntry.EndPoint:    fetchMetadataForEntry.Listener,
 		retrieveMetadataForEntry.EndPoint: retrieveMetadataForEntry.Listener,
 		modMetaEntry.EndPoint:             modMetaEntry.Listener,
@@ -562,12 +583,12 @@ func main() {
 		listMetadata.EndPoint:             listMetadata.Listener,
 		identify.EndPoint:                 identify.Listener,
 		finalizeIdentify.EndPoint:         finalizeIdentify.Listener,
-	})
+	}
 
 	// for stuff relating to user viewing info
 	// such as user rating, user beginning/ending a media, etc
 	// stuff that would normally be managed by strack
-	makeEndpoints(apiRoot+"/engagement", EndPointMap{
+	engagementEndpoints = EndPointMap{
 		beginMedia.EndPoint:       beginMedia.Listener,
 		finishEngagement.EndPoint: finishEngagement.Listener,
 		planMedia.EndPoint:        planMedia.Listener,
@@ -583,17 +604,56 @@ func main() {
 		listEvents.EndPoint:       listEvents.Listener,
 		modUserEntry.EndPoint:     modUserEntry.Listener,
 		setUserEntry.EndPoint:     setUserEntry.Listener,
-	})
+	}
 
-	// For resources, such as entry thumbnails
-	makeEndpoints(apiRoot+"/resource", EndPointMap{
+	resourceEndpoints = EndPointMap{
 		thumbResource.EndPoint: thumbResource.Listener,
 		downloadThumb.EndPoint: downloadThumb.Listener,
-	})
+	}
+)
 
-	println(listApi.GenerateDocHTML())
+func main() {
+	aioPath := setupAIODir()
+	os.Setenv("AIO_DIR", aioPath)
+
+	dbPath := fmt.Sprintf("%s/all.db", aioPath)
+	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
+
+	flag.Parse()
+
+	db.InitDb(*dbPathPtr)
+
+	apiRoot := "/api/v1"
+
+	// for db management type stuff
+	makeEndpoints(apiRoot, mainEndpoints)
+
+	typeEndpoints := EndPointMap{
+		"format": api.ListFormats,
+		"type":   api.ListTypes,
+	}
+	makeEndpoints(apiRoot+"/type", typeEndpoints)
+
+	// for metadata stuff
+	makeEndpoints(apiRoot+"/metadata", metadataEndpoints)
+
+	makeEndpoints(apiRoot+"/engagement", engagementEndpoints)
+
+	// For resources, such as entry thumbnails
+	makeEndpoints(apiRoot+"/resource", resourceEndpoints)
 
 	http.HandleFunc("/", webservice.Root)
 
+	http.HandleFunc("/docs", DocHTML)
+
 	http.ListenAndServe(":8080", nil)
+}
+
+func DocHTML(w http.ResponseWriter, req *http.Request) {
+	html := ""
+	for _, endP := range endPointList {
+		html += endP.GenerateDocHTML()
+	}
+	w.WriteHeader(200)
+	w.Write([]byte(html))
 }

@@ -57,11 +57,11 @@ type ApiEndPoint struct {
 }
 
 func (self *ApiEndPoint) GenerateDocHTML() string {
-	htStr := ""
+	htStr := "<div>"
 	htStr += fmt.Sprintf("<h2>/%s</h2>", self.EndPoint)
 	htStr += fmt.Sprintf("<h3>Description</h3><p>%s</p>", self.Description)
 	htStr += fmt.Sprintf("<h3>Returns</h3><p>%s</p>", self.Returns)
-	return htStr
+	return htStr + "</div>"
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {

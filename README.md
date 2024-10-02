@@ -59,6 +59,9 @@ go run .
 A server and web ui will then be running on `localhost:8080`
 
 
+### Docs
+Basic documentation can be found at `/docs`
+
 ### TODO
 
 - [x] enable/disable children/copies
@@ -69,4 +72,5 @@ A server and web ui will then be running on `localhost:8080`
 - [ ] search by description
 - [x] disable ACCOUNT_NUMBER by default
 - [ ] documentation
+    - [x] webservice
     - [ ] ui
