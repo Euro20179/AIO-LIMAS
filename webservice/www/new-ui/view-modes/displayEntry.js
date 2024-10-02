@@ -66,13 +66,7 @@ function hookActionButtons(shadowRoot, item) {
  * @param {HTMLElement | DocumentFragment} [parent=displayItems]
  */
 function renderDisplayItem(item, parent = displayItems) {
-    //TODO:
-    //when the user clicks on the info table on the side
-    //open a dialog box with the information pre filled in with the information already there
-    //and allow the user to edit each item
-    //when the user clicks submit, it'll send a mod-entry request
     let el = document.createElement("display-entry")
-
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
@@ -177,13 +171,12 @@ const displayEntrySave = displayEntryAction((item, root) => saveItemChanges(root
 const displayEntryClose = displayEntryAction(item => deselectItem(item))
 
 const displayEntryCopyTo = displayEntryAction(item => {
-    let id, idInt
-    do {
-        id = prompt("Copy user info to (item id)")
-        if (id === null) return
-        idInt = BigInt(id)
-    } while (isNaN(Number(idInt)))
-    if (idInt === undefined) return
+    let id = prompt("Copy user info to (item id)")
+    while (id !== "" && id !== null && isNaN(Number(id))) {
+        id = prompt("Not a number, must be item id number:")
+    }
+    if (id === null || id === "") return
+    let idInt = BigInt(id)
 
     copyUserInfo(item.ItemId, idInt)
         .then(res => res?.text())
@@ -204,7 +197,7 @@ const displayEntryProgress = displayEntryAction(async (item, root) => {
     let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
 
     let newEp = prompt("Current position:")
-    if(!newEp || isNaN(Number(newEp))) return
+    if (!newEp || isNaN(Number(newEp))) return
 
     await setPos(item.ItemId, newEp)
     root.host.setAttribute("data-user-current-position", newEp)
@@ -212,16 +205,16 @@ const displayEntryProgress = displayEntryAction(async (item, root) => {
 })
 
 const displayEntryRating = displayEntryAction(item => {
-        let newRating = prompt("New rating")
-        if (!newRating || isNaN(Number(newRating))) {
-            return
-        }
+    let newRating = prompt("New rating")
+    if (!newRating || isNaN(Number(newRating))) {
+        return
+    }
 
-        fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
-            .then(refreshInfo)
-            .then(() => {
-                let newItem = globalsNewUi.entries[String(item.ItemId)]
-                refreshDisplayItem(newItem)
-            })
-            .catch(console.error)
+    fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
+        .then(refreshInfo)
+        .then(() => {
+            let newItem = globalsNewUi.entries[String(item.ItemId)]
+            refreshDisplayItem(newItem)
+        })
+        .catch(console.error)
 })
