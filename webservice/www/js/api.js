@@ -84,6 +84,14 @@ function mkStrItemId(jsonl) {
 }
 
 /**@param {string} jsonl*/
+function mkIntItemId(jsonl) {
+    return jsonl
+        .replace(/"ItemId":"(\d+)",/, "\"ItemId\": $1,")
+        .replace(/"ParentId":"(\d+)",/, "\"ParentId\": $1,")
+        .replace(/"CopyOf":"(\d+)"(,)?/, "\"CopyOf\": $1$2")
+}
+
+/**@param {string} jsonl*/
 function parseJsonL(jsonl) {
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
     return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
@@ -334,7 +342,7 @@ async function doQuery(form) {
         userRatingGt: Number(rgt),
         userRatingLt: Number(rlt),
     }
-    if(status.length >= 1) {
+    if (status.length >= 1) {
         queryData["status"] = status.join(",")
     }
 
@@ -351,7 +359,7 @@ async function doQuery(form) {
         "y=": (value) => { return { "releasedGe": value, "releasedLe": value } },
         "format:": value => {
             let formats = []
-            for(let name of value.split(",")) {
+            for (let name of value.split(",")) {
                 formats.push(nameToFormat(name))
             }
             return { "format": formats }

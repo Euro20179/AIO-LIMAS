@@ -71,4 +71,7 @@ A server and web ui will then be running on `localhost:8080`
 - [ ] documentation
     - [ ] ui
 - [ ] edit info/user/meta tables from ui
+    - [x] info
+    - [ ] meta
+    - [ ] user
     - do this by letting the user click on a button that opens an editable table basically

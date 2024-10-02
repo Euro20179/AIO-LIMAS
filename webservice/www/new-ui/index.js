@@ -404,26 +404,61 @@ function saveItemChanges(root, item) {
         return
     }
 
+    let userEntry = findUserEntryById(item.ItemId)
+    if (!userEntry) return
+
     let queryParams = ""
 
     let notes = /**@type {HTMLElement}*/(root?.querySelector(".notes")).innerHTML
     if (notes === "<br>") {
         notes = ""
     }
-    queryParams += `&notes=${encodeURIComponent(notes)}`
+    userEntry.Notes = notes
 
-    fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}${queryParams}`)
-        .then(res => {
-            return res.text()
-        })
+    const userStringified = mkIntItemId(
+        JSON.stringify(
+            userEntry,
+            (_, v) => typeof v === "bigint" ? String(v) : v
+        )
+    )
+
+    fetch(`${apiPath}/engagement/set-entry`, {
+        body: userStringified,
+        method: "POST"
+    })
+        .then(res => res.text())
         .then(console.log)
         .catch(console.error)
 
-    queryParams = ""
-    let title = /**@type {HTMLElement}*/(root.querySelector(".title")).innerText
-    title = title.replaceAll("<br>", "")
-    queryParams += `&en-title=${encodeURIComponent(title)}`
-    fetch(`${apiPath}/mod-entry?id=${item.ItemId}${queryParams}`)
+    let infoTable = root.querySelector("table.info-raw")
+
+    for(let row of infoTable?.querySelectorAll("tr") || []) {
+        let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
+        let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
+        let name = nameChild.innerText.trim()
+        let value = valueChild.innerText.trim()
+        if(!(name in item))  {
+            console.log(`${name} NOT IN ITEM`)
+            continue
+        } else if(name === "ItemId") {
+            console.log("Skipping ItemId")
+            continue
+        }
+        let ty = item[/**@type {keyof typeof item}*/(name)].constructor
+        //@ts-ignore
+        item[name] = ty(value)
+    }
+
+    const infoStringified = mkIntItemId(
+        JSON.stringify(
+            item,
+            (_, v) => typeof v === 'bigint' ? String(v) : v
+        )
+    )
+    fetch(`${apiPath}/set-entry`, {
+        body: infoStringified,
+        method: "POST"
+    })
         .then(res => res.text())
         .then(console.log)
         .catch(console.error)
@@ -910,10 +945,10 @@ function parseClientsideSearchFiltering(searchForm) {
  * @param {ClientSearchFilters} filters
  */
 function applyClientsideSearchFiltering(entries, filters) {
-    if(!filters.children) {
+    if (!filters.children) {
         entries = entries.filter(v => v.ParentId === 0n)
     }
-    if(!filters.copies) {
+    if (!filters.copies) {
         entries = entries.filter(v => v.CopyOf === 0n)
     }
 
