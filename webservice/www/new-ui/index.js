@@ -64,34 +64,6 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
-/**
- * @type {DisplayMode}
- */
-const modeDisplayEntry = {
-    add(entry, updateStats = true) {
-        updateStats && changeResultStatsWithItem(entry)
-        renderDisplayItem(entry)
-    },
-
-    sub(entry, updateStats = true) {
-        updateStats && changeResultStatsWithItem(entry, -1)
-        removeDisplayItem(entry)
-    },
-
-    addList(entry, updateStats = true) {
-        updateStats && changeResultStatsWithItemList(entry, 1)
-        for (let item of /**@type {InfoEntry[]}*/(entry)) {
-            renderDisplayItem(item)
-        }
-    },
-
-    subList(entry, updateStats = true) {
-        updateStats && changeResultStatsWithItemList(entry, -1)
-        for (let item of entry) {
-            removeDisplayItem(item)
-        }
-    }
-}
 
 const modes = [modeDisplayEntry, modeGraphView]
 const modeOutputIds = ["entry-output", "graph-output"]
@@ -330,57 +302,6 @@ function clearSidebar() {
 }
 
 /**
- * @param {ShadowRoot} shadowRoot
- * @param {InfoEntry} item 
- */
-function hookActionButtons(shadowRoot, item) {
-    for (let btn of shadowRoot.querySelectorAll("[data-action]") || []) {
-        let action = btn.getAttribute("data-action")
-        btn.addEventListener("click", e => {
-            if (!confirm(`Are you sure you want to ${action} this entry`)) {
-                return
-            }
-
-            let queryParams = `?id=${item.ItemId}`
-            if (action === "Finish") {
-                let rating = prompt("Rating")
-                while (isNaN(Number(rating))) {
-                    rating = prompt("Not a number\nrating")
-                }
-                queryParams += `&rating=${rating}`
-            }
-
-            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media${queryParams}`)
-                .then(res => res.text())
-                .then(text => {
-                    alert(text)
-                    refreshInfo()
-                        .then(() => {
-                            refreshDisplayItem(item)
-                        })
-                })
-        })
-    }
-
-}
-
-/**
- * @param {InfoEntry} item
- */
-function refreshDisplayItem(item) {
-    let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
-    if (el) {
-        let user = findUserEntryById(item.ItemId)
-        let events = findUserEventsById(item.ItemId)
-        let meta = findMetadataById(item.ItemId)
-        if (!user || !events || !meta) return
-        applyDisplayAttrs(item, user, meta, events, el)
-    } else {
-        renderDisplayItem(item, null)
-    }
-}
-
-/**
  * @param {InfoEntry} item
  */
 function refreshSidebarItem(item) {
@@ -406,8 +327,6 @@ function saveItemChanges(root, item) {
 
     let userEntry = findUserEntryById(item.ItemId)
     if (!userEntry) return
-
-    let queryParams = ""
 
     let notes = /**@type {HTMLElement}*/(root?.querySelector(".notes")).innerHTML
     if (notes === "<br>") {
@@ -634,154 +553,6 @@ async function itemIdentification(form) {
         })
 }
 
-/**
- * @param {InfoEntry} item
- * @param {HTMLElement | DocumentFragment} [parent=displayItems]
- */
-function renderDisplayItem(item, parent = displayItems) {
-    //TODO:
-    //when the user clicks on the info table on the side
-    //open a dialog box with the information pre filled in with the information already there
-    //and allow the user to edit each item
-    //when the user clicks submit, it'll send a mod-entry request
-    let el = document.createElement("display-entry")
-
-
-    let meta = findMetadataById(item.ItemId)
-    let user = findUserEntryById(item.ItemId)
-    let events = findUserEventsById(item.ItemId)
-    if (!user || !meta || !events) return
-
-    applyDisplayAttrs(item, user, meta, events, el)
-
-
-    parent.append(el)
-
-    let root = el.shadowRoot
-    if (!root) return
-
-    /**
-     * @param {HTMLElement} elementParent
-     * @param {Generator<InfoEntry>} relationGenerator
-     */
-    function createRelationButtons(elementParent, relationGenerator) {
-        for (let child of relationGenerator) {
-            let meta = findMetadataById(child.ItemId)
-            let el
-            if (meta?.Thumbnail) {
-                el = document.createElement("img")
-                el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${formatToName(child.Format)})`
-                el.src = meta.Thumbnail
-            } else {
-                el = document.createElement("button")
-                el.innerText = child.En_Title
-            }
-            elementParent.append(el)
-            el.onclick = () => toggleItem(child)
-        }
-    }
-
-    let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
-    createRelationButtons(childEl, findDescendants(item.ItemId))
-
-    let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
-    createRelationButtons(copyEl, findCopies(item.ItemId))
-
-    hookActionButtons(root, item)
-
-    let closeButton = root.querySelector(".close")
-    closeButton?.addEventListener("click", _ => {
-        deselectItem(item)
-    })
-
-    let copyToBtn = root.querySelector(".copy-to")
-    copyToBtn?.addEventListener("click", _ => {
-        let id, idInt
-        do {
-            id = prompt("Copy user info to (item id)")
-            idInt = BigInt(String(id))
-        }
-        while (isNaN(Number(idInt)))
-        copyUserInfo(item.ItemId, idInt)
-            .then(res => res?.text())
-            .then(console.log)
-    })
-
-    let viewCount = root.querySelector(".view-count")
-    if (viewCount) {
-        viewCount.addEventListener("click", e => {
-            let count
-            do {
-                count = prompt("New view count")
-                if (count == null) {
-                    return
-                }
-            } while (isNaN(Number(count)))
-            fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
-                .then(res => res.text())
-                .then(alert)
-                .catch(console.error)
-        })
-    }
-
-    let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
-    progress.addEventListener("click", async () => {
-        let newEp = prompt("Current position:")
-        if (!newEp) {
-            return
-        }
-        await setPos(item.ItemId, newEp)
-
-        el.setAttribute("data-user-current-position", newEp)
-        progress.value = Number(newEp)
-    })
-
-    let deleteBtn = root.querySelector(".delete")
-    deleteBtn?.addEventListener("click", _ => {
-        deleteEntry(item)
-    })
-
-    let refreshBtn = root.querySelector(".refresh")
-    refreshBtn?.addEventListener("click", _ => {
-        overwriteEntryMetadata(/**@type {ShadowRoot}*/(root), item)
-    })
-
-    let saveBtn = root.querySelector(".save")
-    saveBtn?.addEventListener("click", _ => {
-        saveItemChanges(/**@type {ShadowRoot}*/(root), item)
-    })
-
-    let ratingSpan = root.querySelector(".rating")
-    ratingSpan?.addEventListener("click", _ => {
-        let newRating = prompt("New rating")
-        if (isNaN(Number(newRating)) || newRating === null || newRating === "") {
-            return
-        }
-
-        fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
-            .then(refreshInfo)
-            .then(() => {
-                let newItem = globalsNewUi.entries[String(item.ItemId)]
-                refreshDisplayItem(newItem)
-                refreshSidebarItem(newItem)
-            })
-            .catch(console.error)
-    })
-
-    for (let el of root.querySelectorAll("[contenteditable]")) {
-            /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
-    }
-}
-
-/**
- * @param {InfoEntry} item
- */
-function removeDisplayItem(item) {
-    let el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
-    if (el) {
-        el.remove()
-    }
-}
 
 /**
  * @param {InfoEntry} item
@@ -1043,8 +814,11 @@ async function remote2LocalThumbService() {
         let userNativeTitle = globalsNewUi.entries[item].Native_Title
 
         if (!thumbnail) continue
-        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) continue
         if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
+        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`))  {
+            updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
+            continue
+        }
 
         console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
