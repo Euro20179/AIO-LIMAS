@@ -41,15 +41,28 @@ func (self *ParsedParams) Get(name string, backup any) any {
 }
 
 type Method string
+
 const (
-	GET Method = "GET"
+	GET  Method = "GET"
 	POST Method = "POST"
 )
 
 type ApiEndPoint struct {
-	Handler     func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
-	QueryParams QueryParams
-	Method      Method
+	Handler        func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
+	EndPoint       string
+	QueryParams    QueryParams
+	Method         Method
+	Description    string
+	Returns        string
+	PossibleErrors []string
+}
+
+func (self *ApiEndPoint) GenerateDocHTML() string {
+	htStr := "<div>"
+	htStr += fmt.Sprintf("<h2>/%s</h2>", self.EndPoint)
+	htStr += fmt.Sprintf("<h3>Description</h3><p>%s</p>", self.Description)
+	htStr += fmt.Sprintf("<h3>Returns</h3><p>%s</p>", self.Returns)
+	return htStr + "</div>"
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {

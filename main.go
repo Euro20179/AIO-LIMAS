@@ -101,15 +101,22 @@ var ( // `/` endpoints {{{
 			"user-view-count": api.MkQueryInfo(api.P_Int64, false),
 			"user-notes":      api.MkQueryInfo(api.P_True, false),
 		},
+		Description: "Adds a new entry, and registers an Add event",
+		Returns:     "InfoEntry",
+		EndPoint:    "add-entry",
 	}
 
 	getTree = api.ApiEndPoint{
+		EndPoint:    "list-tree",
 		Handler:     api.GetTree,
 		QueryParams: api.QueryParams{},
+		Description: "Gets a tree-like json structure of all entries",
+		Returns:     "InfoEntry",
 	}
 
 	modEntry = api.ApiEndPoint{
-		Handler: api.ModEntry,
+		EndPoint: "mod-entry",
+		Handler:  api.ModEntry,
 		QueryParams: api.QueryParams{
 			"id":              api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 			"en-title":        api.MkQueryInfo(api.P_NotEmpty, false),
@@ -125,63 +132,87 @@ var ( // `/` endpoints {{{
 			"is-anime":        api.MkQueryInfo(api.P_Bool, false),
 			"type":            api.MkQueryInfo(api.P_EntryType, false),
 		},
+		Description: "Modifies an individual entry datapoint",
 	}
 
 	setEntry = api.ApiEndPoint{
+		EndPoint:    "set-entry",
 		Handler:     api.SetEntry,
 		QueryParams: api.QueryParams{},
 		Method:      "POST",
+		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
 	}
 
 	listApi = api.ApiEndPoint{
-		Handler: api.ListEntries,
+		EndPoint: "list-entries",
+		Handler:  api.ListEntries,
 		QueryParams: api.QueryParams{
 			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
 		},
+		Description: "List info entries",
+		Returns:     "JSONL<InfoEntry>",
 	}
 
 	stream = api.ApiEndPoint{
-		Handler: api.Stream,
+		EndPoint: "stream-entry",
+		Handler:  api.Stream,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Download the file located by the {id}'s location",
+		Returns:     "any",
 	}
 
 	deleteEntry = api.ApiEndPoint{
-		Handler: api.DeleteEntry,
+		EndPoint: "delete-entry",
+		Handler:  api.DeleteEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Deletes an entry",
 	}
 
 	listCollections = api.ApiEndPoint{
+		EndPoint:    "list-collections",
 		Handler:     api.ListCollections,
 		QueryParams: api.QueryParams{},
+		Description: "Lists all entries who's type is Collection",
+		Returns:     "Sep<string, '\\n'>",
 	}
 
 	listCopies = api.ApiEndPoint{
-		Handler: api.GetCopies,
+		EndPoint: "list-copies",
+		Handler:  api.GetCopies,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Lists copies of an entry",
+		Returns:     "JSONL<InfoEntry>",
 	}
 
 	listDescendants = api.ApiEndPoint{
-		Handler: api.GetDescendants,
+		EndPoint: "list-descendants",
+		Handler:  api.GetDescendants,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Lists children of an entry",
+		Returns:     "JSONL<InfoEntry>",
 	}
 
 	totalCostOf = api.ApiEndPoint{
-		Handler: api.TotalCostOf,
+		EndPoint: "total-cost",
+		Handler:  api.TotalCostOf,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Gets the total cost of an entry, summing itself + children",
+		Returns:     "float",
 	}
 
 	searchApi = api.ApiEndPoint{
-		Handler: api.QueryEntries,
+		EndPoint: "query",
+		Handler:  api.QueryEntries,
 		QueryParams: api.QueryParams{
 			"title":          api.MkQueryInfo(api.P_True, false),
 			"native-title":   api.MkQueryInfo(api.P_True, false),
@@ -208,57 +239,81 @@ var ( // `/` endpoints {{{
 			"released-ge":    api.MkQueryInfo(api.P_Int64, false),
 			"released-le":    api.MkQueryInfo(api.P_Int64, false),
 		},
+		Description: "Search for entries with some filters",
+		Returns:     "JSONL<InfoEntry>",
 	}
 
 	getAllEntry = api.ApiEndPoint{
-		Handler: api.GetAllForEntry,
+		EndPoint: "get-all-for-entry",
+		Handler:  api.GetAllForEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Gets the userEntry, metadataEntry, and infoEntry for an entry",
+		Returns:     "UserEntry\\nMetadataEntry\\nInfoEntry",
 	}
 ) // }}}
 
 var ( // `/metadata` endpoints {{{
 	identify = api.ApiEndPoint{
-		Handler: api.IdentifyWithSearch,
+		EndPoint: "identify",
+		Handler:  api.IdentifyWithSearch,
 		QueryParams: api.QueryParams{
 			"title":    api.MkQueryInfo(api.P_NotEmpty, true),
 			"provider": api.MkQueryInfo(api.P_Identifier, true),
 		},
+		Description: `List metadata results based on a search query + provider<br>
+The id of the metadata entry will be the id that's supposed to be given to <code>identified-id</code><br>
+when using finalize-identify`,
+		Returns: "JSONL<MetadataEntry>",
 	}
 
 	finalizeIdentify = api.ApiEndPoint{
-		Handler: api.FinalizeIdentification,
+		EndPoint: "finalize-identify",
+		Handler:  api.FinalizeIdentification,
 		QueryParams: api.QueryParams{
 			"identified-id": api.MkQueryInfo(api.P_NotEmpty, true),
 			"provider":      api.MkQueryInfo(api.P_IdIdentifier, true),
 			"apply-to":      api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
+		Description: "Apply an identified id from /identify, to an entry using a provider",
+		Returns:     "none",
 	}
 
 	setMeta = api.ApiEndPoint{
+		EndPoint:    "set-entry",
 		Handler:     api.SetMetadataEntry,
 		Method:      "POST",
 		QueryParams: api.QueryParams{},
+		Description: "Set a metadata entry to the json of an entry<br>post body must be updated metadata entry",
+		Returns:     "UserEntry",
 	}
 
 	fetchMetadataForEntry = api.ApiEndPoint{
-		Handler: api.FetchMetadataForEntry,
+		EndPoint: "fetch",
+		Handler:  api.FetchMetadataForEntry,
 		QueryParams: api.QueryParams{
 			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 			"provider": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
+		Description: `Fetch the metadata for an entry based on the type<br>
+	and using EntryInfo.En_Title as the title search<br>
+	if provider is not given, it is automatically chosen based on type`,
 	}
 
 	retrieveMetadataForEntry = api.ApiEndPoint{
-		Handler: api.RetrieveMetadataForEntry,
+		EndPoint: "retrieve",
+		Handler:  api.RetrieveMetadataForEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
+		Description: "Gets the metadata for an entry",
+		Returns:     "MetadataEntry",
 	}
 
 	modMetaEntry = api.ApiEndPoint{
-		Handler: api.ModMetadataEntry,
+		EndPoint: "mod-entry",
+		Handler:  api.ModMetadataEntry,
 		QueryParams: api.QueryParams{
 			"id":              api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 			"rating":          api.MkQueryInfo(api.P_Float64, false),
@@ -268,62 +323,82 @@ var ( // `/metadata` endpoints {{{
 			"media-dependant": api.MkQueryInfo(api.P_NotEmpty, false),
 			"datapoints":      api.MkQueryInfo(api.P_NotEmpty, false),
 		},
+		Description: "Modify metadata by datapoint",
 	}
 
 	listMetadata = api.ApiEndPoint{
+		EndPoint:    "list-entries",
 		Handler:     api.ListMetadata,
 		QueryParams: api.QueryParams{},
+		Description: "Lists all metadata entries",
+		Returns:     "JSONL<MetadataEntry>",
 	}
 ) // }}}
 
 var ( // `/engagement` endpoints {{{
 	finishEngagement = api.ApiEndPoint{
-		Handler: api.FinishMedia,
+		EndPoint: "finish-media",
+		Handler:  api.FinishMedia,
 		QueryParams: api.QueryParams{
 			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"rating": api.MkQueryInfo(api.P_Float64, true),
 		},
+		Description: "Finishes a media, and registers a Finish event",
 	}
 
 	reassociate = api.ApiEndPoint{
-		Handler: api.CopyUserViewingEntry,
+		EndPoint: "copy",
+		Handler:  api.CopyUserViewingEntry,
 		QueryParams: api.QueryParams{
 			"src-id":  api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"dest-id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Moves all user entry data, and events from one entry entry to another",
 	}
 
 	getEvents = api.ApiEndPoint{
-		Handler: api.GetEventsOf,
+		EndPoint: "get-events",
+		Handler:  api.GetEventsOf,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Lists the events of an entry",
+		Returns:     "JSONL<EventEntry>",
 	}
 	deleteEvent = api.ApiEndPoint{
-		Handler: api.DeleteEvent,
+		EndPoint: "delete-event",
+		Handler:  api.DeleteEvent,
 		QueryParams: api.QueryParams{
 			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 			"timestamp": api.MkQueryInfo(api.P_Int64, true),
 			"after":     api.MkQueryInfo(api.P_Int64, true),
 		},
+		Description: "Deletes an event from an entry",
 	}
 
 	registerEvent = api.ApiEndPoint{
-		Handler: api.RegisterEvent,
+		EndPoint: "register-event",
+		Handler:  api.RegisterEvent,
 		QueryParams: api.QueryParams{
 			"id":        api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"name":      api.MkQueryInfo(api.P_NotEmpty, true),
 			"timestamp": api.MkQueryInfo(api.P_Int64, false),
 			"after":     api.MkQueryInfo(api.P_Int64, false),
 		},
+		Description: "Registers an event for an entry",
 	}
 
 	listEvents = api.ApiEndPoint{
+		EndPoint:    "list-events",
 		Handler:     api.ListEvents,
 		QueryParams: api.QueryParams{},
+		Description: "Lists all events associated with an entry",
+		Returns:     "JSONL<EventEntry>",
 	}
 
 	modUserEntry = api.ApiEndPoint{
-		Handler: api.ModUserEntry,
+		EndPoint: "mod-entry",
+		Handler:  api.ModUserEntry,
 		QueryParams: api.QueryParams{
 			"id":               api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"notes":            api.MkQueryInfo(api.P_True, false),
@@ -332,76 +407,100 @@ var ( // `/engagement` endpoints {{{
 			"current-position": api.MkQueryInfo(api.P_True, false),
 			"status":           api.MkQueryInfo(api.P_UserStatus, false),
 		},
+		Description: "Modifies datapoints of a user entry",
 	}
 
 	setUserEntry = api.ApiEndPoint{
+		EndPoint:    "set-entry",
 		Handler:     api.SetUserEntry,
 		Method:      "POST",
 		QueryParams: api.QueryParams{},
+		Description: "Updates the user entry with the post body<br>Post body must be updated user entry",
 	}
 
 	userEntries = api.ApiEndPoint{
-		Handler: api.UserEntries,
+		EndPoint:    "list-entries",
+		Handler:     api.UserEntries,
+		Description: "Lists all user entries",
+		Returns:     "JSONL<UserEntry>",
 	}
 
 	getUserEntry = api.ApiEndPoint{
-		Handler: api.GetUserEntry,
+		EndPoint: "get-entry",
+		Handler:  api.GetUserEntry,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Gets a user entry by id",
+		Returns:     "UserEntry",
 	}
 
 	dropMedia = api.ApiEndPoint{
-		Handler: api.DropMedia,
+		EndPoint: "drop-media",
+		Handler:  api.DropMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Drops a media, and registers a Drop event",
 	}
 
 	resumeMedia = api.ApiEndPoint{
-		Handler: api.ResumeMedia,
+		EndPoint: "resume-media",
+		Handler:  api.ResumeMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Resumes a media and registers a ReViewing event",
 	}
 
 	pauseMedia = api.ApiEndPoint{
-		Handler: api.PauseMedia,
+		EndPoint: "pause-media",
+		Handler:  api.PauseMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Pauses a media and registers a Pause event",
 	}
 
 	planMedia = api.ApiEndPoint{
-		Handler: api.PlanMedia,
+		EndPoint: "plan-media",
+		Handler:  api.PlanMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Plans a media and registers a Plan event",
 	}
 
 	beginMedia = api.ApiEndPoint{
-		Handler: api.BeginMedia,
+		EndPoint: "begin-media",
+		Handler:  api.BeginMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
+		Description: "Begins a media and registers a Begin event",
 	}
 	// }}}
 
 	// `/resource` endpoints {{{
 	thumbResource = api.ApiEndPoint{
-		Handler: api.ThumbnailResource,
+		EndPoint: "thumbnail",
+		Handler:  api.ThumbnailResource,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
+		Description: "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
 	}
 
 	downloadThumb = api.ApiEndPoint{
-		Handler: api.DownloadThumbnail,
+		EndPoint: "download-thumbnail",
+		Handler:  api.DownloadThumbnail,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
+		Description: "If the id has a remote thumbnail, download it, does not update metadata",
 	}
-) //}}}
+	//}}}
+)
 
 func setupAIODir() string {
 	dir, envExists := os.LookupEnv("AIO_DIR")
@@ -425,6 +524,102 @@ func setupAIODir() string {
 	return dir
 }
 
+type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
+
+var (
+	endPointList = []api.ApiEndPoint{
+		addEntry,
+		modEntry,
+		setEntry,
+		searchApi,
+		listApi,
+		stream,
+		deleteEntry,
+		listCollections,
+		listCopies,
+		listDescendants,
+		totalCostOf,
+		getTree,
+		getAllEntry,
+		fetchMetadataForEntry,
+		retrieveMetadataForEntry,
+		modMetaEntry,
+		setMeta,
+		listMetadata,
+		identify,
+		finalizeIdentify,
+		beginMedia,
+		finishEngagement,
+		planMedia,
+		dropMedia,
+		pauseMedia,
+		reassociate,
+		getUserEntry,
+		userEntries,
+		resumeMedia,
+		getEvents,
+		deleteEvent,
+		registerEvent,
+		listEvents,
+		modUserEntry,
+		setUserEntry,
+		thumbResource,
+		downloadThumb,
+	}
+	mainEndpoints = EndPointMap{
+		addEntry.EndPoint:        addEntry.Listener,
+		modEntry.EndPoint:        modEntry.Listener,
+		setEntry.EndPoint:        setEntry.Listener,
+		searchApi.EndPoint:       searchApi.Listener,
+		listApi.EndPoint:         listApi.Listener,
+		stream.EndPoint:          stream.Listener,
+		deleteEntry.EndPoint:     deleteEntry.Listener,
+		listCollections.EndPoint: listCollections.Listener,
+		listCopies.EndPoint:      listCopies.Listener,
+		listDescendants.EndPoint: listDescendants.Listener,
+		totalCostOf.EndPoint:     totalCostOf.Listener,
+		getTree.EndPoint:         getTree.Listener,
+		getAllEntry.EndPoint:     getAllEntry.Listener,
+		"scan-folder":            api.ScanFolder,
+	}
+
+	metadataEndpoints = EndPointMap{
+		fetchMetadataForEntry.EndPoint:    fetchMetadataForEntry.Listener,
+		retrieveMetadataForEntry.EndPoint: retrieveMetadataForEntry.Listener,
+		modMetaEntry.EndPoint:             modMetaEntry.Listener,
+		setMeta.EndPoint:                  setMeta.Listener,
+		listMetadata.EndPoint:             listMetadata.Listener,
+		identify.EndPoint:                 identify.Listener,
+		finalizeIdentify.EndPoint:         finalizeIdentify.Listener,
+	}
+
+	// for stuff relating to user viewing info
+	// such as user rating, user beginning/ending a media, etc
+	// stuff that would normally be managed by strack
+	engagementEndpoints = EndPointMap{
+		beginMedia.EndPoint:       beginMedia.Listener,
+		finishEngagement.EndPoint: finishEngagement.Listener,
+		planMedia.EndPoint:        planMedia.Listener,
+		dropMedia.EndPoint:        dropMedia.Listener,
+		pauseMedia.EndPoint:       pauseMedia.Listener,
+		reassociate.EndPoint:      reassociate.Listener,
+		getUserEntry.EndPoint:     getUserEntry.Listener,
+		userEntries.EndPoint:      userEntries.Listener,
+		resumeMedia.EndPoint:      resumeMedia.Listener,
+		getEvents.EndPoint:        getEvents.Listener,
+		deleteEvent.EndPoint:      deleteEvent.Listener,
+		registerEvent.EndPoint:    registerEvent.Listener,
+		listEvents.EndPoint:       listEvents.Listener,
+		modUserEntry.EndPoint:     modUserEntry.Listener,
+		setUserEntry.EndPoint:     setUserEntry.Listener,
+	}
+
+	resourceEndpoints = EndPointMap{
+		thumbResource.EndPoint: thumbResource.Listener,
+		downloadThumb.EndPoint: downloadThumb.Listener,
+	}
+)
+
 func main() {
 	aioPath := setupAIODir()
 	os.Setenv("AIO_DIR", aioPath)
@@ -436,72 +631,37 @@ func main() {
 
 	db.InitDb(*dbPathPtr)
 
-	type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
-
 	apiRoot := "/api/v1"
 
 	// for db management type stuff
-	makeEndpoints(apiRoot, EndPointMap{
-		"add-entry":         addEntry.Listener,
-		"mod-entry":         modEntry.Listener,
-		"set-entry":         setEntry.Listener,
-		"query":             searchApi.Listener,
-		"list-entries":      listApi.Listener,
-		"scan-folder":       api.ScanFolder,
-		"stream-entry":      stream.Listener,
-		"delete-entry":      deleteEntry.Listener,
-		"list-collections":  listCollections.Listener,
-		"list-copies":       listCopies.Listener,
-		"list-descendants":  listDescendants.Listener,
-		"total-cost":        totalCostOf.Listener,
-		"list-tree":         getTree.Listener,
-		"get-all-for-entry": getAllEntry.Listener,
-	})
+	makeEndpoints(apiRoot, mainEndpoints)
 
-	makeEndpoints(apiRoot+"/type", EndPointMap{
+	typeEndpoints := EndPointMap{
 		"format": api.ListFormats,
 		"type":   api.ListTypes,
-	})
+	}
+	makeEndpoints(apiRoot+"/type", typeEndpoints)
 
 	// for metadata stuff
-	makeEndpoints(apiRoot+"/metadata", EndPointMap{
-		"fetch":             fetchMetadataForEntry.Listener,
-		"retrieve":          retrieveMetadataForEntry.Listener,
-		"mod-entry":         modMetaEntry.Listener,
-		"set-entry":         setMeta.Listener,
-		"list-entries":      listMetadata.Listener,
-		"identify":          identify.Listener,
-		"finalize-identify": finalizeIdentify.Listener,
-	})
+	makeEndpoints(apiRoot+"/metadata", metadataEndpoints)
 
-	// for stuff relating to user viewing info
-	// such as user rating, user beginning/ending a media, etc
-	// stuff that would normally be managed by strack
-	makeEndpoints(apiRoot+"/engagement", EndPointMap{
-		"begin-media":    beginMedia.Listener,
-		"finish-media":   finishEngagement.Listener,
-		"plan-media":     planMedia.Listener,
-		"drop-media":     dropMedia.Listener,
-		"pause-media":    pauseMedia.Listener,
-		"resume-media":   reassociate.Listener,
-		"get-entry":      getUserEntry.Listener,
-		"list-entries":   userEntries.Listener,
-		"copy":           reassociate.Listener,
-		"get-events":     getEvents.Listener,
-		"delete-event":   deleteEvent.Listener,
-		"register-event": registerEvent.Listener,
-		"list-events":    listEvents.Listener,
-		"mod-entry":      modUserEntry.Listener,
-		"set-entry":      setUserEntry.Listener,
-	})
+	makeEndpoints(apiRoot+"/engagement", engagementEndpoints)
 
 	// For resources, such as entry thumbnails
-	makeEndpoints(apiRoot+"/resource", EndPointMap{
-		"thumbnail":          thumbResource.Listener,
-		"download-thumbnail": downloadThumb.Listener,
-	})
+	makeEndpoints(apiRoot+"/resource", resourceEndpoints)
 
 	http.HandleFunc("/", webservice.Root)
 
+	http.HandleFunc("/docs", DocHTML)
+
 	http.ListenAndServe(":8080", nil)
+}
+
+func DocHTML(w http.ResponseWriter, req *http.Request) {
+	html := ""
+	for _, endP := range endPointList {
+		html += endP.GenerateDocHTML()
+	}
+	w.WriteHeader(200)
+	w.Write([]byte(html))
 }
