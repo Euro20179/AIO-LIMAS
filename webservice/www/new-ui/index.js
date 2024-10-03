@@ -1,5 +1,17 @@
 //TODO:
-//Detect if the thumbnail url is a data:image/X;base64, if not, download the url and turn it into one
+//Add 3 checkboxes for what the stats of a collection should be
+//* itself
+//* children
+//* copies
+//eg: if itself + children is selected
+//the stats of the collection will be the stats of itself + stats of children
+//eg: the total cost
+//
+//
+//TODO: add negated searches,
+//eg: -format:digital
+//this will exclude all results that have format digital
+
 
 /**
  * @typedef DisplayMode
@@ -374,6 +386,10 @@ function saveItemChanges(root, item) {
         .then(res => res.text())
         .then(console.log)
         .catch(console.error)
+
+    refreshInfo().then(() => {
+        refreshDisplayItem(item)
+    })
 }
 
 /**
@@ -805,7 +821,7 @@ async function remote2LocalThumbService() {
 
         if (!thumbnail) continue
         if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
-        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`))  {
+        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) {
             updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
             continue
         }

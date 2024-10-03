@@ -181,6 +181,7 @@ async function loadQueriedEntries(search) {
 * @param {bigint} newid
 */
 async function copyUserInfo(oldid, newid) {
+    console.log(oldid, newid)
     return await fetch(`${apiPath}/engagement/copy?src-id=${oldid}&dest-id=${newid}`).catch(console.error)
 }
 

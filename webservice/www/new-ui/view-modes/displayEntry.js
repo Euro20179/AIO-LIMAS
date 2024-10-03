@@ -165,7 +165,7 @@ const displayEntrySave = displayEntryAction((item, root) => saveItemChanges(root
 const displayEntryClose = displayEntryAction(item => deselectItem(item))
 
 const displayEntryCopyTo = displayEntryAction(item => {
-    let id = promptNumber("Copy user info to (item id)", "Not a number, mmust be item id number")
+    let id = promptNumber("Copy user info to (item id)", "Not a number, mmust be item id number", BigInt)
     if (id === null) return
     let idInt = BigInt(id)
 

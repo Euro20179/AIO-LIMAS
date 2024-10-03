@@ -96,6 +96,7 @@
     input[type="checkbox"] {
         appearance: none;
         border-style: solid;
+        vertical-align: bottom;
         &:checked {
             border-color: var(--green);
             background: var(--green);
