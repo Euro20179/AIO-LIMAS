@@ -69,6 +69,36 @@ function* findCopies(itemId) {
     }
 }
 
+/**
+ * @param {InfoEntry} collectionEntry
+ * @param {boolean} itself
+ * @param {boolean} children
+ * @param {boolean} copies
+ */
+function sumCollectionStats(collectionEntry, itself = true, children = true, copies = false) {
+    const stats = {
+        totalItems: 0,
+        cost: 0
+    }
+    if (itself) {
+        stats.totalItems++
+        stats.cost += collectionEntry.PurchasePrice
+    }
+    if (children) {
+        for (let child of findDescendants(collectionEntry.ItemId)) {
+            stats.totalItems++
+            stats.cost += child.PurchasePrice
+        }
+    }
+    if(copies) {
+        for(let copy of findCopies(collectionEntry.ItemId)) {
+            stats.totalItems++
+            stats.cost += copy.PurchasePrice
+        }
+    }
+    return stats
+}
+
 const viewAllElem = /**@type {HTMLInputElement}*/(document.getElementById("view-all"))
 
 const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
