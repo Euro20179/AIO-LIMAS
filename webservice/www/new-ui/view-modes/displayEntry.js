@@ -41,11 +41,10 @@ function hookActionButtons(shadowRoot, item) {
 
             let queryParams = `?id=${item.ItemId}`
             if (action === "Finish") {
-                let rating = prompt("Rating")
-                while (isNaN(Number(rating))) {
-                    rating = prompt("Not a number\nrating")
+                let rating = promptNumber("Rating", "Not a number\nRating")
+                if(rating !== null) {
+                    queryParams += `&rating=${rating}`
                 }
-                queryParams += `&rating=${rating}`
             }
 
             fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media${queryParams}`)
@@ -168,11 +167,8 @@ const displayEntrySave = displayEntryAction((item, root) => saveItemChanges(root
 const displayEntryClose = displayEntryAction(item => deselectItem(item))
 
 const displayEntryCopyTo = displayEntryAction(item => {
-    let id = prompt("Copy user info to (item id)")
-    while (id !== "" && id !== null && isNaN(Number(id))) {
-        id = prompt("Not a number, must be item id number:")
-    }
-    if (id === null || id === "") return
+    let id = promptNumber("Copy user info to (item id)", "Not a number, mmust be item id number")
+    if (id === null) return
     let idInt = BigInt(id)
 
     copyUserInfo(item.ItemId, idInt)
@@ -181,8 +177,8 @@ const displayEntryCopyTo = displayEntryAction(item => {
 })
 
 const displayEntryViewCount = displayEntryAction(item => {
-    let count = prompt("New view count")
-    if (count === null || isNaN(Number(count))) return
+    let count = promptNumber("New view count", 'Not a number, view count')
+    if (count === null) return
 
     fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
         .then(res => res.text())
@@ -193,11 +189,11 @@ const displayEntryViewCount = displayEntryAction(item => {
 const displayEntryProgress = displayEntryAction(async (item, root) => {
     let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
 
-    let newEp = prompt("Current position:")
-    if (!newEp || isNaN(Number(newEp))) return
+    let newEp = promptNumber("Current position:", "Not a number, current position")
+    if (!newEp) return
 
-    await setPos(item.ItemId, newEp)
-    root.host.setAttribute("data-user-current-position", newEp)
+    await setPos(item.ItemId, String(newEp))
+    root.host.setAttribute("data-user-current-position", String(newEp))
     progress.value = Number(newEp)
 })
 
