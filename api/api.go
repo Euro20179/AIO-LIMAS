@@ -426,39 +426,6 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 }
 
-// Scans a folder as an entry, all folders within will be treated as children
-// this will work well because even if a folder structure exists as:
-// Friends -> S01 -> E01 -> 01.mkv
-//
-//	-> E02 -> 02.mkv
-//
-// We will end up with the following entries, Friends -> S01(Friends) -> E01(S01) -> 01.mkv(E01)
-// despite what seems as duplication is actually fine, as the user may want some extra stuff associated with E01, if they structure it this way
-// on rescan, we can check if the location doesn't exist, or is empty, if either is true, it will be deleted from the database
-// **ONLY entryInfo rows will be deleted, as the user may have random userViewingEntries that are not part of their library**
-// metadata also stays because it can be used to display the userViewingEntries nicer
-// also on rescan, we can check if the title exists in entryInfo or metadata, if it does, we can reuse that id
-func ScanFolder(w http.ResponseWriter, req *http.Request) {
-	path := req.URL.Query().Get("path")
-	if path == "" {
-		wError(w, 400, "No path given\n")
-		return
-	}
-
-	collection := req.URL.Query().Get("collection-id")
-
-	errs := db.ScanFolder(path, collection)
-
-	if len(errs) != 0 {
-		w.WriteHeader(500)
-		for _, err := range errs {
-			fmt.Fprintf(w, "%s\n", err.Error())
-		}
-		return
-	}
-
-	success(w)
-}
 
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	entry := parsedParams["id"].(db.InfoEntry)

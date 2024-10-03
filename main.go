@@ -35,8 +35,6 @@ func ckAuthorizationHeader(text string) (bool, error) {
 		if password == accNumber {
 			return true, nil
 		}
-	} else {
-		goto unauthorized
 	}
 
 unauthorized:
@@ -580,7 +578,6 @@ var (
 		totalCostOf.EndPoint:     totalCostOf.Listener,
 		getTree.EndPoint:         getTree.Listener,
 		getAllEntry.EndPoint:     getAllEntry.Listener,
-		"scan-folder":            api.ScanFolder,
 	}
 
 	metadataEndpoints = EndPointMap{

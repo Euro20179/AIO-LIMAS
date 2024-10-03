@@ -14,7 +14,7 @@ const modeDisplayEntry = {
 
     addList(entry, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entry, 1)
-        for (let item of /**@type {InfoEntry[]}*/(entry)) {
+        for (let item of entry) {
             renderDisplayItem(item)
         }
     },
@@ -42,7 +42,7 @@ function hookActionButtons(shadowRoot, item) {
             let queryParams = `?id=${item.ItemId}`
             if (action === "Finish") {
                 let rating = promptNumber("Rating", "Not a number\nRating")
-                if(rating !== null) {
+                if (rating !== null) {
                     queryParams += `&rating=${rating}`
                 }
             }
@@ -51,11 +51,9 @@ function hookActionButtons(shadowRoot, item) {
                 .then(res => res.text())
                 .then(text => {
                     alert(text)
-                    refreshInfo()
-                        .then(() => {
-                            refreshDisplayItem(item)
-                        })
+                    return refreshInfo()
                 })
+                .then(() => refreshDisplayItem(item))
         })
     }
 }
