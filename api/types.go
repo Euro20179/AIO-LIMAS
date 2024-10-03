@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func ListFormats(w http.ResponseWriter, req *http.Request) {
+func ListFormats(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	text, err := json.Marshal(db.ListFormats())
 	if err != nil{
 		wError(w, 500, "Could not encode formats\n%s", err.Error())
@@ -16,7 +16,7 @@ func ListFormats(w http.ResponseWriter, req *http.Request) {
 	w.Write(text)
 }
 
-func ListTypes(w http.ResponseWriter, req *http.Request) {
+func ListTypes(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	text, err := json.Marshal(db.ListMediaTypes())
 	if err != nil{
 		wError(w, 500, "Could not encode types\n%s", err.Error())

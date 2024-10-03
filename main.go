@@ -75,6 +75,12 @@ func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *
 	}
 }
 
+func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
+	for _, endPoint := range endPoints {
+		http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
+	}
+}
+
 var ( // `/` endpoints {{{
 	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
@@ -212,18 +218,18 @@ var ( // `/` endpoints {{{
 		EndPoint: "query",
 		Handler:  api.QueryEntries,
 		QueryParams: api.QueryParams{
-			"title":          api.MkQueryInfo(api.P_True, false),
-			"native-title":   api.MkQueryInfo(api.P_True, false),
-			"location":       api.MkQueryInfo(api.P_True, false),
-			"purchase-gt":    api.MkQueryInfo(api.P_Float64, false),
-			"purchase-lt":    api.MkQueryInfo(api.P_Float64, false),
-			"formats":        api.MkQueryInfo(api.P_True, false),
-			"tags":           api.MkQueryInfo(api.P_True, false),
-			"types":          api.MkQueryInfo(api.P_True, false),
-			"parents":        api.MkQueryInfo(api.P_True, false),
-			"is-anime":       api.MkQueryInfo(api.P_Int64, false),
-			"copy-ids":       api.MkQueryInfo(api.P_True, false),
-			"user-status":    api.MkQueryInfo(
+			"title":        api.MkQueryInfo(api.P_True, false),
+			"native-title": api.MkQueryInfo(api.P_True, false),
+			"location":     api.MkQueryInfo(api.P_True, false),
+			"purchase-gt":  api.MkQueryInfo(api.P_Float64, false),
+			"purchase-lt":  api.MkQueryInfo(api.P_Float64, false),
+			"formats":      api.MkQueryInfo(api.P_True, false),
+			"tags":         api.MkQueryInfo(api.P_True, false),
+			"types":        api.MkQueryInfo(api.P_True, false),
+			"parents":      api.MkQueryInfo(api.P_True, false),
+			"is-anime":     api.MkQueryInfo(api.P_Int64, false),
+			"copy-ids":     api.MkQueryInfo(api.P_True, false),
+			"user-status": api.MkQueryInfo(
 				api.P_TList(
 					",",
 					func(in string) db.Status {
@@ -498,6 +504,20 @@ var ( // `/engagement` endpoints {{{
 		Description: "If the id has a remote thumbnail, download it, does not update metadata",
 	}
 	//}}}
+
+	// `/type` endpoints {{{
+	formatTypesApi = api.ApiEndPoint{
+		EndPoint:    "format",
+		Handler:     api.ListFormats,
+		Description: "Lists the valid values for a Format",
+	}
+
+	typeTypesApi = api.ApiEndPoint{
+		EndPoint:    "type",
+		Handler:     api.ListTypes,
+		Description: "Lists the types for a Type",
+	}
+	//}}}
 )
 
 func setupAIODir() string {
@@ -525,7 +545,7 @@ func setupAIODir() string {
 type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 
 var (
-	endPointList = []api.ApiEndPoint{
+	mainEndpointList = []api.ApiEndPoint{
 		addEntry,
 		modEntry,
 		setEntry,
@@ -539,6 +559,9 @@ var (
 		totalCostOf,
 		getTree,
 		getAllEntry,
+	}
+
+	metadataEndpointList = []api.ApiEndPoint{
 		fetchMetadataForEntry,
 		retrieveMetadataForEntry,
 		modMetaEntry,
@@ -546,6 +569,12 @@ var (
 		listMetadata,
 		identify,
 		finalizeIdentify,
+	}
+
+	// for stuff relating to user viewing info
+	// such as user rating, user beginning/ending a media, etc
+	// stuff that would normally be managed by strack
+	engagementEndpointList = []api.ApiEndPoint{
 		beginMedia,
 		finishEngagement,
 		planMedia,
@@ -561,59 +590,24 @@ var (
 		listEvents,
 		modUserEntry,
 		setUserEntry,
+	}
+
+	resourceEndpointList = []api.ApiEndPoint{
 		thumbResource,
 		downloadThumb,
 	}
-	mainEndpoints = EndPointMap{
-		addEntry.EndPoint:        addEntry.Listener,
-		modEntry.EndPoint:        modEntry.Listener,
-		setEntry.EndPoint:        setEntry.Listener,
-		searchApi.EndPoint:       searchApi.Listener,
-		listApi.EndPoint:         listApi.Listener,
-		stream.EndPoint:          stream.Listener,
-		deleteEntry.EndPoint:     deleteEntry.Listener,
-		listCollections.EndPoint: listCollections.Listener,
-		listCopies.EndPoint:      listCopies.Listener,
-		listDescendants.EndPoint: listDescendants.Listener,
-		totalCostOf.EndPoint:     totalCostOf.Listener,
-		getTree.EndPoint:         getTree.Listener,
-		getAllEntry.EndPoint:     getAllEntry.Listener,
+
+	typeEndpoints = []api.ApiEndPoint{
+		formatTypesApi,
+		typeTypesApi,
 	}
 
-	metadataEndpoints = EndPointMap{
-		fetchMetadataForEntry.EndPoint:    fetchMetadataForEntry.Listener,
-		retrieveMetadataForEntry.EndPoint: retrieveMetadataForEntry.Listener,
-		modMetaEntry.EndPoint:             modMetaEntry.Listener,
-		setMeta.EndPoint:                  setMeta.Listener,
-		listMetadata.EndPoint:             listMetadata.Listener,
-		identify.EndPoint:                 identify.Listener,
-		finalizeIdentify.EndPoint:         finalizeIdentify.Listener,
-	}
-
-	// for stuff relating to user viewing info
-	// such as user rating, user beginning/ending a media, etc
-	// stuff that would normally be managed by strack
-	engagementEndpoints = EndPointMap{
-		beginMedia.EndPoint:       beginMedia.Listener,
-		finishEngagement.EndPoint: finishEngagement.Listener,
-		planMedia.EndPoint:        planMedia.Listener,
-		dropMedia.EndPoint:        dropMedia.Listener,
-		pauseMedia.EndPoint:       pauseMedia.Listener,
-		reassociate.EndPoint:      reassociate.Listener,
-		getUserEntry.EndPoint:     getUserEntry.Listener,
-		userEntries.EndPoint:      userEntries.Listener,
-		resumeMedia.EndPoint:      resumeMedia.Listener,
-		getEvents.EndPoint:        getEvents.Listener,
-		deleteEvent.EndPoint:      deleteEvent.Listener,
-		registerEvent.EndPoint:    registerEvent.Listener,
-		listEvents.EndPoint:       listEvents.Listener,
-		modUserEntry.EndPoint:     modUserEntry.Listener,
-		setUserEntry.EndPoint:     setUserEntry.Listener,
-	}
-
-	resourceEndpoints = EndPointMap{
-		thumbResource.EndPoint: thumbResource.Listener,
-		downloadThumb.EndPoint: downloadThumb.Listener,
+	endPointLists = [][]api.ApiEndPoint{
+		mainEndpointList,
+		metadataEndpointList,
+		engagementEndpointList,
+		typeEndpoints,
+		resourceEndpointList,
 	}
 )
 
@@ -631,16 +625,12 @@ func main() {
 	const apiRoot = "/api/v1"
 
 	// for db management type stuff
-	makeEndpoints(apiRoot, mainEndpoints)
-	typeEndpoints := EndPointMap{
-		"format": api.ListFormats,
-		"type":   api.ListTypes,
-	}
-	makeEndpoints(apiRoot+"/type", typeEndpoints)
-	makeEndpoints(apiRoot+"/metadata", metadataEndpoints)
-	makeEndpoints(apiRoot+"/engagement", engagementEndpoints)
+	makeEndPointsFromList(apiRoot, mainEndpointList)
+	makeEndPointsFromList(apiRoot+"/type", typeEndpoints)
+	makeEndPointsFromList(apiRoot+"/metadata", metadataEndpointList)
+	makeEndPointsFromList(apiRoot+"/engagement", engagementEndpointList)
 	// For resources, such as entry thumbnails
-	makeEndpoints(apiRoot+"/resource", resourceEndpoints)
+	makeEndPointsFromList(apiRoot+"/resource", resourceEndpointList)
 
 	http.HandleFunc("/", webservice.Root)
 
@@ -651,8 +641,10 @@ func main() {
 
 func DocHTML(w http.ResponseWriter, req *http.Request) {
 	html := ""
-	for _, endP := range endPointList {
-		html += endP.GenerateDocHTML()
+	for _, list := range endPointLists {
+		for _, endP := range list {
+			html += endP.GenerateDocHTML()
+		}
 	}
 	w.WriteHeader(200)
 	w.Write([]byte(html))
