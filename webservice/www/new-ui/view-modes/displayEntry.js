@@ -119,10 +119,7 @@ function renderDisplayItem(item, parent = displayItems) {
  * @param {InfoEntry} item
  */
 function removeDisplayItem(item) {
-    let el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
-    if (el) {
-        el.remove()
-    }
+    displayItems.querySelector(`[data-item-id="${item.ItemId}"]`)?.remove()
 }
 
 /**
@@ -160,7 +157,7 @@ function displayEntryAction(func) {
     /**@param {HTMLElement} elem*/
     return function(elem) {
         let id = getIdFromDisplayElement(elem)
-        let item
+        let item;
         (item = findInfoEntryById(id)) && func(item, /**@type {ShadowRoot}*/(elem.getRootNode()))
     }
 }

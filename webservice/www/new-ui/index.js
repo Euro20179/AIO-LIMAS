@@ -251,14 +251,7 @@ function findUserEntryById(id) {
  * @returns {UserEvent[]}
  */
 function findUserEventsById(id) {
-    let events = []
-    for (let item in globalsNewUi.events) {
-        let entry = globalsNewUi.events[item]
-        if (entry.ItemId === id) {
-            events.push(entry)
-        }
-    }
-    return events
+    return globalsNewUi.events.filter(v => v.ItemId === id)
 }
 
 /**
@@ -558,10 +551,7 @@ async function itemIdentification(form) {
  * @param {InfoEntry} item
  */
 function removeSidebarItem(item) {
-    let el = /**@type {HTMLElement}*/(sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`))
-    if (el) {
-        el.remove()
-    }
+    sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`)?.remove()
 }
 
 /**
