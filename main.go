@@ -214,6 +214,19 @@ var ( // `/` endpoints {{{
 		Returns:     "float",
 	}
 
+	search2Api = api.ApiEndPoint{
+		EndPoint: "query-v2",
+		Handler:  api.QueryEntries2,
+		QueryParams: api.QueryParams{
+			"names": api.MkQueryInfo(api.P_TList(",", func(in string) string { return in }), true),
+			"values": api.MkQueryInfo(api.P_TList(",", func(in string) string {
+				return in
+			}), true),
+			"checkers": api.MkQueryInfo(api.P_TList(",", func(in string) db.DataChecker {
+				return db.Str2DataChecker(in)
+			}), true),
+		},
+	}
 	searchApi = api.ApiEndPoint{
 		EndPoint: "query",
 		Handler:  api.QueryEntries,
@@ -550,6 +563,7 @@ var (
 		modEntry,
 		setEntry,
 		searchApi,
+		search2Api,
 		listApi,
 		stream,
 		deleteEntry,
@@ -632,6 +646,18 @@ func main() {
 	// For resources, such as entry thumbnails
 	makeEndPointsFromList(apiRoot+"/resource", resourceEndpointList)
 
+	// arr, _ := db.Search2([]db.SearchData{
+	// 	{
+	// 		DataName:  "entryInfo.format",
+	// 		DataValue: []any{"2", db.F_BLURAY},
+	// 		Checker:   db.DATA_IN,
+	// 	},
+	// })
+	//
+	// for _, item := range arr {
+	// 	fmt.Printf("%+v\n", item)
+	// }
+	//
 	http.HandleFunc("/", webservice.Root)
 
 	http.HandleFunc("/docs", DocHTML)

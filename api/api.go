@@ -309,6 +309,44 @@ func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	w.Write([]byte("\n"))
 }
 
+func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	names := pp["names"].([]string)
+	values := pp["values"].([]string)
+	checkers := pp["checkers"].([]db.DataChecker)
+
+	var query db.SearchQuery
+
+	for i, name := range names {
+		data := db.SearchData{
+			DataName: name,
+			Checker:  checkers[i],
+		}
+		if checkers[i] == db.DATA_NOTIN || checkers[i] == db.DATA_IN {
+			values = strings.Split(values[i], ":")
+			data.DataValue = values
+		} else {
+			data.DataValue = values[i]
+		}
+		query = append(query, data)
+	}
+
+	results, err := db.Search2(query)
+	if err != nil{
+		wError(w, 500, "Could not complete search\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	for _, row := range results {
+		j, err := row.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+}
+
 // should be an all in one query thingy, that should be able to query based on any matching column in any table
 func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	title := parsedParams.Get("title", "").(string)
@@ -425,7 +463,6 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		w.Write([]byte("\n"))
 	}
 }
-
 
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	entry := parsedParams["id"].(db.InfoEntry)

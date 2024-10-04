@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -137,7 +138,7 @@ func InitDb(dbPath string) {
 	Db = conn
 }
 
-func getById[T TableRepresentation](id int64, tblName string, out *T) error{
+func getById[T TableRepresentation](id int64, tblName string, out *T) error {
 	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
 
 	rows, err := Db.Query(query, id)
@@ -153,7 +154,7 @@ func getById[T TableRepresentation](id int64, tblName string, out *T) error{
 	}
 
 	newEntry, err := (*out).ReadEntryCopy(rows)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -389,18 +390,6 @@ type EntryInfoSearch struct {
 	ReleasedLE        int64
 }
 
-func buildQString[T any](withList []T) string {
-	var out string
-	for i := range withList {
-		if i != len(withList)-1 {
-			out += "?, "
-		} else {
-			out += "?"
-		}
-	}
-	return out
-}
-
 func Delete(id int64) error {
 	transact, err := Db.Begin()
 	if err != nil {
@@ -490,7 +479,7 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime-1))
 	}
 
-	if len(mainSearchInfo.UserStatus) != 0{
+	if len(mainSearchInfo.UserStatus) != 0 {
 		items := []interface{}{
 			mainSearchInfo.UserStatus,
 		}
@@ -505,6 +494,117 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 		args...,
 	)
 
+	var out []InfoEntry
+
+	if err != nil {
+		return out, err
+	}
+
+	defer rows.Close()
+	i := 0
+	for rows.Next() {
+		i += 1
+		var row InfoEntry
+		err = row.ReadEntry(rows)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+type DataChecker int
+
+const (
+	DATA_GT    DataChecker = iota
+	DATA_LT    DataChecker = iota
+	DATA_LE    DataChecker = iota
+	DATA_GE    DataChecker = iota
+	DATA_EQ    DataChecker = iota
+	DATA_NE    DataChecker = iota
+	DATA_LIKE  DataChecker = iota
+	DATA_IN    DataChecker = iota
+	DATA_NOTIN DataChecker = iota
+)
+
+func Str2DataChecker(in string) DataChecker {
+	switch strings.ToUpper(in) {
+	case "GT":
+		return DATA_GT
+	case "LT":
+		return DATA_LT
+	case "LE":
+		return DATA_LE
+	case "GE":
+		return DATA_GE
+	case "EQ":
+		return DATA_EQ
+	case "NE":
+		return DATA_NE
+	case "LIKE":
+		return DATA_LIKE
+	case "IN":
+		return DATA_IN
+	case "NOTIN":
+		return DATA_NOTIN
+	}
+	return DATA_EQ
+}
+
+type SearchData struct {
+	DataName  string
+	DataValue any
+	Checker   DataChecker
+}
+type SearchQuery []SearchData
+
+func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
+	query := sqlbuilder.NewSelectBuilder()
+	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
+
+	var queries []string
+
+	for _, searchData := range searchQuery {
+		name := searchData.DataName
+		value := searchData.DataValue
+
+		switch searchData.Checker {
+		case DATA_GT:
+			queries = append(queries, query.GT(name, value))
+		case DATA_GE:
+			queries = append(queries, query.GE(name, value))
+		case DATA_LT:
+			queries = append(queries, query.LT(name, value))
+		case DATA_LE:
+			queries = append(queries, query.LE(name, value))
+		case DATA_EQ:
+			queries = append(queries, query.EQ(name, value))
+		case DATA_NE:
+			queries = append(queries, query.NE(name, value))
+		case DATA_IN:
+			flattenedValue := []interface{}{
+				value,
+			}
+			queries = append(queries, query.In(name, sqlbuilder.Flatten(flattenedValue)...))
+		case DATA_NOTIN:
+			flattenedValue := []interface{}{
+				value,
+			}
+			queries = append(queries, query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...))
+		case DATA_LIKE:
+			queries = append(queries, query.Like(name, value))
+		}
+	}
+
+	query = query.Where(queries...)
+
+	finalQuery, args := query.Build()
+	rows, err := Db.Query(
+		finalQuery,
+		args...,
+	)
 	var out []InfoEntry
 
 	if err != nil {
