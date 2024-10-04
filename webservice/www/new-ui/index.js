@@ -7,11 +7,6 @@
 //the stats of the collection will be the stats of itself + stats of children
 //eg: the total cost
 //
-//
-//TODO: add negated searches,
-//eg: -format:digital
-//this will exclude all results that have format digital
-//
 //TODO: info mode
 //in info mode, the user can type an expression (similar to an excel sheet)
 //and for each selected item it will display the result of that expression

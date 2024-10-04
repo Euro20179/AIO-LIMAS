@@ -79,3 +79,6 @@ Basic documentation can be found at `/docs`
     - [ ] meta
     - [ ] user
     - do this by letting the user click on a button that opens an editable table basically
+- [ ] info mode
+- [ ] proper search parser
+- [ ] collection stat calculation modifier
