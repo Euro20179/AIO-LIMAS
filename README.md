@@ -65,7 +65,6 @@ Basic documentation can be found at `/docs`
 ### TODO
 
 - [x] enable/disable children/copies
-- [ ] enable/disable the "collection" type's stats being the sum of it's children's stats
 - [ ] steam account linking
 - [x] image media type
     - [ ] when fetching metadata, use ai to generate a description of the image
