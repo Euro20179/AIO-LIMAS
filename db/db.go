@@ -572,6 +572,9 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 	for _, searchData := range searchQuery {
 		name := searchData.DataName
 		value := searchData.DataValue
+		if name == "" {
+			continue
+		}
 
 		switch searchData.Checker {
 		case DATA_GT:

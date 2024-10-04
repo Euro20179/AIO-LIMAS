@@ -96,6 +96,10 @@
         display: flex;
         flex-wrap: wrap;
 
+        [name="search-query"]{
+            flex-grow: 1
+        }
+
         dialog {
             --btn-size: max(20px, 3cqi);
 

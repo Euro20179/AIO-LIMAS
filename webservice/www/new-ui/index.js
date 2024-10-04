@@ -750,7 +750,7 @@ async function loadSearch() {
 
     let filters = parseClientsideSearchFiltering(formData)
 
-    let entries = await doQuery2(form)
+    let entries = await doQuery2(formData)
 
     entries = applyClientsideSearchFiltering(entries, filters)
 

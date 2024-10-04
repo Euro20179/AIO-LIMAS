@@ -272,10 +272,22 @@ async function updateThumbnail(id, thumbnail) {
 }
 
 /**
- * @param {HTMLFormElement} form
+ * @param {FormData} data
  */
-async function doQuery2(form) {
-    let data = new FormData(form)
+async function doQuery2(data) {
+    //TODO:
+    //make a proper parser
+    //i want to handle stuff like
+    //"exact search"
+    //contains these words
+    //r > 200
+    //-(r > 200)
+    //-"cannot contain this exact search"
+    //-(cannot contain these words)
+    //
+    //quoted strings can use the "like" operator, and the user can add % if they want
+    //non-quoted strings should essentially add a % sign to the start and end
+    //use the like opeartor, and be all ored together
     let search = /**@type {string}*/(data.get("search-query"))
 
     let operatorPairs = {
@@ -308,6 +320,9 @@ async function doQuery2(form) {
         "r": "userRating",
         "y": "releaseYear",
         "p": "purchasePrice",
+        "f": "format",
+        "t": "type",
+        "s": "status",
     }
 
     let words = search.split(" ")
