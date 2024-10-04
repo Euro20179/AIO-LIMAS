@@ -26,63 +26,6 @@
                     <label><input type="checkbox" name="children" id="">children</label>
                     <label><input type="checkbox" name="copies" id="">copies</label>
                 </div>
-                <button type="button" popovertarget="advanced-search">Advanced</button>
-                <dialog popover id="advanced-search">
-                    <div class="grid">
-                        <div class="flex row wrap">
-                            <select name="format" multiple>
-                                <option value="">NONE</option>
-                                <option value="0">VHS</option>
-                                <option value="1">CD</option>
-                                <option value="2">DVD</option>
-                                <option value="3">Blu Ray</option>
-                                <option value="4">4k Blu Ray</option>
-                                <option value="5">Manga</option>
-                                <option value="6">Book</option>
-                                <option value="7">Digital</option>
-                                <option value="8">Board Game</option>
-                                <option value="9">Steam</option>
-                                <option value="10">Nintendo Switch</option>
-                                <option value="11">Xbox One</option>
-                                <option value="12">Xbox 360</option>
-                                <option value="14">Vinyl</option>
-                                <option value="15">Image</option>
-                                <option value="13">Other</option>
-                            </select>
-                            <select name="status" multiple>
-                                <option value="">NONE</option>
-                                <option value="Viewing">Viewing</option>
-                                <option value="Finished">Finished</option>
-                                <option value="Dropped">Dropped</option>
-                                <option value="Planned">Planned</option>
-                                <option value="ReViewing">ReViewing</option>
-                                <option value="Paused">Paused</option>
-                            </select>
-                            <select name="type" multiple>
-                                <option value="">NONE</option>
-                                <option value="Show">Show</option>
-                                <option value="Movie">Movie</option>
-                                <option value="MovieShort">Movie Short</option>
-                                <option value="Manga">Manga</option>
-                                <option value="Book">Book</option>
-                                <option value="Game">Game</option>
-                                <option value="Song">Song</option>
-                                <option value="BoardGame">BoardGame</option>
-                                <option value="Picture">Picture</option>
-                                <option value="Meme">Meme</option>
-                                <option value="Collection">Collection</option>
-                            </select>
-                            <div class="flex column">
-                                <input type="text" name="tags" placeholder="tags (',' seperated)">
-                                <input type="number" step="0.01" name="price-gt" placeholder="price ⬆">
-                                <input type="number" step="0.01" name="price-lt" placeholder="price ⬇">
-                                <input type="number" name="rating-gt" step="0.01" placeholder="rating ⬆">
-                                <input type="number" name="rating-lt" step="0.01" placeholder="rating ⬇">
-                            </div>
-                        </div>
-                        <button class="close" tabindex="0" type="button" popovertarget="advanced-search">X</button>
-                    </div>
-                </dialog>
                 <input type="submit" value="sort'n'search">
             </form>
             <nav class="sidebar overflow">

@@ -282,9 +282,8 @@ async function doQuery2(form) {
         ">": "<=",
         "<": ">=",
         "=": "!=",
-        ":": "!=",
         "~": "!~",
-        "&": "!&"
+        "^": "!^"
     }
 
     let operator2Name = {
@@ -293,12 +292,11 @@ async function doQuery2(form) {
         "<=": "LE",
         ">=": "GE",
         "=": "EQ",
-        ":": "EQ",
         "!=": "NE",
         "~": "LIKE",
         "!~": "NOTLIKE",
-        "&": "IN",
-        "!&": "NOTIN"
+        "^": "IN",
+        "!^": "NOTIN"
     }
     //sort by length because the longer ops need to be tested first
     //they need to be tested first because of a scenario such as:
@@ -335,6 +333,19 @@ async function doQuery2(form) {
                     property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
                     break
                 }
+            }
+
+            if(property === "format") {
+                let formats = []
+                for(let format of value.split(":")) {
+                    if(isNaN(Number(format))) {
+                        formats.push(nameToFormat(format))
+                    }
+                    else {
+                        formats.push(format)
+                    }
+                }
+                value = formats.join(":")
             }
 
             names.push(property)
