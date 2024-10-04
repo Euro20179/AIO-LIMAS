@@ -69,7 +69,7 @@ Basic documentation can be found at `/docs`
 - [ ] steam account linking
 - [x] image media type
     - [ ] when fetching metadata, use ai to generate a description of the image
-- [ ] search by description
+- [x] search by description
 - [x] disable ACCOUNT_NUMBER by default
 - [ ] documentation
     - [x] webservice
@@ -78,7 +78,6 @@ Basic documentation can be found at `/docs`
     - [x] info
     - [ ] meta
     - [ ] user
-    - do this by letting the user click on a button that opens an editable table basically
 - [ ] info mode
 - [ ] proper search parser
 - [ ] collection stat calculation modifier
