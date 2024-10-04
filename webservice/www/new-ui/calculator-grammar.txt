@@ -10,11 +10,11 @@ product    : signed-atom (("*"|"/") product)*
 
 arithmatic : product (("+"|"-") arithmatic)*
 
-var-def    : "var" WORD "=" expr
+func-def   : "var()" WORD "=" program "rav"
 
-func-def   : "var()" WORD "=" program
+var-def    : ("var" WORD "=" expr) | func-def
 
-definitions: var-def | func-def
+definitions: var-def
 
 expr       : definitions | arithmatic
 

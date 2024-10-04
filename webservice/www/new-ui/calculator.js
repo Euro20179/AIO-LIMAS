@@ -127,6 +127,20 @@ class VarDefNode extends NodePar {
     }
 }
 
+class FuncDefNode extends NodePar {
+    /**
+     * @param {Token} name
+     * @param {ProgramNode} program
+     */
+    constructor(name, program) {
+        super()
+        this.name = name
+        this.program = program
+        this.closure = new SymbolTable()
+    }
+}
+
+
 class CallNode extends NodePar {
     /**
      * @param {Token} name
@@ -387,6 +401,10 @@ class Parser {
     varDef() {
         this.next() // skip "var"
 
+        if(this.curTok().ty === "Lparen") {
+            return this.funcDef()
+        }
+
         let name = this.curTok()
 
         this.next()
@@ -396,6 +414,26 @@ class Parser {
         }
         this.next()
         return new VarDefNode(name, this.ast_expr())
+    }
+
+    funcDef() {
+        this.next() //skip "("
+        this.next() //skip ")"
+
+        let name = this.curTok()
+        this.next()
+        if(this.curTok()?.ty !== "Eq") {
+            console.error("Expected '='")
+            return new NumNode(0)
+        }
+        this.next()
+        let program = this.program()
+        if(this.curTok().ty !== "Word" || this.curTok().value !== "rav") {
+            console.error("Expected 'rav'")
+            return new NumNode(0)
+        }
+        this.next()
+        return new FuncDefNode(name, program)
     }
 
     ast_expr() {
@@ -634,6 +672,14 @@ class SymbolTable {
     get(name) {
         return this.symbols.get(name)
     }
+
+    copy() {
+        let copy = new SymbolTable()
+        for(let item of this.symbols.entries()) {
+            copy.set(item[0], item[1])
+        }
+        return copy
+    }
 }
 
 class Interpreter {
@@ -720,7 +766,6 @@ class Interpreter {
         let inner = node.inner.map(v => this.interpretNode(v))
         let name = node.name
         let value = this.symbolTable.get(name.value)
-        console.log(name, value)
         if (!value) {
             return new Num(0)
         }
@@ -734,6 +779,23 @@ class Interpreter {
         let val = this.interpretNode(node.expr)
         this.symbolTable.set(node.name.value, val)
         return val
+    }
+
+    /**
+     * @param {FuncDefNode} node
+     */
+    FuncDefNode(node) {
+        node.closure = this.symbolTable.copy()
+
+        this.symbolTable.set(node.name.value, new Func((...items) => {
+            for(let i = 0; i < items.length; i++) {
+                node.closure.set(`arg${i}`, items[i])
+            }
+            let interpreter = new Interpreter(node.program, node.closure)
+            return interpreter.interpretNode(node.program)
+        }))
+
+        return this.symbolTable.get(node.name.value)
     }
 
     /**
