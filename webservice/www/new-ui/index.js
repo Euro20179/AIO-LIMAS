@@ -7,7 +7,7 @@
 //the stats of the collection will be the stats of itself + stats of children
 //eg: the total cost
 //
-//TODO: info mode
+//TODO: calc mode
 //in info mode, the user can type an expression (similar to an excel sheet)
 //and for each selected item it will display the result of that expression
 //each item can be simply rendered as it's title + thumbnail probably in a box

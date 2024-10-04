@@ -1,0 +1,9 @@
+atom: NUMBER | WORD | "(" expr ")"
+
+signed-atom: ("+"|"-") atom
+
+product: signed-atom (("*"|"/") product)*
+
+arithmatic: product (("+"|"-") arithmatic)*
+
+expr: arithmatic
