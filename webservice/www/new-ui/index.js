@@ -11,6 +11,11 @@
 //TODO: add negated searches,
 //eg: -format:digital
 //this will exclude all results that have format digital
+//
+//TODO: info mode
+//in info mode, the user can type an expression (similar to an excel sheet)
+//and for each selected item it will display the result of that expression
+//each item can be simply rendered as it's title + thumbnail probably in a box
 
 
 /**
