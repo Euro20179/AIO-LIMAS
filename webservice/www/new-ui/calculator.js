@@ -1,6 +1,7 @@
 const TT = {
     Num: "NUM",
     Word: "WORD",
+    String: "STRING",
     Add: "+",
     Sub: "-",
     Mul: "*",
@@ -61,6 +62,16 @@ class WordNode extends NodePar {
     }
 }
 
+class StringNode extends NodePar {
+    /**
+     * @param {string} value
+     */
+    constructor(value) {
+        super()
+        this.value = value
+    }
+}
+
 class ErrorNode extends NodePar {
     /**
      * @param {string} value
@@ -101,12 +112,13 @@ class ExprNode extends NodePar { }
 
 /**
 * @param {string} input
+* @param {SymbolTable} symbols
 */
-function parseExpression(input) {
+function parseExpression(input, symbols) {
     const tokens = lex(input);
     let parser = new Parser(tokens)
     const tree = parser.ast()
-    let int = new Interpreter(tree, new SymbolTable())
+    let int = new Interpreter(tree, symbols)
     let values = int.interpret()
     return values
     // return ast(tokens);
@@ -132,10 +144,39 @@ function buildNumber(text, curPos) {
  */
 function buildWord(text, curPos) {
     let word = text[curPos]
-    while (text[++curPos]?.match(/[a-zA-Z0-9]/)) {
+    while (text[++curPos]?.match(/[a-zA-Z0-9_]/)) {
         word += text[curPos]
     }
     return [word, curPos]
+}
+
+/**
+ * @param {string} text
+ * @param {number} curPos
+ * @returns {[string, number]}
+ */
+function buildString(text, curPos) {
+    let str = text[curPos]
+    let escaped = false
+    for(let i = curPos + 1; i < text.length; i++) {
+        let ch = text[i]
+        if(ch === "\\") {
+            escaped = true
+            continue
+        }
+        if(escaped) {
+            switch(ch) {
+                case 'n': ch = "\n"; break
+                case 't': ch = "\t"; break
+                case '\\': ch = '\\'; break
+                default: ch = "\\" + ch
+            }
+        } else if(ch === '"') {
+            break
+        }
+        str += ch
+    }
+    return [str, curPos + str.length + 1]
 }
 
 /**
@@ -154,7 +195,7 @@ function lex(input) {
             tokens.push(new Token("Num", num));
             pos = newPos
         }
-        else if (ch.match(/[a-zA-Z]/)) {
+        else if (ch.match(/[a-zA-Z_]/)) {
             let [word, newPos] = buildWord(input, pos)
             tokens.push(new Token("Word", word))
             pos = newPos
@@ -163,6 +204,12 @@ function lex(input) {
         else if (!ch.trim()) {
             pos++
             continue
+        }
+        else if(ch === '"') {
+            pos++
+            let [str, newPos] = buildString(input, pos)
+            pos = newPos
+            tokens.push(new Token("String", str))
         }
         else {
             let foundTok = false
@@ -220,6 +267,8 @@ class Parser {
             return new NumNode(Number(tok.value))
         } else if (tok.ty === "Word") {
             return new WordNode(tok.value)
+        } else if (tok.ty === "String") {
+            return new StringNode(tok.value)
         } else if (tok.ty === "Lparen") {
             let node = this.ast_expr()
             this.next() //skip Rparen
@@ -399,7 +448,7 @@ class Str extends Type {
      * @param {Type} right
      */
     sub(right) {
-        this.jsValue = this.jsValue.replaceAll(String(right.jsValue))
+        this.jsValue = this.jsValue.replaceAll(String(right.jsValue), "")
         return this
     }    
     /**
@@ -450,11 +499,18 @@ class Interpreter {
     /**
     * @param {WordNode} node
     */
+    StringNode(node) {
+        return new Str(node.value)
+    }
+
+    /**
+    * @param {WordNode} node
+    */
     WordNode(node) {
         if (this.symbolTable.get(node.value)) {
             return this.symbolTable.get(node.value)
         }
-        return node.value
+        return new Str(node.value)
     }
 
     /**
@@ -473,8 +529,8 @@ class Interpreter {
      * @param {BinOpNode} node
      */
     BinOpNode(node) {
-        let right = this.interpretNode(node.right)
         let left = this.interpretNode(node.left)
+        let right = this.interpretNode(node.right)
 
         if(node.operator.ty === "Add") {
             return left.add(right)

@@ -106,7 +106,13 @@
                     <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
                     <button class="view-toggle"></button>
                 </div>
-                <div id="entry-output" class="overflow">
+                <div id="entry-output" class="overflow"> </div>
+                <div id="calc-output" class="overflow">
+                    <div class="flex row">
+                        <textarea id="calc-expression" style="flex-grow: 1" placeholer="expression"></textarea>
+                        <button onclick="sortCalcDisplay()">Sort</button>
+                    </div>
+                    <div id="calc-items"></div>
                 </div>
                 <div id="graph-output" class="overflow">
                     <form action="javascript:void()">
@@ -182,9 +188,11 @@
         </dialog>
         <div class="root">
             <div class="grid column">
-                <button class="close" onclick="displayEntryClose(this)" title="remove item from inspection area">X</button>
+                <button class="close" onclick="displayEntryClose(this)"
+                    title="remove item from inspection area">X</button>
                 <button class="save" onclick="displayEntrySave(this)" title="save any manual changes">💾︎</button>
-                <button class="copy-to" onclick="displayEntryCopyTo(this)" title="copy user info to another item">➡</button>
+                <button class="copy-to" onclick="displayEntryCopyTo(this)"
+                    title="copy user info to another item">➡</button>
                 <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
                 <!-- <button class="identify" title="identify item" popovertarget="identify-items">ℹ</button> -->
                 <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
@@ -207,7 +215,8 @@
                 <figure class="entry-progress">
                     <div class="viewing">
                         <span class="view-count" onclick="displayEntryViewCount(this)"></span>
-                        <progress onclick="displayEntryProgress(this)" class="entry-progress" min="0" value="0"></progress>
+                        <progress onclick="displayEntryProgress(this)" class="entry-progress" min="0"
+                            value="0"></progress>
                         <figcaption></figcaption>
                     </div>
                 </figure>
@@ -251,6 +260,7 @@
             </section>
         </div>
     </template>
+
     <template id="sidebar-entry">
         <!--TODO: display tags in little tag bubble thingies, also display tags in display entry somewhere-->
         <style>
@@ -264,6 +274,19 @@
             </figure>
         </div>
     </template>
+
+    <template id="calc-entry">
+        <style>
+            @import "/new-ui/templates/calc-entry.css"
+        </style>
+
+        <div class="root">
+            <h3 class="name"></h3>
+            <img class="thumbnail">
+            <div class="expression-output"></div>
+        </div>
+    </template>
+
     <script>
         location.hash ||= "entry-output"
     </script>
@@ -274,6 +297,7 @@
     <script src="/js/api.js"></script>
     <script src="/new-ui/view-modes/graph.js"></script>
     <script src="/new-ui/view-modes/displayEntry.js"></script>
+    <script src="/new-ui/view-modes/calc.js"></script>
     <script src="/new-ui/index.js"></script>
 </body>
 

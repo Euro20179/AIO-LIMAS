@@ -77,6 +77,6 @@ Basic documentation can be found at `/docs`
     - [x] info
     - [ ] meta
     - [ ] user
-- [ ] calc mode
+- [x] calc mode
 - [ ] proper search parser
 - [ ] collection stat calculation modifier

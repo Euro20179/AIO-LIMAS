@@ -177,11 +177,11 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-user-rating"](val) {
         let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".rating"))
-        if (val && ratingE){
+        if (val && ratingE) {
             let rating = Number(val)
             applyUserRating(rating, ratingE)
             ratingE.innerHTML = val
-        } else if(ratingE){
+        } else if (ratingE) {
             ratingE.innerText = "Unrated"
         }
     }
@@ -200,7 +200,7 @@ customElements.define("display-entry", class extends HTMLElement {
             }
             applyUserRating(normalizedRating, ratingE)
             ratingE.innerHTML = val
-        } else if(ratingE){
+        } else if (ratingE) {
             ratingE.innerText = "Unrated"
         }
     }
@@ -229,7 +229,7 @@ customElements.define("display-entry", class extends HTMLElement {
 
         progress.title = `${val}`
 
-        if(progress.max) {
+        if (progress.max) {
             progress.title = `${val}/${progress.max}`
         }
     }
@@ -335,7 +335,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
      */
     ["data-thumbnail-src"](val) {
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        if(imgEl.src === val) return
+        if (imgEl.src === val) return
         imgEl.src = String(val)
     }
 
@@ -354,7 +354,7 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         if (ratingA) {
             let rating = Number(ratingA)
             let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".rating"))
-            if(ratingE) {
+            if (ratingE) {
                 applyUserRating(rating, ratingE)
                 ratingE.innerHTML = ratingA
             }
@@ -406,5 +406,32 @@ customElements.define("entries-statistic", class extends HTMLElement {
     attributeChangedCallback(name, ov, nv) {
         if (name != "data-value") return
         this.innerText = String(Math.round(Number(nv) * 100) / 100)
+    }
+})
+
+customElements.define("calc-entry", class extends HTMLElement {
+    static observedAttributes = ["data-expression-output"]
+
+    constructor() {
+        super()
+        let template = /**@type {HTMLTemplateElement}*/(document.getElementById("calc-entry"))
+        let content = /**@type {HTMLElement}*/(template.content.cloneNode(true))
+        let root = this.attachShadow({ mode: "open" })
+        root.appendChild(content)
+        this.root = root
+
+    }
+
+    /**
+     * @param {string} name
+     * @param {string} ov
+     * @param {string} nv
+     */
+    attributeChangedCallback(name, ov, nv) {
+        if(name !== "data-expression-output") return
+        
+        let el = this.root.querySelector(".expression-output")
+        if(!el) return
+        el.innerHTML = nv
     }
 })

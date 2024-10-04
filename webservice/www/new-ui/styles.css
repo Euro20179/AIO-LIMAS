@@ -21,7 +21,7 @@
         margin: 0;
     }
 
-    :is(#entry-output, #graph-output) {
+    :is(#entry-output, #graph-output, #calc-output) {
         &:target {
             display: inherit;
         }
@@ -41,6 +41,10 @@
 
     :has(:where(#graph-output:target)) .view-toggle::before {
         content: "entry view";
+    }
+
+    :has(:where(#calc-output:target)) .view-toggle::before {
+        content: "calc view"
     }
 
     #main {
@@ -96,7 +100,7 @@
         display: flex;
         flex-wrap: wrap;
 
-        [name="search-query"]{
+        [name="search-query"] {
             flex-grow: 1
         }
 
@@ -179,6 +183,22 @@
                 position: sticky;
                 top: 0;
                 float: right;
+            }
+        }
+
+        #calc-output:target {
+            width: 100%;
+            height: 100%;
+
+            display: grid;
+            grid-template-areas:
+                "input"
+                "output";
+            grid-template-rows: min-content 1fr;
+
+            #calc-items {
+                display: flex;
+                flex-wrap: wrap;
             }
         }
 
