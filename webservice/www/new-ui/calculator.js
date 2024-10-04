@@ -8,7 +8,14 @@ const TT = {
     Div: "/",
     Lparen: "(",
     Rparen: ")",
+    Comma: ",",
+    Semi: ";",
+    Eq: "=",
 }
+
+const keywords = [
+    "var"
+]
 
 class Token {
     /**
@@ -108,7 +115,41 @@ class BinOpNode extends NodePar {
     }
 }
 
-class ExprNode extends NodePar { }
+class VarDefNode extends NodePar {
+    /**
+     * @param {Token} name
+     * @param {NodePar} expr
+     */
+    constructor(name, expr) {
+        super()
+        this.name = name
+        this.expr = expr
+    }
+}
+
+class CallNode extends NodePar {
+    /**
+     * @param {Token} name
+     * @param {NodePar[]} inner
+     */
+    constructor(name, inner) {
+        super()
+        this.name = name
+        this.inner = inner
+    }
+}
+
+class ExprNode extends NodePar {
+    /**
+     * @param {NodePar} value
+     */
+    constructor(value) {
+        super()
+        this.value = value
+    }
+}
+
+class ProgramNode extends NodePar { }
 
 /**
 * @param {string} input
@@ -158,20 +199,20 @@ function buildWord(text, curPos) {
 function buildString(text, curPos) {
     let str = text[curPos]
     let escaped = false
-    for(let i = curPos + 1; i < text.length; i++) {
+    for (let i = curPos + 1; i < text.length; i++) {
         let ch = text[i]
-        if(ch === "\\") {
+        if (ch === "\\") {
             escaped = true
             continue
         }
-        if(escaped) {
-            switch(ch) {
+        if (escaped) {
+            switch (ch) {
                 case 'n': ch = "\n"; break
                 case 't': ch = "\t"; break
                 case '\\': ch = '\\'; break
                 default: ch = "\\" + ch
             }
-        } else if(ch === '"') {
+        } else if (ch === '"') {
             break
         }
         str += ch
@@ -205,7 +246,7 @@ function lex(input) {
             pos++
             continue
         }
-        else if(ch === '"') {
+        else if (ch === '"') {
             pos++
             let [str, newPos] = buildString(input, pos)
             pos = newPos
@@ -266,6 +307,10 @@ class Parser {
         if (tok.ty === "Num") {
             return new NumNode(Number(tok.value))
         } else if (tok.ty === "Word") {
+            if (this.curTok()?.ty === "Lparen") {
+                this.back() //let funcCall get the name
+                return this.funcCall()
+            }
             return new WordNode(tok.value)
         } else if (tok.ty === "String") {
             return new StringNode(tok.value)
@@ -314,17 +359,67 @@ class Parser {
         return left
     }
 
+    funcCall() {
+        let name = this.curTok()
+        this.next() //skip Lparen
+        this.next()
+        if (this.curTok().ty === 'Rparen') {
+            this.next()
+            return new CallNode(name, [])
+        }
+        let inner = [this.ast_expr()]
+        while (this.curTok()?.ty === "Comma") {
+            this.next()
+            inner.push(this.ast_expr())
+        }
+        let node = new CallNode(name, inner)
+        if (this.curTok()?.ty !== 'Rparen') {
+            console.error(`Invalid token: ${this.curTok().ty}, expected ")"`)
+            return new NumNode(0)
+        }
+        this.next() //skip ")"
+        return node
+    }
+
+    /**
+     * @returns {NodePar}
+     */
+    varDef() {
+        this.next() // skip "var"
+
+        let name = this.curTok()
+
+        this.next()
+        if(this.curTok()?.ty !== "Eq") {
+            console.error("Expected '='")
+            return new NumNode(0)
+        }
+        this.next()
+        return new VarDefNode(name, this.ast_expr())
+    }
+
     ast_expr() {
-        let expr = new ExprNode()
-
-        expr.addChild(this.arithmatic())
-
+        let t = this.curTok()
+        if(t.ty === "Word" && t.value === "var") {
+            return this.varDef()
+        }
+        let expr = new ExprNode(this.arithmatic())
         return expr
+    }
+
+    program() {
+        let program = new ProgramNode()
+        program.addChild(this.ast_expr())
+        while (this.curTok()?.ty === "Semi") {
+            this.next()
+            program.addChild(this.ast_expr())
+        }
+        return program
     }
 
     ast() {
         let root = new NodePar()
-        let node = this.ast_expr()
+        let node = this.program()
         root.addChild(node)
 
         return node;
@@ -339,33 +434,45 @@ class Type {
         this.jsValue = jsValue
     }
 
+    jsStr() {
+        return String(this.jsValue)
+    }
+
+    toStr() {
+        return new Str(this.jsStr())
+    }
+
+    toNum() {
+        return new Num(Number(this.jsValue))
+    }
+
     /**
      * @param {Type} right
      */
     add(right) {
         console.error(`Unable to add ${this.constructor.name} and ${right.constructor.name}`)
-        return this
+        return right
     }
     /**
      * @param {Type} right
      */
     sub(right) {
         console.error(`Unable to add ${this.constructor.name} and ${right.constructor.name}`)
-        return this
+        return right
     }
     /**
      * @param {Type} right
      */
     mul(right) {
         console.error(`Unable to add ${this.constructor.name} and ${right.constructor.name}`)
-        return this
+        return right
     }
     /**
      * @param {Type} right
      */
     div(right) {
         console.error(`Unable to add ${this.constructor.name} and ${right.constructor.name}`)
-        return this
+        return right
     }
 
     /**
@@ -383,6 +490,22 @@ class Type {
         console.error(`Unable to compare ${this.constructor.name} > ${right.constructor.name}`)
         return false
     }
+
+    /**
+     * @param {Type[]} params
+     */
+    call(params) {
+        console.error(`Cannot call ${this.constructor.name}`)
+    }
+}
+
+class Func extends Type {
+    /**
+     * @param {Type[]} params
+     */
+    call(params) {
+        return this.jsValue(...params)
+    }
 }
 
 class Num extends Type {
@@ -390,39 +513,35 @@ class Num extends Type {
      * @param {Type} right
      */
     add(right) {
-        this.jsValue += Number(right.jsValue)
-        return this
+        return new Num(this.jsValue + right.toNum().jsValue)
     }
 
     /**
      * @param {Type} right
      */
     sub(right) {
-        this.jsValue -= Number(right.jsValue)
-        return this
+        return new Num(this.jsValue - right.toNum().jsValue)
     }
 
     /**
      * @param {Type} right
      */
     mul(right) {
-        this.jsValue *= Number(right.jsValue)
-        return this
+        return new Num(this.jsValue * right.toNum().jsValue)
     }
 
     /**
      * @param {Type} right
      */
     div(right) {
-        this.jsValue /= Number(right.jsValue)
-        return this
+        return new Num(this.jsValue / right.toNum().jsValue)
     }
 
     /**
      * @param {Type} right
      */
     lt(right) {
-        if(this.jsValue < Number(right.jsValue)) {
+        if (this.jsValue < Number(right.jsValue)) {
             return true
         }
         return false
@@ -433,7 +552,11 @@ class Num extends Type {
      */
     gt(right) {
         return this.jsValue > Number(right.jsValue)
-    }    
+    }
+
+    toNum() {
+        return this
+    }
 }
 
 class Str extends Type {
@@ -450,19 +573,53 @@ class Str extends Type {
     sub(right) {
         this.jsValue = this.jsValue.replaceAll(String(right.jsValue), "")
         return this
-    }    
+    }
     /**
      * @param {Type} right
      */
     mul(right) {
         this.jsValue = this.jsValue.repeat(Number(right.jsValue))
         return this
-    }    
+    }
+}
+
+class List extends Type {
+
+    jsStr() {
+        let str = ""
+        for (let item of this.jsValue) {
+            str += item.jsStr() + ","
+        }
+        return str.slice(0, -1)
+    }
+
 }
 
 class SymbolTable {
     constructor() {
         this.symbols = new Map()
+
+        this.setupDefaultFunctions()
+    }
+    setupDefaultFunctions() {
+        //@ts-ignore
+        this.symbols.set("abs", new Func(n => {
+            return new Num(Math.abs(n.toNum().jsValue))
+        }))
+
+        this.symbols.set("str", new Func(n => {
+            return n.toStr()
+        }))
+
+        this.symbols.set("max", new Func((...items) => {
+            let max = items[0].toNum()
+            for(let item of items) {
+                if (item.toNum().jsValue > max.jsValue) {
+                    max = item
+                }
+            }
+            return max
+        }))
     }
     /**
      * @param {string} name
@@ -518,7 +675,7 @@ class Interpreter {
      */
     UnOpNode(node) {
         let right = this.interpretNode(node.right)
-        if(node.operator.ty === "Add") {
+        if (node.operator.ty === "Add") {
             return right
         } else {
             return right.mul(new Num(-1))
@@ -532,13 +689,13 @@ class Interpreter {
         let left = this.interpretNode(node.left)
         let right = this.interpretNode(node.right)
 
-        if(node.operator.ty === "Add") {
+        if (node.operator.ty === "Add") {
             return left.add(right)
-        } else if(node.operator.ty === "Sub") {
+        } else if (node.operator.ty === "Sub") {
             return left.sub(right)
-        } else if(node.operator.ty === "Mul") {
+        } else if (node.operator.ty === "Mul") {
             return left.mul(right)
-        } else if(node.operator.ty === "Div") {
+        } else if (node.operator.ty === "Div") {
             return left.div(right)
         }
         return right
@@ -555,20 +712,53 @@ class Interpreter {
     }
 
     /**
+     * @param {CallNode} node
+     *
+     * @returns {Type}
+     */
+    CallNode(node) {
+        let inner = node.inner.map(v => this.interpretNode(v))
+        let name = node.name
+        let value = this.symbolTable.get(name.value)
+        console.log(name, value)
+        if (!value) {
+            return new Num(0)
+        }
+        return value.call(inner)
+    }
+
+    /**
+     * @param {VarDefNode} node
+     */
+    VarDefNode(node) {
+        let val = this.interpretNode(node.expr)
+        this.symbolTable.set(node.name.value, val)
+        return val
+    }
+
+    /**
      * @param {ExprNode} node
      */
     ExprNode(node) {
-        for(let child of node.children) {
-            if(!(child.constructor.name in this)) {
+        return this.interpretNode(node.value)
+    }
+
+    /**
+    * @param {ProgramNode} node
+    */
+    ProgramNode(node) {
+        let values = []
+        for (let child of node.children) {
+            if (!(child.constructor.name in this)) {
                 console.error(`Unimplmemented: ${child.constructor.name}`)
             } else {
-                return this.interpretNode(child)
+                values.push(this.interpretNode(child))
             }
         }
-        return new Num(0)
+        return values.slice(-1)[0]
     }
 
     interpret() {
-        return this.ExprNode(this.tree)
+        return this.interpretNode(this.tree)
     }
 }

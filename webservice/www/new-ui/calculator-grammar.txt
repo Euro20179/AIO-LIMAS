@@ -1,9 +1,24 @@
-atom: NUMBER | WORD | "(" expr ")"
+--------- Expressions ---------
+
+func-call  : WORD"(" (expr ",")* ")"
+
+atom       : NUMBER | WORD | "(" expr ")" | func-call
 
 signed-atom: ("+"|"-") atom
 
-product: signed-atom (("*"|"/") product)*
+product    : signed-atom (("*"|"/") product)*
 
-arithmatic: product (("+"|"-") arithmatic)*
+arithmatic : product (("+"|"-") arithmatic)*
 
-expr: arithmatic
+var-def    : "var" WORD "=" expr
+
+func-def   : "var()" WORD "=" program
+
+definitions: var-def | func-def
+
+expr       : definitions | arithmatic
+
+------------------------------
+
+
+program: (expr ";")*

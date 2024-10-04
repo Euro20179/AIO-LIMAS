@@ -34,7 +34,7 @@ expressionInput.onchange = function() {
     for (let entry of globalsNewUi.selectedEntries) {
         let val = updateExpressionOutput(entry)
         let el = calcItems.querySelector(`[data-item-id="${entry.ItemId}"]`)
-        el?.setAttribute("data-expression-output", String(val.jsValue))
+        el?.setAttribute("data-expression-output", val.jsStr())
     }
 }
 
@@ -62,7 +62,7 @@ function updateExpressionOutput(item) {
                 t = new Num(val)
                 break
             case "bigint":
-                t = new Num(val)
+                t = new Num(Number(val))
                 break
             case "boolean":
                 t = new Num(Number(val))
@@ -115,7 +115,7 @@ function renderCalcItem(item, parent = calcItems) {
         img.src = meta?.Thumbnail
     }
     parent.append(el)
-    el.setAttribute("data-expression-output", String(val.jsValue))
+    el.setAttribute("data-expression-output", String(val.jsStr()))
     el.setAttribute("data-item-id", String(item.ItemId))
 }
 
