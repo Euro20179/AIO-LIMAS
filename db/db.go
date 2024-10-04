@@ -518,15 +518,16 @@ func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
 type DataChecker int
 
 const (
-	DATA_GT    DataChecker = iota
-	DATA_LT    DataChecker = iota
-	DATA_LE    DataChecker = iota
-	DATA_GE    DataChecker = iota
-	DATA_EQ    DataChecker = iota
-	DATA_NE    DataChecker = iota
-	DATA_LIKE  DataChecker = iota
-	DATA_IN    DataChecker = iota
-	DATA_NOTIN DataChecker = iota
+	DATA_GT      DataChecker = iota
+	DATA_LT      DataChecker = iota
+	DATA_LE      DataChecker = iota
+	DATA_GE      DataChecker = iota
+	DATA_EQ      DataChecker = iota
+	DATA_NE      DataChecker = iota
+	DATA_LIKE    DataChecker = iota
+	DATA_IN      DataChecker = iota
+	DATA_NOTIN   DataChecker = iota
+	DATA_NOTLIKE DataChecker = iota
 )
 
 func Str2DataChecker(in string) DataChecker {
@@ -549,6 +550,8 @@ func Str2DataChecker(in string) DataChecker {
 		return DATA_IN
 	case "NOTIN":
 		return DATA_NOTIN
+	case "NOTLIKE":
+		return DATA_NOTLIKE
 	}
 	return DATA_EQ
 }
@@ -595,6 +598,8 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 			queries = append(queries, query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...))
 		case DATA_LIKE:
 			queries = append(queries, query.Like(name, value))
+		case DATA_NOTLIKE:
+			queries = append(queries, query.NotLike(name, value))
 		}
 	}
 

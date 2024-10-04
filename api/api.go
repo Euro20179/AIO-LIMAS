@@ -332,6 +332,7 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	results, err := db.Search2(query)
 	if err != nil{
+		println(err.Error())
 		wError(w, 500, "Could not complete search\n%s", err.Error())
 		return
 	}

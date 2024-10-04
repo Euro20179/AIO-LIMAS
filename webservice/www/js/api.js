@@ -121,48 +121,13 @@ async function loadList(endpoint) {
 }
 
 /**
- * @param {DBQuery} search
- * @returns {Promise<InfoEntry[]>}
+ * @param {[string[], string[], string[]]} search
  */
-async function loadQueriedEntries(search) {
-    let queryString = "?_"
-    if (search.title) {
-        queryString += `&title=${encodeURIComponent(search.title)}`
-    }
-    if (search.format && search.format?.[0] != -1) {
-        queryString += `&formats=${encodeURIComponent(search.format.join(","))}`
-    }
-    if (search.type) {
-        queryString += `&types=${encodeURIComponent(search.type)}`
-    }
-    if (search.tags) {
-        queryString += `&tags=${encodeURIComponent(search.tags)}`
-    }
-    if (search.status) {
-        queryString += `&user-status=${encodeURIComponent(search.status)}`
-    }
-    if (search.userRatingGt) {
-        queryString += `&user-rating-gt=${encodeURIComponent(String(search.userRatingGt))}`
-    }
-    if (search.userRatingLt) {
-        queryString += `&user-rating-lt=${encodeURIComponent(String(search.userRatingLt))}`
-    }
-    if (search.isAnime) {
-        queryString += `&is-anime=${Number(search.isAnime) + 1}`
-    }
-    if (search.purchasePriceGt) {
-        queryString += `&purchase-gt=${encodeURIComponent(String(search.purchasePriceGt))}`
-    }
-    if (search.purchasePriceLt) {
-        queryString += `&purchase-lt=${encodeURIComponent(String(search.purchasePriceLt))}`
-    }
-    if (search.releasedGe) {
-        queryString += `&released-ge=${encodeURIComponent(String(search.releasedGe))}`
-    }
-    if (search.releasedLe) {
-        queryString += `&released-le=${encodeURIComponent(String(search.releasedLe))}`
-    }
-    const res = await fetch(`${apiPath}/query${queryString}`)
+async function loadQueriedEntries2(search) {
+    let names = encodeURIComponent(search[0].join(","))
+    let values = encodeURIComponent(search[1].join(","))
+    let checkers = encodeURIComponent(search[2].join(","))
+    const res = await fetch(`${apiPath}/query-v2?names=${names}&values=${values}&checkers=${checkers}`)
         .catch(console.error)
     if (!res) {
         alert("Could not query entries")
@@ -174,6 +139,7 @@ async function loadQueriedEntries(search) {
         .map(mkStrItemId)
         .map(parseJsonL)
     return jsonL
+
 }
 
 /**
@@ -306,96 +272,86 @@ async function updateThumbnail(id, thumbnail) {
 }
 
 /**
-* @param {HTMLFormElement} form
-*/
-async function doQuery(form) {
-
+ * @param {HTMLFormElement} form
+ */
+async function doQuery2(form) {
     let data = new FormData(form)
-    let status = /**@type {string[]}*/(data.getAll("status"))
-    let type = /**@type {string[]}*/(data.getAll("type"))
-    let format = /**@type {string[]}*/(data.getAll('format')).filter(n => n !== "")
-
     let search = /**@type {string}*/(data.get("search-query"))
 
-    let tags = /**@type {string[]}*/(data.getAll("tags"))
-
-    let pgt = /**@type {string}*/(data.get("price-gt"))
-    let plt = /**@type {string}*/(data.get("price-lt"))
-
-    let rgt = /**@type {string}*/(data.get("rating-gt"))
-    let rlt = /**@type {string}*/(data.get("rating-lt"))
-
-    let formatN = undefined
-    if (format.length) {
-        formatN = format.map(Number)
+    let operatorPairs = {
+        ">": "<=",
+        "<": ">=",
+        "=": "!=",
+        ":": "!=",
+        "~": "!~",
+        "&": "!&"
     }
 
-    //TODO:
-    //Add hasTags, notHasTags, and maybeHasTags
-    //allow the user to type #tag #!tag and #?tag in the search bar
-    /**@type {DBQuery}*/
-    let queryData = {
-        type: type.join(","),
-        format: formatN,
-        tags: tags.join(","),
-        purchasePriceGt: Number(pgt),
-        purchasePriceLt: Number(plt),
-        userRatingGt: Number(rgt),
-        userRatingLt: Number(rlt),
+    let operator2Name = {
+        ">": "GT",
+        "<": "LT",
+        "<=": "LE",
+        ">=": "GE",
+        "=": "EQ",
+        ":": "EQ",
+        "!=": "NE",
+        "~": "LIKE",
+        "!~": "NOTLIKE",
+        "&": "IN",
+        "!&": "NOTIN"
     }
-    if (status.length >= 1) {
-        queryData["status"] = status.join(",")
-    }
+    let operatorList = [...Object.keys(operator2Name)]
 
-    /**
-     * @type {Record<string, string | ((value: string) => Record<string, any>)>}
-     */
     let shortcuts = {
-        "r>": "userRatingGt",
-        "r<": "userRatingLt",
-        "p>": "purchasePriceGt",
-        "p<": "purchasePriceLt",
-        "y>=": "releasedGe",
-        "y<=": "releasedLe",
-        "y=": (value) => { return { "releasedGe": value, "releasedLe": value } },
-        "format:": value => {
-            let formats = []
-            for (let name of value.split(",")) {
-                formats.push(nameToFormat(name))
+        "r": "userRating",
+        "y": "releaseYear",
+        "p": "purchasePrice",
+    }
+
+    let words = search.split(" ")
+
+    let names = []
+    let values = []
+    let operators = []
+
+    for (let word of words) {
+        for (let op of operatorList) {
+            if(!word.includes(op)) continue
+            let [property, value] = word.split(op)
+
+            if(property.startsWith("-")) {
+                property = property.slice(1)
+                op = operatorPairs[/**@type {keyof typeof operatorPairs}*/(op)]
             }
-            return { "format": formats }
+
+            let opName = operator2Name[/**@type {keyof typeof operator2Name}*/(op)]
+
+            for(let shortcut in shortcuts) {
+                if(property === shortcut) {
+                    property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
+                    break
+                }
+            }
+
+            names.push(property)
+            values.push(value)
+            operators.push(opName)
+
+            search = search.replace(word, "")
+
+            break
         }
     }
 
-    for (let word of search.split(" ")) {
-        /**@type {string | ((value: string) => Record<string, string>)}*/
-        let property
-        let value
-        [property, value] = word.split(":")
-        for (let shortcut in shortcuts) {
-            if (word.startsWith(shortcut)) {
-                value = word.slice(shortcut.length)
-                //@ts-ignore
-                property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
-                break
-            }
-        }
-        if (!value) continue
-        if (typeof property === 'function') {
-            let res = property(value)
-            for (let key in res) {
-                //@ts-ignore
-                queryData[key] = res[key]
-            }
-        }
-        search = search.replace(word, "").trim()
-        //@ts-ignore
-        queryData[property] = value
+    search = search.trim()
+
+    if(search) {
+        names.push("entryInfo.en_title")
+        values.push(search)
+        operators.push("LIKE")
     }
 
-    queryData.title = search
-
-    return await loadQueriedEntries(queryData)
+    return await loadQueriedEntries2([names, values, operators])
 }
 
 /**
