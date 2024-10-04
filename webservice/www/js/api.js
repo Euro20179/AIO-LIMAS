@@ -300,7 +300,11 @@ async function doQuery2(form) {
         "&": "IN",
         "!&": "NOTIN"
     }
-    let operatorList = [...Object.keys(operator2Name)]
+    //sort by length because the longer ops need to be tested first
+    //they need to be tested first because of a scenario such as:
+    //userRating!=20, if = is tested first,
+    //it'll succeed but with the wrong property of userRating!
+    let operatorList = [...Object.keys(operator2Name).sort((a, b) => b.length - a.length)]
 
     let shortcuts = {
         "r": "userRating",
