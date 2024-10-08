@@ -40,11 +40,11 @@
     }
 
     :has(:where(#graph-output:target)) .view-toggle::before {
-        content: "entry view";
+        content: "calc view";
     }
 
     :has(:where(#calc-output:target)) .view-toggle::before {
-        content: "calc view"
+        content: "graph view"
     }
 
     #main {

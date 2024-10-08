@@ -658,6 +658,16 @@ class SymbolTable {
             }
             return max
         }))
+
+        this.symbols.set("min", new Func((...items) => {
+            let min = items[0].toNum()
+            for(let item of items) {
+                if(item.toNum().jsValue < min.jsValue) {
+                    min = item
+                }
+            }
+            return min
+        }))
     }
     /**
      * @param {string} name

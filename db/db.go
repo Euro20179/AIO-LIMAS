@@ -689,10 +689,7 @@ func DeleteEvent(id int64, timestamp int64, after int64) error {
 		WHERE 
 			itemId == ? and timestamp == ? and after == ?
 	`, id, timestamp, after)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func GetEvents(id int64) ([]UserViewingEvent, error) {

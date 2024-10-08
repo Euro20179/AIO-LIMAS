@@ -160,7 +160,7 @@ function clearItems() {
     globalsNewUi.selectedEntries = []
 }
 
-document.querySelector(".view-toggle")?.addEventListener("click", e => {
+document.querySelector(".view-toggle")?.addEventListener("click", _ => {
     mode.subList(globalsNewUi.selectedEntries)
 
     let curModeIdx = modes.indexOf(mode)

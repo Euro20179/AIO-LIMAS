@@ -102,15 +102,18 @@ function removecCalcItem(item) {
 function renderCalcItem(item, parent = calcItems) {
     let el = document.createElement("calc-entry")
 
+    let root = el.shadowRoot
+    if(!root) return
+
 
     let meta = findMetadataById(item.ItemId)
 
     let val = updateExpressionOutput(item)
 
-    let name = /**@type {HTMLElement}*/(el.shadowRoot.querySelector('.name'))
+    let name = /**@type {HTMLElement}*/(root.querySelector('.name'))
     name.innerText = item.En_Title
 
-    let img = /**@type {HTMLImageElement}*/(el.shadowRoot.querySelector(".thumbnail"))
+    let img = /**@type {HTMLImageElement}*/(root.querySelector(".thumbnail"))
     if (meta?.Thumbnail) {
         img.src = meta?.Thumbnail
     }

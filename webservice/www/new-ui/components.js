@@ -226,12 +226,15 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-user-current-position"](val) {
         let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector(".entry-progress progress"))
+        let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
 
         progress.title = `${val}`
 
         if (progress.max) {
             progress.title = `${val}/${progress.max}`
         }
+
+        caption.innerHTML = `${val}/${progress.max}`
     }
 
     /**

@@ -14,9 +14,7 @@ func-def   : "var()" WORD "=" program "rav"
 
 var-def    : ("var" WORD "=" expr) | func-def
 
-definitions: var-def
-
-expr       : definitions | arithmatic
+expr       : var-def | arithmatic
 
 ------------------------------
 

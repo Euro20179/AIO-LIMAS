@@ -180,6 +180,9 @@ div:has(> .close) {
     content: attr(data-type-icon) " ";
 }
 
+:host(display-entry):not([data-user-status="Viewing"]) figure.entry-progress figcaption {
+    display: none;
+}
 figure.entry-progress {
     justify-self: center;
     width: 25cqw;
@@ -191,10 +194,6 @@ figure.entry-progress {
 
     .view-count::after {
         content: " times"
-    }
-
-    &:not([data-user-status="Viewing"]) figcaption {
-        display: none;
     }
 
     figcaption {
