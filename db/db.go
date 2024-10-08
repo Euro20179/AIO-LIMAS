@@ -528,6 +528,8 @@ const (
 	DATA_IN      DataChecker = iota
 	DATA_NOTIN   DataChecker = iota
 	DATA_NOTLIKE DataChecker = iota
+	DATA_OR      DataChecker = iota
+	DATA_AND     DataChecker = iota
 )
 
 func Str2DataChecker(in string) DataChecker {
@@ -556,12 +558,77 @@ func Str2DataChecker(in string) DataChecker {
 	return DATA_EQ
 }
 
+type LogicType int
+
+const (
+	LOGIC_AND LogicType = iota
+	LOGIC_OR  LogicType = iota
+)
+
 type SearchData struct {
 	DataName  string
 	DataValue any
 	Checker   DataChecker
+	LogicType LogicType
 }
 type SearchQuery []SearchData
+
+func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) (string, string) {
+	name := searchData.DataName
+	value := searchData.DataValue
+	logicType := searchData.LogicType
+	if name == "" {
+		panic("Name cannot be empty when turning searchData into query")
+	}
+
+	logicFN := query.And
+	if logicType == LOGIC_OR {
+		logicFN = query.Or
+	}
+
+	exprFn := query.EQ
+
+	switch searchData.Checker {
+	case DATA_GT:
+		exprFn = query.GT
+	case DATA_GE:
+		exprFn = query.GE
+	case DATA_LT:
+		exprFn = query.LT
+	case DATA_LE:
+		exprFn = query.LE
+	case DATA_EQ:
+		exprFn = query.EQ
+	case DATA_NE:
+		exprFn = query.NE
+	case DATA_IN:
+		flattenedValue := []interface{}{
+			value,
+		}
+		exprFn = func(field string, value interface{}) string {
+			return query.In(name, sqlbuilder.Flatten(flattenedValue)...)
+		}
+	case DATA_NOTIN:
+		flattenedValue := []interface{}{
+			value,
+		}
+		exprFn = func(field string, value interface{}) string {
+			return query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...)
+		}
+	case DATA_LIKE:
+		exprFn = query.Like
+	case DATA_NOTLIKE:
+		exprFn = query.NotLike
+	}
+	newPrevious := exprFn(name, value)
+	var newExpr string
+	if previousExpr == "" {
+		newExpr = newPrevious
+	} else {
+		newExpr = logicFN(previousExpr, newPrevious)
+	}
+	return newPrevious, newExpr
+}
 
 func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
@@ -569,41 +636,18 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 
 	var queries []string
 
+	previousExpr := ""
+
 	for _, searchData := range searchQuery {
 		name := searchData.DataName
-		value := searchData.DataValue
 		if name == "" {
 			continue
 		}
 
-		switch searchData.Checker {
-		case DATA_GT:
-			queries = append(queries, query.GT(name, value))
-		case DATA_GE:
-			queries = append(queries, query.GE(name, value))
-		case DATA_LT:
-			queries = append(queries, query.LT(name, value))
-		case DATA_LE:
-			queries = append(queries, query.LE(name, value))
-		case DATA_EQ:
-			queries = append(queries, query.EQ(name, value))
-		case DATA_NE:
-			queries = append(queries, query.NE(name, value))
-		case DATA_IN:
-			flattenedValue := []interface{}{
-				value,
-			}
-			queries = append(queries, query.In(name, sqlbuilder.Flatten(flattenedValue)...))
-		case DATA_NOTIN:
-			flattenedValue := []interface{}{
-				value,
-			}
-			queries = append(queries, query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...))
-		case DATA_LIKE:
-			queries = append(queries, query.Like(name, value))
-		case DATA_NOTLIKE:
-			queries = append(queries, query.NotLike(name, value))
-		}
+		var newExpr string
+		previousExpr, newExpr = searchData2Query(query, previousExpr, searchData)
+
+		queries = append(queries, newExpr)
 	}
 
 	query = query.Where(queries...)

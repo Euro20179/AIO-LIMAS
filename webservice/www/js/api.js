@@ -336,6 +336,10 @@ async function doQuery2(data) {
             if(!word.includes(op)) continue
             let [property, value] = word.split(op)
 
+            if(property.startsWith("|")) {
+                property = property.slice(1)
+
+            }
             if(property.startsWith("-")) {
                 property = property.slice(1)
                 op = operatorPairs[/**@type {keyof typeof operatorPairs}*/(op)]
@@ -367,7 +371,7 @@ async function doQuery2(data) {
             values.push(value)
             operators.push(opName)
 
-            search = search.replace(word, "")
+            search = search.replace(word, "").trim()
 
             break
         }
