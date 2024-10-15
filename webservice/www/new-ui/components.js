@@ -54,6 +54,7 @@ customElements.define("display-entry", class extends HTMLElement {
         "data-audience-rating",
         "data-audience-rating-max",
         "data-info-raw",
+        "data-meta-info-raw",
         "data-user-status",
         "data-view-count",
         "data-media-dependant",
@@ -211,6 +212,14 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".info-raw"))
+        this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-meta-info-raw"](val) {
+        let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".meta-info-raw"))
         this.mkGenericTbl(infoRawTbl, JSON.parse(val))
     }
 
@@ -431,10 +440,10 @@ customElements.define("calc-entry", class extends HTMLElement {
      * @param {string} nv
      */
     attributeChangedCallback(name, ov, nv) {
-        if(name !== "data-expression-output") return
-        
+        if (name !== "data-expression-output") return
+
         let el = this.root.querySelector(".expression-output")
-        if(!el) return
+        if (!el) return
         el.innerHTML = nv
     }
 })

@@ -6,11 +6,6 @@
 //eg: if itself + children is selected
 //the stats of the collection will be the stats of itself + stats of children
 //eg: the total cost
-//
-//TODO: calc mode
-//in info mode, the user can type an expression (similar to an excel sheet)
-//and for each selected item it will display the result of that expression
-//each item can be simply rendered as it's title + thumbnail probably in a box
 
 
 /**
@@ -386,6 +381,8 @@ function saveItemChanges(root, item) {
 
     let infoTable = root.querySelector("table.info-raw")
 
+    //TODO: also save meta table
+
     for (let row of infoTable?.querySelectorAll("tr") || []) {
         let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
         let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
@@ -446,10 +443,10 @@ function deleteEntry(item) {
 
 
 /**
- * @param {ShadowRoot} root
+ * @param {ShadowRoot} _root
  * @param {InfoEntry} item
  */
-function overwriteEntryMetadata(root, item) {
+function overwriteEntryMetadata(_root, item) {
     if (!confirm("Are you sure you want to overwrite the metadata with a refresh")) {
         return
     }
@@ -504,6 +501,7 @@ function applyDisplayAttrs(item, user, meta, events, el) {
     }
 
     el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
+    el.setAttribute("data-meta-info-raw", JSON.stringify(meta, (_, v) => typeof v === 'bigint' ? v.toString() : v ))
 }
 
 /**
@@ -534,7 +532,7 @@ async function titleIdentification(provider, search, selectionElemOutput) {
             img.style.cursor = "pointer"
             img.width = 100
 
-            img.addEventListener("click", e => {
+            img.addEventListener("click", _e => {
                 selectionElemOutput.hidePopover()
                 RETURN(result.ItemId)
             })
@@ -634,10 +632,10 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
 
     let img = elem.shadowRoot?.querySelector("img")
     if (img) {
-        img.addEventListener("click", e => {
+        img.addEventListener("click", _e => {
             toggleItem(item)
         })
-        img.addEventListener("dblclick", e => {
+        img.addEventListener("dblclick", _e => {
             clearItems()
             selectItem(item, mode)
         })

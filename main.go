@@ -625,6 +625,24 @@ var (
 	}
 )
 
+func startServer() {
+	const apiRoot = "/api/v1"
+
+	// for db management type stuff
+	makeEndPointsFromList(apiRoot, mainEndpointList)
+	makeEndPointsFromList(apiRoot+"/type", typeEndpoints)
+	makeEndPointsFromList(apiRoot+"/metadata", metadataEndpointList)
+	makeEndPointsFromList(apiRoot+"/engagement", engagementEndpointList)
+	// For resources, such as entry thumbnails
+	makeEndPointsFromList(apiRoot+"/resource", resourceEndpointList)
+
+	http.HandleFunc("/", webservice.Root)
+
+	http.HandleFunc("/docs", DocHTML)
+
+	http.ListenAndServe(":8080", nil)
+}
+
 func main() {
 	aioPath := setupAIODir()
 	os.Setenv("AIO_DIR", aioPath)
@@ -636,33 +654,7 @@ func main() {
 
 	db.InitDb(*dbPathPtr)
 
-	const apiRoot = "/api/v1"
-
-	// for db management type stuff
-	makeEndPointsFromList(apiRoot, mainEndpointList)
-	makeEndPointsFromList(apiRoot+"/type", typeEndpoints)
-	makeEndPointsFromList(apiRoot+"/metadata", metadataEndpointList)
-	makeEndPointsFromList(apiRoot+"/engagement", engagementEndpointList)
-	// For resources, such as entry thumbnails
-	makeEndPointsFromList(apiRoot+"/resource", resourceEndpointList)
-
-	// arr, _ := db.Search2([]db.SearchData{
-	// 	{
-	// 		DataName:  "entryInfo.format",
-	// 		DataValue: []any{"2", db.F_BLURAY},
-	// 		Checker:   db.DATA_IN,
-	// 	},
-	// })
-	//
-	// for _, item := range arr {
-	// 	fmt.Printf("%+v\n", item)
-	// }
-	//
-	http.HandleFunc("/", webservice.Root)
-
-	http.HandleFunc("/docs", DocHTML)
-
-	http.ListenAndServe(":8080", nil)
+	startServer()
 }
 
 func DocHTML(w http.ResponseWriter, req *http.Request) {

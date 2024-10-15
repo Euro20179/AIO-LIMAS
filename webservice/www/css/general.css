@@ -34,6 +34,10 @@
         border-style: solid;
     }
 
+    summary {
+        cursor: pointer;
+    }
+
     button,
     textarea,
     input,
@@ -120,7 +124,7 @@
     }
 
     dialog::backdrop {
-        background-color: #00000077;
+        background-color: #00000077 ;
         backdrop-filter: blur(1px);
         user-select: none;
         pointer-events: none;

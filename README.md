@@ -80,3 +80,4 @@ Basic documentation can be found at `/docs`
 - [x] calc mode
 - [ ] proper search parser
 - [ ] collection stat calculation modifier
+- [ ] Have the ui only display items that are part of a collection

@@ -9,6 +9,36 @@ import (
 	"strings"
 )
 
+type ArtStyle uint
+
+const (
+	AS_ANIME       ArtStyle = 1
+	AS_CARTOON     ArtStyle = 2
+	AS_HANDRAWN    ArtStyle = 4
+	AS_DIGITAL     ArtStyle = 8
+	AS_CGI         ArtStyle = 16
+	AS_LIVE_ACTION ArtStyle = 32
+)
+
+func ArtStyle2Str(style ArtStyle) string {
+	bit2Name := map[ArtStyle]string{
+		AS_ANIME:       "Anime",
+		AS_CARTOON:     "Cartoon",
+		AS_HANDRAWN:    "Handdrawn",
+		AS_DIGITAL:     "Digital",
+		AS_CGI:         "CGI",
+		AS_LIVE_ACTION: "Live action",
+	}
+	var styles []string
+	for i := AS_ANIME; i <= AS_LIVE_ACTION; i *= 2 {
+		if (style & ArtStyle(i)) == ArtStyle(i) {
+			styles = append(styles, bit2Name[ArtStyle(i)])
+		}
+	}
+
+	return strings.Join(styles, " + ")
+}
+
 type Status string
 
 const (
