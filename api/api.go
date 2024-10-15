@@ -314,10 +314,6 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	var query db.SearchQuery
 
-	numberOps := []db.DataChecker{
-		db.DATA_GT, db.DATA_GE, db.DATA_LE, db.DATA_LT,
-	}
-
 	for i, name := range names {
 		data := db.SearchData{
 			DataName: name,
@@ -326,21 +322,14 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		if checkers[i] == db.DATA_NOTIN || checkers[i] == db.DATA_IN {
 			values = strings.Split(values[i], ":")
 			data.DataValue = values
-		} else if slices.Contains(numberOps, checkers[i]) {
-			fl, err := strconv.ParseFloat(values[i], 64)
-			if err != nil{
-				wError(w, 400, "When using <, >, <=, >=, value must be a parsable float")
-				return
-			}
-			data.DataValue = fl
 		} else {
-			data.DataValue = values[i]
+			data.DataValue = []string{values[i]}
 		}
 		query = append(query, data)
 	}
 
 	results, err := db.Search2(query)
-	if err != nil{
+	if err != nil {
 		println(err.Error())
 		wError(w, 500, "Could not complete search\n%s", err.Error())
 		return

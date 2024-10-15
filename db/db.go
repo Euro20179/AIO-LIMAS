@@ -436,36 +436,67 @@ const (
 
 type SearchData struct {
 	DataName  string
-	DataValue any
+	DataValue []string
 	Checker   DataChecker
 	LogicType LogicType
 }
 
 type SearchQuery []SearchData
 
-func colValToCorrectType(name string, value any) (any, error) {
-	switch name {
-	case "artStyle":
-		val, err := strconv.ParseUint(value.(string), 10, 64)
+func colValToCorrectType(name string, value string) (any, error) {
+	u := func(val string) (uint64, error) {
+		n, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
 			return 0, err
 		}
-		return val, nil
+		return n, nil
+	}
+	f := func(val string) (float64, error) {
+		n, err := strconv.ParseFloat(val, 64)
+		if err != nil {
+			return 0, err
+		}
+		return n, nil
+	}
+	switch name {
+	case "artStyle":
+		fallthrough
+	case "parentId":
+		fallthrough
+	case "itemId":
+		fallthrough
+	case "copyOf":
+		fallthrough
+	case "viewCount":
+		fallthrough
+	case "format":
+		return u(value)
+	case "purchasePrice":
+		fallthrough
+	case "generalRating":
+		fallthrough
+	case "userRating":
+		return f(value)
 	}
 	return value, nil
 }
 
 func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) (string, string) {
 	name := searchData.DataName
-	value := searchData.DataValue
+	origValue := searchData.DataValue
 	logicType := searchData.LogicType
 	if name == "" {
 		panic("Name cannot be empty when turning searchData into query")
 	}
 
-	value, err := colValToCorrectType(name, value)
-	if err != nil{
-		panic("Could not coerce column to type")
+	var coercedValues []any
+	for _, val := range origValue {
+		newVal, err := colValToCorrectType(name, val)
+		if err != nil{
+			println(err.Error())
+			continue
+		}
+		coercedValues = append(coercedValues, newVal)
 	}
 
 	logicFN := query.And
@@ -490,14 +521,14 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 		exprFn = query.NE
 	case DATA_IN:
 		flattenedValue := []interface{}{
-			value,
+			coercedValues,
 		}
 		exprFn = func(field string, value interface{}) string {
 			return query.In(name, sqlbuilder.Flatten(flattenedValue)...)
 		}
 	case DATA_NOTIN:
 		flattenedValue := []interface{}{
-			value,
+			coercedValues,
 		}
 		exprFn = func(field string, value interface{}) string {
 			return query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...)
@@ -507,7 +538,7 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	case DATA_NOTLIKE:
 		exprFn = query.NotLike
 	}
-	newPrevious := exprFn(name, value)
+	newPrevious := exprFn(name, coercedValues[0])
 	var newExpr string
 	if previousExpr == "" {
 		newExpr = newPrevious
