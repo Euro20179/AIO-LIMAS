@@ -227,6 +227,13 @@ var ( // `/` endpoints {{{
 			"checkers": api.MkQueryInfo(api.P_TList(",", func(in string) db.DataChecker {
 				return db.Str2DataChecker(in)
 			}), true),
+			"gates": api.MkQueryInfo(api.P_TList(",", func(in string) db.LogicType {
+				if in == "0" {
+					return db.LOGIC_AND
+				} else {
+					return db.LOGIC_OR
+				}
+			}), true),
 		},
 	}
 

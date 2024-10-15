@@ -478,10 +478,16 @@ func colValToCorrectType(name string, value string) (any, error) {
 	case "userRating":
 		return f(value)
 	}
+
+	//if the user types a numeric value, assume they meant it to be of type float
+	converted, err := f(value)
+	if err == nil{
+		return converted, nil
+	}
 	return value, nil
 }
 
-func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) (string, string) {
+func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData)  string {
 	name := searchData.DataName
 	origValue := searchData.DataValue
 	logicType := searchData.LogicType
@@ -545,14 +551,14 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	} else {
 		newExpr = logicFN(previousExpr, newPrevious)
 	}
-	return newPrevious, newExpr
+	return newExpr
 }
 
 func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
 	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
 
-	var queries []string
+	var queryExpr string
 
 	previousExpr := ""
 
@@ -562,13 +568,11 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 			continue
 		}
 
-		var newExpr string
-		previousExpr, newExpr = searchData2Query(query, previousExpr, searchData)
-
-		queries = append(queries, newExpr)
+		queryExpr = searchData2Query(query, previousExpr, searchData)
+		previousExpr = queryExpr
 	}
 
-	query = query.Where(queries...)
+	query = query.Where(queryExpr)
 
 	finalQuery, args := query.Build()
 	rows, err := Db.Query(

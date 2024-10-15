@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -311,6 +310,7 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	names := pp["names"].([]string)
 	values := pp["values"].([]string)
 	checkers := pp["checkers"].([]db.DataChecker)
+	gates := pp["gates"].([]db.LogicType)
 
 	var query db.SearchQuery
 
@@ -318,6 +318,7 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		data := db.SearchData{
 			DataName: name,
 			Checker:  checkers[i],
+			LogicType: gates[i],
 		}
 		if checkers[i] == db.DATA_NOTIN || checkers[i] == db.DATA_IN {
 			values = strings.Split(values[i], ":")

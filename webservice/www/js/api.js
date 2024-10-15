@@ -102,13 +102,14 @@ async function loadList(endpoint) {
 }
 
 /**
- * @param {[string[], string[], string[]]} search
+ * @param {[string[], string[], string[], number[]]} search
  */
 async function loadQueriedEntries2(search) {
     let names = encodeURIComponent(search[0].join(","))
     let values = encodeURIComponent(search[1].join(","))
     let checkers = encodeURIComponent(search[2].join(","))
-    const res = await fetch(`${apiPath}/query-v2?names=${names}&values=${values}&checkers=${checkers}`)
+    let gates = encodeURIComponent(search[3].join(","))
+    const res = await fetch(`${apiPath}/query-v2?names=${names}&values=${values}&checkers=${checkers}&gates=${gates}`)
         .catch(console.error)
     if (!res) {
         alert("Could not query entries")
@@ -311,34 +312,50 @@ async function doQuery2(data) {
     let names = []
     let values = []
     let operators = []
+    let gates = []
+
+    const gateNames = {
+        "and": 0,
+        "or": 1
+    }
+    let nextGate = gateNames["and"]
 
     for (let word of words) {
+        if (word == "||") {
+            nextGate = gateNames["or"]
+            search = search.replace(word, "").trim()
+            continue
+        } else if(word === "&&") {
+            nextGate = gateNames["and"]
+            search = search.replace(word, "").trim()
+            continue
+        }
         for (let op of operatorList) {
-            if(!word.includes(op)) continue
+            if (!word.includes(op)) continue
             let [property, value] = word.split(op)
 
-            if(property.startsWith("|")) {
+            if (property.startsWith("|")) {
                 property = property.slice(1)
 
             }
-            if(property.startsWith("-")) {
+            if (property.startsWith("-")) {
                 property = property.slice(1)
                 op = operatorPairs[/**@type {keyof typeof operatorPairs}*/(op)]
             }
 
             let opName = operator2Name[/**@type {keyof typeof operator2Name}*/(op)]
 
-            for(let shortcut in shortcuts) {
-                if(property === shortcut) {
+            for (let shortcut in shortcuts) {
+                if (property === shortcut) {
                     property = shortcuts[/**@type {keyof typeof shortcuts}*/(shortcut)]
                     break
                 }
             }
 
-            if(property === "format") {
+            if (property === "format") {
                 let formats = []
-                for(let format of value.split(":")) {
-                    if(isNaN(Number(format))) {
+                for (let format of value.split(":")) {
+                    if (isNaN(Number(format))) {
                         formats.push(nameToFormat(format))
                     }
                     else {
@@ -351,6 +368,9 @@ async function doQuery2(data) {
             names.push(property)
             values.push(value)
             operators.push(opName)
+            gates.push(nextGate)
+
+            nextGate = gateNames['and']
 
             search = search.replace(word, "").trim()
 
@@ -360,13 +380,14 @@ async function doQuery2(data) {
 
     search = search.trim()
 
-    if(search) {
+    if (search) {
         names.push("entryInfo.en_title")
         values.push(search)
         operators.push("LIKE")
+        gates.push(nextGate)
     }
 
-    return await loadQueriedEntries2([names, values, operators])
+    return await loadQueriedEntries2([names, values, operators, gates])
 }
 
 /**
