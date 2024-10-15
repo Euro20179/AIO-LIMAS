@@ -20,7 +20,7 @@ const (
 	AS_LIVE_ACTION ArtStyle = 32
 )
 
-func ArtStyle2Str(style ArtStyle) string {
+func ArtStyle2Str(style uint) string {
 	bit2Name := map[ArtStyle]string{
 		AS_ANIME:       "Anime",
 		AS_CARTOON:     "Cartoon",
@@ -31,7 +31,7 @@ func ArtStyle2Str(style ArtStyle) string {
 	}
 	var styles []string
 	for i := AS_ANIME; i <= AS_LIVE_ACTION; i *= 2 {
-		if (style & ArtStyle(i)) == ArtStyle(i) {
+		if (style & uint(i)) == uint(i) {
 			styles = append(styles, bit2Name[ArtStyle(i)])
 		}
 	}
@@ -258,7 +258,7 @@ type InfoEntry struct {
 	Collection    string
 	ParentId      int64
 	Type          MediaTypes
-	IsAnime       bool
+	ArtStyle      ArtStyle
 	CopyOf        int64
 }
 
@@ -281,8 +281,8 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Collection,
 		&self.Type,
 		&self.ParentId,
-		&self.IsAnime,
 		&self.CopyOf,
+		&self.ArtStyle,
 	)
 }
 

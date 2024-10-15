@@ -12,7 +12,6 @@ import (
 
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
-	"aiolimas/util"
 )
 
 func wError(w http.ResponseWriter, status int, format string, args ...any) {
@@ -164,10 +163,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Collection = tags
 	}
 
-	if isAnime, exists := parsedParams["is-anime"].(bool); exists {
-		info.IsAnime = isAnime
-	}
-
+	info.ArtStyle = db.ArtStyle(parsedParams.Get("art-style", 0).(uint))
 	info.Type = parsedParams.Get("type", info.Type).(db.MediaTypes)
 
 	err := db.UpdateInfoEntry(&info)
@@ -203,9 +199,10 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		copyOfId = c.(db.InfoEntry).ItemId
 	}
 
-	isAnime := false
-	if anime, exists := parsedParams["is-anime"]; exists {
-		isAnime = anime.(bool)
+	style := parsedParams.Get("art-style", 0).(uint)
+
+	if parsedParams.Get("is-anime", false).(bool) {
+		style &= uint(db.AS_ANIME)
 	}
 
 	nativeTitle := ""
@@ -231,7 +228,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 	entryInfo.Location = location
 	entryInfo.Format = db.Format(formatInt)
 	entryInfo.ParentId = parentId
-	entryInfo.IsAnime = isAnime
+	entryInfo.ArtStyle = db.ArtStyle(style)
 	entryInfo.CopyOf = copyOfId
 	entryInfo.Type = parsedParams["type"].(db.MediaTypes)
 
@@ -350,103 +347,6 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 	w.WriteHeader(200)
 	for _, row := range results {
-		j, err := row.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
-}
-
-// should be an all in one query thingy, that should be able to query based on any matching column in any table
-func QueryEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	title := parsedParams.Get("title", "").(string)
-	nativeTitle := parsedParams.Get("native-title", "").(string)
-	location := parsedParams.Get("location", "").(string)
-	pgt := parsedParams.Get("purchase-gt", 0.0).(float64)
-	plt := parsedParams.Get("purchase-lt", 0.0).(float64)
-	formats := parsedParams.Get("formats", "").(string)
-	tags := parsedParams.Get("tags", "").(string)
-	types := parsedParams.Get("types", "").(string)
-	parents := parsedParams.Get("parent-ids", "").(string)
-	copyIds := parsedParams.Get("copy-ids", "").(string)
-	status := parsedParams.Get("user-status", []db.Status{}).([]db.Status)
-	userRatingGt := parsedParams.Get("user-rating-gt", 0.0).(float64)
-	userRatingLt := parsedParams.Get("user-rating-lt", 0.0).(float64)
-	isAnime := parsedParams.Get("is-anime", int64(0)).(int64)
-
-	releasedGe := parsedParams.Get("released-ge", int64(0)).(int64)
-	releasedLe := parsedParams.Get("released-le", int64(0)).(int64)
-
-	var fmts []db.Format
-	var pars []int64
-	var cos []int64
-	var tys []db.MediaTypes
-	tagsSplit := strings.Split(tags, ",")
-	var collects []string
-
-	for _, c := range tagsSplit {
-		if c != "" {
-			collects = append(collects, c)
-		}
-	}
-
-	for _, format := range strings.Split(formats, ",") {
-		if util.IsNumeric([]byte(format)) {
-			f, _ := strconv.ParseInt(format, 10, 64)
-			if db.IsValidFormat(f) {
-				fmts = append(fmts, db.Format(f))
-			}
-		}
-	}
-
-	for _, ty := range strings.Split(types, ",") {
-		if db.IsValidType(ty) {
-			tys = append(tys, db.MediaTypes(ty))
-		}
-	}
-
-	for _, par := range strings.Split(parents, ",") {
-		if util.IsNumeric([]byte(par)) {
-			p, _ := strconv.ParseInt(par, 10, 64)
-			pars = append(pars, p)
-		}
-	}
-
-	for _, co := range strings.Split(copyIds, ",") {
-		if util.IsNumeric([]byte(co)) {
-			c, _ := strconv.ParseInt(co, 10, 64)
-			cos = append(cos, c)
-		}
-	}
-
-	var entrySearch db.EntryInfoSearch
-	entrySearch.TitleSearch = title
-	entrySearch.NativeTitleSearch = nativeTitle
-	entrySearch.LocationSearch = location
-	entrySearch.PurchasePriceGt = pgt
-	entrySearch.PurchasePriceLt = plt
-	entrySearch.UserRatingLt = userRatingLt
-	entrySearch.UserRatingGt = userRatingGt
-	entrySearch.InTags = collects
-	entrySearch.Format = fmts
-	entrySearch.Type = tys
-	entrySearch.HasParent = pars
-	entrySearch.CopyIds = cos
-	entrySearch.UserStatus = status
-	entrySearch.IsAnime = int(isAnime)
-	entrySearch.ReleasedGE = releasedGe
-	entrySearch.ReleasedLE = releasedLe
-
-	rows, err := db.Search(entrySearch)
-	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
-		return
-	}
-	w.WriteHeader(200)
-	for _, row := range rows {
 		j, err := row.ToJson()
 		if err != nil {
 			println(err.Error())

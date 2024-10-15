@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,7 +74,7 @@ func InitDb(dbPath string) {
 			 collection TEXT,
 			 type TEXT,
 			 parentId INTEGER,
-			 isAnime INTEGER,
+			 artStyle INTEGER,
 			copyOf INTEGER
 		)`)
 	if err != nil {
@@ -371,25 +372,6 @@ func UpdateInfoEntry(entry *InfoEntry) error {
 	return updateTable(*entry, "entryInfo")
 }
 
-type EntryInfoSearch struct {
-	TitleSearch       string
-	NativeTitleSearch string
-	Format            []Format
-	LocationSearch    string
-	PurchasePriceGt   float64
-	PurchasePriceLt   float64
-	InTags            []string
-	HasParent         []int64
-	Type              []MediaTypes
-	IsAnime           int
-	CopyIds           []int64
-	UserStatus        []Status
-	UserRatingGt      float64
-	UserRatingLt      float64
-	ReleasedGE        int64
-	ReleasedLE        int64
-}
-
 func Delete(id int64) error {
 	transact, err := Db.Begin()
 	if err != nil {
@@ -400,119 +382,6 @@ func Delete(id int64) error {
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ?`, id)
 	return transact.Commit()
-}
-
-func Search(mainSearchInfo EntryInfoSearch) ([]InfoEntry, error) {
-	query := sqlbuilder.NewSelectBuilder()
-	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
-
-	var queries []string
-	// query := `SELECT * FROM entryInfo WHERE true`
-
-	if len(mainSearchInfo.Format) > 0 {
-		formats := []interface{}{
-			mainSearchInfo.Format,
-		}
-		queries = append(queries, query.In("format", sqlbuilder.Flatten(formats)...))
-	}
-
-	if mainSearchInfo.ReleasedLE == mainSearchInfo.ReleasedGE && mainSearchInfo.ReleasedGE != 0 {
-		queries = append(queries, query.EQ("releaseYear", mainSearchInfo.ReleasedGE))
-	} else if mainSearchInfo.ReleasedGE < mainSearchInfo.ReleasedLE {
-		queries = append(queries, query.And(
-			query.GE("releaseYear", mainSearchInfo.ReleasedGE),
-			query.LE("releaseYear", mainSearchInfo.ReleasedLE),
-		))
-	} else if mainSearchInfo.ReleasedLE != 0 {
-		queries = append(queries, query.LE("releaseYear", mainSearchInfo.ReleasedLE))
-	} else if mainSearchInfo.ReleasedGE != 0 {
-		queries = append(queries, query.GE("releaseYear", mainSearchInfo.ReleasedGE))
-	}
-
-	if mainSearchInfo.LocationSearch != "" {
-		queries = append(queries, query.Like("location", mainSearchInfo.LocationSearch))
-	}
-	if mainSearchInfo.TitleSearch != "" {
-		queries = append(queries, query.Like("en_title", mainSearchInfo.TitleSearch))
-	}
-	if mainSearchInfo.NativeTitleSearch != "" {
-		queries = append(queries, query.Like("native_title", mainSearchInfo.NativeTitleSearch))
-	}
-	if mainSearchInfo.PurchasePriceGt != 0 {
-		queries = append(queries, query.GT("purchasePrice", mainSearchInfo.PurchasePriceGt))
-	}
-	if mainSearchInfo.PurchasePriceLt != 0 {
-		queries = append(queries, query.LT("purchasePrice", mainSearchInfo.PurchasePriceLt))
-	}
-	if mainSearchInfo.UserRatingGt != 0 {
-		queries = append(queries, query.GT("userRating", mainSearchInfo.UserRatingGt))
-	}
-	if mainSearchInfo.UserRatingLt != 0 {
-		queries = append(queries, query.LT("userRating", mainSearchInfo.UserRatingLt))
-	}
-	if len(mainSearchInfo.InTags) > 0 {
-		cols := []interface{}{
-			mainSearchInfo.InTags,
-		}
-		queries = append(queries, query.In("collection", sqlbuilder.Flatten(cols)...))
-	}
-	if len(mainSearchInfo.HasParent) > 0 {
-		pars := []interface{}{
-			mainSearchInfo.HasParent,
-		}
-		queries = append(queries, query.In("parentId", sqlbuilder.Flatten(pars)...))
-	}
-	if len(mainSearchInfo.CopyIds) > 0 {
-		cos := []interface{}{
-			mainSearchInfo.CopyIds,
-		}
-		queries = append(queries, query.In("copyOf", sqlbuilder.Flatten(cos)...))
-	}
-	if len(mainSearchInfo.Type) > 0 {
-		tys := []interface{}{
-			mainSearchInfo.Type,
-		}
-		queries = append(queries, query.In("type", sqlbuilder.Flatten(tys)...))
-	}
-
-	if mainSearchInfo.IsAnime != 0 {
-		queries = append(queries, query.Equal("isAnime", mainSearchInfo.IsAnime-1))
-	}
-
-	if len(mainSearchInfo.UserStatus) != 0 {
-		items := []interface{}{
-			mainSearchInfo.UserStatus,
-		}
-		queries = append(queries, query.In("userViewingInfo.status", sqlbuilder.Flatten(items)...))
-	}
-
-	query = query.Where(queries...)
-
-	finalQuery, args := query.Build()
-	rows, err := Db.Query(
-		finalQuery,
-		args...,
-	)
-
-	var out []InfoEntry
-
-	if err != nil {
-		return out, err
-	}
-
-	defer rows.Close()
-	i := 0
-	for rows.Next() {
-		i += 1
-		var row InfoEntry
-		err = row.ReadEntry(rows)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		out = append(out, row)
-	}
-	return out, nil
 }
 
 type DataChecker int
@@ -571,7 +440,20 @@ type SearchData struct {
 	Checker   DataChecker
 	LogicType LogicType
 }
+
 type SearchQuery []SearchData
+
+func colValToCorrectType(name string, value any) (any, error) {
+	switch name {
+	case "artStyle":
+		val, err := strconv.ParseUint(value.(string), 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return val, nil
+	}
+	return value, nil
+}
 
 func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) (string, string) {
 	name := searchData.DataName
@@ -579,6 +461,11 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	logicType := searchData.LogicType
 	if name == "" {
 		panic("Name cannot be empty when turning searchData into query")
+	}
+
+	value, err := colValToCorrectType(name, value)
+	if err != nil{
+		panic("Could not coerce column to type")
 	}
 
 	logicFN := query.And

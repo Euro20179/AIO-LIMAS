@@ -259,7 +259,7 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
 	var newMeta db.MetadataEntry
 	var err error
-	if entry.IsAnime {
+	if entry.ArtStyle & db.AS_ANIME == db.AS_ANIME{
 		newMeta, err = AnilistShow(entry, metadataEntry)
 	} else {
 		newMeta, err = AnilistManga(entry, metadataEntry)

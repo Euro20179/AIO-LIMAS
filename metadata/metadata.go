@@ -12,7 +12,7 @@ type IdentifyMetadata struct {
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) (db.MetadataEntry, error) {
-	if entry.IsAnime {
+	if entry.ArtStyle & db.AS_ANIME == db.AS_ANIME {
 		return AnilistShow(entry, metadataEntry)
 	}
 	switch entry.Type {

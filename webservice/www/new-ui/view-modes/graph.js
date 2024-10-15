@@ -244,7 +244,7 @@ async function organizeData(entries) {
         "Format": i => formatToName(i.Format),
         "Status": i => globalsNewUi.userEntries[String(i.ItemId)].Status,
         "View-count": i => globalsNewUi.userEntries[String(i.ItemId)].ViewCount,
-        "Is-anime": i => i.IsAnime,
+        "Is-anime": i => (i.ArtStyle & 1) == 1,
         "Item-name": i => i.En_Title
     }
 

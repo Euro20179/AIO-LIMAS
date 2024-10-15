@@ -24,7 +24,7 @@
  * @property {bigint} ItemId
  * @property {string} Collection
  * @property {number} Format
- * @property {boolean} IsAnime
+ * @property {number} ArtStyle
  * @property {string} Location
  * @property {string} Native_Title
  * @property {bigint} ParentId
@@ -47,25 +47,6 @@
  * @property {string} Datapoints
  * @property {string} Title
  * @property {string} Native_Title
- */
-
-/**
- * @typedef DBQuery
- * @type {object}
- * @property {string} [title]
- * @property {string} [type]
- * @property {number[]} [format]
- * @property {boolean} [children]
- * @property {boolean} [copies]
- * @property {string} [tags]
- * @property {string} [status]
- * @property {number} [userRatingLt]
- * @property {number} [userRatingGt]
- * @property {number} [purchasePriceGt]
- * @property {number} [purchasePriceLt]
- * @property {number} [releasedGe]
- * @property {number} [releasedLe]
- * @property {boolean} [isAnime]
  */
 
 /**

@@ -85,12 +85,13 @@ var ( // `/` endpoints {{{
 	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
 		QueryParams: api.QueryParams{
-			"title":        api.MkQueryInfo(api.P_NotEmpty, true),
-			"type":         api.MkQueryInfo(api.P_EntryType, true),
-			"format":       api.MkQueryInfo(api.P_EntryFormat, true),
-			"price":        api.MkQueryInfo(api.P_Float64, false),
-			"is-digital":   api.MkQueryInfo(api.P_Bool, false),
+			"title":      api.MkQueryInfo(api.P_NotEmpty, true),
+			"type":       api.MkQueryInfo(api.P_EntryType, true),
+			"format":     api.MkQueryInfo(api.P_EntryFormat, true),
+			"price":      api.MkQueryInfo(api.P_Float64, false),
+			"is-digital": api.MkQueryInfo(api.P_Bool, false),
 			"is-anime":     api.MkQueryInfo(api.P_Bool, false),
+			"art-style":    api.MkQueryInfo(api.P_ArtStyle, false),
 			"parentId":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"copyOf":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"native-title": api.MkQueryInfo(api.P_True, false),
@@ -133,8 +134,9 @@ var ( // `/` endpoints {{{
 			"price":           api.MkQueryInfo(api.P_Float64, false),
 			"location":        api.MkQueryInfo(api.P_True, false),
 			"tags":            api.MkQueryInfo(api.P_True, false),
-			"is-anime":        api.MkQueryInfo(api.P_Bool, false),
-			"type":            api.MkQueryInfo(api.P_EntryType, false),
+			// "is-anime":        api.MkQueryInfo(api.P_Bool, false),
+			"art-style": api.MkQueryInfo(api.P_ArtStyle, false),
+			"type":      api.MkQueryInfo(api.P_EntryType, false),
 		},
 		Description: "Modifies an individual entry datapoint",
 	}
@@ -226,38 +228,6 @@ var ( // `/` endpoints {{{
 				return db.Str2DataChecker(in)
 			}), true),
 		},
-	}
-	searchApi = api.ApiEndPoint{
-		EndPoint: "query",
-		Handler:  api.QueryEntries,
-		QueryParams: api.QueryParams{
-			"title":        api.MkQueryInfo(api.P_True, false),
-			"native-title": api.MkQueryInfo(api.P_True, false),
-			"location":     api.MkQueryInfo(api.P_True, false),
-			"purchase-gt":  api.MkQueryInfo(api.P_Float64, false),
-			"purchase-lt":  api.MkQueryInfo(api.P_Float64, false),
-			"formats":      api.MkQueryInfo(api.P_True, false),
-			"tags":         api.MkQueryInfo(api.P_True, false),
-			"types":        api.MkQueryInfo(api.P_True, false),
-			"parents":      api.MkQueryInfo(api.P_True, false),
-			"is-anime":     api.MkQueryInfo(api.P_Int64, false),
-			"copy-ids":     api.MkQueryInfo(api.P_True, false),
-			"user-status": api.MkQueryInfo(
-				api.P_TList(
-					",",
-					func(in string) db.Status {
-						return db.Status(in)
-					},
-				),
-				false,
-			),
-			"user-rating-gt": api.MkQueryInfo(api.P_Float64, false),
-			"user-rating-lt": api.MkQueryInfo(api.P_Float64, false),
-			"released-ge":    api.MkQueryInfo(api.P_Int64, false),
-			"released-le":    api.MkQueryInfo(api.P_Int64, false),
-		},
-		Description: "Search for entries with some filters",
-		Returns:     "JSONL<InfoEntry>",
 	}
 
 	getAllEntry = api.ApiEndPoint{
@@ -562,7 +532,6 @@ var (
 		addEntry,
 		modEntry,
 		setEntry,
-		searchApi,
 		search2Api,
 		listApi,
 		stream,
