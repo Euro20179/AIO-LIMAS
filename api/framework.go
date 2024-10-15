@@ -206,9 +206,9 @@ func P_EntryType(in string) (any, error) {
 func P_ArtStyle(in string) (any, error) {
 	val, err := strconv.ParseUint(in, 10, 64)
 	if err != nil{
-		return 0, err
+		return uint(0), err
 	}
-	return val, nil
+	return uint(val), nil
 }
 
 func P_MetaProvider(in string) (any, error) {

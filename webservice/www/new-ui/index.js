@@ -174,13 +174,25 @@ async function newEntry() {
     const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
     document.getElementById("new-entry")?.hidePopover()
     const data = new FormData(form)
+
+    let artStyle = 0
+
+    const styles = [ 'is-anime', 'is-cartoon', 'is-handrawn', 'is-digital', 'is-cgi', 'is-live-action' ]
+    for(let i = 0; i < styles.length; i++) {
+        let style = styles[i]
+        if (data.get(style)) {
+            artStyle |= 2 ** i
+            data.delete(style)
+        }
+    }
+
     /**@type {Record<string, FormDataEntryValue>}*/
     let validEntries = {}
     for (let [name, value] of data.entries()) {
         if (value == "") continue
         validEntries[name] = value
     }
-    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURIComponent(String(v[1]))}`).join("&")
+    const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURIComponent(String(v[1]))}`).join("&") + `&art-style=${artStyle}`
 
     let res = await fetch(`${apiPath}/add-entry${queryString}`)
     let text = await res.text()

@@ -56,7 +56,23 @@
                                 <option value="Meme">Meme</option>
                                 <option value="Collection">Collection</option>
                             </select>
-                            <label for="is-anime">anime?: <input type="checkbox" id="is-anime" name="is-anime"></label>
+                            <details class="flex column" open>
+                                <summary>
+                                    art style
+                                </summary>
+                                <label for="is-anime"><input type="checkbox" name="is-anime" id="is-anime">
+                                    Anime</label>
+                                <label for="is-cartoon"><input type="checkbox" name="is-cartoon" id="is-cartoon">
+                                    Cartoon</label>
+                                <label for="is-handrawn"><input type="checkbox" name="is-handrawn" id="is-handrawn">
+                                    Hand drawn</label>
+                                <label for="is-digital"><input type="checkbox" name="is-digital" id="is-digital">
+                                    Digitally drawn </label>
+                                <label for="is-cgi"><input type="checkbox" name="is-cgi" id="is-cgi"> Cgi</label>
+                                <label for="is-live-action"><input type="checkbox" name="is-live-action"
+                                        id="is-live-action"> Live action</label>
+                            </details>
+                            <!-- <label for="is-anime">anime?: <input type="checkbox" id="is-anime" name="is-anime"></label> -->
                         </div>
                         <select name="user-status">
                             <option value="">Status</option>
@@ -104,11 +120,11 @@
                 <div class="result-stats">
                     <entries-statistic data-stat-name="totalCost" class="stat"></entries-statistic>
                     <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
-                        <select name="view-toggle" id="view-toggle" class="view-toggle">
-                            <option value="entry-output">Normal mode</option>
-                            <option value="graph-output">Graph mode</option>
-                            <option value="calc-output">Calc mode</option>
-                        </select>
+                    <select name="view-toggle" id="view-toggle" class="view-toggle">
+                        <option value="entry-output">Normal mode</option>
+                        <option value="graph-output">Graph mode</option>
+                        <option value="calc-output">Calc mode</option>
+                    </select>
                 </div>
                 <div id="entry-output" class="overflow"> </div>
                 <div id="calc-output" class="overflow">

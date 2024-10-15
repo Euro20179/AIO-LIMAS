@@ -198,7 +198,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		copyOfId = c.(db.InfoEntry).ItemId
 	}
 
-	style := parsedParams.Get("art-style", 0).(uint)
+	style := parsedParams.Get("art-style", uint(0)).(uint)
 
 	if parsedParams.Get("is-anime", false).(bool) {
 		style &= uint(db.AS_ANIME)
