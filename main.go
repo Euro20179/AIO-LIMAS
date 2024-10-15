@@ -82,6 +82,12 @@ func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
 }
 
 var ( // `/` endpoints {{{
+	downloadDB = api.ApiEndPoint {
+		Handler: api.DownloadDB,
+		Description: "Creates a copy of the database",
+		EndPoint: "download-db",
+	}
+
 	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
 		QueryParams: api.QueryParams{
@@ -555,6 +561,7 @@ var (
 		totalCostOf,
 		getTree,
 		getAllEntry,
+		downloadDB,
 	}
 
 	metadataEndpointList = []api.ApiEndPoint{
@@ -635,6 +642,8 @@ func main() {
 
 	dbPath := fmt.Sprintf("%s/all.db", aioPath)
 	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
+
+	os.Setenv("AIO_DB_PATH", *dbPathPtr)
 
 	flag.Parse()
 

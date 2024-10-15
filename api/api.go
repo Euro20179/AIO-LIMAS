@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -28,6 +29,15 @@ func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) 
 	for _, col := range collections {
 		fmt.Fprintf(w, "%s\n", col)
 	}
+}
+
+func DownloadDB(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	dir := os.Getenv("AIO_DB_PATH")
+	if dir == "" {
+		panic("$AIO_DB_PATH should not be empty")
+	}
+
+	http.ServeFile(w, req, dir)
 }
 
 func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
