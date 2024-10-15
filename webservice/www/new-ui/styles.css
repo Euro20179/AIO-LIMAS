@@ -35,18 +35,6 @@
         vertical-align: bottom;
     }
 
-    :has(:where(#entry-output:target)) .view-toggle::before {
-        content: "graph view";
-    }
-
-    :has(:where(#graph-output:target)) .view-toggle::before {
-        content: "calc view";
-    }
-
-    :has(:where(#calc-output:target)) .view-toggle::before {
-        content: "graph view"
-    }
-
     #main {
         height: 100%;
     }
