@@ -79,5 +79,13 @@ Basic documentation can be found at `/docs`
     - [ ] user
 - [x] calc mode
 - [ ] proper search parser
+    - on the server there could be something that parses some language like:
+        - `rating > 90 && (rating < 95 || en_title ~ "this is a neat title%")`
+        - special syntax where `{...}` is left alone, and passed directly to sqlite as an expression
+            - eg: `{rating/ratingMax * 100} > 90`
+    - make a new api query-v3, the sole parameter is a query in the form of that language
+    - the server will try to parse it, if it fails to parse, it is treated as:
+    `en_title ~ "<the query>"`
+    - [x] partial, support &&, ||, and various comparison operators, unordered
 - [ ] collection stat calculation modifier
 - [ ] Have the ui only display items that are part of a collection

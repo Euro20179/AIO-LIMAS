@@ -460,34 +460,34 @@ func colValToCorrectType(name string, value string) (any, error) {
 	}
 	switch name {
 	case "artStyle":
-		fallthrough
+		return u(value)
 	case "parentId":
-		fallthrough
+		return u(value)
 	case "itemId":
-		fallthrough
+		return u(value)
 	case "copyOf":
-		fallthrough
+		return u(value)
 	case "viewCount":
-		fallthrough
+		return u(value)
 	case "format":
 		return u(value)
 	case "purchasePrice":
-		fallthrough
+		return f(value)
 	case "generalRating":
-		fallthrough
+		return f(value)
 	case "userRating":
 		return f(value)
 	}
 
-	//if the user types a numeric value, assume they meant it to be of type float
+	// if the user types a numeric value, assume they meant it to be of type float
 	converted, err := f(value)
-	if err == nil{
+	if err == nil {
 		return converted, nil
 	}
 	return value, nil
 }
 
-func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData)  string {
+func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) string {
 	name := searchData.DataName
 	origValue := searchData.DataValue
 	logicType := searchData.LogicType
@@ -498,7 +498,7 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	var coercedValues []any
 	for _, val := range origValue {
 		newVal, err := colValToCorrectType(name, val)
-		if err != nil{
+		if err != nil {
 			println(err.Error())
 			continue
 		}
