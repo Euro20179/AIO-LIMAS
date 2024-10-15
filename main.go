@@ -85,26 +85,24 @@ var ( // `/` endpoints {{{
 	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
 		QueryParams: api.QueryParams{
-			"title":      api.MkQueryInfo(api.P_NotEmpty, true),
-			"type":       api.MkQueryInfo(api.P_EntryType, true),
-			"format":     api.MkQueryInfo(api.P_EntryFormat, true),
-			"price":      api.MkQueryInfo(api.P_Float64, false),
-			"is-digital": api.MkQueryInfo(api.P_Bool, false),
-			"is-anime":     api.MkQueryInfo(api.P_Bool, false),
-			"art-style":    api.MkQueryInfo(api.P_ArtStyle, false),
-			"parentId":     api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"copyOf":       api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
-			"native-title": api.MkQueryInfo(api.P_True, false),
-			"tags":         api.MkQueryInfo(api.P_True, false),
-			"location":     api.MkQueryInfo(api.P_True, false),
-
+			"title":             api.MkQueryInfo(api.P_NotEmpty, true),
+			"type":              api.MkQueryInfo(api.P_EntryType, true),
+			"format":            api.MkQueryInfo(api.P_EntryFormat, true),
+			"price":             api.MkQueryInfo(api.P_Float64, false),
+			"is-digital":        api.MkQueryInfo(api.P_Bool, false),
+			"is-anime":          api.MkQueryInfo(api.P_Bool, false),
+			"art-style":         api.MkQueryInfo(api.P_ArtStyle, false),
+			"parentId":          api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"copyOf":            api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
+			"native-title":      api.MkQueryInfo(api.P_True, false),
+			"tags":              api.MkQueryInfo(api.P_True, false),
+			"location":          api.MkQueryInfo(api.P_True, false),
 			"get-metadata":      api.MkQueryInfo(api.P_Bool, false),
 			"metadata-provider": api.MkQueryInfo(api.P_MetaProvider, false),
-
-			"user-rating":     api.MkQueryInfo(api.P_Float64, false),
-			"user-status":     api.MkQueryInfo(api.P_UserStatus, false),
-			"user-view-count": api.MkQueryInfo(api.P_Int64, false),
-			"user-notes":      api.MkQueryInfo(api.P_True, false),
+			"user-rating":       api.MkQueryInfo(api.P_Float64, false),
+			"user-status":       api.MkQueryInfo(api.P_UserStatus, false),
+			"user-view-count":   api.MkQueryInfo(api.P_Int64, false),
+			"user-notes":        api.MkQueryInfo(api.P_True, false),
 		},
 		Description: "Adds a new entry, and registers an Add event",
 		Returns:     "InfoEntry",
@@ -508,6 +506,14 @@ var ( // `/engagement` endpoints {{{
 		Description: "Lists the types for a Type",
 	}
 	//}}}
+
+	// `/docs` endpoints {{{
+	mainDocs = api.ApiEndPoint {
+		EndPoint: "",
+		Handler: DocHTML,
+		Description: "The documentation",
+	}
+	//}}}
 )
 
 func setupAIODir() string {
@@ -592,6 +598,10 @@ var (
 		typeTypesApi,
 	}
 
+	docsEndpoints = []api.ApiEndPoint {
+		mainDocs,
+	}
+
 	endPointLists = [][]api.ApiEndPoint{
 		mainEndpointList,
 		metadataEndpointList,
@@ -612,9 +622,9 @@ func startServer() {
 	// For resources, such as entry thumbnails
 	makeEndPointsFromList(apiRoot+"/resource", resourceEndpointList)
 
-	http.HandleFunc("/", webservice.Root)
+	makeEndPointsFromList("/docs", docsEndpoints)
 
-	http.HandleFunc("/docs", DocHTML)
+	http.HandleFunc("/", webservice.Root)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -633,7 +643,7 @@ func main() {
 	startServer()
 }
 
-func DocHTML(w http.ResponseWriter, req *http.Request) {
+func DocHTML(w http.ResponseWriter, req *http.Request, pp api.ParsedParams) {
 	html := ""
 	for _, list := range endPointLists {
 		for _, endP := range list {
