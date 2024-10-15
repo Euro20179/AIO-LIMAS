@@ -76,7 +76,7 @@ Basic documentation can be found at `/docs`
 - [ ] edit info/user/meta tables from ui
     - [x] info
     - [x] meta
-    - [ ] user
+    - [x] ~user~ *decided against, as you can already edit everything anyway*
 - [x] calc mode
 - [ ] proper search parser
     - on the server there could be something that parses some language like:
@@ -92,4 +92,3 @@ Basic documentation can be found at `/docs`
     `en_title ~ "<the query>"`
     - [x] partial, support &&, ||, and various comparison operators, unordered
 - [ ] collection stat calculation modifier
-- [ ] Have the ui only display items that are part of a collection

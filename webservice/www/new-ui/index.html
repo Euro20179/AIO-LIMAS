@@ -104,7 +104,11 @@
                 <div class="result-stats">
                     <entries-statistic data-stat-name="totalCost" class="stat"></entries-statistic>
                     <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
-                    <button class="view-toggle"></button>
+                        <select name="view-toggle" id="view-toggle" class="view-toggle">
+                            <option value="entry-output">Normal mode</option>
+                            <option value="graph-output">Graph mode</option>
+                            <option value="calc-output">Calc mode</option>
+                        </select>
                 </div>
                 <div id="entry-output" class="overflow"> </div>
                 <div id="calc-output" class="overflow">

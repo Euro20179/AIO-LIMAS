@@ -85,8 +85,8 @@ function sumCollectionStats(collectionEntry, itself = true, children = true, cop
             stats.cost += child.PurchasePrice
         }
     }
-    if(copies) {
-        for(let copy of findCopies(collectionEntry.ItemId)) {
+    if (copies) {
+        for (let copy of findCopies(collectionEntry.ItemId)) {
             stats.totalItems++
             stats.cost += copy.PurchasePrice
         }
@@ -155,19 +155,18 @@ function clearItems() {
     globalsNewUi.selectedEntries = []
 }
 
-document.querySelector(".view-toggle")?.addEventListener("click", _ => {
+document.querySelector(".view-toggle")?.addEventListener("change", e => {
     mode.subList(globalsNewUi.selectedEntries)
 
-    let curModeIdx = modes.indexOf(mode)
-    curModeIdx++
-    if (curModeIdx >= modes.length) {
-        curModeIdx = 0
-    }
+    let name = /**@type {HTMLSelectElement}*/(e.target).value
+
+    let curModeIdx = modeOutputIds.indexOf(name)
 
     mode = modes[curModeIdx]
-    location.hash = modeOutputIds[curModeIdx]
+    location.hash = name
 
     mode.addList(globalsNewUi.selectedEntries)
+
 })
 
 
@@ -501,7 +500,7 @@ function applyDisplayAttrs(item, user, meta, events, el) {
     }
 
     el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
-    el.setAttribute("data-meta-info-raw", JSON.stringify(meta, (_, v) => typeof v === 'bigint' ? v.toString() : v ))
+    el.setAttribute("data-meta-info-raw", JSON.stringify(meta, (_, v) => typeof v === 'bigint' ? v.toString() : v))
 }
 
 /**
