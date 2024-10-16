@@ -32,31 +32,6 @@ func dbHasCol(db *sql.DB, colName string) bool {
 	return false
 }
 
-func ensureProviderColumns(db *sql.DB) error {
-	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN provider default ''")
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("ALTER TABLE metadata ADD COLUMN providerID default ''")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func ensureRatingMax(db *sql.DB) error {
-	_, err := db.Exec("ALTER TABLE metadata ADD COLUMN ratingMax default 0")
-	return err
-}
-
-func ensureCurrentPosition(db *sql.DB) error {
-	_, err := db.Exec("ALTER TABLE userViewingInfo ADD COLUMN currentPosition default ''")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func InitDb(dbPath string) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	sqlite3.Version()
@@ -120,20 +95,6 @@ func InitDb(dbPath string) {
 	`)
 	if err != nil {
 		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
-	}
-
-	err = ensureProviderColumns(conn)
-	if err != nil {
-		println(err.Error())
-	}
-	err = ensureCurrentPosition(conn)
-	if err != nil {
-		println(err.Error())
-	}
-
-	err = ensureRatingMax(conn)
-	if err != nil {
-		println(err.Error())
 	}
 
 	Db = conn

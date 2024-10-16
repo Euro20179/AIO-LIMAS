@@ -92,3 +92,7 @@ Basic documentation can be found at `/docs`
     `en_title ~ "<the query>"`
     - [x] partial, support &&, ||, and various comparison operators, unordered
 - [ ] collection stat calculation modifier
+- [ ] requires
+     - an id that should be viewed before this entry
+     - eg: `starwars 2` requires `starwars 1`
+     - if an entry requires more than 1 entry, make a collection containing all the requirements
