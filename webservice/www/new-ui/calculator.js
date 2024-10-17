@@ -384,7 +384,7 @@ class Parser {
         let op = this.curTok()
         while (op && "*/".includes(op.value)) {
             this.next()
-            let right = this.product()
+            let right = this.signedAtom()
             left = new BinOpNode(left, op, right)
             op = this.curTok()
         }
@@ -396,7 +396,7 @@ class Parser {
         let op = this.curTok()
         while (op && "+-".includes(op.value)) {
             this.next()
-            let right = this.arithmatic()
+            let right = this.product()
             left = new BinOpNode(left, op, right)
             op = this.curTok()
         }
@@ -970,6 +970,8 @@ function jsVal2CalcVal(value) {
             return new Str(value)
         case 'number':
             return new Num(value)
+        case 'boolean':
+            return new Num(Number(value))
         case 'bigint':
             return new Num(Number(value))
         case 'function': 

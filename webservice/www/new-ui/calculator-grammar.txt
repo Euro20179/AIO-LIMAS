@@ -6,9 +6,9 @@ atom       : NUMBER | WORD | "(" expr ")" | func-call
 
 signed-atom: ("+"|"-") atom
 
-product    : signed-atom (("*"|"/") product)*
+product    : signed-atom (("*"|"/") signed-atom)*
 
-arithmatic : product (("+"|"-") arithmatic)*
+arithmatic : product (("+"|"-") product)*
 
 comparison : arithmatic ((">"|"<"|"=="|"<="|">=") comparison)*
 

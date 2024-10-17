@@ -34,13 +34,6 @@ Song
 
 ### Running
 
-
-> [!IMPORTANT]
-Be sure to export the ACCOUNT_NUMBER env var
-This is used as the login password
-(plans to disable this by default)
-
-
 > [!TIP]
 To use the omdb provider, get an omdb key and export the OMDB_KEY variable
 
