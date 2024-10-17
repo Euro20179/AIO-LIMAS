@@ -736,6 +736,21 @@ class SymbolTable {
             return n.toStr()
         }))
 
+        this.symbols.set("round", new Func(n => {
+            if(!(n instanceof Num)) {
+                return new Num(0)
+            }
+            return new Num(Math.round(n.jsValue))
+        }))
+
+        this.symbols.set("floor", new Func(n => {
+            if(!(n instanceof Num)) {
+                return new Num(0)
+            }
+
+            return new Num(Math.floor(n.jsValue))
+        }))
+
         this.symbols.set("max", new Func((...items) => {
             let max = items[0].toNum()
             for (let item of items) {
