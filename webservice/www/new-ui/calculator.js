@@ -11,6 +11,11 @@ const TT = {
     Comma: ",",
     Semi: ";",
     Eq: "=",
+    Gt: ">",
+    Lt: "<",
+    Le: "<=",
+    Ge: ">=",
+    DEq: "==",
 }
 
 const keywords = [
@@ -266,6 +271,31 @@ function lex(input) {
             pos = newPos
             tokens.push(new Token("String", str))
         }
+        else if(ch === '=') {
+            pos++
+            if(input[pos] === '=') {
+                pos++
+                tokens.push(new Token("DEq", "=="))
+            } else {
+                tokens.push(new Token("Eq", "="))
+            }
+        } else if(ch === '<') {
+            pos++
+            if(input[pos] === "<=") {
+                pos++
+                tokens.push(new Token("Le", "<="))
+            } else {
+                tokens.push(new Token("Lt", "<"))
+            }
+        } else if(ch === ">") {
+            pos++
+            if(input[pos] === ">=") {
+                pos++
+                tokens.push(new Token("Ge", ">="))
+            } else {
+                tokens.push(new Token("Gt", ">"))
+            }
+        }
         else {
             let foundTok = false
             /**@type {keyof TT}*/
@@ -373,6 +403,18 @@ class Parser {
         return left
     }
 
+    comparison() {
+        let left = this.arithmatic()
+        let op = this.curTok()
+        while(op && ["<",">","<=",">=","=="].includes(op.value)) {
+            this.next()
+            let right = this.comparison()
+            left = new BinOpNode(left, op, right)
+            op = this.curTok()
+        }
+        return left
+    }
+
     funcCall() {
         let name = this.curTok()
         this.next() //skip Lparen
@@ -441,7 +483,7 @@ class Parser {
         if (t.ty === "Word" && t.value === "var") {
             return this.varDef()
         }
-        let expr = new ExprNode(this.arithmatic())
+        let expr = new ExprNode(this.comparison())
         return expr
     }
 
@@ -518,7 +560,7 @@ class Type {
      */
     lt(right) {
         console.error(`Unable to compare ${this.constructor.name} < ${right.constructor.name}`)
-        return false
+        return new Num(0)
     }
 
     /**
@@ -526,7 +568,15 @@ class Type {
      */
     gt(right) {
         console.error(`Unable to compare ${this.constructor.name} > ${right.constructor.name}`)
-        return false
+        return new Num(0)
+    }
+
+    /**
+     * @param {Type} right
+     */
+    eq(right) {
+        console.error(`Unable to compare ${this.constructor.name} == ${right.constructor.name}`)
+        return new Num(0)
     }
 
     /**
@@ -580,16 +630,23 @@ class Num extends Type {
      */
     lt(right) {
         if (this.jsValue < Number(right.jsValue)) {
-            return true
+            return new Num(1)
         }
-        return false
+        return new Num(0)
     }
 
     /**
      * @param {Type} right
      */
     gt(right) {
-        return this.jsValue > Number(right.jsValue)
+        return new Num(Number(this.jsValue > Number(right.jsValue)))
+    }
+
+    /**
+     * @param {Type} right
+     */
+    eq(right) {
+        return new Num(Number(this.jsValue === right.toNum().jsValue))
     }
 
     toNum() {
@@ -619,6 +676,13 @@ class Str extends Type {
         this.jsValue = this.jsValue.repeat(Number(right.jsValue))
         return this
     }
+
+    /**
+     * @param {Type} right
+     */
+    eq(right) {
+        return new Num(Number(this.jsValue === right.toStr().jsValue))
+    }
 }
 
 class List extends Type {
@@ -629,6 +693,22 @@ class List extends Type {
             str += item.jsStr() + ","
         }
         return str.slice(0, -1)
+    }
+
+    /**
+     * @param {Type} right
+     */
+    eq(right) {
+        if(!(right instanceof List)) {
+            return new Num(0)
+        }
+
+        let l = new Set(this.jsValue)
+        let r = new Set(right.jsValue)
+        if(l.difference(r).size === 0) {
+            return new Num(1)
+        }
+        return new Num(0)
     }
 
 }
@@ -643,6 +723,13 @@ class SymbolTable {
         //@ts-ignore
         this.symbols.set("abs", new Func(n => {
             return new Num(Math.abs(n.toNum().jsValue))
+        }))
+
+        this.symbols.set("len", new Func(n => {
+            if (!(n instanceof Str)) {
+                return new Num(0)
+            }
+            return new Num(n.jsValue.length)
         }))
 
         this.symbols.set("str", new Func(n => {
@@ -753,6 +840,22 @@ class Interpreter {
             return left.mul(right)
         } else if (node.operator.ty === "Div") {
             return left.div(right)
+        } else if(node.operator.ty === "DEq") {
+            return left.eq(right)
+        } else if(node.operator.ty === "Lt") {
+            return left.lt(right)
+        } else if(node.operator.ty === "Gt") {
+            return left.gt(right)
+        } else if(node.operator.ty === "Ge") {
+            if(left.gt(right) || left.eq(right)) {
+                return new Num(1)
+            }
+            return new Num(0)
+        } else if(node.operator.ty === "Le") {
+            if(left.lt(right) || left.eq(right)) {
+                return new Num(1)
+            }
+            return new Num(0)
         }
         return right
     }
@@ -765,6 +868,14 @@ class Interpreter {
     interpretNode(node) {
         //@ts-ignore
         return this[node.constructor.name](node)
+    }
+
+    /**
+     * @param {ErrorNode} node
+     */
+    ErrorNode(node) {
+        console.error(node.value)
+        return new Str(node.value)
     }
 
     /**
@@ -863,7 +974,7 @@ function makeSymbolsTableFromObj(obj) {
     let symbols = new SymbolTable()
     for (let name in obj) {
         //@ts-ignore
-        let val = all[name]
+        let val = obj[name]
         let t = jsVal2CalcVal(val)
         if (symbols.get(name)) {
             name = `${name}2`

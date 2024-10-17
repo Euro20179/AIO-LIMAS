@@ -10,11 +10,13 @@ product    : signed-atom (("*"|"/") product)*
 
 arithmatic : product (("+"|"-") arithmatic)*
 
+comparison : arithmatic ((">"|"<"|"=="|"<="|">=") comparison)*
+
 func-def   : "var()" WORD "=" program "rav"
 
 var-def    : ("var" WORD "=" expr) | func-def
 
-expr       : var-def | arithmatic
+expr       : var-def | comparison
 
 ------------------------------
 

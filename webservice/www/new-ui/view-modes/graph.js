@@ -31,6 +31,8 @@ const rbyCtx = getCtx2("rating-by-year")
 const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
 const typeSelection = /**@type {HTMLSelectElement}*/(document.getElementById("chart-type"))
 
+const groupByInput = /**@type {HTMLInputElement}*/(document.getElementById("group-by-expr"))
+
 /**
  * @param {(entries: InfoEntry[]) => Promise<any>} mkChart
  */
@@ -215,6 +217,29 @@ function fillGap(obj, label) {
 
 /**
  * @param {InfoEntry[]} entries
+ * @returns {Record<string, InfoEntry[]>}
+ */
+function organizeDataByExpr(entries) {
+    let expr = groupByInput.value
+
+    let group = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, item => {
+        let meta = findMetadataById(item.ItemId)
+        let user = findUserEntryById(item.ItemId)
+        let symbols = makeSymbolsTableFromObj({ ...item, ...meta, ...user })
+
+        return parseExpression(expr, symbols).toStr().jsValue
+    }))
+    //Sometimes there's just empty groups i'm not sure why
+    for (let key in group) {
+        if (group[key].length === 0) {
+            delete group[key]
+        }
+    }
+    return group
+}
+
+/**
+ * @param {InfoEntry[]} entries
  * @returns {Promise<[string[], InfoEntry[][]]>}
  */
 async function organizeData(entries) {
@@ -262,6 +287,9 @@ async function organizeData(entries) {
             }
         }
     }
+    else if (groupByInput.value) {
+        data = organizeDataByExpr(entries)
+    }
     else {
         data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)])))
     }
@@ -303,7 +331,7 @@ async function organizeData(entries) {
         })
         x = sorted.map(v => v[0])
         y = sorted.map(v => v[1])
-    } else if(sortBy.value === "cost") {
+    } else if (sortBy.value === "cost") {
         let sorted = Object.entries(data).sort((a, b) => {
             let aCost = a[1].reduce((p, c) => {
                 return p + (c?.PurchasePrice || 0)
@@ -407,14 +435,14 @@ const ratingByYear = ChartManager(async (entries) => {
     return mkXTypeChart(rbyCtx, years, ratings, 'ratings')
 })
 
-const generalRating = ChartManager(async(entries) => {
+const generalRating = ChartManager(async (entries) => {
     let [years, data] = await organizeData(entries)
     const ratings = data.map(v => {
         return v.map(i => {
             let meta = findMetadataById(i.ItemId)
             let rating = meta?.Rating
             let max = meta?.RatingMax
-            if(rating && max) {
+            if (rating && max) {
                 return (rating / max) * 100
             }
             return 0
@@ -423,7 +451,7 @@ const generalRating = ChartManager(async(entries) => {
     return mkXTypeChart(getCtx2("general-rating-by-year"), years, ratings, "general ratings")
 })
 
-const ratingDisparityGraph = ChartManager(async(entries) => {
+const ratingDisparityGraph = ChartManager(async (entries) => {
     let [years, data] = await organizeData(entries)
     const disparity = data.map(v => {
         return v.map(i => {
@@ -431,8 +459,8 @@ const ratingDisparityGraph = ChartManager(async(entries) => {
             let user = findUserEntryById(i.ItemId)
             let rating = meta?.Rating
             let max = meta?.RatingMax
-            if(rating && max) {
-                let general =  (rating / max) * 100
+            if (rating && max) {
+                let general = (rating / max) * 100
                 return (user?.UserRating || 0) - general
             }
             return user?.UserRating || 0
@@ -459,6 +487,10 @@ function makeGraphs(entries) {
     watchTimeByYear(entries)
     generalRating(entries)
     ratingDisparityGraph(entries)
+}
+
+groupByInput.onchange = function() {
+    makeGraphs(globalsNewUi.selectedEntries)
 }
 
 groupBySelect.onchange = typeSelection.onchange = function() {
