@@ -2,15 +2,17 @@
 
 func-call  : WORD"(" (expr ",")* ")"
 
-atom       : NUMBER | WORD | "(" expr ")" | func-call
+atom       : NUMBER | WORD | "(" expr ")"
 
-signed-atom: ("+"|"-") atom
+l-unop: ("+"|"-")? atom
 
-product    : signed-atom (("*"|"/") signed-atom)*
+r-unop: l-unop (func-call)?
 
-arithmatic : product (("+"|"-") product)*
+factor    : r-unop (("*"|"/") r-unop)*
 
-comparison : arithmatic ((">"|"<"|"=="|"<="|">=") comparison)*
+term : factor (("+"|"-") factor)*
+
+comparison : term ((">"|"<"|"=="|"<="|">=") comparison)*
 
 func-def   : "var()" WORD "=" program "rav"
 

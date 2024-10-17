@@ -94,7 +94,18 @@ class ErrorNode extends NodePar {
     }
 }
 
-class UnOpNode extends NodePar {
+class RUnOpNode extends NodePar {
+    /**
+     * @param {Token} operator
+     * @param {NodePar} left
+     */
+    constructor(left, operator) {
+        super()
+        this.left = left
+        this.operator = operator
+    }
+}
+class LUnOpNode extends NodePar {
     /**
      * @param {NodePar} right
      * @param {Token} operator
@@ -148,12 +159,12 @@ class FuncDefNode extends NodePar {
 
 class CallNode extends NodePar {
     /**
-     * @param {Token} name
+     * @param {NodePar} callable
      * @param {NodePar[]} inner
      */
-    constructor(name, inner) {
+    constructor(callable, inner) {
         super()
-        this.name = name
+        this.callabale = callable
         this.inner = inner
     }
 }
@@ -271,25 +282,25 @@ function lex(input) {
             pos = newPos
             tokens.push(new Token("String", str))
         }
-        else if(ch === '=') {
+        else if (ch === '=') {
             pos++
-            if(input[pos] === '=') {
+            if (input[pos] === '=') {
                 pos++
                 tokens.push(new Token("DEq", "=="))
             } else {
                 tokens.push(new Token("Eq", "="))
             }
-        } else if(ch === '<') {
+        } else if (ch === '<') {
             pos++
-            if(input[pos] === "<=") {
+            if (input[pos] === "<=") {
                 pos++
                 tokens.push(new Token("Le", "<="))
             } else {
                 tokens.push(new Token("Lt", "<"))
             }
-        } else if(ch === ">") {
+        } else if (ch === ">") {
             pos++
-            if(input[pos] === ">=") {
+            if (input[pos] === ">=") {
                 pos++
                 tokens.push(new Token("Ge", ">="))
             } else {
@@ -350,30 +361,43 @@ class Parser {
 
         if (tok.ty === "Num") {
             return new NumNode(Number(tok.value))
-        } else if (tok.ty === "Word") {
-            if (this.curTok()?.ty === "Lparen") {
-                this.back() //let funcCall get the name
-                return this.funcCall()
-            }
-            return new WordNode(tok.value)
-        } else if (tok.ty === "String") {
+        }
+        else if (tok.ty === "String") {
             return new StringNode(tok.value)
         } else if (tok.ty === "Lparen") {
             let node = this.ast_expr()
+            if(!(this.curTok()?.ty === "Rparen")) {
+                return new ErrorNode("Missing matching ')'")
+            }
             this.next() //skip Rparen
             return node
+        } else if(tok.ty === "Word") {
+            return new WordNode(tok.value)
         }
         return new ErrorNode(`Invalid token: (${tok.ty} ${tok.value})`)
     }
 
-    signedAtom() {
+    l_unop() {
         let tok = this.curTok()
         if ("+-".includes(tok.value)) {
             this.next()
             let right = this.atom()
-            return new UnOpNode(right, tok)
+            return new LUnOpNode(right, tok)
         }
         return this.atom()
+    }
+
+    r_unop() {
+        let left = this.l_unop()
+
+        let tok = this.curTok()
+
+        if(!tok) return left
+
+        if(tok.ty == "Lparen") {
+            return this.funcCall(left)
+        }
+        return left
     }
 
     /**
@@ -383,7 +407,7 @@ class Parser {
     binop(ops, lower) {
         let left = lower.bind(this)()
         let op = this.curTok()
-        while(op && ops.includes(op.value)) {
+        while (op && ops.includes(op.value)) {
             this.next()
             let right = lower.bind(this)()
             left = new BinOpNode(left, op, right)
@@ -392,18 +416,18 @@ class Parser {
         return left
     }
 
-    product() {
-        return this.binop("*/", this.signedAtom)
+    factor() {
+        return this.binop("*/", this.r_unop)
     }
 
-    arithmatic() {
-        return this.binop("+-", this.signedAtom)
+    term() {
+        return this.binop("+-", this.factor)
     }
 
     comparison() {
-        let left = this.arithmatic()
+        let left = this.term()
         let op = this.curTok()
-        while(op && ["<",">","<=",">=","=="].includes(op.value)) {
+        while (op && ["<", ">", "<=", ">=", "=="].includes(op.value)) {
             this.next()
             let right = this.comparison()
             left = new BinOpNode(left, op, right)
@@ -412,20 +436,22 @@ class Parser {
         return left
     }
 
-    funcCall() {
-        let name = this.curTok()
+    /**
+     * @param {NodePar} callable
+     * @returns {NodePar}
+     */
+    funcCall(callable) {
         this.next() //skip Lparen
-        this.next()
         if (this.curTok().ty === 'Rparen') {
             this.next()
-            return new CallNode(name, [])
+            return new CallNode(callable, [])
         }
         let inner = [this.ast_expr()]
         while (this.curTok()?.ty === "Comma") {
             this.next()
             inner.push(this.ast_expr())
         }
-        let node = new CallNode(name, inner)
+        let node = new CallNode(callable, inner)
         if (this.curTok()?.ty !== 'Rparen') {
             console.error(`Invalid token: ${this.curTok().ty}, expected ")"`)
             return new NumNode(0)
@@ -581,6 +607,7 @@ class Type {
      */
     call(params) {
         console.error(`Cannot call ${this.constructor.name}`)
+        return new Num(0)
     }
 }
 
@@ -696,13 +723,13 @@ class List extends Type {
      * @param {Type} right
      */
     eq(right) {
-        if(!(right instanceof List)) {
+        if (!(right instanceof List)) {
             return new Num(0)
         }
 
         let l = new Set(this.jsValue)
         let r = new Set(right.jsValue)
-        if(l.difference(r).size === 0) {
+        if (l.difference(r).size === 0) {
             return new Num(1)
         }
         return new Num(0)
@@ -734,14 +761,14 @@ class SymbolTable {
         }))
 
         this.symbols.set("round", new Func(n => {
-            if(!(n instanceof Num)) {
+            if (!(n instanceof Num)) {
                 return new Num(0)
             }
             return new Num(Math.round(n.jsValue))
         }))
 
         this.symbols.set("floor", new Func(n => {
-            if(!(n instanceof Num)) {
+            if (!(n instanceof Num)) {
                 return new Num(0)
             }
 
@@ -826,9 +853,9 @@ class Interpreter {
     }
 
     /**
-     * @param {UnOpNode} node
+     * @param {LUnOpNode} node
      */
-    UnOpNode(node) {
+    LUnOpNode(node) {
         let right = this.interpretNode(node.right)
         if (node.operator.ty === "Add") {
             return right
@@ -852,19 +879,19 @@ class Interpreter {
             return left.mul(right)
         } else if (node.operator.ty === "Div") {
             return left.div(right)
-        } else if(node.operator.ty === "DEq") {
+        } else if (node.operator.ty === "DEq") {
             return left.eq(right)
-        } else if(node.operator.ty === "Lt") {
+        } else if (node.operator.ty === "Lt") {
             return left.lt(right)
-        } else if(node.operator.ty === "Gt") {
+        } else if (node.operator.ty === "Gt") {
             return left.gt(right)
-        } else if(node.operator.ty === "Ge") {
-            if(left.gt(right) || left.eq(right)) {
+        } else if (node.operator.ty === "Ge") {
+            if (left.gt(right) || left.eq(right)) {
                 return new Num(1)
             }
             return new Num(0)
-        } else if(node.operator.ty === "Le") {
-            if(left.lt(right) || left.eq(right)) {
+        } else if (node.operator.ty === "Le") {
+            if (left.lt(right) || left.eq(right)) {
                 return new Num(1)
             }
             return new Num(0)
@@ -897,12 +924,8 @@ class Interpreter {
      */
     CallNode(node) {
         let inner = node.inner.map(this.interpretNode.bind(this))
-        let name = node.name
-        let value = this.symbolTable.get(name.value)
-        if (!value) {
-            return new Num(0)
-        }
-        return value.call(inner)
+        let callable = this.interpretNode(node.callabale)
+        return callable.call(inner)
     }
 
     /**
@@ -971,8 +994,8 @@ function jsVal2CalcVal(value) {
             return new Num(Number(value))
         case 'bigint':
             return new Num(Number(value))
-        case 'function': 
-            return new Func(function(){
+        case 'function':
+            return new Func(function() {
                 return jsVal2CalcVal(value(...arguments))
             })
         default:
