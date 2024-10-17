@@ -1,11 +1,3 @@
-//TODO:
-//display statistics eg:
-//  total watch time
-//  total items
-//  total spent
-//
-// TODO: per item cost pie chart
-
 /**
  * @param {string} id
  */

@@ -78,8 +78,11 @@ Basic documentation can be found at `/docs`
             - eg: `{rating/ratingMax * 100} > 90`
         - `!` will negate the next thing
             - if it prefixes an expression, it inverts the entire expression acting as a `not`
-            - if it prefixes an operator, it inverts the operator, eg `-<` becomes `>=`
+            - if it prefixes an operator, it inverts the operator, eg `!<` becomes `>=`
             - eg: `!(rating > 90)` == `rating <= 90` == `rating !> 90`
+        - Any part that fails to parse, will be counted as `&& en_title ~ "<words>"`
+            eg: `this fails to parse` == `en_title ~ "this fails to parse"`,
+            eg2: `rating > 90 && search%` == `rating > 90 && en_title ~ "search%"`
     - make a new api query-v3, the sole parameter is a query in the form of that language
     - the server will try to parse it, if it fails to parse, it is treated as:
     `en_title ~ "<the query>"`

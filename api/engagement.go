@@ -40,7 +40,6 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 		wError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
 	}
-	// TODO: FIXME
 
 	success(w)
 }

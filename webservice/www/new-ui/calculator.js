@@ -377,30 +377,27 @@ class Parser {
     }
 
     /**
-     * @returns {NodePar}
+     * @param {string} ops
+     * @param {(this: Parser) => NodePar} lower/
      */
-    product() {
-        let left = this.signedAtom()
+    binop(ops, lower) {
+        let left = lower.bind(this)()
         let op = this.curTok()
-        while (op && "*/".includes(op.value)) {
+        while(op && ops.includes(op.value)) {
             this.next()
-            let right = this.signedAtom()
+            let right = lower.bind(this)()
             left = new BinOpNode(left, op, right)
             op = this.curTok()
         }
         return left
     }
 
+    product() {
+        return this.binop("*/", this.signedAtom)
+    }
+
     arithmatic() {
-        let left = this.product()
-        let op = this.curTok()
-        while (op && "+-".includes(op.value)) {
-            this.next()
-            let right = this.product()
-            left = new BinOpNode(left, op, right)
-            op = this.curTok()
-        }
-        return left
+        return this.binop("+-", this.signedAtom)
     }
 
     comparison() {
@@ -899,7 +896,7 @@ class Interpreter {
      * @returns {Type}
      */
     CallNode(node) {
-        let inner = node.inner.map(v => this.interpretNode(v))
+        let inner = node.inner.map(this.interpretNode.bind(this))
         let name = node.name
         let value = this.symbolTable.get(name.value)
         if (!value) {
