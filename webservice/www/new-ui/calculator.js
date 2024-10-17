@@ -401,14 +401,14 @@ class Parser {
     varDef() {
         this.next() // skip "var"
 
-        if(this.curTok().ty === "Lparen") {
+        if (this.curTok().ty === "Lparen") {
             return this.funcDef()
         }
 
         let name = this.curTok()
 
         this.next()
-        if(this.curTok()?.ty !== "Eq") {
+        if (this.curTok()?.ty !== "Eq") {
             console.error("Expected '='")
             return new NumNode(0)
         }
@@ -422,13 +422,13 @@ class Parser {
 
         let name = this.curTok()
         this.next()
-        if(this.curTok()?.ty !== "Eq") {
+        if (this.curTok()?.ty !== "Eq") {
             console.error("Expected '='")
             return new NumNode(0)
         }
         this.next()
         let program = this.program()
-        if(this.curTok().ty !== "Word" || this.curTok().value !== "rav") {
+        if (this.curTok().ty !== "Word" || this.curTok().value !== "rav") {
             console.error("Expected 'rav'")
             return new NumNode(0)
         }
@@ -438,7 +438,7 @@ class Parser {
 
     ast_expr() {
         let t = this.curTok()
-        if(t.ty === "Word" && t.value === "var") {
+        if (t.ty === "Word" && t.value === "var") {
             return this.varDef()
         }
         let expr = new ExprNode(this.arithmatic())
@@ -651,7 +651,7 @@ class SymbolTable {
 
         this.symbols.set("max", new Func((...items) => {
             let max = items[0].toNum()
-            for(let item of items) {
+            for (let item of items) {
                 if (item.toNum().jsValue > max.jsValue) {
                     max = item
                 }
@@ -661,8 +661,8 @@ class SymbolTable {
 
         this.symbols.set("min", new Func((...items) => {
             let min = items[0].toNum()
-            for(let item of items) {
-                if(item.toNum().jsValue < min.jsValue) {
+            for (let item of items) {
+                if (item.toNum().jsValue < min.jsValue) {
                     min = item
                 }
             }
@@ -685,7 +685,7 @@ class SymbolTable {
 
     copy() {
         let copy = new SymbolTable()
-        for(let item of this.symbols.entries()) {
+        for (let item of this.symbols.entries()) {
             copy.set(item[0], item[1])
         }
         return copy
@@ -798,7 +798,7 @@ class Interpreter {
         node.closure = this.symbolTable.copy()
 
         this.symbolTable.set(node.name.value, new Func((...items) => {
-            for(let i = 0; i < items.length; i++) {
+            for (let i = 0; i < items.length; i++) {
                 node.closure.set(`arg${i}`, items[i])
             }
             let interpreter = new Interpreter(node.program, node.closure)
@@ -833,4 +833,42 @@ class Interpreter {
     interpret() {
         return this.interpretNode(this.tree)
     }
+}
+
+/**
+ * @param {any} value
+ */
+function jsVal2CalcVal(value) {
+    switch (typeof value) {
+        case 'string':
+            return new Str(value)
+        case 'number':
+            return new Num(value)
+        case 'bigint':
+            return new Num(Number(value))
+        case 'function': 
+            return new Func(function(){
+                return jsVal2CalcVal(value(...arguments))
+            })
+        default:
+            return new Num(NaN)
+    }
+}
+
+/**
+* @param {object} obj
+* @returns {SymbolTable}
+*/
+function makeSymbolsTableFromObj(obj) {
+    let symbols = new SymbolTable()
+    for (let name in obj) {
+        //@ts-ignore
+        let val = all[name]
+        let t = jsVal2CalcVal(val)
+        if (symbols.get(name)) {
+            name = `${name}2`
+        }
+        symbols.set(name, t)
+    }
+    return symbols
 }

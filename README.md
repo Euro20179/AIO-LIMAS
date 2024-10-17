@@ -96,3 +96,5 @@ Basic documentation can be found at `/docs`
      - an id that should be viewed before this entry
      - eg: `starwars 2` requires `starwars 1`
      - if an entry requires more than 1 entry, make a collection containing all the requirements
+- [ ] In thee ui, in graph mode, allow the user to write a function of some kind to determine how the grouping will work, isntead of the predetermined year/item name/tags etc...
+    - the user's function should return a string for each item indicating which group it's in

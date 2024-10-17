@@ -47,37 +47,8 @@ function updateExpressionOutput(item) {
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
 
-    let symbols = new SymbolTable()
-
     let all = {...item, ...meta, ...user}
-    for (let name in all ) {
-        let t = null
-        //@ts-ignore
-        let val = all[name]
-        switch (typeof val) {
-            case "string":
-                t = new Str(val)
-                break
-            case "number":
-                t = new Num(val)
-                break
-            case "bigint":
-                t = new Num(Number(val))
-                break
-            case "boolean":
-                t = new Num(Number(val))
-                break
-            case "symbol":
-            case "undefined":
-            case "object":
-            case "function":
-                continue
-        }
-        if(symbols.get(name)) {
-            name = `${name}2`
-        }
-        symbols.set(name, t)
-    }
+    let symbols = makeSymbolsTableFromObj(all)
 
     let val = new Num(item.ItemId)
     if (expr) {
