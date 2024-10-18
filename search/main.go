@@ -282,10 +282,20 @@ func (self OperatorNode) ToString() string {
 		">=": "<",
 		"~":  "!~",
 		"&":  "|",
+		"^":  "!^",
 	}
 
 	for k, v := range negatedOps {
 		negatedOps[v] = k
+	}
+
+	opNames := map[string]string{
+		"&":  " AND ",
+		"|":  " OR ",
+		"~":  " LIKE ",
+		"!~": " NOT LIKE ",
+		"^":  " IN ",
+		"!^": " NOT IN ",
 	}
 
 	strOp := ""
@@ -304,14 +314,24 @@ func (self OperatorNode) ToString() string {
 		strOp = "~"
 	case TT_AND:
 		strOp = "&"
+	case TT_OR:
+		strOp = "|"
+	case TT_IN:
+		strOp = "^"
 	default:
 		panic("unknown operator")
 	}
 
 	if self.Negate {
-		return negatedOps[strOp]
+		strOp = negatedOps[strOp]
 	}
-	return strOp
+
+	name, hasName := opNames[strOp]
+	if !hasName {
+		name = strOp
+	}
+
+	return name
 }
 
 type BinOpNode struct {
@@ -321,37 +341,11 @@ type BinOpNode struct {
 }
 
 func (self BinOpNode) ToString() string {
+	op := self.Operator.ToString()
 	left := self.Left.ToString()
 	right := self.Right.ToString()
 
-	switch self.Operator.Operator {
-	case TT_IN:
-		return "(" + left + " IN " + right + ")"
-	case TT_AND:
-		return "(" + left + " AND " + right + ")"
-	case TT_OR:
-		return "(" + left + " OR " + right + ")"
-	case TT_DIV:
-		return "(" + left + " / " + right + ")"
-	case TT_MUL:
-		return "(" + left + " * " + right + ")"
-	case TT_SUB:
-		return "(" + left + " - " + right + ")"
-	case TT_PLUS:
-		return "(" + left + " + " + right + ")"
-	case TT_SIMILAR:
-		return "(" + left + " LIKE " + right + ")"
-	case TT_GE:
-		return "(" + left + " >= " + right + ")"
-	case TT_LE:
-		return "(" + left + " <= " + right + ")"
-	case TT_GT:
-		return "(" + left + " > " + right + ")"
-	case TT_LT:
-		return "(" + left + " < " + right + ")"
-	default:
-		panic(fmt.Sprintf("Unimplemented operator: %+v", self.Operator))
-	}
+	return "(" + left + op + right + ")"
 }
 
 func Parse(tokens []Token) (string, error) {
@@ -433,6 +427,8 @@ func Parse(tokens []Token) (string, error) {
 		compToks := []TT{
 			TT_LT, TT_GT, TT_LE, TT_GE, TT_EQ, TT_SIMILAR, TT_IN,
 		}
+		// if the user doesn't provide a comparison, assume they wanted
+		// to use the token as `en_title LIKE token` essentially a basic search
 		fallback := BinOpNode{
 			Left: PlainWordNode{
 				Value: "en_title",
@@ -442,7 +438,7 @@ func Parse(tokens []Token) (string, error) {
 				Negate:   false,
 			},
 			Right: StringNode{
-				Value: tokens[i].Value,
+				Value: left.ToString(),
 			},
 		}
 
@@ -452,10 +448,15 @@ func Parse(tokens []Token) (string, error) {
 		}
 		back()
 
+		negated := false
 		for next() {
+			if tokens[i].Ty == TT_NOT {
+				negated = true
+				continue
+			}
 			if !slices.Contains(compToks, tokens[i].Ty) {
 				back()
-				break
+				return fallback
 			}
 			op := tokens[i]
 			if !next() {
@@ -466,10 +467,11 @@ func Parse(tokens []Token) (string, error) {
 				Left: left,
 				Operator: OperatorNode{
 					Operator: op.Ty,
-					Negate:   false,
+					Negate:   negated,
 				},
 				Right: right,
 			}
+			negated = false
 		}
 		return left
 	}
@@ -507,19 +509,7 @@ func Parse(tokens []Token) (string, error) {
 	return sn.ToString(), nil
 }
 
-func Search2String(search string) string {
+func Search2String(search string) (string, error) {
 	tokens := Lex(search)
-	tree, err := Parse(tokens)
-	if err != nil {
-		panic(err.Error())
-	}
-	return tree
+	return Parse(tokens)
 }
-
-// func (self BinOpNode) ToString() string {
-// 	return self.Left.ToString() + self.Operator.ToString() + self.Right.ToString()
-// }
-//
-// func parseExpr(tokens []Token, i int) (expr Expr, err error) {
-// 	return nil, err
-// }

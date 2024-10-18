@@ -1,7 +1,6 @@
 package db
 
 import (
-	"aiolimas/search"
 	"database/sql"
 	"fmt"
 	"math/rand/v2"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"aiolimas/search"
 
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
@@ -563,11 +564,17 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 }
 
 func Search3(searchQuery string) ([]InfoEntry, error) {
-	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
-	safeQuery := search.Search2String(searchQuery)
-	rows, err := Db.Query(fmt.Sprintf(query, safeQuery))
 	var out []InfoEntry
 
+	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
+
+	safeQuery, err := search.Search2String(searchQuery)
+	if err != nil {
+		return out, err
+	}
+	fmt.Fprintf(os.Stderr, "Got query %s\n", safeQuery)
+
+	rows, err := Db.Query(fmt.Sprintf(query, safeQuery))
 	if err != nil {
 		return out, err
 	}
