@@ -254,6 +254,19 @@ async function updateThumbnail(id, thumbnail) {
 }
 
 /**
+ * @param {string} searchString
+ */
+async function doQuery3(searchString) {
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`)
+    let itemsText = await res.text()
+    let jsonL = itemsText.split("\n")
+        .filter(Boolean)
+        .map(mkStrItemId)
+        .map(parseJsonL)
+    return jsonL
+}
+
+/**
  * @param {FormData} data
  */
 async function doQuery2(data) {
