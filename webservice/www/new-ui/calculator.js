@@ -613,6 +613,12 @@ class Type {
 
 class Func extends Type {
     /**
+     * @param {(...params: Type[]) => Type} fn
+     */
+    constructor(fn) {
+        super(fn)
+    }
+    /**
      * @param {Type[]} params
      */
     call(params) {
@@ -983,6 +989,7 @@ class Interpreter {
 
 /**
  * @param {any} value
+ * @returns {Type}
  */
 function jsVal2CalcVal(value) {
     switch (typeof value) {

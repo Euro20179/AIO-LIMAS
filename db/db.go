@@ -1,6 +1,7 @@
 package db
 
 import (
+	"aiolimas/search"
 	"database/sql"
 	"fmt"
 	"math/rand/v2"
@@ -540,6 +541,31 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 		finalQuery,
 		args...,
 	)
+	var out []InfoEntry
+
+	if err != nil {
+		return out, err
+	}
+
+	defer rows.Close()
+	i := 0
+	for rows.Next() {
+		i += 1
+		var row InfoEntry
+		err = row.ReadEntry(rows)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+func Search3(searchQuery string) ([]InfoEntry, error) {
+	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
+	safeQuery := search.Search2String(searchQuery)
+	rows, err := Db.Query(fmt.Sprintf(query, safeQuery))
 	var out []InfoEntry
 
 	if err != nil {

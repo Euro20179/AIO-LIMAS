@@ -220,6 +220,16 @@ var ( // `/` endpoints {{{
 		Returns:     "float",
 	}
 
+	search3Api = api.ApiEndPoint {
+		EndPoint: "query-v3",
+		Handler: api.QueryEntries3,
+		QueryParams: api.QueryParams {
+			"search": api.MkQueryInfo(api.P_NotEmpty, true),
+		},
+		Returns: "InfoEntry[]",
+		Description: "search query similar to how sql where query works",
+	}
+
 	search2Api = api.ApiEndPoint{
 		EndPoint: "query-v2",
 		Handler:  api.QueryEntries2,
@@ -552,6 +562,7 @@ var (
 		modEntry,
 		setEntry,
 		search2Api,
+		search3Api,
 		listApi,
 		stream,
 		deleteEntry,

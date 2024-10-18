@@ -316,6 +316,27 @@ func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	w.Write([]byte("\n"))
 }
 
+func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	search := pp["search"].(string)
+
+	results, err := db.Search3(search)
+	if err != nil {
+		wError(w, 500, "Could not complete search\n%s", err.Error())
+		return
+	}
+
+	w.WriteHeader(200)
+	for _, row := range results {
+		j, err := row.ToJson()
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		w.Write(j)
+		w.Write([]byte("\n"))
+	}
+}
+
 func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	names := pp["names"].([]string)
 	values := pp["values"].([]string)
@@ -326,8 +347,8 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	for i, name := range names {
 		data := db.SearchData{
-			DataName: name,
-			Checker:  checkers[i],
+			DataName:  name,
+			Checker:   checkers[i],
 			LogicType: gates[i],
 		}
 		if checkers[i] == db.DATA_NOTIN || checkers[i] == db.DATA_IN {
