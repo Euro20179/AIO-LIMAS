@@ -1,0 +1,11 @@
+raw        : "{" TEXT "}" 
+
+atom       : STRING | WORD | raw | "(" search ")"
+
+atom-list  : atom(":"atom?)*
+
+//despite requiring 2 atoms, and an op, `title%` is valid syntax because
+//it will inject `en_title ~` as a prefix to the atom if no operator is found
+comparison : atom "!"? (">"|"<"|"="|"<="|">="|"=="|"~") atom
+
+search: comparison (("&"|"|") comparison)*
