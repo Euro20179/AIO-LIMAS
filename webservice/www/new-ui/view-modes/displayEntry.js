@@ -1,3 +1,27 @@
+/**@type {HTMLElement[]}*/
+const displaying = []
+/**@type {InfoEntry[]}*/
+const displayQueue = []
+
+/**
+ * @param {IntersectionObserverEntry[]} entries
+ */
+function onIntersection(entries) {
+    for(let entry of entries) {
+        if(entry.isIntersecting && displayQueue.length) {
+            let newItem = displayQueue.shift()
+            if(!newItem) continue
+            modeDisplayEntry.add(newItem, false)
+        }
+    }
+}
+
+const observer = new IntersectionObserver(onIntersection, {
+    root: document.querySelector("#entry-output"),
+    rootMargin: "0px",
+    threshold: 0.1
+})
+
 /**
  * @type {DisplayMode}
  */
@@ -14,8 +38,12 @@ const modeDisplayEntry = {
 
     addList(entry, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entry, 1)
-        for (let item of entry) {
-            renderDisplayItem(item)
+        for(let i = 0; i < entry.length; i++) {
+            if(i > 5) {
+                displayQueue.push(entry[i])
+            } else {
+                renderDisplayItem(entry[i])
+            }
         }
     },
 
@@ -64,6 +92,10 @@ function hookActionButtons(shadowRoot, item) {
  */
 function renderDisplayItem(item, parent = displayItems) {
     let el = document.createElement("display-entry")
+
+    displaying.push(el)
+
+    observer.observe(el)
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
@@ -116,7 +148,10 @@ function renderDisplayItem(item, parent = displayItems) {
  * @param {InfoEntry} item
  */
 function removeDisplayItem(item) {
-    displayItems.querySelector(`[data-item-id="${item.ItemId}"]`)?.remove()
+    const el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
+    if(!el) return
+    el.remove()
+    observer.unobserve(el)
 }
 
 /**
