@@ -259,11 +259,16 @@ async function updateThumbnail(id, thumbnail) {
 async function doQuery3(searchString) {
     const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`)
     let itemsText = await res.text()
-    let jsonL = itemsText.split("\n")
+    try {
+        let jsonL = itemsText.split("\n")
         .filter(Boolean)
         .map(mkStrItemId)
         .map(parseJsonL)
-    return jsonL
+        return jsonL
+    } catch(err) {
+        console.error(err)
+    }
+    return []
 }
 
 /**

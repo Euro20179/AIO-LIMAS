@@ -2,7 +2,6 @@ package search
 
 import (
 	"encoding/json"
-	"fmt"
 	"slices"
 	"strings"
 )
@@ -56,6 +55,10 @@ func Lex(search string) []Token {
 		return i < len(search)
 	}
 
+	back := func() {
+		i--
+	}
+
 	parseNumber := func() string {
 		hasDot := false
 
@@ -93,7 +96,8 @@ func Lex(search string) []Token {
 				escape = true
 				continue
 			}
-			if quote == "" && strings.Contains(endOfWordChars, string(ch)) {
+			if !escape && quote == "" && strings.Contains(endOfWordChars, string(ch)) {
+				back()
 				break
 			}
 			if !escape && string(ch) == quote {
@@ -175,7 +179,8 @@ func Lex(search string) []Token {
 				ty = TT_AND
 				val = "&"
 			case '=':
-				if len(search) > 1 && search[1] == '=' {
+				if len(search) > 1 && search[i + 1] == '=' {
+					next()
 					ty = TT_EQ
 					val = "=="
 				} else {
@@ -183,7 +188,8 @@ func Lex(search string) []Token {
 					val = "="
 				}
 			case '>':
-				if len(search) > 1 && search[1] == '=' {
+				if len(search) > 1 && search[i + 1] == '=' {
+					next()
 					ty = TT_GE
 					val = ">="
 				} else {
@@ -191,10 +197,12 @@ func Lex(search string) []Token {
 					val = ">"
 				}
 			case '<':
-				if len(search) > 1 && search[1] == '=' {
+				if len(search) > 1 && search[i + 1] == '=' {
+					next()
 					ty = TT_LE
 					val = "<="
 				} else {
+					next()
 					ty = TT_LT
 					val = "<"
 				}
@@ -277,7 +285,7 @@ type OperatorNode struct {
 
 func (self OperatorNode) ToString() string {
 	negatedOps := map[string]string{
-		"==": "!=",
+		"=":  "!=",
 		"<=": ">",
 		">=": "<",
 		"~":  "!~",
@@ -301,14 +309,14 @@ func (self OperatorNode) ToString() string {
 	strOp := ""
 	switch self.Operator {
 	case TT_EQ:
-		strOp = "=="
-	case TT_LT:
-		strOp = "<="
+		strOp = "="
 	case TT_LE:
+		strOp = "<="
+	case TT_LT:
 		strOp = "<"
-	case TT_GT:
-		strOp = ">="
 	case TT_GE:
+		strOp = ">="
+	case TT_GT:
 		strOp = ">"
 	case TT_SIMILAR:
 		strOp = "~"
@@ -351,7 +359,7 @@ func (self BinOpNode) ToString() string {
 func Parse(tokens []Token) (string, error) {
 	i := -1
 
-	var search func() (Node, error)
+	var search func() Node
 	var atom func() Node
 	var comparison func() Node
 
@@ -362,10 +370,6 @@ func Parse(tokens []Token) (string, error) {
 
 	back := func() {
 		i--
-	}
-
-	atEnd := func() bool {
-		return i >= len(tokens)
 	}
 
 	atom = func() Node {
@@ -387,10 +391,7 @@ func Parse(tokens []Token) (string, error) {
 				Value: tokens[i].Value,
 			}
 		case TT_LPAREN:
-			n, err := search()
-			if err != nil {
-				return StringNode{}
-			}
+			n := search()
 			next()
 			return n
 		}
@@ -427,26 +428,6 @@ func Parse(tokens []Token) (string, error) {
 		compToks := []TT{
 			TT_LT, TT_GT, TT_LE, TT_GE, TT_EQ, TT_SIMILAR, TT_IN,
 		}
-		// if the user doesn't provide a comparison, assume they wanted
-		// to use the token as `en_title LIKE token` essentially a basic search
-		fallback := BinOpNode{
-			Left: PlainWordNode{
-				Value: "en_title",
-			},
-			Operator: OperatorNode{
-				Operator: TT_SIMILAR,
-				Negate:   false,
-			},
-			Right: StringNode{
-				Value: left.ToString(),
-			},
-		}
-
-		next()
-		if atEnd() {
-			return fallback
-		}
-		back()
 
 		negated := false
 		for next() {
@@ -456,7 +437,7 @@ func Parse(tokens []Token) (string, error) {
 			}
 			if !slices.Contains(compToks, tokens[i].Ty) {
 				back()
-				return fallback
+				break
 			}
 			op := tokens[i]
 			if !next() {
@@ -476,7 +457,7 @@ func Parse(tokens []Token) (string, error) {
 		return left
 	}
 
-	search = func() (Node, error) {
+	gate := func() Node {
 		next()
 		logicToks := []TT{TT_AND, TT_OR}
 		left := comparison()
@@ -486,7 +467,7 @@ func Parse(tokens []Token) (string, error) {
 			}
 			op := tokens[i]
 			if !next() {
-				return StringNode{}, fmt.Errorf("Expected expr after %s", op.Value)
+				return StringNode{}
 			}
 			right := comparison()
 			left = BinOpNode{
@@ -498,13 +479,14 @@ func Parse(tokens []Token) (string, error) {
 				Right: right,
 			}
 		}
-		return left, nil
+		return left
 	}
 
-	sn, err := search()
-	if err != nil {
-		return "", err
+	search = func() Node {
+		return gate()
 	}
+
+	sn := search()
 
 	return sn.ToString(), nil
 }
