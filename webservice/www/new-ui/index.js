@@ -384,25 +384,36 @@ function saveItemChanges(root, item) {
         .catch(console.error)
 
     let infoTable = root.querySelector("table.info-raw")
+    let metaTable = root.querySelector("table.meta-info-raw")
+    if(!infoTable || !metaTable) return
+
+    /**@type {(table: Element, item: InfoEntry | MetadataEntry) => void}*/
+    const updateWithTable = (table, item) => {
+        for (let row of table?.querySelectorAll("tr") || []) {
+            let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
+            let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
+            let name = nameChild.innerText.trim()
+            let value = valueChild.innerText.trim()
+            if (!(name in item)) {
+                console.log(`${name} NOT IN ITEM`)
+                continue
+            } else if (name === "ItemId") {
+                console.log("Skipping ItemId")
+                continue
+            }
+            let ty = item[/**@type {keyof typeof item}*/(name)].constructor
+            //@ts-ignore
+            item[name] = ty(value)
+        }
+    }
+
+    updateWithTable(infoTable, item)
+    let meta = findMetadataById(item.ItemId)
+    if(!meta) return
+    updateWithTable(metaTable, meta)
 
     //TODO: also save meta table
 
-    for (let row of infoTable?.querySelectorAll("tr") || []) {
-        let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
-        let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
-        let name = nameChild.innerText.trim()
-        let value = valueChild.innerText.trim()
-        if (!(name in item)) {
-            console.log(`${name} NOT IN ITEM`)
-            continue
-        } else if (name === "ItemId") {
-            console.log("Skipping ItemId")
-            continue
-        }
-        let ty = item[/**@type {keyof typeof item}*/(name)].constructor
-        //@ts-ignore
-        item[name] = ty(value)
-    }
 
     const infoStringified = mkIntItemId(
         JSON.stringify(
@@ -410,6 +421,13 @@ function saveItemChanges(root, item) {
             (_, v) => typeof v === 'bigint' ? String(v) : v
         )
     )
+
+    const metaStringified = mkIntItemId(
+        JSON.stringify(
+            meta, (_, v) => typeof v === 'bigint' ? String(v) : v
+        )
+    )
+
     fetch(`${apiPath}/set-entry`, {
         body: infoStringified,
         method: "POST"
@@ -417,6 +435,13 @@ function saveItemChanges(root, item) {
         .then(res => res.text())
         .then(console.log)
         .catch(console.error)
+
+    fetch(`${apiPath}/metadata/set-entry`, {
+        body: metaStringified,
+        method: "POST"
+    }).then(res => res.text())
+    .then(console.log)
+    .catch(console.error)
 
     refreshInfo().then(() => {
         refreshDisplayItem(item)

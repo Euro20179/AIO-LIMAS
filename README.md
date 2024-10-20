@@ -66,7 +66,7 @@ Basic documentation can be found at `/docs`
 - [ ] documentation
     - [x] webservice
     - [ ] ui
-- [ ] edit info/user/meta tables from ui
+- [x] edit info/user/meta tables from ui
     - [x] info
     - [x] meta
     - [x] ~user~ *decided against, as you can already edit everything anyway*
