@@ -172,7 +172,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Collection = tags
 	}
 
-	info.ArtStyle = db.ArtStyle(parsedParams.Get("art-style", 0).(uint))
+	info.ArtStyle = db.ArtStyle(parsedParams.Get("art-style", uint(0)).(uint))
 	info.Type = parsedParams.Get("type", info.Type).(db.MediaTypes)
 
 	err := db.UpdateInfoEntry(&info)

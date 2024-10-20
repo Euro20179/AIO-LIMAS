@@ -21,14 +21,7 @@ const (
 )
 
 func ArtStyle2Str(style uint) string {
-	bit2Name := map[ArtStyle]string{
-		AS_ANIME:       "Anime",
-		AS_CARTOON:     "Cartoon",
-		AS_HANDRAWN:    "Handdrawn",
-		AS_DIGITAL:     "Digital",
-		AS_CGI:         "CGI",
-		AS_LIVE_ACTION: "Live action",
-	}
+	bit2Name := ListArtStyles()
 	var styles []string
 	for i := AS_ANIME; i <= AS_LIVE_ACTION; i *= 2 {
 		if (style & uint(i)) == uint(i) {
@@ -37,6 +30,17 @@ func ArtStyle2Str(style uint) string {
 	}
 
 	return strings.Join(styles, " + ")
+}
+
+func ListArtStyles() map[ArtStyle]string {
+	return map[ArtStyle]string{
+		AS_ANIME:       "Anime",
+		AS_CARTOON:     "Cartoon",
+		AS_HANDRAWN:    "Handdrawn",
+		AS_DIGITAL:     "Digital",
+		AS_CGI:         "CGI",
+		AS_LIVE_ACTION: "Live action",
+	}
 }
 
 type Status string

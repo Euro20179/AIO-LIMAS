@@ -521,6 +521,12 @@ var ( // `/engagement` endpoints {{{
 		Handler:     api.ListTypes,
 		Description: "Lists the types for a Type",
 	}
+
+	artStylesApi = api.ApiEndPoint{
+		EndPoint: "artstyle",
+		Handler: api.ListArtStyles,
+		Description: "Lists the types art styles",
+	}
 	//}}}
 
 	// `/docs` endpoints {{{
@@ -614,6 +620,7 @@ var (
 	typeEndpoints = []api.ApiEndPoint{
 		formatTypesApi,
 		typeTypesApi,
+		artStylesApi,
 	}
 
 	docsEndpoints = []api.ApiEndPoint {
