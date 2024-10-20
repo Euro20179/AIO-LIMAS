@@ -11,10 +11,7 @@ function onIntersection(entries) {
         if(entry.isIntersecting && displayQueue.length) {
             let newItem = displayQueue.shift()
             if(!newItem) continue
-            //bypass the mode.add mechanism, because
-            //the add function needs to put in the back of the queue otherwise
-            //something might get rendered ahead of somethign in the queue
-            renderDisplayItem(newItem)
+            modeDisplayEntry.add(newItem, false)
         }
     }
 }
@@ -31,11 +28,7 @@ const observer = new IntersectionObserver(onIntersection, {
 const modeDisplayEntry = {
     add(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry)
-        //if there is an item in the queue, this item should not render ahead of it
-        if (displayQueue.length) 
-            displayQueue.push(entry)
-        else
-            renderDisplayItem(entry)
+        renderDisplayItem(entry)
     },
 
     sub(entry, updateStats = true) {
@@ -45,11 +38,13 @@ const modeDisplayEntry = {
 
     addList(entry, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entry, 1)
-
-        //only render the first five items
-        entry.slice(0, 5).forEach(v => renderDisplayItem(v))
-        //the rest are queued
-        entry.slice(5).forEach(v => displayQueue.push(v))
+        for(let i = 0; i < entry.length; i++) {
+            if(i > 5) {
+                displayQueue.push(entry[i])
+            } else {
+                renderDisplayItem(entry[i])
+            }
+        }
     },
 
     subList(entry, updateStats = true) {
