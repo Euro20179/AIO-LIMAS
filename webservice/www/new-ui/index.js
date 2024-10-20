@@ -44,12 +44,8 @@ let globalsNewUi = {
  */
 function* findDescendants(itemId) {
     let entries = Object.values(globalsNewUi.entries)
-    for (let i = 0; i < entries.length; i++) {
-        if (!entries[i].ParentId) continue
-        if (entries[i].ParentId === itemId) {
-            yield entries[i]
-        }
-    }
+    yield* entries.values()
+        .filter(v => v.ParentId === itemId)
 }
 
 /**
@@ -57,11 +53,8 @@ function* findDescendants(itemId) {
  */
 function* findCopies(itemId) {
     let entries = Object.values(globalsNewUi.entries)
-    for (let i = 0; i < entries.length; i++) {
-        if (entries[i].CopyOf === itemId) {
-            yield entries[i]
-        }
-    }
+    yield* entries.values()
+        .filter(v => v.CopyOf === itemId)
 }
 
 /**
@@ -177,8 +170,8 @@ async function newEntry() {
 
     let artStyle = 0
 
-    const styles = [ 'is-anime', 'is-cartoon', 'is-handrawn', 'is-digital', 'is-cgi', 'is-live-action' ]
-    for(let i = 0; i < styles.length; i++) {
+    const styles = ['is-anime', 'is-cartoon', 'is-handrawn', 'is-digital', 'is-cgi', 'is-live-action']
+    for (let i = 0; i < styles.length; i++) {
         let style = styles[i]
         if (data.get(style)) {
             artStyle |= 2 ** i
@@ -760,8 +753,8 @@ async function loadSearch() {
     let filters = parseClientsideSearchFiltering(formData)
 
     let entries = formData.get("advanced-search-toggle")
-        ?  await doQuery3(String(formData.get("search-query")))
-        :  await doQuery2(formData)
+        ? await doQuery3(String(formData.get("search-query")))
+        : await doQuery2(formData)
 
     entries = applyClientsideSearchFiltering(entries, filters)
 

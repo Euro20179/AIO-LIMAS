@@ -50,7 +50,7 @@ function updateExpressionOutput(item) {
     let all = {...item, ...meta, ...user}
     let symbols = makeSymbolsTableFromObj(all)
 
-    let val = new Num(item.ItemId)
+    let val = new Str(`${meta?.Description || ""}<br>${meta?.Rating || 0}`)
     if (expr) {
         val = parseExpression(expr, symbols)
     }
