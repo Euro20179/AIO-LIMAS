@@ -2,6 +2,7 @@ package search
 
 import (
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -179,7 +180,7 @@ func Lex(search string) []Token {
 				ty = TT_AND
 				val = "&"
 			case '=':
-				if len(search) > 1 && search[i + 1] == '=' {
+				if len(search) > 1 && search[i+1] == '=' {
 					next()
 					ty = TT_EQ
 					val = "=="
@@ -188,7 +189,7 @@ func Lex(search string) []Token {
 					val = "="
 				}
 			case '>':
-				if len(search) > 1 && search[i + 1] == '=' {
+				if len(search) > 1 && search[i+1] == '=' {
 					next()
 					ty = TT_GE
 					val = ">="
@@ -197,7 +198,7 @@ func Lex(search string) []Token {
 					val = ">"
 				}
 			case '<':
-				if len(search) > 1 && search[i + 1] == '=' {
+				if len(search) > 1 && search[i+1] == '=' {
 					next()
 					ty = TT_LE
 					val = "<="
@@ -234,48 +235,52 @@ func Lex(search string) []Token {
 }
 
 type Node interface {
-	ToString() string
+	ToString() (string, error)
 }
 
 type ListNode struct {
 	Items []Node
 }
 
-func (self ListNode) ToString() string {
+func (self ListNode) ToString() (string, error) {
 	str := "("
 	for _, item := range self.Items {
-		str += item.ToString() + ","
+		newText, err := item.ToString()
+		if err != nil{
+			return "", err
+		}
+		str += newText + ","
 	}
 	str = str[0 : len(str)-1]
-	return str + ")"
+	return str + ")", nil
 }
 
 type StringNode struct {
 	Value string
 }
 
-func (self StringNode) ToString() string {
+func (self StringNode) ToString() (string, error) {
 	newVal, err := json.Marshal(self.Value)
 	if err != nil {
-		panic("Could not string into json string")
+		return "", err
 	}
-	return string(newVal)
+	return string(newVal), nil
 }
 
 type NumberNode struct {
 	Value string
 }
 
-func (self NumberNode) ToString() string {
-	return self.Value
+func (self NumberNode) ToString() (string, error) {
+	return self.Value, nil
 }
 
 type PlainWordNode struct {
 	Value string
 }
 
-func (self PlainWordNode) ToString() string {
-	return strings.ReplaceAll(self.Value, ";", "")
+func (self PlainWordNode) ToString() (string, error) {
+	return strings.ReplaceAll(self.Value, ";", ""), nil
 }
 
 type OperatorNode struct {
@@ -283,7 +288,7 @@ type OperatorNode struct {
 	Negate   bool
 }
 
-func (self OperatorNode) ToString() string {
+func (self OperatorNode) ToString() (string, error) {
 	negatedOps := map[string]string{
 		"=":  "!=",
 		"<=": ">",
@@ -327,7 +332,7 @@ func (self OperatorNode) ToString() string {
 	case TT_IN:
 		strOp = "^"
 	default:
-		panic("unknown operator")
+		panic(fmt.Sprintf("Unknown operator: %d", self.Operator))
 	}
 
 	if self.Negate {
@@ -339,7 +344,7 @@ func (self OperatorNode) ToString() string {
 		name = strOp
 	}
 
-	return name
+	return name, nil
 }
 
 type BinOpNode struct {
@@ -348,12 +353,21 @@ type BinOpNode struct {
 	Operator OperatorNode
 }
 
-func (self BinOpNode) ToString() string {
-	op := self.Operator.ToString()
-	left := self.Left.ToString()
-	right := self.Right.ToString()
+func (self BinOpNode) ToString() (string, error) {
+	op, err := self.Operator.ToString()
+	if err != nil{
+		return "", err
+	}
+	left, err := self.Left.ToString()
+	if err != nil{
+		return "", err
+	}
+	right, err := self.Right.ToString()
+	if err != nil{
+		return "", err
+	}
 
-	return "(" + left + op + right + ")"
+	return "(" + left + op + right + ")", nil
 }
 
 func Parse(tokens []Token) (string, error) {
@@ -488,7 +502,7 @@ func Parse(tokens []Token) (string, error) {
 
 	sn := search()
 
-	return sn.ToString(), nil
+	return sn.ToString()
 }
 
 func Search2String(search string) (string, error) {

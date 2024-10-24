@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"aiolimas/db"
 	"aiolimas/metadata"
@@ -162,10 +163,16 @@ func P_VerifyIdAndGetMetaEntry(id string) (any, error) {
 }
 
 func P_True(in string) (any, error) {
+	if !utf8.ValidString(in) {
+		return in, errors.New("Invalid utf8")
+	}
 	return in, nil
 }
 
 func P_NotEmpty(in string) (any, error) {
+	if !utf8.ValidString(in) {
+		return in, errors.New("Invalid utf8")
+	}
 	if in != "" {
 		return in, nil
 	}

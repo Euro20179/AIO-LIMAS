@@ -527,6 +527,7 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 
 	for _, searchData := range searchQuery {
 		name := searchData.DataName
+
 		if name == "" {
 			continue
 		}

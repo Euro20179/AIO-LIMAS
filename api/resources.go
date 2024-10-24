@@ -15,8 +15,11 @@ import (
 func ThumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	item := pp["id"].(db.InfoEntry)
 
-	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
 	aioPath := os.Getenv("AIO_DIR")
+	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
+	if aioPath == "" {
+		panic("$AIO_DIR should not be empty")
+	}
 
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%d", aioPath, item.ItemId)
 
