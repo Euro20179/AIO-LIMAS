@@ -213,22 +213,38 @@ function resetResultStats() {
     }
 }
 
+let resultStatsProxy = new Proxy({
+    count: 0,
+    totalCost: 0,
+    reset() {
+        this.count = 0
+        this.totalCost = 0
+    }
+}, {
+    set(obj, prop, value) {
+        //@ts-ignore
+        if (!Reflect.set(...arguments)) {
+            return false
+        }
+        let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-stat-name="${String(prop)}"]`))
+        el.setAttribute("data-value", String(value))
+        return true
+    }
+})
+
 /**
  * @typedef ResultStats
  * @type {object}
  * @property {number} totalCost
  * @property {number} count
  */
-let resultStats = resetResultStats()
 
 /**
  * @param {keyof ResultStats} key
  * @param {number} value
  */
 function changeResultStats(key, value) {
-    let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-stat-name="${key}"]`))
-    resultStats[key] += value
-    el.setAttribute("data-value", String(resultStats[key]))
+    resultStatsProxy[key] += value
 }
 
 /**
@@ -385,7 +401,7 @@ function saveItemChanges(root, item) {
 
     let infoTable = root.querySelector("table.info-raw")
     let metaTable = root.querySelector("table.meta-info-raw")
-    if(!infoTable || !metaTable) return
+    if (!infoTable || !metaTable) return
 
     /**@type {(table: Element, item: InfoEntry | MetadataEntry) => void}*/
     const updateWithTable = (table, item) => {
@@ -409,7 +425,7 @@ function saveItemChanges(root, item) {
 
     updateWithTable(infoTable, item)
     let meta = findMetadataById(item.ItemId)
-    if(!meta) return
+    if (!meta) return
     updateWithTable(metaTable, meta)
 
     //TODO: also save meta table
@@ -440,8 +456,8 @@ function saveItemChanges(root, item) {
         body: metaStringified,
         method: "POST"
     }).then(res => res.text())
-    .then(console.log)
-    .catch(console.error)
+        .then(console.log)
+        .catch(console.error)
 
     refreshInfo().then(() => {
         refreshDisplayItem(item)
@@ -677,7 +693,7 @@ viewAllElem.addEventListener("change", e => {
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
         selectItemList(globalsNewUi.results, mode)
     } else {
-        resultStats = resetResultStats()
+        resultStatsProxy.reset()
     }
 })
 
