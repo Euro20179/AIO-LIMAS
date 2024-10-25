@@ -70,8 +70,10 @@ func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http
 }
 
 func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
+	//if the user sets this var, make all endpoints behind authorization
+	privateAll := os.Getenv("AIO_PRIVATE")
 	for _, endPoint := range endPoints {
-		if !endPoint.GuestAllowed {
+		if !endPoint.GuestAllowed || privateAll != "" {
 			http.HandleFunc(root+"/"+endPoint.EndPoint, authorizationWrapper(endPoint.Listener))
 		} else {
 			http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
