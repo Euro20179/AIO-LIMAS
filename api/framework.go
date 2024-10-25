@@ -56,6 +56,10 @@ type ApiEndPoint struct {
 	Description    string
 	Returns        string
 	PossibleErrors []string
+	//whether or not auth is required, false == auth required, true == auth not required
+	//it's named this way, so that by default, auth is intuitively required
+	//because by default this will be false
+	GuestAllowed    bool
 }
 
 func (self *ApiEndPoint) GenerateDocHTML() string {
@@ -212,7 +216,7 @@ func P_EntryType(in string) (any, error) {
 
 func P_ArtStyle(in string) (any, error) {
 	val, err := strconv.ParseUint(in, 10, 64)
-	if err != nil{
+	if err != nil {
 		return uint(0), err
 	}
 	return uint(val), nil
@@ -232,7 +236,7 @@ func P_UserStatus(in string) (any, error) {
 	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
 }
 
-func P_TList[T any](sep string, toT func(in string) T) func(string) (any, error){
+func P_TList[T any](sep string, toT func(in string) T) func(string) (any, error) {
 	return func(in string) (any, error) {
 		var arr []T
 		items := strings.Split(in, sep)

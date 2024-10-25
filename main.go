@@ -69,15 +69,13 @@ func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http
 	}
 }
 
-func makeEndpoints(root string, endPoints map[string]func(http.ResponseWriter, *http.Request)) {
-	for name, fn := range endPoints {
-		http.HandleFunc(root+"/"+name, authorizationWrapper(fn))
-	}
-}
-
 func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
 	for _, endPoint := range endPoints {
-		http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
+		if !endPoint.GuestAllowed {
+			http.HandleFunc(root+"/"+endPoint.EndPoint, authorizationWrapper(endPoint.Listener))
+		} else {
+			http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
+		}
 	}
 }
 
@@ -121,6 +119,7 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{},
 		Description: "Gets a tree-like json structure of all entries",
 		Returns:     "InfoEntry",
+		GuestAllowed: true,
 	}
 
 	modEntry = api.ApiEndPoint{
@@ -161,6 +160,7 @@ var ( // `/` endpoints {{{
 		},
 		Description: "List info entries",
 		Returns:     "JSONL<InfoEntry>",
+		GuestAllowed: true,
 	}
 
 	stream = api.ApiEndPoint{
@@ -188,6 +188,7 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{},
 		Description: "Lists all entries who's type is Collection",
 		Returns:     "Sep<string, '\\n'>",
+		GuestAllowed: true,
 	}
 
 	listCopies = api.ApiEndPoint{
@@ -198,6 +199,7 @@ var ( // `/` endpoints {{{
 		},
 		Description: "Lists copies of an entry",
 		Returns:     "JSONL<InfoEntry>",
+		GuestAllowed: true,
 	}
 
 	listDescendants = api.ApiEndPoint{
@@ -208,6 +210,7 @@ var ( // `/` endpoints {{{
 		},
 		Description: "Lists children of an entry",
 		Returns:     "JSONL<InfoEntry>",
+		GuestAllowed: true,
 	}
 
 	totalCostOf = api.ApiEndPoint{
@@ -218,6 +221,7 @@ var ( // `/` endpoints {{{
 		},
 		Description: "Gets the total cost of an entry, summing itself + children",
 		Returns:     "float",
+		GuestAllowed: true,
 	}
 
 	search3Api = api.ApiEndPoint {
@@ -228,6 +232,7 @@ var ( // `/` endpoints {{{
 		},
 		Returns: "InfoEntry[]",
 		Description: "search query similar to how sql where query works",
+		GuestAllowed: true,
 	}
 
 	search2Api = api.ApiEndPoint{
@@ -249,6 +254,7 @@ var ( // `/` endpoints {{{
 				}
 			}), true),
 		},
+		GuestAllowed: true,
 	}
 
 	getAllEntry = api.ApiEndPoint{
@@ -259,6 +265,7 @@ var ( // `/` endpoints {{{
 		},
 		Description: "Gets the userEntry, metadataEntry, and infoEntry for an entry",
 		Returns:     "UserEntry\\nMetadataEntry\\nInfoEntry",
+		GuestAllowed: true,
 	}
 ) // }}}
 
@@ -317,6 +324,7 @@ when using finalize-identify`,
 		},
 		Description: "Gets the metadata for an entry",
 		Returns:     "MetadataEntry",
+		GuestAllowed: true,
 	}
 
 	modMetaEntry = api.ApiEndPoint{
@@ -340,6 +348,7 @@ when using finalize-identify`,
 		QueryParams: api.QueryParams{},
 		Description: "Lists all metadata entries",
 		Returns:     "JSONL<MetadataEntry>",
+		GuestAllowed: true,
 	}
 ) // }}}
 
@@ -372,6 +381,7 @@ var ( // `/engagement` endpoints {{{
 		},
 		Description: "Lists the events of an entry",
 		Returns:     "JSONL<EventEntry>",
+		GuestAllowed: true,
 	}
 	deleteEvent = api.ApiEndPoint{
 		EndPoint: "delete-event",
@@ -402,6 +412,7 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{},
 		Description: "Lists all events associated with an entry",
 		Returns:     "JSONL<EventEntry>",
+		GuestAllowed: true,
 	}
 
 	modUserEntry = api.ApiEndPoint{
@@ -431,6 +442,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:     api.UserEntries,
 		Description: "Lists all user entries",
 		Returns:     "JSONL<UserEntry>",
+		GuestAllowed: true,
 	}
 
 	getUserEntry = api.ApiEndPoint{
@@ -441,6 +453,7 @@ var ( // `/engagement` endpoints {{{
 		},
 		Description: "Gets a user entry by id",
 		Returns:     "UserEntry",
+		GuestAllowed: true,
 	}
 
 	dropMedia = api.ApiEndPoint{
@@ -497,6 +510,7 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
 		Description: "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
+		GuestAllowed: true,
 	}
 
 	downloadThumb = api.ApiEndPoint{
@@ -514,18 +528,21 @@ var ( // `/engagement` endpoints {{{
 		EndPoint:    "format",
 		Handler:     api.ListFormats,
 		Description: "Lists the valid values for a Format",
+		GuestAllowed: true,
 	}
 
 	typeTypesApi = api.ApiEndPoint{
 		EndPoint:    "type",
 		Handler:     api.ListTypes,
 		Description: "Lists the types for a Type",
+		GuestAllowed: true,
 	}
 
 	artStylesApi = api.ApiEndPoint{
 		EndPoint: "artstyle",
 		Handler: api.ListArtStyles,
 		Description: "Lists the types art styles",
+		GuestAllowed: true,
 	}
 	//}}}
 
@@ -534,6 +551,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "",
 		Handler: DocHTML,
 		Description: "The documentation",
+		GuestAllowed: true,
 	}
 	//}}}
 )
