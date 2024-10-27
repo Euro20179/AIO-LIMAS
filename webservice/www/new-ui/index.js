@@ -267,7 +267,7 @@ function changeResultStatsWithItemList(items, multiplier = 1) {
 }
 
 async function loadInfoEntries() {
-    const res = await fetch(`${apiPath}/list-entries`)
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(`status=="Planned" | status=="Viewing"`)}`)
         .catch(console.error)
     if (!res) {
         alert("Could not load entries")
