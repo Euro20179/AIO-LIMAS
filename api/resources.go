@@ -1,6 +1,7 @@
 package api
 
 import (
+	"compress/gzip"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -12,7 +13,32 @@ import (
 	"aiolimas/db"
 )
 
-func ThumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (self gzipResponseWriter) Write(b []byte) (int, error) {
+	return self.Writer.Write(b)
+}
+
+func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedParams)) func(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	return func(w http.ResponseWriter, r *http.Request, pp ParsedParams) {
+		var gz *gzip.Writer
+
+		acceptedEncoding := r.Header.Get("Accept-Encoding")
+		if strings.Contains(acceptedEncoding, "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			gz = gzip.NewWriter(w)
+			defer gz.Close()
+			w = gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		}
+
+		fn(w, r, pp)
+	}
+}
+
+func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	item := pp["id"].(db.InfoEntry)
 
 	aioPath := os.Getenv("AIO_DIR")
@@ -30,6 +56,8 @@ func ThumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	http.ServeFile(w, req, itemThumbnailPath)
 }
+
+var ThumbnailResource = gzipMiddleman(thumbnailResource)
 
 func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	item := pp["id"].(db.MetadataEntry)
@@ -69,23 +97,23 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	client := http.Client{}
 	resp, err := client.Get(thumb)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to download thumbnail\n%s", err.Error())
 		return
 	}
 
 	defer resp.Body.Close()
 
-	file, err := os.OpenFile(itemThumbnailPath, os.O_CREATE | os.O_WRONLY, 0664)
-	if err != nil{
+	file, err := os.OpenFile(itemThumbnailPath, os.O_CREATE|os.O_WRONLY, 0o664)
+	if err != nil {
 		wError(w, 500, "Failed to open thumbnail file location\n%s", err.Error())
 		return
 	}
 
 	_, err = io.Copy(file, resp.Body)
-	if err != nil{
+	if err != nil {
 		wError(w, 500, "Failed to write thumbnail to file\n%s", err.Error())
-		return 
+		return
 	}
 	success(w)
 }
