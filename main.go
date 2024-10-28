@@ -43,34 +43,34 @@ unauthorized:
 
 func authorizationWrapper(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		authorized := true
+
 		auth := req.Header.Get("Authorization")
 
 		accNumber := os.Getenv("ACCOUNT_NUMBER")
 
 		if auth == "" && accNumber != "" {
-			w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
-			w.WriteHeader(401)
-			return
+			goto unauthorzied
 		}
 
-		authorized := true
 		if accNumber != "" {
-			var err error
-			authorized, err = ckAuthorizationHeader(auth)
-			if !authorized {
-				w.WriteHeader(401)
-				w.Write([]byte(err.Error()))
+			authorized, err := ckAuthorizationHeader(auth)
+			if !authorized || err != nil {
+				goto unauthorzied
 			}
 		}
 		if authorized {
 			fn(w, req)
 			return
 		}
+	unauthorzied:
+		w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
+		w.WriteHeader(401)
 	}
 }
 
 func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
-	//if the user sets this var, make all endpoints behind authorization
+	// if the user sets this var, make all endpoints behind authorization
 	privateAll := os.Getenv("AIO_PRIVATE")
 	for _, endPoint := range endPoints {
 		if !endPoint.GuestAllowed || privateAll != "" {
@@ -82,10 +82,10 @@ func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
 }
 
 var ( // `/` endpoints {{{
-	downloadDB = api.ApiEndPoint {
-		Handler: api.DownloadDB,
+	downloadDB = api.ApiEndPoint{
+		Handler:     api.DownloadDB,
 		Description: "Creates a copy of the database",
-		EndPoint: "download-db",
+		EndPoint:    "download-db",
 	}
 
 	addEntry = api.ApiEndPoint{
@@ -116,11 +116,11 @@ var ( // `/` endpoints {{{
 	}
 
 	getTree = api.ApiEndPoint{
-		EndPoint:    "list-tree",
-		Handler:     api.GetTree,
-		QueryParams: api.QueryParams{},
-		Description: "Gets a tree-like json structure of all entries",
-		Returns:     "InfoEntry",
+		EndPoint:     "list-tree",
+		Handler:      api.GetTree,
+		QueryParams:  api.QueryParams{},
+		Description:  "Gets a tree-like json structure of all entries",
+		Returns:      "InfoEntry",
 		GuestAllowed: true,
 	}
 
@@ -160,8 +160,8 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{
 			"sort-by": api.MkQueryInfo(api.P_SqlSafe, false),
 		},
-		Description: "List info entries",
-		Returns:     "JSONL<InfoEntry>",
+		Description:  "List info entries",
+		Returns:      "JSONL<InfoEntry>",
 		GuestAllowed: true,
 	}
 
@@ -185,11 +185,11 @@ var ( // `/` endpoints {{{
 	}
 
 	listCollections = api.ApiEndPoint{
-		EndPoint:    "list-collections",
-		Handler:     api.ListCollections,
-		QueryParams: api.QueryParams{},
-		Description: "Lists all entries who's type is Collection",
-		Returns:     "Sep<string, '\\n'>",
+		EndPoint:     "list-collections",
+		Handler:      api.ListCollections,
+		QueryParams:  api.QueryParams{},
+		Description:  "Lists all entries who's type is Collection",
+		Returns:      "Sep<string, '\\n'>",
 		GuestAllowed: true,
 	}
 
@@ -199,8 +199,8 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Lists copies of an entry",
-		Returns:     "JSONL<InfoEntry>",
+		Description:  "Lists copies of an entry",
+		Returns:      "JSONL<InfoEntry>",
 		GuestAllowed: true,
 	}
 
@@ -210,8 +210,8 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Lists children of an entry",
-		Returns:     "JSONL<InfoEntry>",
+		Description:  "Lists children of an entry",
+		Returns:      "JSONL<InfoEntry>",
 		GuestAllowed: true,
 	}
 
@@ -221,19 +221,19 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Gets the total cost of an entry, summing itself + children",
-		Returns:     "float",
+		Description:  "Gets the total cost of an entry, summing itself + children",
+		Returns:      "float",
 		GuestAllowed: true,
 	}
 
-	search3Api = api.ApiEndPoint {
+	search3Api = api.ApiEndPoint{
 		EndPoint: "query-v3",
-		Handler: api.QueryEntries3,
-		QueryParams: api.QueryParams {
+		Handler:  api.QueryEntries3,
+		QueryParams: api.QueryParams{
 			"search": api.MkQueryInfo(api.P_NotEmpty, true),
 		},
-		Returns: "InfoEntry[]",
-		Description: "search query similar to how sql where query works",
+		Returns:      "InfoEntry[]",
+		Description:  "search query similar to how sql where query works",
 		GuestAllowed: true,
 	}
 
@@ -265,8 +265,8 @@ var ( // `/` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Gets the userEntry, metadataEntry, and infoEntry for an entry",
-		Returns:     "UserEntry\\nMetadataEntry\\nInfoEntry",
+		Description:  "Gets the userEntry, metadataEntry, and infoEntry for an entry",
+		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry",
 		GuestAllowed: true,
 	}
 ) // }}}
@@ -324,8 +324,8 @@ when using finalize-identify`,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
-		Description: "Gets the metadata for an entry",
-		Returns:     "MetadataEntry",
+		Description:  "Gets the metadata for an entry",
+		Returns:      "MetadataEntry",
 		GuestAllowed: true,
 	}
 
@@ -345,11 +345,11 @@ when using finalize-identify`,
 	}
 
 	listMetadata = api.ApiEndPoint{
-		EndPoint:    "list-entries",
-		Handler:     api.ListMetadata,
-		QueryParams: api.QueryParams{},
-		Description: "Lists all metadata entries",
-		Returns:     "JSONL<MetadataEntry>",
+		EndPoint:     "list-entries",
+		Handler:      api.ListMetadata,
+		QueryParams:  api.QueryParams{},
+		Description:  "Lists all metadata entries",
+		Returns:      "JSONL<MetadataEntry>",
 		GuestAllowed: true,
 	}
 ) // }}}
@@ -381,8 +381,8 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Lists the events of an entry",
-		Returns:     "JSONL<EventEntry>",
+		Description:  "Lists the events of an entry",
+		Returns:      "JSONL<EventEntry>",
 		GuestAllowed: true,
 	}
 	deleteEvent = api.ApiEndPoint{
@@ -409,11 +409,11 @@ var ( // `/engagement` endpoints {{{
 	}
 
 	listEvents = api.ApiEndPoint{
-		EndPoint:    "list-events",
-		Handler:     api.ListEvents,
-		QueryParams: api.QueryParams{},
-		Description: "Lists all events associated with an entry",
-		Returns:     "JSONL<EventEntry>",
+		EndPoint:     "list-events",
+		Handler:      api.ListEvents,
+		QueryParams:  api.QueryParams{},
+		Description:  "Lists all events associated with an entry",
+		Returns:      "JSONL<EventEntry>",
 		GuestAllowed: true,
 	}
 
@@ -440,10 +440,10 @@ var ( // `/engagement` endpoints {{{
 	}
 
 	userEntries = api.ApiEndPoint{
-		EndPoint:    "list-entries",
-		Handler:     api.UserEntries,
-		Description: "Lists all user entries",
-		Returns:     "JSONL<UserEntry>",
+		EndPoint:     "list-entries",
+		Handler:      api.UserEntries,
+		Description:  "Lists all user entries",
+		Returns:      "JSONL<UserEntry>",
 		GuestAllowed: true,
 	}
 
@@ -453,8 +453,8 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 		},
-		Description: "Gets a user entry by id",
-		Returns:     "UserEntry",
+		Description:  "Gets a user entry by id",
+		Returns:      "UserEntry",
 		GuestAllowed: true,
 	}
 
@@ -511,7 +511,7 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 		},
-		Description: "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
+		Description:  "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
 		GuestAllowed: true,
 	}
 
@@ -527,32 +527,32 @@ var ( // `/engagement` endpoints {{{
 
 	// `/type` endpoints {{{
 	formatTypesApi = api.ApiEndPoint{
-		EndPoint:    "format",
-		Handler:     api.ListFormats,
-		Description: "Lists the valid values for a Format",
+		EndPoint:     "format",
+		Handler:      api.ListFormats,
+		Description:  "Lists the valid values for a Format",
 		GuestAllowed: true,
 	}
 
 	typeTypesApi = api.ApiEndPoint{
-		EndPoint:    "type",
-		Handler:     api.ListTypes,
-		Description: "Lists the types for a Type",
+		EndPoint:     "type",
+		Handler:      api.ListTypes,
+		Description:  "Lists the types for a Type",
 		GuestAllowed: true,
 	}
 
 	artStylesApi = api.ApiEndPoint{
-		EndPoint: "artstyle",
-		Handler: api.ListArtStyles,
-		Description: "Lists the types art styles",
+		EndPoint:     "artstyle",
+		Handler:      api.ListArtStyles,
+		Description:  "Lists the types art styles",
 		GuestAllowed: true,
 	}
 	//}}}
 
 	// `/docs` endpoints {{{
-	mainDocs = api.ApiEndPoint {
-		EndPoint: "",
-		Handler: DocHTML,
-		Description: "The documentation",
+	mainDocs = api.ApiEndPoint{
+		EndPoint:     "",
+		Handler:      DocHTML,
+		Description:  "The documentation",
 		GuestAllowed: true,
 	}
 	//}}}
@@ -643,7 +643,7 @@ var (
 		artStylesApi,
 	}
 
-	docsEndpoints = []api.ApiEndPoint {
+	docsEndpoints = []api.ApiEndPoint{
 		mainDocs,
 	}
 
@@ -691,8 +691,8 @@ func initConfig(aioPath string) {
 	if _, err := os.Stat(configPath); err == nil {
 		return
 	}
-	file, err := os.OpenFile(configPath, os.O_CREATE | os.O_WRONLY, 0644)
-	if err != nil{
+	file, err := os.OpenFile(configPath, os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
 		panic("Failed to create config file")
 	}
 	file.Write([]byte("{}"))
