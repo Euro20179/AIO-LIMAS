@@ -679,14 +679,36 @@ func startServer() {
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
+func setEnvOrPanic(name string, val string) {
+	if err := os.Setenv(name, val); err != nil {
+		panic(err.Error())
+	}
+}
+
+func initConfig(aioPath string) {
+	configPath := aioPath + "/config.json"
+	setEnvOrPanic("AIO_CONFIG_FILE", configPath)
+	if _, err := os.Stat(configPath); err == nil {
+		return
+	}
+	file, err := os.OpenFile(configPath, os.O_CREATE | os.O_WRONLY, 0644)
+	if err != nil{
+		panic("Failed to create config file")
+	}
+	file.Write([]byte("{}"))
+	if err := file.Close(); err != nil {
+		panic("Failed to create config file, writing {}")
+	}
+}
+
 func main() {
 	aioPath := setupAIODir()
-	os.Setenv("AIO_DIR", aioPath)
+	setEnvOrPanic("AIO_DIR", aioPath)
 
 	dbPath := fmt.Sprintf("%s/all.db", aioPath)
 	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
 
-	os.Setenv("AIO_DB_PATH", *dbPathPtr)
+	initConfig(aioPath)
 
 	flag.Parse()
 
