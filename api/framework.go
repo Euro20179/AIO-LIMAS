@@ -56,18 +56,22 @@ type ApiEndPoint struct {
 	Description    string
 	Returns        string
 	PossibleErrors []string
-	//whether or not auth is required, false == auth required, true == auth not required
-	//it's named this way, so that by default, auth is intuitively required
-	//because by default this will be false
-	GuestAllowed    bool
+	// whether or not auth is required, false == auth required, true == auth not required
+	// it's named this way, so that by default, auth is intuitively required
+	// because by default this will be false
+	GuestAllowed bool
 }
 
 func (self *ApiEndPoint) GenerateDocHTML() string {
-	htStr := "<div>"
-	htStr += fmt.Sprintf("<h2>/%s</h2>", self.EndPoint)
-	htStr += fmt.Sprintf("<h3>Description</h3><p>%s</p>", self.Description)
-	htStr += fmt.Sprintf("<h3>Returns</h3><p>%s</p>", self.Returns)
-	return htStr + "</div>"
+	return fmt.Sprintf(`
+		<div>
+			<h2>/%s</h2>
+				<h3>Description</h3>
+					<p>%s</p>
+				<h3>Returns</h3>
+					<p>%s</p>
+		</div>
+	`, self.EndPoint, self.Description, self.Returns)
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
