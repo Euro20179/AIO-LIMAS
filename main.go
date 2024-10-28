@@ -150,7 +150,7 @@ var ( // `/` endpoints {{{
 		EndPoint:    "set-entry",
 		Handler:     api.SetEntry,
 		QueryParams: api.QueryParams{},
-		Method:      "POST",
+		Method:      api.POST,
 		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
 	}
 
