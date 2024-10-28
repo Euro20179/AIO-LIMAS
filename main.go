@@ -41,7 +41,7 @@ unauthorized:
 	return false, errors.New(estring)
 }
 
-func authorizationWrapper(fn func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+func authorizationWrapper(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		auth := req.Header.Get("Authorization")
 

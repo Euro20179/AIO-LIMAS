@@ -246,7 +246,7 @@ func (self ListNode) ToString() (string, error) {
 	str := "("
 	for _, item := range self.Items {
 		newText, err := item.ToString()
-		if err != nil{
+		if err != nil {
 			return "", err
 		}
 		str += newText + ","
@@ -355,15 +355,15 @@ type BinOpNode struct {
 
 func (self BinOpNode) ToString() (string, error) {
 	op, err := self.Operator.ToString()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 	left, err := self.Left.ToString()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 	right, err := self.Right.ToString()
-	if err != nil{
+	if err != nil {
 		return "", err
 	}
 
@@ -425,7 +425,8 @@ func Parse(tokens []Token) (string, error) {
 			if next() {
 				items = append(items, atom())
 			} else {
-				// the user put a trailing colon, they probably want a list with 1 irem
+				// the user put a trailing colon,
+				// they probably want a list with 1 irem
 				wantsList = true
 			}
 		}

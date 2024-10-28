@@ -58,12 +58,16 @@ func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
 	out := db.MetadataEntry{}
 	mediaDep := make(map[string]string)
 	if result.Type == "series" {
-		mediaDep["Show-episode-duration"] = strings.Split(result.Runtime, " ")[0]
+		duration := strings.Split(result.Runtime, " ")[0]
+
+		mediaDep["Show-episode-duration"] = duration
 		mediaDep["Show-imdbid"] = result.ImdbID
 	} else {
-		mediaDep[fmt.Sprintf("%s-director", titleCase(result.Type))] = result.Director
-		mediaDep[fmt.Sprintf("%s-length", titleCase(result.Type))] = strings.Split(result.Runtime, " ")[0]
-		mediaDep[fmt.Sprintf("%s-imdbid", titleCase(result.Type))] = result.ImdbID
+		length := strings.Split(result.Runtime, " ")[0]
+
+		mediaDep[titleCase(result.Type) + "-director"] = result.Director
+		mediaDep[titleCase(result.Type) + "-length"] = length
+		mediaDep[titleCase(result.Type) + "-imdbid"] = result.ImdbID
 	}
 
 	if result.ImdbRating != "N/A" {
