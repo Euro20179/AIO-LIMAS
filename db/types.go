@@ -57,8 +57,7 @@ const (
 )
 
 func IsValidStatus(status string) bool {
-	validStatuses := ListStatuses()
-	return slices.Contains(validStatuses, Status(status))
+	return slices.Contains(ListStatuses(), Status(status))
 }
 
 func ListStatuses() []Status {
@@ -264,6 +263,10 @@ type InfoEntry struct {
 	Type          MediaTypes
 	ArtStyle      ArtStyle
 	CopyOf        int64
+}
+
+func (self *InfoEntry) IsAnime() bool {
+	return self.ArtStyle & AS_ANIME == AS_ANIME
 }
 
 func (self InfoEntry) Id() int64 {
