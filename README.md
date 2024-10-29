@@ -71,7 +71,7 @@ Basic documentation can be found at `/docs`
     - [x] meta
     - [x] ~user~ *decided against, as you can already edit everything anyway*
 - [x] calc mode
-- [ ] proper search parser
+- [x] proper search parser
     - on the server there could be something that parses some language like:
         - `rating > 90 && (rating < 95 || en_title ~ "this is a neat title%")`
         - special syntax where `{...}` is left alone, and passed directly to sqlite as an expression
