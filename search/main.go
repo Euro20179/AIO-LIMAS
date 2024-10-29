@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"aiolimas/types"
-
 )
 
 type TT int
@@ -295,9 +294,16 @@ func (self MacroNode) ToString() (string, error) {
 
 		return fmt.Sprintf("(artStyle == %d)", as), nil
 	}
-	if self.Value == "isAnime" {
+
+	switch self.Value {
+	case "isAnime":
 		return fmt.Sprintf("(artStyle & %d == %d)", db_types.AS_ANIME, db_types.AS_ANIME), nil
+	case "r":
+		return "userRating", nil
+	case "R":
+		return "rating", nil
 	}
+
 	return self.Value, nil
 }
 
