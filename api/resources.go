@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"aiolimas/db"
+	"aiolimas/types"
 )
 
 type gzipResponseWriter struct {
@@ -39,7 +39,7 @@ func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedPa
 }
 
 func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	item := pp["id"].(db.InfoEntry)
+	item := pp["id"].(db_types.InfoEntry)
 
 	aioPath := os.Getenv("AIO_DIR")
 	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
@@ -60,7 +60,7 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 var ThumbnailResource = gzipMiddleman(thumbnailResource)
 
 func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	item := pp["id"].(db.MetadataEntry)
+	item := pp["id"].(db_types.MetadataEntry)
 
 	thumb := item.Thumbnail
 

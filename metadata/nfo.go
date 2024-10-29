@@ -1,14 +1,15 @@
 package metadata
 
 import (
-	"aiolimas/db"
 	"fmt"
 	"os"
 	"path"
+
+	"aiolimas/types"
 )
 
 //returns the path to nfo file, or "" if no path exists
-func NFOExists(entry *db.InfoEntry) string {
+func NFOExists(entry *db_types.InfoEntry) string {
 	location := entry.Location
 
 	stat, err := os.Stat(entry.Location)

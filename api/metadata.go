@@ -7,10 +7,11 @@ import (
 
 	"aiolimas/db"
 	"aiolimas/metadata"
+	"aiolimas/types"
 )
 
 func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	mainEntry := pp["id"].(db.InfoEntry)
+	mainEntry := pp["id"].(db_types.InfoEntry)
 
 	metadataEntry, err := db.GetMetadataEntryById(mainEntry.ItemId)
 	if err != nil {
@@ -39,7 +40,7 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 }
 
 func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	entry := pp["id"].(db.MetadataEntry)
+	entry := pp["id"].(db_types.MetadataEntry)
 
 	data, err := json.Marshal(entry)
 	if err != nil {
@@ -60,7 +61,7 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 		return
 	}
 
-	var meta db.MetadataEntry
+	var meta db_types.MetadataEntry
 	err = json.Unmarshal(data, &meta)
 	if err != nil{
 		wError(w, 400, "Could not parse json\n%s", err.Error())
@@ -90,7 +91,7 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 }
 
 func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	metadataEntry := pp["id"].(db.MetadataEntry)
+	metadataEntry := pp["id"].(db_types.MetadataEntry)
 
 	metadataEntry.Rating = pp.Get("rating", metadataEntry.Rating).(float64)
 
@@ -122,7 +123,7 @@ func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	w.WriteHeader(200)
 	for items.Next() {
-		var row db.MetadataEntry
+		var row db_types.MetadataEntry
 		err := row.ReadEntry(items)
 		if err != nil {
 			println(err.Error())
@@ -165,7 +166,7 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 }
 
 func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	itemToApplyTo := parsedParams["apply-to"].(db.MetadataEntry)
+	itemToApplyTo := parsedParams["apply-to"].(db_types.MetadataEntry)
 	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)
 

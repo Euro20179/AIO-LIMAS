@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"aiolimas/db"
+	"aiolimas/types"
 )
 
 type AnilistStatus string
@@ -121,8 +121,8 @@ func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, erro
 	return *jData, nil
 }
 
-func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
-	var o db.MetadataEntry
+func applyManga(anilistData AnlistMediaEntry) (db_types.MetadataEntry, error) {
+	var o db_types.MetadataEntry
 	out := anilistData
 
 	mediaDependant := make(map[string]string)
@@ -155,8 +155,8 @@ func applyManga(anilistData AnlistMediaEntry) (db.MetadataEntry, error) {
 	return o, nil
 }
 
-func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
-	var o db.MetadataEntry
+func AnilistManga(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+	var o db_types.MetadataEntry
 	searchTitle := entry.En_Title
 	if searchTitle == "" {
 		searchTitle = entry.Native_Title
@@ -184,8 +184,8 @@ func AnilistManga(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Meta
 	return applyManga(jData.Data.Media)
 }
 
-func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
-	var outMeta db.MetadataEntry
+func applyShow(aniInfo AnlistMediaEntry) (db_types.MetadataEntry, error) {
+	var outMeta db_types.MetadataEntry
 	mediaDependant := make(map[string]string)
 
 	var ty string
@@ -226,8 +226,8 @@ func applyShow(aniInfo AnlistMediaEntry) (db.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
-	var outMeta db.MetadataEntry
+func AnilistShow(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+	var outMeta db_types.MetadataEntry
 
 	searchTitle := entry.En_Title
 	if searchTitle == "" {
@@ -256,10 +256,10 @@ func AnilistShow(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Metad
 	return applyShow(out)
 }
 
-func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.MetadataEntry, error) {
-	var newMeta db.MetadataEntry
+func AnlistProvider(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+	var newMeta db_types.MetadataEntry
 	var err error
-	if entry.ArtStyle & db.AS_ANIME == db.AS_ANIME{
+	if entry.ArtStyle & db_types.AS_ANIME == db_types.AS_ANIME{
 		newMeta, err = AnilistShow(entry, metadataEntry)
 	} else {
 		newMeta, err = AnilistManga(entry, metadataEntry)
@@ -271,8 +271,8 @@ func AnlistProvider(entry *db.InfoEntry, metadataEntry *db.MetadataEntry) (db.Me
 	return newMeta, err
 }
 
-func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
-	outMeta := []db.MetadataEntry{}
+func AnilistIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	outMeta := []db_types.MetadataEntry{}
 
 	searchTitle := info.Title
 	query := fmt.Sprintf(`
@@ -296,7 +296,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	}
 
 	for _, entry := range jData.Data.Page.Media {
-		var cur db.MetadataEntry
+		var cur db_types.MetadataEntry
 		if entry.Type == "MANGA" {
 			cur, err = applyManga(entry)
 			if err != nil {
@@ -318,8 +318,8 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func AnilistById(id string) (db.MetadataEntry, error) {
-	var outMeta db.MetadataEntry
+func AnilistById(id string) (db_types.MetadataEntry, error) {
+	var outMeta db_types.MetadataEntry
 	query := fmt.Sprintf(`
 		query ($id: Int) {
 			Media(id: $id) {

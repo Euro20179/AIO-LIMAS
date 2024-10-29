@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"aiolimas/db"
+	"aiolimas/types"
 )
 
 type OMDBResponse struct {
@@ -54,8 +54,8 @@ func titleCase(st string) string {
 	return string(strings.ToTitle(st)[0]) + string(st[1:])
 }
 
-func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
-	out := db.MetadataEntry{}
+func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
+	out := db_types.MetadataEntry{}
 	mediaDep := make(map[string]string)
 	if result.Type == "series" {
 		duration := strings.Split(result.Runtime, " ")[0]
@@ -106,8 +106,8 @@ func omdbResultToMetadata(result OMDBResponse) (db.MetadataEntry, error) {
 	return out, nil
 }
 
-func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry, error) {
-	var out db.MetadataEntry
+func OMDBProvider(info *db_types.InfoEntry, meta *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+	var out db_types.MetadataEntry
 
 	key := os.Getenv("OMDB_KEY")
 	if key == "" {
@@ -149,8 +149,8 @@ func OMDBProvider(info *db.InfoEntry, meta *db.MetadataEntry) (db.MetadataEntry,
 	return omdbResultToMetadata(*jData)
 }
 
-func OmdbIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
-	outMeta := []db.MetadataEntry{}
+func OmdbIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	outMeta := []db_types.MetadataEntry{}
 
 	key := os.Getenv("OMDB_KEY")
 	if key == "" {
@@ -186,7 +186,7 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	}
 
 	for _, entry := range jData.Search {
-		var cur db.MetadataEntry
+		var cur db_types.MetadataEntry
 		imdbId := entry.ImdbID[2:]
 		imdbIdInt, err := strconv.ParseInt(imdbId, 10, 64)
 		if err != nil {
@@ -206,8 +206,8 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func OmdbIdIdentifier(id string) (db.MetadataEntry, error) {
-	out := db.MetadataEntry{}
+func OmdbIdIdentifier(id string) (db_types.MetadataEntry, error) {
+	out := db_types.MetadataEntry{}
 
 	key := os.Getenv("OMDB_KEY")
 	if key == "" {

@@ -3,7 +3,7 @@ package metadata
 import (
 	"fmt"
 
-	"aiolimas/db"
+	"aiolimas/types"
 )
 
 type IdentifyMetadata struct {
@@ -11,42 +11,42 @@ type IdentifyMetadata struct {
 }
 
 // entryType is used as a hint for where to get the metadata from
-func GetMetadata(entry *db.InfoEntry, metadataEntry *db.MetadataEntry, override string) (db.MetadataEntry, error) {
+func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
 	if entry.IsAnime(){
 		return AnilistShow(entry, metadataEntry)
 	}
 	switch entry.Type {
-	case db.TY_MANGA:
+	case db_types.TY_MANGA:
 		return AnilistManga(entry, metadataEntry)
 
-	case db.TY_SHOW:
+	case db_types.TY_SHOW:
 		fallthrough
-	case db.TY_MOVIE:
+	case db_types.TY_MOVIE:
 		return OMDBProvider(entry, metadataEntry)
 
-	case db.TY_PICTURE:
+	case db_types.TY_PICTURE:
 		fallthrough
-	case db.TY_MEME:
+	case db_types.TY_MEME:
 		return ImageProvider(entry, metadataEntry)
 	}
-	var out db.MetadataEntry
+	var out db_types.MetadataEntry
 	return out, nil
 }
 
-func Identify(identifySearch IdentifyMetadata, identifier string) ([]db.MetadataEntry, string, error) {
+func Identify(identifySearch IdentifyMetadata, identifier string) ([]db_types.MetadataEntry, string, error) {
 	fn, contains := IdentifyProviders[identifier]
 	if !contains {
-		return []db.MetadataEntry{}, "", fmt.Errorf("Invalid provider %s", identifier)
+		return []db_types.MetadataEntry{}, "", fmt.Errorf("Invalid provider %s", identifier)
 	}
 
 	res, err := fn(identifySearch)
 	return res, identifier, err
 }
 
-func GetMetadataById(id string, provider string) (db.MetadataEntry, error) {
+func GetMetadataById(id string, provider string) (db_types.MetadataEntry, error) {
 	fn, contains := IdIdentifiers[provider]
 	if !contains {
-		return db.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
+		return db_types.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
 	}
 	return fn(id)
 }
@@ -74,7 +74,7 @@ func IsValidIdIdentifier(name string) bool {
 	return contains
 }
 
-type ProviderMap map[string]func(*db.InfoEntry, *db.MetadataEntry) (db.MetadataEntry, error)
+type ProviderMap map[string]func(*db_types.InfoEntry, *db_types.MetadataEntry) (db_types.MetadataEntry, error)
 
 var Providers ProviderMap = ProviderMap{
 	"anilist":       AnlistProvider,
@@ -84,7 +84,7 @@ var Providers ProviderMap = ProviderMap{
 	"image":         ImageProvider,
 }
 
-type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db.MetadataEntry, error)
+type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.MetadataEntry, error)
 
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
@@ -92,7 +92,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 }
 
 type (
-	IdIdentifier     func(id string) (db.MetadataEntry, error)
+	IdIdentifier     func(id string) (db_types.MetadataEntry, error)
 	IdIdentifiersMap = map[string]IdIdentifier
 )
 

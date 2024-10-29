@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"aiolimas/types"
 )
 
 type TT int
@@ -262,12 +264,21 @@ func (self ListNode) ToString() (string, error) {
 }
 
 type MacroNode struct {
-	Value string;
+	Value string
 }
 
 func (self MacroNode) ToString() (string, error) {
+	if strings.HasPrefix(self.Value, "t(") {
+		arg := self.Value[2:strings.Index(self.Value, ")")]
+		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
+		return fmt.Sprintf("(type == \"%s\")", titledArg), nil
+	} else if strings.HasPrefix(self.Value, "s(") {
+		arg := self.Value[2:strings.Index(self.Value, ")")]
+		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
+		return fmt.Sprintf("(status == \"%s\")", titledArg), nil
+	}
 	if self.Value == "isAnime" {
-		return "(artStyle & 1 == 1)", nil
+		return fmt.Sprintf("(artStyle & %d == %d)", db_types.AS_ANIME, db_types.AS_ANIME), nil
 	}
 	return self.Value, nil
 }

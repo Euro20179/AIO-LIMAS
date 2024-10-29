@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	db "aiolimas/db"
+	"aiolimas/types"
 	meta "aiolimas/metadata"
 )
 
@@ -41,7 +42,7 @@ func DownloadDB(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 }
 
 func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	info := parsedParams["id"].(db.InfoEntry)
+	info := parsedParams["id"].(db_types.InfoEntry)
 
 	events, err := db.GetEvents(info.ItemId)
 	if err != nil {
@@ -110,7 +111,7 @@ func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		return
 	}
 
-	var entry db.InfoEntry
+	var entry db_types.InfoEntry
 	err = json.Unmarshal(data, &entry)
 	if err != nil {
 		wError(w, 400, "Could not parse json into entry\n%s", err.Error())
@@ -126,7 +127,7 @@ func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 }
 
 func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	info := parsedParams["id"].(db.InfoEntry)
+	info := parsedParams["id"].(db_types.InfoEntry)
 
 	title, exists := parsedParams["en-title"].(string)
 	if exists {
@@ -138,12 +139,12 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Native_Title = nativeTitle
 	}
 
-	format, exists := parsedParams["format"].(db.Format)
+	format, exists := parsedParams["format"].(db_types.Format)
 	if exists {
 		info.Format = format
 	}
 
-	parent, exists := parsedParams["parent-id"].(db.InfoEntry)
+	parent, exists := parsedParams["parent-id"].(db_types.InfoEntry)
 	if exists {
 		info.ParentId = parent.ItemId
 	}
@@ -156,7 +157,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.CopyOf = 0
 	}
 
-	if itemCopy, exists := parsedParams["copy-id"].(db.InfoEntry); exists {
+	if itemCopy, exists := parsedParams["copy-id"].(db_types.InfoEntry); exists {
 		info.CopyOf = itemCopy.ItemId
 	}
 
@@ -172,8 +173,8 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		info.Collection = tags
 	}
 
-	info.ArtStyle = db.ArtStyle(parsedParams.Get("art-style", uint(0)).(uint))
-	info.Type = parsedParams.Get("type", info.Type).(db.MediaTypes)
+	info.ArtStyle = db_types.ArtStyle(parsedParams.Get("art-style", uint(0)).(uint))
+	info.Type = parsedParams.Get("type", info.Type).(db_types.MediaTypes)
 
 	err := db.UpdateInfoEntry(&info)
 	if err != nil {
@@ -189,29 +190,29 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	priceNum := parsedParams.Get("price", 0.0).(float64)
 
-	formatInt := parsedParams["format"].(db.Format)
+	formatInt := parsedParams["format"].(db_types.Format)
 
 	if digital, exists := parsedParams["is-digital"]; exists {
 		if digital.(bool) {
-			formatInt |= db.F_MOD_DIGITAL
+			formatInt |= db_types.F_MOD_DIGITAL
 		}
 	}
 
 	var parentId int64 = 0
 	if parent, exists := parsedParams["parentId"]; exists {
-		parentId = parent.(db.InfoEntry).ItemId
+		parentId = parent.(db_types.InfoEntry).ItemId
 	}
 
 	var copyOfId int64 = 0
 
 	if c, exists := parsedParams["copyOf"]; exists {
-		copyOfId = c.(db.InfoEntry).ItemId
+		copyOfId = c.(db_types.InfoEntry).ItemId
 	}
 
 	style := parsedParams.Get("art-style", uint(0)).(uint)
 
 	if parsedParams.Get("is-anime", false).(bool) {
-		style &= uint(db.AS_ANIME)
+		style &= uint(db_types.AS_ANIME)
 	}
 
 	nativeTitle := ""
@@ -229,27 +230,27 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		tags = t.(string)
 	}
 
-	var entryInfo db.InfoEntry
+	var entryInfo db_types.InfoEntry
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Native_Title = nativeTitle
 	entryInfo.Collection = tags
 	entryInfo.Location = location
-	entryInfo.Format = db.Format(formatInt)
+	entryInfo.Format = db_types.Format(formatInt)
 	entryInfo.ParentId = parentId
-	entryInfo.ArtStyle = db.ArtStyle(style)
+	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.CopyOf = copyOfId
-	entryInfo.Type = parsedParams["type"].(db.MediaTypes)
+	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 
-	var metadata db.MetadataEntry
+	var metadata db_types.MetadataEntry
 
-	var userEntry db.UserViewingEntry
+	var userEntry db_types.UserViewingEntry
 
 	if userRating, exists := parsedParams["user-rating"]; exists {
 		userEntry.UserRating = userRating.(float64)
 	}
 	if status, exists := parsedParams["user-status"]; exists {
-		userEntry.Status = status.(db.Status)
+		userEntry.Status = status.(db_types.Status)
 	}
 
 	userEntry.ViewCount = parsedParams.Get("user-view-count", int64(0)).(int64)
@@ -299,7 +300,7 @@ func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	}
 	w.WriteHeader(200)
 	for items.Next() {
-		var row db.InfoEntry
+		var row db_types.InfoEntry
 		err = row.ReadEntry(items)
 		if err != nil {
 			println(err.Error())
@@ -379,7 +380,7 @@ func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 }
 
 func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	entry := pp["id"].(db.InfoEntry)
+	entry := pp["id"].(db_types.InfoEntry)
 
 	copies, err := db.GetCopiesOf(entry.ItemId)
 	if err != nil {
@@ -399,13 +400,13 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 }
 
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	entry := parsedParams["id"].(db.InfoEntry)
+	entry := parsedParams["id"].(db_types.InfoEntry)
 
 	http.ServeFile(w, req, entry.Location)
 }
 
 func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	entry := pp["id"].(db.InfoEntry)
+	entry := pp["id"].(db_types.InfoEntry)
 	err := db.Delete(entry.ItemId)
 	if err != nil {
 		wError(w, 500, "Could not delete entry\n%s", err.Error())
@@ -415,7 +416,7 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 }
 
 func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	entry := pp["id"].(db.InfoEntry)
+	entry := pp["id"].(db_types.InfoEntry)
 
 	items, err := db.GetDescendants(entry.ItemId)
 	if err != nil {
@@ -454,7 +455,7 @@ func GetTree(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 // TODO: allow this to accept multiple ids
 func TotalCostOf(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	info := pp["id"].(db.InfoEntry)
+	info := pp["id"].(db_types.InfoEntry)
 	desc, err := db.GetDescendants(info.ItemId)
 	if err != nil {
 		wError(w, 500, "Could not get descendants\n%s", err.Error())
@@ -482,8 +483,8 @@ func verifyIdQueryParam(req *http.Request) (int64, error) {
 	return idInt, nil
 }
 
-func verifyIdAndGetUserEntry(w http.ResponseWriter, req *http.Request) (db.UserViewingEntry, error) {
-	var out db.UserViewingEntry
+func verifyIdAndGetUserEntry(w http.ResponseWriter, req *http.Request) (db_types.UserViewingEntry, error) {
+	var out db_types.UserViewingEntry
 	id, err := verifyIdQueryParam(req)
 	if err != nil {
 		return out, err

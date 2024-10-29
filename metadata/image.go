@@ -1,13 +1,14 @@
 package metadata
 
 import (
-	"aiolimas/db"
 	"fmt"
 	"os"
+
+	"aiolimas/types"
 )
 
-func ImageProvider(entry *db.InfoEntry, metadata *db.MetadataEntry) (db.MetadataEntry, error) {
-	var out db.MetadataEntry
+func ImageProvider(entry *db_types.InfoEntry, metadata *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+	var out db_types.MetadataEntry
 	location := entry.Location
 
 	aioPath := os.Getenv("AIO_DIR")

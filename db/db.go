@@ -12,6 +12,8 @@ import (
 
 	"aiolimas/search"
 
+	"aiolimas/types"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
 )
@@ -32,6 +34,141 @@ func dbHasCol(db *sql.DB, colName string) bool {
 		}
 	}
 	return false
+}
+
+func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
+	out := map[int64]db_types.EntryTree{}
+
+	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
+	if err != nil {
+		return out, err
+	}
+
+	for allRows.Next() {
+		var cur db_types.EntryTree
+
+		err := cur.EntryInfo.ReadEntry(allRows)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		cur.UserInfo, err = GetUserViewEntryById(cur.EntryInfo.ItemId)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		cur.MetaInfo, err = GetMetadataEntryById(cur.EntryInfo.ItemId)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		children, err := GetChildren(cur.EntryInfo.ItemId)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		for _, child := range children {
+			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
+		}
+
+		copies, err := GetCopiesOf(cur.EntryInfo.ItemId)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+
+		for _, c := range copies {
+			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
+		}
+
+		out[cur.EntryInfo.ItemId] = cur
+	}
+	//
+	// for id, cur := range out {
+	// 	children, err := GetChildren(id)
+	// 	if err != nil{
+	// 		println(err.Error())
+	// 		continue
+	// 	}
+	// 	for _, child := range children {
+	// 		cur.Children = append(cur.Children, child.ItemId)
+	// 	}
+	// }
+
+	return out, nil
+}
+
+func Begin(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("Viewing", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	if entry.Status != db_types.S_FINISHED {
+		entry.Status = db_types.S_VIEWING
+	} else {
+		entry.Status = db_types.S_REVIEWING
+	}
+
+	return nil
+}
+
+func Finish(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("Finished", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_FINISHED
+	entry.ViewCount += 1
+
+	return nil
+}
+
+func Plan(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("Planned", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_PLANNED
+
+	return nil
+}
+
+func Resume(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("ReViewing", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_REVIEWING
+	return nil
+}
+
+func Drop(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("Dropped", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_DROPPED
+
+	return nil
+}
+
+func Pause(entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent("Paused", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_PAUSED
+
+	return nil
 }
 
 func InitDb(dbPath string) {
@@ -102,7 +239,7 @@ func InitDb(dbPath string) {
 	Db = conn
 }
 
-func getById[T TableRepresentation](id int64, tblName string, out *T) error {
+func getById[T db_types.TableRepresentation](id int64, tblName string, out *T) error {
 	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
 
 	rows, err := Db.Query(query, id)
@@ -127,42 +264,42 @@ func getById[T TableRepresentation](id int64, tblName string, out *T) error {
 	return nil
 }
 
-func GetInfoEntryById(id int64) (InfoEntry, error) {
-	var res InfoEntry
+func GetInfoEntryById(id int64) (db_types.InfoEntry, error) {
+	var res db_types.InfoEntry
 	return res, getById(id, "entryInfo", &res)
 }
 
-func GetUserViewEntryById(id int64) (UserViewingEntry, error) {
-	var res UserViewingEntry
+func GetUserViewEntryById(id int64) (db_types.UserViewingEntry, error) {
+	var res db_types.UserViewingEntry
 	return res, getById(id, "userViewingInfo", &res)
 }
 
-func GetUserEventEntryById(id int64) (UserViewingEvent, error) {
-	var res UserViewingEvent
+func GetUserEventEntryById(id int64) (db_types.UserViewingEvent, error) {
+	var res db_types.UserViewingEvent
 	return res, getById(id, "userEventInfo", &res)
 }
 
-func GetMetadataEntryById(id int64) (MetadataEntry, error) {
-	var res MetadataEntry
+func GetMetadataEntryById(id int64) (db_types.MetadataEntry, error) {
+	var res db_types.MetadataEntry
 	return res, getById(id, "metadata", &res)
 }
 
 // **WILL ASSIGN THE ENTRYINFO.ID**
-func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEntry *UserViewingEntry) error {
+func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := rand.Int64()
 
 	entryInfo.ItemId = id
 	metadataEntry.ItemId = id
 	userViewingEntry.ItemId = id
 
-	entries := map[string]TableRepresentation{
+	entries := map[string]db_types.TableRepresentation{
 		"entryInfo":       *entryInfo,
 		"metadata":        *metadataEntry,
 		"userViewingInfo": *userViewingEntry,
 	}
 
 	for entryName, entry := range entries {
-		entryData := StructNamesToDict(entry)
+		entryData := db_types.StructNamesToDict(entry)
 
 		var entryArgs []any
 		questionMarks := ""
@@ -182,8 +319,8 @@ func AddEntry(entryInfo *InfoEntry, metadataEntry *MetadataEntry, userViewingEnt
 		}
 	}
 
-	if userViewingEntry.Status != Status("") {
-		err := RegisterUserEvent(UserViewingEvent{
+	if userViewingEntry.Status != db_types.Status("") {
+		err := RegisterUserEvent(db_types.UserViewingEvent{
 			ItemId:    userViewingEntry.ItemId,
 			Timestamp: uint64(time.Now().UnixMilli()),
 			Event:     string(userViewingEntry.Status),
@@ -218,15 +355,15 @@ func ScanFolderWithParent(path string, collection string, parent int64) []error 
 
 	var errors []error
 	for _, entry := range entries {
-		var info InfoEntry
-		var userEntry UserViewingEntry
-		var metadata MetadataEntry
+		var info db_types.InfoEntry
+		var userEntry db_types.UserViewingEntry
+		var metadata db_types.MetadataEntry
 		name := entry.Name()
 
 		fullPath := filepath.Join(path, entry.Name())
 		info.En_Title = name
 		info.ParentId = parent
-		info.Format = F_DIGITAL
+		info.Format = db_types.F_DIGITAL
 		info.Location = fullPath
 		info.Collection = collection
 
@@ -252,7 +389,7 @@ func ScanFolder(path string, collection string) []error {
 	return ScanFolderWithParent(path, collection, 0)
 }
 
-func RegisterUserEvent(event UserViewingEvent) error {
+func RegisterUserEvent(event db_types.UserViewingEvent) error {
 	_, err := Db.Exec(`
 		INSERT INTO userEventInfo (itemId, timestamp, event, after)
 		VALUES (?, ?, ?, ?)
@@ -261,23 +398,23 @@ func RegisterUserEvent(event UserViewingEvent) error {
 }
 
 func RegisterBasicUserEvent(event string, itemId int64) error {
-	var e UserViewingEvent
+	var e db_types.UserViewingEvent
 	e.Event = event
 	e.Timestamp = uint64(time.Now().UnixMilli())
 	e.ItemId = itemId
 	return RegisterUserEvent(e)
 }
 
-func UpdateUserViewingEntry(entry *UserViewingEntry) error {
+func UpdateUserViewingEntry(entry *db_types.UserViewingEntry) error {
 	return updateTable(*entry, "userViewingInfo")
 }
 
-func MoveUserViewingEntry(oldEntry *UserViewingEntry, newId int64) error {
+func MoveUserViewingEntry(oldEntry *db_types.UserViewingEntry, newId int64) error {
 	oldEntry.ItemId = newId
 	return UpdateUserViewingEntry(oldEntry)
 }
 
-func MoveUserEventEntries(eventList []UserViewingEvent, newId int64) error {
+func MoveUserEventEntries(eventList []db_types.UserViewingEvent, newId int64) error {
 	for _, e := range eventList {
 		e.ItemId = newId
 		err := RegisterUserEvent(e)
@@ -299,10 +436,10 @@ func ClearUserEventEntries(id int64) error {
 	return nil
 }
 
-func updateTable(tblRepr TableRepresentation, tblName string) error {
+func updateTable(tblRepr db_types.TableRepresentation, tblName string) error {
 	updateStr := `UPDATE ` + tblName + ` SET `
 
-	data := StructNamesToDict(tblRepr)
+	data := db_types.StructNamesToDict(tblRepr)
 
 	var updateArgs []any
 
@@ -327,11 +464,11 @@ func updateTable(tblRepr TableRepresentation, tblName string) error {
 	return nil
 }
 
-func UpdateMetadataEntry(entry *MetadataEntry) error {
+func UpdateMetadataEntry(entry *db_types.MetadataEntry) error {
 	return updateTable(*entry, "metadata")
 }
 
-func UpdateInfoEntry(entry *InfoEntry) error {
+func UpdateInfoEntry(entry *db_types.InfoEntry) error {
 	return updateTable(*entry, "entryInfo")
 }
 
@@ -517,7 +654,7 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	return newExpr
 }
 
-func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
+func Search2(searchQuery SearchQuery) ([]db_types.InfoEntry, error) {
 	query := sqlbuilder.NewSelectBuilder()
 	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
 
@@ -543,7 +680,7 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 		finalQuery,
 		args...,
 	)
-	var out []InfoEntry
+	var out []db_types.InfoEntry
 
 	if err != nil {
 		return out, err
@@ -553,7 +690,7 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 	i := 0
 	for rows.Next() {
 		i += 1
-		var row InfoEntry
+		var row db_types.InfoEntry
 		err = row.ReadEntry(rows)
 		if err != nil {
 			println(err.Error())
@@ -564,8 +701,8 @@ func Search2(searchQuery SearchQuery) ([]InfoEntry, error) {
 	return out, nil
 }
 
-func Search3(searchQuery string) ([]InfoEntry, error) {
-	var out []InfoEntry
+func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
 
 	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
 
@@ -584,7 +721,7 @@ func Search3(searchQuery string) ([]InfoEntry, error) {
 	i := 0
 	for rows.Next() {
 		i += 1
-		var row InfoEntry
+		var row db_types.InfoEntry
 		err = row.ReadEntry(rows)
 		if err != nil {
 			println(err.Error())
@@ -612,8 +749,8 @@ func ListCollections() ([]string, error) {
 	return out, nil
 }
 
-func GetCopiesOf(id int64) ([]InfoEntry, error) {
-	var out []InfoEntry
+func GetCopiesOf(id int64) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo WHERE copyOf = ?", id)
 	if err != nil {
 		return out, err
@@ -621,11 +758,11 @@ func GetCopiesOf(id int64) ([]InfoEntry, error) {
 	return mkRows(rows)
 }
 
-func mkRows(rows *sql.Rows) ([]InfoEntry, error) {
-	var out []InfoEntry
+func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
 	defer rows.Close()
 	for rows.Next() {
-		var entry InfoEntry
+		var entry db_types.InfoEntry
 		err := entry.ReadEntry(rows)
 		if err != nil {
 			return out, err
@@ -635,8 +772,8 @@ func mkRows(rows *sql.Rows) ([]InfoEntry, error) {
 	return out, nil
 }
 
-func GetChildren(id int64) ([]InfoEntry, error) {
-	var out []InfoEntry
+func GetChildren(id int64) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo where parentId = ?", id)
 	if err != nil {
 		return out, err
@@ -653,8 +790,8 @@ func DeleteEvent(id int64, timestamp int64, after int64) error {
 	return err
 }
 
-func GetEvents(id int64) ([]UserViewingEvent, error) {
-	var out []UserViewingEvent
+func GetEvents(id int64) ([]db_types.UserViewingEvent, error) {
+	var out []db_types.UserViewingEvent
 	events, err := Db.Query(`
 		SELECT * from userEventInfo
 		WHERE
@@ -672,7 +809,7 @@ func GetEvents(id int64) ([]UserViewingEvent, error) {
 	defer events.Close()
 
 	for events.Next() {
-		var event UserViewingEvent
+		var event db_types.UserViewingEvent
 		err := event.ReadEntry(events)
 		if err != nil {
 			println(err.Error())
@@ -683,8 +820,8 @@ func GetEvents(id int64) ([]UserViewingEvent, error) {
 	return out, nil
 }
 
-func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, error) {
-	var out []InfoEntry
+func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
 	if recurse > maxRecurse {
 		return out, nil
 	}
@@ -705,6 +842,6 @@ func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]InfoEntry, e
 	return out, nil
 }
 
-func GetDescendants(id int64) ([]InfoEntry, error) {
+func GetDescendants(id int64) ([]db_types.InfoEntry, error) {
 	return getDescendants(id, 0, 10)
 }

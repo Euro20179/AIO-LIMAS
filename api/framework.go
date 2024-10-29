@@ -14,6 +14,7 @@ import (
 
 	"aiolimas/db"
 	"aiolimas/metadata"
+	"aiolimas/types"
 )
 
 type (
@@ -132,7 +133,7 @@ func P_Float64(in string) (any, error) {
 }
 
 func P_VerifyIdAndGetUserEntry(id string) (any, error) {
-	var out db.UserViewingEntry
+	var out db_types.UserViewingEntry
 	i, err := P_Int64(id)
 	if err != nil {
 		return out, err
@@ -145,7 +146,7 @@ func P_VerifyIdAndGetUserEntry(id string) (any, error) {
 }
 
 func P_VerifyIdAndGetInfoEntry(id string) (any, error) {
-	var out db.InfoEntry
+	var out db_types.InfoEntry
 	i, err := P_Int64(id)
 	if err != nil {
 		return out, err
@@ -158,7 +159,7 @@ func P_VerifyIdAndGetInfoEntry(id string) (any, error) {
 }
 
 func P_VerifyIdAndGetMetaEntry(id string) (any, error) {
-	var out db.MetadataEntry
+	var out db_types.MetadataEntry
 	i, err := P_Int64(id)
 	if err != nil {
 		return out, err
@@ -205,17 +206,17 @@ func P_EntryFormat(in string) (any, error) {
 	if err != nil {
 		return 0, err
 	}
-	if !db.IsValidFormat(i.(int64)) {
+	if !db_types.IsValidFormat(i.(int64)) {
 		return 0, fmt.Errorf("Invalid format '%s'", in)
 	}
-	return db.Format(i.(int64)), nil
+	return db_types.Format(i.(int64)), nil
 }
 
 func P_EntryType(in string) (any, error) {
-	if db.IsValidType(in) {
-		return db.MediaTypes(in), nil
+	if db_types.IsValidType(in) {
+		return db_types.MediaTypes(in), nil
 	}
-	return db.MediaTypes("Show"), fmt.Errorf("Invalid entry type: '%s'", in)
+	return db_types.MediaTypes("Show"), fmt.Errorf("Invalid entry type: '%s'", in)
 }
 
 func P_ArtStyle(in string) (any, error) {
@@ -234,8 +235,8 @@ func P_MetaProvider(in string) (any, error) {
 }
 
 func P_UserStatus(in string) (any, error) {
-	if db.IsValidStatus(in) {
-		return db.Status(in), nil
+	if db_types.IsValidStatus(in) {
+		return db_types.Status(in), nil
 	}
 	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
 }

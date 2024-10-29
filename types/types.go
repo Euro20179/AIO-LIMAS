@@ -1,9 +1,8 @@
-package db
+package db_types;
 
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"slices"
 	"strings"
@@ -366,95 +365,30 @@ func (self *UserViewingEntry) CanBegin() bool {
 	return self.Status == S_PLANNED || self.Status == S_FINISHED || self.Status == S_DROPPED
 }
 
-func (self *UserViewingEntry) Begin() error {
-	err := RegisterBasicUserEvent("Viewing", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	if self.Status != S_FINISHED {
-		self.Status = S_VIEWING
-	} else {
-		self.Status = S_REVIEWING
-	}
-
-	return nil
-}
-
 func (self *UserViewingEntry) CanFinish() bool {
 	return self.IsViewing()
 }
 
-func (self *UserViewingEntry) Finish() error {
-	err := RegisterBasicUserEvent("Finished", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	self.Status = S_FINISHED
-	self.ViewCount += 1
-
-	return nil
-}
 
 func (self *UserViewingEntry) CanPlan() bool {
 	return self.Status == S_DROPPED || self.Status == ""
 }
 
-func (self *UserViewingEntry) Plan() error {
-	err := RegisterBasicUserEvent("Planned", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	self.Status = S_PLANNED
-
-	return nil
-}
 
 func (self *UserViewingEntry) CanDrop() bool {
 	return self.IsViewing()
 }
 
-func (self *UserViewingEntry) Drop() error {
-	err := RegisterBasicUserEvent("Dropped", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	self.Status = S_DROPPED
-
-	return nil
-}
 
 func (self *UserViewingEntry) CanPause() bool {
 	return self.IsViewing()
 }
 
-func (self *UserViewingEntry) Pause() error {
-	err := RegisterBasicUserEvent("Paused", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	self.Status = S_PAUSED
-
-	return nil
-}
 
 func (self *UserViewingEntry) CanResume() bool {
 	return self.Status == S_PAUSED
 }
 
-func (self *UserViewingEntry) Resume() error {
-	err := RegisterBasicUserEvent("ReViewing", self.ItemId)
-	if err != nil {
-		return err
-	}
-
-	self.Status = S_REVIEWING
-	return nil
-}
 
 type EntryTree struct {
 	EntryInfo InfoEntry
@@ -468,67 +402,3 @@ func (self *EntryTree) ToJson() ([]byte, error) {
 	return json.Marshal(*self)
 }
 
-func BuildEntryTree() (map[int64]EntryTree, error) {
-	out := map[int64]EntryTree{}
-
-	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
-	if err != nil {
-		return out, err
-	}
-
-	for allRows.Next() {
-		var cur EntryTree
-
-		err := cur.EntryInfo.ReadEntry(allRows)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		cur.UserInfo, err = GetUserViewEntryById(cur.EntryInfo.ItemId)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-
-		cur.MetaInfo, err = GetMetadataEntryById(cur.EntryInfo.ItemId)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-
-		children, err := GetChildren(cur.EntryInfo.ItemId)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-
-		for _, child := range children {
-			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
-		}
-
-		copies, err := GetCopiesOf(cur.EntryInfo.ItemId)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-
-		for _, c := range copies {
-			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
-		}
-
-		out[cur.EntryInfo.ItemId] = cur
-	}
-	//
-	// for id, cur := range out {
-	// 	children, err := GetChildren(id)
-	// 	if err != nil{
-	// 		println(err.Error())
-	// 		continue
-	// 	}
-	// 	for _, child := range children {
-	// 		cur.Children = append(cur.Children, child.ItemId)
-	// 	}
-	// }
-
-	return out, nil
-}
