@@ -302,6 +302,10 @@ func (self MacroNode) ToString() (string, error) {
 		return "userRating", nil
 	case "R":
 		return "rating", nil
+	case "t":
+		return "en_title", nil
+	case "T":
+		return "title", nil
 	}
 
 	return self.Value, nil
