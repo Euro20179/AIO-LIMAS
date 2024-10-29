@@ -430,9 +430,11 @@ func ClearUserEventEntries(id int64) error {
 		DELETE FROM userEventInfo
 		WHERE itemId = ?
 	`, id)
+
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -474,13 +476,17 @@ func UpdateInfoEntry(entry *db_types.InfoEntry) error {
 
 func Delete(id int64) error {
 	transact, err := Db.Begin()
+
 	if err != nil {
 		return err
 	}
+
+
 	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM metadata WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ?`, id)
+
 	return transact.Commit()
 }
 
@@ -544,6 +550,7 @@ type SearchData struct {
 type SearchQuery []SearchData
 
 func colValToCorrectType(name string, value string) (any, error) {
+
 	u := func(val string) (uint64, error) {
 		n, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
@@ -551,6 +558,7 @@ func colValToCorrectType(name string, value string) (any, error) {
 		}
 		return n, nil
 	}
+
 	f := func(val string) (float64, error) {
 		n, err := strconv.ParseFloat(val, 64)
 		if err != nil {
@@ -558,6 +566,7 @@ func colValToCorrectType(name string, value string) (any, error) {
 		}
 		return n, nil
 	}
+
 	switch name {
 	case "artStyle":
 		return u(value)
@@ -584,6 +593,7 @@ func colValToCorrectType(name string, value string) (any, error) {
 	if err == nil {
 		return converted, nil
 	}
+
 	return value, nil
 }
 
@@ -591,6 +601,7 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	name := searchData.DataName
 	origValue := searchData.DataValue
 	logicType := searchData.LogicType
+
 	if name == "" {
 		panic("Name cannot be empty when turning searchData into query")
 	}
@@ -644,13 +655,16 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	case DATA_NOTLIKE:
 		exprFn = query.NotLike
 	}
+
 	newPrevious := exprFn(name, coercedValues[0])
+
 	var newExpr string
 	if previousExpr == "" {
 		newExpr = newPrevious
 	} else {
 		newExpr = logicFN(previousExpr, newPrevious)
 	}
+
 	return newExpr
 }
 
@@ -687,9 +701,8 @@ func Search2(searchQuery SearchQuery) ([]db_types.InfoEntry, error) {
 	}
 
 	defer rows.Close()
-	i := 0
-	for rows.Next() {
-		i += 1
+
+	for i := 0; rows.Next(); i++ {
 		var row db_types.InfoEntry
 		err = row.ReadEntry(rows)
 		if err != nil {
@@ -698,6 +711,7 @@ func Search2(searchQuery SearchQuery) ([]db_types.InfoEntry, error) {
 		}
 		out = append(out, row)
 	}
+
 	return out, nil
 }
 
@@ -718,9 +732,8 @@ func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 	}
 
 	defer rows.Close()
-	i := 0
-	for rows.Next() {
-		i += 1
+
+	for i := 0; rows.Next(); i++ {
 		var row db_types.InfoEntry
 		err = row.ReadEntry(rows)
 		if err != nil {
@@ -729,6 +742,7 @@ func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 		}
 		out = append(out, row)
 	}
+
 	return out, nil
 }
 
