@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"aiolimas/types"
+
 )
 
 type TT int
@@ -276,6 +277,23 @@ func (self MacroNode) ToString() (string, error) {
 		arg := self.Value[2:strings.Index(self.Value, ")")]
 		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
 		return fmt.Sprintf("(status == \"%s\")", titledArg), nil
+	} else if strings.HasPrefix(self.Value, "a(") {
+
+		arg := self.Value[2:strings.Index(self.Value, ")")]
+		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
+
+		name2AS := make(map[string]db_types.ArtStyle)
+		artStyles := db_types.ListArtStyles()
+		for k, v := range artStyles {
+			name2AS[v] = k
+		}
+
+		as, exists := name2AS[titledArg]
+		if !exists {
+			return "", fmt.Errorf("Non existant art style: %s", titledArg)
+		}
+
+		return fmt.Sprintf("(artStyle == %d)", as), nil
 	}
 	if self.Value == "isAnime" {
 		return fmt.Sprintf("(artStyle & %d == %d)", db_types.AS_ANIME, db_types.AS_ANIME), nil

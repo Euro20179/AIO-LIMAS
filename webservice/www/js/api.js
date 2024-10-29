@@ -257,8 +257,15 @@ async function updateThumbnail(id, thumbnail) {
  * @param {string} searchString
  */
 async function doQuery3(searchString) {
-    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`)
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`).catch(console.error)
+    if(!res) return []
+
     let itemsText = await res.text()
+    if (res.status !== 200) {
+        alert(itemsText)
+        return []
+    }
+
     try {
         let jsonL = itemsText.split("\n")
         .filter(Boolean)
@@ -268,6 +275,7 @@ async function doQuery3(searchString) {
     } catch(err) {
         console.error(err)
     }
+
     return []
 }
 

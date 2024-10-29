@@ -38,7 +38,7 @@ func ListArtStyles() map[ArtStyle]string {
 		AS_HANDRAWN:    "Handdrawn",
 		AS_DIGITAL:     "Digital",
 		AS_CGI:         "CGI",
-		AS_LIVE_ACTION: "Live action",
+		AS_LIVE_ACTION: "Liveaction",
 	}
 }
 
