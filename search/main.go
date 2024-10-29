@@ -12,6 +12,8 @@ type TT int
 const (
 	TT_WORD TT = iota
 
+	TT_MACRO TT = iota
+
 	TT_STRING TT = iota
 
 	TT_COLON TT = iota
@@ -219,6 +221,10 @@ func Lex(search string) []Token {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				ty = TT_NUMBER
 				val = parseNumber()
+			case '#':
+				ty = TT_MACRO
+				// parseWord includes the first char, ignore it
+				val = parseWord("")[1:]
 			default:
 				ty = TT_WORD
 				val = parseWord("")
@@ -253,6 +259,17 @@ func (self ListNode) ToString() (string, error) {
 	}
 	str = str[0 : len(str)-1]
 	return str + ")", nil
+}
+
+type MacroNode struct {
+	Value string;
+}
+
+func (self MacroNode) ToString() (string, error) {
+	if self.Value == "isAnime" {
+		return "(artStyle & 1 == 1)", nil
+	}
+	return self.Value, nil
 }
 
 type StringNode struct {
@@ -390,6 +407,10 @@ func Parse(tokens []Token) (string, error) {
 		switch tokens[i].Ty {
 		case TT_STRING:
 			return StringNode{
+				Value: tokens[i].Value,
+			}
+		case TT_MACRO:
+			return MacroNode{
 				Value: tokens[i].Value,
 			}
 		case TT_WORD:
