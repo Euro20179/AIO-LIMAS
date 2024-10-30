@@ -19,10 +19,13 @@ function Expand_macro(macro)
 
     if basicMacros[macro] ~= nil then
         return basicMacros[macro], ""
+
     elseif aio.hasprefix(macro, "s:") then
         return comp("status", '"' .. aio.title(string.sub(macro, 3)) .. '"'), ""
+
     elseif aio.hasprefix(macro, "t:") then
         return comp("type", '"' .. aio.title(string.sub(macro, 3)) .. '"'), ""
+
     elseif aio.hasprefix(macro, "a:") then
         local titledArg = aio.title(string.sub(macro, 3))
         local as_int = asName2I[titledArg]
@@ -31,6 +34,7 @@ function Expand_macro(macro)
         end
         return string.format("(artStyle & %d == %d)", as_int, as_int), ""
     end
+
     return macro, ""
 end
 

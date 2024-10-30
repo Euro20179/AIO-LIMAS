@@ -668,53 +668,6 @@ func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, sear
 	return newExpr
 }
 
-func Search2(searchQuery SearchQuery) ([]db_types.InfoEntry, error) {
-	query := sqlbuilder.NewSelectBuilder()
-	query.Select("entryInfo.*").From("entryInfo").Join("userViewingInfo", "entryInfo.itemId == userViewingInfo.itemId").Join("metadata", "entryInfo.itemId == metadata.itemId")
-
-	var queryExpr string
-
-	previousExpr := ""
-
-	for _, searchData := range searchQuery {
-		name := searchData.DataName
-
-		if name == "" {
-			continue
-		}
-
-		queryExpr = searchData2Query(query, previousExpr, searchData)
-		previousExpr = queryExpr
-	}
-
-	query = query.Where(queryExpr)
-
-	finalQuery, args := query.Build()
-	rows, err := Db.Query(
-		finalQuery,
-		args...,
-	)
-	var out []db_types.InfoEntry
-
-	if err != nil {
-		return out, err
-	}
-
-	defer rows.Close()
-
-	for i := 0; rows.Next(); i++ {
-		var row db_types.InfoEntry
-		err = row.ReadEntry(rows)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		out = append(out, row)
-	}
-
-	return out, nil
-}
-
 func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 

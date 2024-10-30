@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	db "aiolimas/db"
 	"aiolimas/types"
@@ -326,47 +325,6 @@ func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 
-	w.WriteHeader(200)
-	for _, row := range results {
-		j, err := row.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
-}
-
-func QueryEntries2(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	names := pp["names"].([]string)
-	values := pp["values"].([]string)
-	checkers := pp["checkers"].([]db.DataChecker)
-	gates := pp["gates"].([]db.LogicType)
-
-	var query db.SearchQuery
-
-	for i, name := range names {
-		data := db.SearchData{
-			DataName:  name,
-			Checker:   checkers[i],
-			LogicType: gates[i],
-		}
-		if checkers[i] == db.DATA_NOTIN || checkers[i] == db.DATA_IN {
-			values = strings.Split(values[i], ":")
-			data.DataValue = values
-		} else {
-			data.DataValue = []string{values[i]}
-		}
-		query = append(query, data)
-	}
-
-	results, err := db.Search2(query)
-	if err != nil {
-		println(err.Error())
-		wError(w, 500, "Could not complete search\n%s", err.Error())
-		return
-	}
 	w.WriteHeader(200)
 	for _, row := range results {
 		j, err := row.ToJson()

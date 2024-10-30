@@ -280,7 +280,7 @@ func (self MacroNode) ToString() (string, error) {
 		println(err.Error())
 		return "", err
 	}
-	// if l.CheckFunction(1) != nil {
+
 	l.Push(lua.LString(self.Value))
 	l.Call(1, 2)
 
@@ -292,7 +292,6 @@ func (self MacroNode) ToString() (string, error) {
 	if text != "" {
 		return string(text), nil
 	}
-	// }
 
 	return self.Value, nil
 }

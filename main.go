@@ -237,28 +237,6 @@ var ( // `/` endpoints {{{
 		GuestAllowed: true,
 	}
 
-	search2Api = api.ApiEndPoint{
-		EndPoint: "query-v2",
-		Handler:  api.QueryEntries2,
-		QueryParams: api.QueryParams{
-			"names": api.MkQueryInfo(api.P_TList(",", func(in string) string { return in }), true),
-			"values": api.MkQueryInfo(api.P_TList(",", func(in string) string {
-				return in
-			}), true),
-			"checkers": api.MkQueryInfo(api.P_TList(",", func(in string) db.DataChecker {
-				return db.Str2DataChecker(in)
-			}), true),
-			"gates": api.MkQueryInfo(api.P_TList(",", func(in string) db.LogicType {
-				if in == "0" {
-					return db.LOGIC_AND
-				} else {
-					return db.LOGIC_OR
-				}
-			}), true),
-		},
-		GuestAllowed: true,
-	}
-
 	getAllEntry = api.ApiEndPoint{
 		EndPoint: "get-all-for-entry",
 		Handler:  api.GetAllForEntry,
@@ -587,7 +565,6 @@ var (
 		addEntry,
 		modEntry,
 		setEntry,
-		search2Api,
 		search3Api,
 		listApi,
 		stream,
