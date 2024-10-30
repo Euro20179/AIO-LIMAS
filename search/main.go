@@ -268,17 +268,17 @@ type MacroNode struct {
 }
 
 func (self MacroNode) ToString() (string, error) {
-	if strings.HasPrefix(self.Value, "t(") {
-		arg := self.Value[2:strings.Index(self.Value, ")")]
+	if strings.HasPrefix(self.Value, "t:") {
+		arg := self.Value[2:]
 		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
 		return fmt.Sprintf("(type == \"%s\")", titledArg), nil
-	} else if strings.HasPrefix(self.Value, "s(") {
-		arg := self.Value[2:strings.Index(self.Value, ")")]
+	} else if strings.HasPrefix(self.Value, "s:") {
+		arg := self.Value[2:]
 		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
 		return fmt.Sprintf("(status == \"%s\")", titledArg), nil
-	} else if strings.HasPrefix(self.Value, "a(") {
+	} else if strings.HasPrefix(self.Value, "a:") {
 
-		arg := self.Value[2:strings.Index(self.Value, ")")]
+		arg := self.Value[2:]
 		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
 
 		name2AS := make(map[string]db_types.ArtStyle)
