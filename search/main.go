@@ -331,6 +331,19 @@ func (self NumberNode) ToString() (string, error) {
 	return self.Value, nil
 }
 
+
+type NegateNode struct {
+	Right Node
+}
+
+func (self NegateNode) ToString() (string, error) {
+	r, err := self.Right.ToString()
+	if err != nil{
+		return "!", err
+	}
+	return "not " + r, nil
+}
+
 type PlainWordNode struct {
 	Value string
 }
@@ -443,6 +456,19 @@ func Parse(tokens []Token) (string, error) {
 	}
 
 	atom = func() Node {
+		if tokens[i].Ty == TT_NOT {
+			if !next() {
+				return NegateNode{
+					Right: StringNode {
+						Value: "",
+					},
+				}
+			}
+			return NegateNode {
+				Right: atom(),
+			}
+		}
+
 		switch tokens[i].Ty {
 		case TT_STRING:
 			return StringNode{
@@ -469,6 +495,7 @@ func Parse(tokens []Token) (string, error) {
 			next()
 			return n
 		}
+
 		return StringNode{}
 	}
 
@@ -476,7 +503,9 @@ func Parse(tokens []Token) (string, error) {
 		items := []Node{
 			atom(),
 		}
+
 		wantsList := false
+
 		for next() {
 			if tokens[i].Ty != TT_COLON {
 				back()
@@ -490,9 +519,11 @@ func Parse(tokens []Token) (string, error) {
 				wantsList = true
 			}
 		}
+
 		if len(items) == 1 && !wantsList {
 			return items[0]
 		}
+
 		return ListNode{
 			Items: items,
 		}
