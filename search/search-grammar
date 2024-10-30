@@ -1,6 +1,4 @@
-raw        : "{" TEXT "}" 
-
-atom       : STRING | WORD | raw | "(" search ")"
+atom       : "!" atom | STRING | WORD | "(" search ")"
 
 atom-list  : atom(":"atom?)*
 
