@@ -2,11 +2,14 @@ package search
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
-	"aiolimas/types"
+	"aiolimas/lua-api"
+
+	"github.com/yuin/gopher-lua"
 )
 
 type TT int
@@ -268,45 +271,28 @@ type MacroNode struct {
 }
 
 func (self MacroNode) ToString() (string, error) {
-	if strings.HasPrefix(self.Value, "t:") {
-		arg := self.Value[2:]
-		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
-		return fmt.Sprintf("(type == \"%s\")", titledArg), nil
-	} else if strings.HasPrefix(self.Value, "s:") {
-		arg := self.Value[2:]
-		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
-		return fmt.Sprintf("(status == \"%s\")", titledArg), nil
-	} else if strings.HasPrefix(self.Value, "a:") {
+	l := lua.NewState()
 
-		arg := self.Value[2:]
-		titledArg := strings.ToTitle(string(arg[0])) + arg[1:]
+	lua_api.Fullsetup(l)
 
-		name2AS := make(map[string]db_types.ArtStyle)
-		artStyles := db_types.ListArtStyles()
-		for k, v := range artStyles {
-			name2AS[v] = k
-		}
-
-		as, exists := name2AS[titledArg]
-		if !exists {
-			return "", fmt.Errorf("Non existant art style: %s", titledArg)
-		}
-
-		return fmt.Sprintf("(artStyle == %d)", as), nil
+	err := l.DoFile("./lua-extensions/expand-macro.lua")
+	if err != nil {
+		println(err.Error())
+		return "", err
 	}
+	// if l.CheckFunction(1) != nil {
+	l.Push(lua.LString(self.Value))
+	l.Call(1, 2)
 
-	switch self.Value {
-	case "isAnime":
-		return fmt.Sprintf("(artStyle & %d == %d)", db_types.AS_ANIME, db_types.AS_ANIME), nil
-	case "r":
-		return "userRating", nil
-	case "R":
-		return "rating", nil
-	case "t":
-		return "en_title", nil
-	case "T":
-		return "title", nil
+	userErr := l.Get(-1).(lua.LString)
+	if userErr != "" {
+		return "", errors.New(string(userErr))
 	}
+	text := l.Get(-2).(lua.LString)
+	if text != "" {
+		return string(text), nil
+	}
+	// }
 
 	return self.Value, nil
 }
@@ -331,14 +317,13 @@ func (self NumberNode) ToString() (string, error) {
 	return self.Value, nil
 }
 
-
 type NegateNode struct {
 	Right Node
 }
 
 func (self NegateNode) ToString() (string, error) {
 	r, err := self.Right.ToString()
-	if err != nil{
+	if err != nil {
 		return "!", err
 	}
 	return "not " + r, nil
@@ -459,12 +444,12 @@ func Parse(tokens []Token) (string, error) {
 		if tokens[i].Ty == TT_NOT {
 			if !next() {
 				return NegateNode{
-					Right: StringNode {
+					Right: StringNode{
 						Value: "",
 					},
 				}
 			}
-			return NegateNode {
+			return NegateNode{
 				Right: atom(),
 			}
 		}

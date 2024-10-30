@@ -19,11 +19,11 @@ const (
 	AS_LIVE_ACTION ArtStyle = 32
 )
 
-func ArtStyle2Str(style uint) string {
+func ArtStyle2Str(style ArtStyle) string {
 	bit2Name := ListArtStyles()
 	var styles []string
 	for i := AS_ANIME; i <= AS_LIVE_ACTION; i *= 2 {
-		if (style & uint(i)) == uint(i) {
+		if (style & ArtStyle(i)) == ArtStyle(i) {
 			styles = append(styles, bit2Name[ArtStyle(i)])
 		}
 	}
