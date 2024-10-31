@@ -106,7 +106,7 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	return out, nil
 }
 
-func OMDBProvider(info *db_types.InfoEntry, meta *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+func OMDBProvider(info db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 
 	key := os.Getenv("OMDB_KEY")

@@ -13,21 +13,21 @@ type IdentifyMetadata struct {
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
 	if entry.IsAnime(){
-		return AnilistShow(entry, metadataEntry)
+		return AnilistShow(*entry)
 	}
 	switch entry.Type {
 	case db_types.TY_MANGA:
-		return AnilistManga(entry, metadataEntry)
+		return AnilistManga(*entry)
 
 	case db_types.TY_SHOW:
 		fallthrough
 	case db_types.TY_MOVIE:
-		return OMDBProvider(entry, metadataEntry)
+		return OMDBProvider(*entry)
 
 	case db_types.TY_PICTURE:
 		fallthrough
 	case db_types.TY_MEME:
-		return ImageProvider(entry, metadataEntry)
+		return ImageProvider(*entry)
 	}
 	var out db_types.MetadataEntry
 	return out, nil
@@ -74,7 +74,9 @@ func IsValidIdIdentifier(name string) bool {
 	return contains
 }
 
-type ProviderMap map[string]func(*db_types.InfoEntry, *db_types.MetadataEntry) (db_types.MetadataEntry, error)
+type ProviderFunc func(db_types.InfoEntry) (db_types.MetadataEntry, error)
+
+type ProviderMap map[string]ProviderFunc
 
 var Providers ProviderMap = ProviderMap{
 	"anilist":       AnlistProvider,

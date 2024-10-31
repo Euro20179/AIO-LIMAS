@@ -155,7 +155,7 @@ func applyManga(anilistData AnlistMediaEntry) (db_types.MetadataEntry, error) {
 	return o, nil
 }
 
-func AnilistManga(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+func AnilistManga(entry db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var o db_types.MetadataEntry
 	searchTitle := entry.En_Title
 	if searchTitle == "" {
@@ -226,7 +226,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func AnilistShow(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+func AnilistShow(entry db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var outMeta db_types.MetadataEntry
 
 	searchTitle := entry.En_Title
@@ -256,13 +256,13 @@ func AnilistShow(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntr
 	return applyShow(out)
 }
 
-func AnlistProvider(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry) (db_types.MetadataEntry, error) {
+func AnlistProvider(entry db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var newMeta db_types.MetadataEntry
 	var err error
 	if entry.ArtStyle & db_types.AS_ANIME == db_types.AS_ANIME{
-		newMeta, err = AnilistShow(entry, metadataEntry)
+		newMeta, err = AnilistShow(entry)
 	} else {
-		newMeta, err = AnilistManga(entry, metadataEntry)
+		newMeta, err = AnilistManga(entry)
 	}
 
 	// ensure item ids are consistent
