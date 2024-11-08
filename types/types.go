@@ -1,4 +1,4 @@
-package db_types;
+package db_types
 
 import (
 	"database/sql"
@@ -201,6 +201,7 @@ func StructNamesToDict(entity any) map[string]any {
 type TableRepresentation interface {
 	Id() int64
 	ReadEntryCopy(*sql.Rows) (TableRepresentation, error)
+	ToJson() ([]byte, error)
 }
 
 // names here MUST match names in the metadta sqlite table
@@ -246,7 +247,7 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 	)
 }
 
-func (self *MetadataEntry) ToJson() ([]byte, error) {
+func (self MetadataEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
 
@@ -265,7 +266,7 @@ type InfoEntry struct {
 }
 
 func (self *InfoEntry) IsAnime() bool {
-	return self.ArtStyle & AS_ANIME == AS_ANIME
+	return self.ArtStyle&AS_ANIME == AS_ANIME
 }
 
 func (self InfoEntry) Id() int64 {
@@ -274,6 +275,10 @@ func (self InfoEntry) Id() int64 {
 
 func (self InfoEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
 	return self, self.ReadEntry(rows)
+}
+
+func (self InfoEntry) ToJson() ([]byte, error) {
+	return json.Marshal(self)
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
@@ -290,10 +295,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.CopyOf,
 		&self.ArtStyle,
 	)
-}
-
-func (self *InfoEntry) ToJson() ([]byte, error) {
-	return json.Marshal(self)
 }
 
 type UserViewingEvent struct {
@@ -321,7 +322,7 @@ func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 	)
 }
 
-func (self *UserViewingEvent) ToJson() ([]byte, error) {
+func (self UserViewingEvent) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
 
@@ -353,7 +354,7 @@ func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
 	)
 }
 
-func (self *UserViewingEntry) ToJson() ([]byte, error) {
+func (self UserViewingEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
 
@@ -369,26 +370,21 @@ func (self *UserViewingEntry) CanFinish() bool {
 	return self.IsViewing()
 }
 
-
 func (self *UserViewingEntry) CanPlan() bool {
 	return self.Status == S_DROPPED || self.Status == ""
 }
-
 
 func (self *UserViewingEntry) CanDrop() bool {
 	return self.IsViewing()
 }
 
-
 func (self *UserViewingEntry) CanPause() bool {
 	return self.IsViewing()
 }
 
-
 func (self *UserViewingEntry) CanResume() bool {
 	return self.Status == S_PAUSED
 }
-
 
 type EntryTree struct {
 	EntryInfo InfoEntry
@@ -398,7 +394,6 @@ type EntryTree struct {
 	Copies    []string
 }
 
-func (self *EntryTree) ToJson() ([]byte, error) {
-	return json.Marshal(*self)
+func (self EntryTree) ToJson() ([]byte, error) {
+	return json.Marshal(self)
 }
-

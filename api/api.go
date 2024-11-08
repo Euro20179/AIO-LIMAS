@@ -90,15 +90,7 @@ func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams Parse
 	w.Write(ij)
 	w.Write([]byte("\n"))
 
-	for _, event := range events {
-		ej, err := event.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(ej)
-		w.Write([]byte("\n"))
-	}
+	writeSQLRowResults(w, events)
 }
 
 func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
@@ -326,15 +318,7 @@ func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 
 	w.WriteHeader(200)
-	for _, row := range results {
-		j, err := row.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
+	writeSQLRowResults(w, results)
 }
 
 func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
@@ -346,15 +330,7 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 	w.WriteHeader(200)
-	for _, row := range copies {
-		j, err := row.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
+	writeSQLRowResults(w, copies)
 }
 
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
@@ -383,15 +359,7 @@ func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 	w.WriteHeader(200)
 
-	for _, item := range items {
-		j, err := item.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
+	writeSQLRowResults(w, items)
 	w.Write([]byte("\n"))
 }
 

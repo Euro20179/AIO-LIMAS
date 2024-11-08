@@ -86,17 +86,6 @@ func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 
 		out[cur.EntryInfo.ItemId] = cur
 	}
-	//
-	// for id, cur := range out {
-	// 	children, err := GetChildren(id)
-	// 	if err != nil{
-	// 		println(err.Error())
-	// 		continue
-	// 	}
-	// 	for _, child := range children {
-	// 		cur.Children = append(cur.Children, child.ItemId)
-	// 	}
-	// }
 
 	return out, nil
 }
