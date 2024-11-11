@@ -7,10 +7,10 @@ const displayQueue = []
  * @param {IntersectionObserverEntry[]} entries
  */
 function onIntersection(entries) {
-    for(let entry of entries) {
-        if(entry.isIntersecting && displayQueue.length) {
+    for (let entry of entries) {
+        if (entry.isIntersecting && displayQueue.length) {
             let newItem = displayQueue.shift()
-            if(!newItem) continue
+            if (!newItem) continue
             modeDisplayEntry.add(newItem, false)
         }
     }
@@ -38,8 +38,8 @@ const modeDisplayEntry = {
 
     addList(entry, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entry, 1)
-        for(let i = 0; i < entry.length; i++) {
-            if(i > 5) {
+        for (let i = 0; i < entry.length; i++) {
+            if (i > 5) {
                 displayQueue.push(entry[i])
             } else {
                 renderDisplayItem(entry[i])
@@ -149,7 +149,7 @@ function renderDisplayItem(item, parent = displayItems) {
  */
 function removeDisplayItem(item) {
     const el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
-    if(!el) return
+    if (!el) return
     el.remove()
     observer.unobserve(el)
 }

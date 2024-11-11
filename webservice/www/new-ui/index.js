@@ -271,10 +271,31 @@ async function loadInfoEntries() {
         .catch(console.error)
     if (!res) {
         alert("Could not load entries")
-    } else {
-        let itemsText = await res.text()
-        /**@type {string[]}*/
-        let jsonL = itemsText.split("\n").filter(Boolean)
+        return
+    }
+    let itemsText = await res.text()
+    /**@type {string[]}*/
+    let jsonL = itemsText.split("\n").filter(Boolean)
+    /**@type {Record<string, InfoEntry>}*/
+    let obj = {}
+    for (let item of jsonL
+        .map(mkStrItemId)
+        .map(parseJsonL)
+    ) {
+        obj[item.ItemId] = item
+    }
+
+    //globalsNewUi.entries should contain ALL entries
+    {
+        const res = await fetch(`${apiPath}/list-entries`).catch(console.error)
+
+        if (!res) {
+            alert("Could not load all entries")
+            return
+        }
+
+        const text = await res.text()
+        let jsonL = text.split("\n").filter(Boolean)
         /**@type {Record<string, InfoEntry>}*/
         let obj = {}
         for (let item of jsonL
