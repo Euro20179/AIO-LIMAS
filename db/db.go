@@ -470,6 +470,12 @@ func Delete(id int64) error {
 		return err
 	}
 
+	//item might have associated thumbnail, remove it
+	aioPath := os.Getenv("AIO_DIR")
+	thumbPath := fmt.Sprintf("%s/thumbnails/item-%d", aioPath, id)
+	if _, err := os.Stat(thumbPath); err == nil {
+		os.Remove(thumbPath)
+	}
 
 	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ?`, id)
 	transact.Exec(`DELETE FROM metadata WHERE itemId = ?`, id)
