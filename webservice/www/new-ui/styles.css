@@ -31,6 +31,10 @@
         }
     }
 
+    #gallery-items img {
+        width: 50cqb;
+    }
+
     #view-all {
         vertical-align: bottom;
     }
