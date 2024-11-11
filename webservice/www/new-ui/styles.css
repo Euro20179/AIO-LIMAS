@@ -21,7 +21,7 @@
         margin: 0;
     }
 
-    :is(#entry-output, #graph-output, #calc-output) {
+    :is(#entry-output, #graph-output, #calc-output, #gallery-output) {
         &:target {
             display: inherit;
         }

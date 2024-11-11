@@ -95,8 +95,8 @@ const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-out
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 
 
-const modes = [modeDisplayEntry, modeGraphView, modeCalc]
-const modeOutputIds = ["entry-output", "graph-output", "calc-output"]
+const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
+const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
 
 let idx = modeOutputIds.indexOf(location.hash.slice(1))
 
