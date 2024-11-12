@@ -32,12 +32,14 @@ func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) 
 }
 
 func DownloadDB(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	dir := os.Getenv("AIO_DB_PATH")
+	dir := os.Getenv("AIO_DIR")
 	if dir == "" {
-		panic("$AIO_DB_PATH should not be empty")
+		panic("$AIO_DIR should not be empty")
 	}
 
-	http.ServeFile(w, req, dir)
+	dbPath := fmt.Sprintf("%s/all.db", dir)
+
+	http.ServeFile(w, req, dbPath)
 }
 
 func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
