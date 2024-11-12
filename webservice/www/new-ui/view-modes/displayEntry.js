@@ -115,7 +115,12 @@ function renderDisplayItem(item, parent = displayItems) {
      * @param {Generator<InfoEntry>} relationGenerator
      */
     function createRelationButtons(elementParent, relationGenerator) {
-        for (let child of relationGenerator) {
+        let relationships = relationGenerator.toArray()
+        let titles = relationships.map(i => i.En_Title)
+        relationships = relationships.sort((a, b) => {
+            return (sequenceNumberGrabber(a.En_Title, titles) || 0) - (sequenceNumberGrabber(b.En_Title, titles) || 0)
+        })
+        for (let child of relationships) {
             let meta = findMetadataById(child.ItemId)
             let el
             if (meta?.Thumbnail) {
