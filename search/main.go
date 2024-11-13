@@ -177,15 +177,19 @@ func Lex(search string) []Token {
 			case '{':
 				ty = TT_PRESERVED
 				val = parseBrace()
+			case '?':
+				fallthrough
 			case '|':
 				ty = TT_OR
-				val = "|"
+				val = string(ch)
 			case '^':
 				ty = TT_IN
 				val = "^"
+			case '.':
+				fallthrough
 			case '&':
 				ty = TT_AND
-				val = "&"
+				val = string(ch)
 			case '=':
 				if len(search) > 1 && search[i+1] == '=' {
 					next()
@@ -552,13 +556,16 @@ func Parse(tokens []Token) (string, error) {
 		logicToks := []TT{TT_AND, TT_OR}
 		left := comparison()
 		for next() {
-			if !slices.Contains(logicToks, tokens[i].Ty) {
+			op := tokens[i]
+
+			if !slices.Contains(logicToks, op.Ty) {
 				continue
 			}
-			op := tokens[i]
+
 			if !next() {
 				return StringNode{}
 			}
+
 			right := comparison()
 			left = BinOpNode{
 				Left: left,
