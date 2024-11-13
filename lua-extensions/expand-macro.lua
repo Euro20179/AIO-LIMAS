@@ -61,6 +61,8 @@ function Expand_macro(macro)
             return "", "Invalid art style: " .. titledArg
         end
         return string.format("(artStyle & %d == %d)", as_int, as_int), ""
+    else
+        return string.format("(en_title LIKE \"%%%s%%\")", string.sub(macro, 1)), ""
     end
 
     return macro, ""
