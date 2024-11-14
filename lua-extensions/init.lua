@@ -2,6 +2,7 @@ local function comp(left, right)
     return left .. " == " .. right
 end
 
+---@param macro string
 function Expand_macro(macro)
     local asName2I = {}
     for k, v in pairs(aio.artStyles) do
@@ -64,8 +65,6 @@ function Expand_macro(macro)
     else
         return string.format("(en_title LIKE \"%%%s%%\")", string.sub(macro, 1)), ""
     end
-
-    return macro, ""
 end
 
-return Expand_macro
+aio.listen("MacroExpand", Expand_macro)

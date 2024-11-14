@@ -9,10 +9,14 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+var GlobalLuaInstance *lua.LState
+
+var LuaEventRegistry = map[string][]*lua.LFunction{}
+
 func Fullsetup(state *lua.LState) {
 	aioTble := state.NewTable()
 
-	// functions {{{
+	// helper funcs {{{
 	hasPrefix := state.NewFunction(func(s *lua.LState) int {
 		testStr := s.ToString(1)
 		prefix := s.ToString(2)
@@ -21,18 +25,6 @@ func Fullsetup(state *lua.LState) {
 	})
 	state.SetField(aioTble, "hasprefix", hasPrefix)
 
-	// split := state.NewFunction(func(s *lua.LState) int {
-	// 	str := s.ToString(1)
-	// 	sep := s.ToString(2)
-	// 	tbl := s.NewTable()
-	// 	for i, v := range strings.Split(str, sep) {
-	// 		state.SetTable(tbl, lua.LNumber(i), lua.LString(v))
-	// 	}
-	// 	s.Push(tbl)
-	// 	return 1
-	// })
-	// state.SetField(aioTble, "split", split)
-
 	title := state.NewFunction(func(s *lua.LState) int {
 		str := s.ToString(1)
 		s.Push(lua.LString(strings.ToTitle(string(str[0])) + str[1:]))
@@ -40,6 +32,17 @@ func Fullsetup(state *lua.LState) {
 	})
 	state.SetField(aioTble, "title", title)
 	// }}}
+
+	// event funcs {{{
+	listen := state.NewFunction(func(s *lua.LState) int {
+		eventName := s.ToString(1)
+		onEvent := s.ToFunction(2)
+
+		LuaEventRegistry[eventName] = append(LuaEventRegistry[eventName], onEvent)
+		return 0
+	})
+	state.SetField(aioTble, "listen", listen)
+	//}}}
 
 	// types{{{
 	artStylesTble := state.NewTable()
@@ -50,6 +53,26 @@ func Fullsetup(state *lua.LState) {
 	}
 	state.SetField(aioTble, "artStyles", artStylesTble)
 	// }}}
-	
+
 	state.SetGlobal("aio", aioTble)
+}
+
+func ReloadLuaInstance(fromFile string) (*lua.LState, error) {
+	LuaEventRegistry = map[string][]*lua.LFunction{}
+
+	return InitGlobalLuaInstance(fromFile)
+}
+
+func InitGlobalLuaInstance(fromFile string) (*lua.LState, error) {
+	l := lua.NewState()
+
+	Fullsetup(l)
+
+	err := l.DoFile(fromFile)
+	if err != nil {
+		println(err.Error())
+		return l, err
+	}
+
+	return l, nil
 }

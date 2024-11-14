@@ -1,9 +1,15 @@
+#db/generated files
 all.db
 all*
+shows.json
+test-dir/*
+
+#exec
 aiolimas
 start
-shows.json
-backup
 sql-parent-children-getter
+
+backup
 start
 shows-to-aiolimas
+main_test.go

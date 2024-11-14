@@ -275,29 +275,31 @@ type MacroNode struct {
 }
 
 func (self MacroNode) ToString() (string, error) {
-	l := lua.NewState()
-
-	lua_api.Fullsetup(l)
-
-	err := l.DoFile("./lua-extensions/expand-macro.lua")
-	if err != nil {
-		println(err.Error())
-		return "", err
+	onExpand, exists := lua_api.LuaEventRegistry["MacroExpand"]
+	if !exists {
+		return "", errors.New("Could not expand macro")
 	}
 
-	l.Push(lua.LString(self.Value))
-	l.Call(1, 2)
+	curMacro := self.Value
 
-	userErr := l.Get(-1).(lua.LString)
-	if userErr != "" {
-		return "", errors.New(string(userErr))
-	}
-	text := l.Get(-2).(lua.LString)
-	if text != "" {
-		return string(text), nil
+	state := lua_api.GlobalLuaInstance
+
+	for _, expansion := range onExpand {
+		state.Push(expansion)
+		state.Push(lua.LString(curMacro))
+		state.Call(1, 2)
+		userErr := state.Get(-1).(lua.LString)
+		if userErr != "" {
+			return curMacro, errors.New(string(userErr))
+		}
+
+		text := state.Get(-2).(lua.LString)
+		if text != "" {
+			curMacro = string(text)
+		}
 	}
 
-	return self.Value, nil
+	return curMacro, nil
 }
 
 type StringNode struct {

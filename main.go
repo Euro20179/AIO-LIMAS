@@ -11,6 +11,7 @@ import (
 
 	api "aiolimas/api"
 	db "aiolimas/db"
+	lua_api "aiolimas/lua-api"
 	"aiolimas/webservice"
 )
 
@@ -690,6 +691,12 @@ func main() {
 	flag.Parse()
 
 	db.InitDb(*dbPathPtr)
+
+	inst, err := lua_api.InitGlobalLuaInstance("./lua-extensions/init.lua")
+	if err != nil{
+		panic("Could not initialize global lua instance")
+	}
+	lua_api.GlobalLuaInstance = inst
 
 	startServer()
 }
