@@ -221,6 +221,11 @@ const displayEntryViewCount = displayEntryAction(item => {
     fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&view-count=${count}`)
         .then(res => res.text())
         .then(alert)
+        .then(() => {
+            refreshInfo().then(() => {
+                refreshDisplayItem(item)
+            })
+        })
         .catch(console.error)
 })
 
