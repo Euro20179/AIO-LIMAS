@@ -405,21 +405,6 @@ function saveItemChanges(root, item) {
     }
     userEntry.Notes = notes
 
-    const userStringified = mkIntItemId(
-        JSON.stringify(
-            userEntry,
-            (_, v) => typeof v === "bigint" ? String(v) : v
-        )
-    )
-
-    fetch(`${apiPath}/engagement/set-entry`, {
-        body: userStringified,
-        method: "POST"
-    })
-        .then(res => res.text())
-        .then(console.log)
-        .catch(console.error)
-
     let infoTable = root.querySelector("table.info-raw")
     let metaTable = root.querySelector("table.meta-info-raw")
     if (!infoTable || !metaTable) return
@@ -465,7 +450,26 @@ function saveItemChanges(root, item) {
         )
     )
 
-    fetch(`${apiPath}/set-entry`, {
+    const userStringified = mkIntItemId(
+        JSON.stringify(
+            userEntry,
+            (_, v) => typeof v === "bigint" ? String(v) : v
+        )
+    )
+
+    let promises = []
+
+    let engagementSet = fetch(`${apiPath}/engagement/set-entry`, {
+        body: userStringified,
+        method: "POST"
+    })
+        .then(res => res.text())
+        .then(console.log)
+        .catch(console.error)
+
+    promises.push(engagementSet)
+
+    let entrySet = fetch(`${apiPath}/set-entry`, {
         body: infoStringified,
         method: "POST"
     })
@@ -473,16 +477,23 @@ function saveItemChanges(root, item) {
         .then(console.log)
         .catch(console.error)
 
-    fetch(`${apiPath}/metadata/set-entry`, {
+    promises.push(entrySet)
+
+    let metaSet = fetch(`${apiPath}/metadata/set-entry`, {
         body: metaStringified,
         method: "POST"
     }).then(res => res.text())
         .then(console.log)
         .catch(console.error)
 
-    refreshInfo().then(() => {
-        refreshDisplayItem(item)
+    promises.push(metaSet)
+
+    Promise.all(promises).then(() => {
+        refreshInfo().then(() => {
+            refreshDisplayItem(item)
+        })
     })
+
 }
 
 /**
