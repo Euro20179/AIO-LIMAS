@@ -733,6 +733,7 @@ viewAllElem.addEventListener("change", e => {
 * @param {InfoEntry[]} entries
 */
 function renderSidebar(entries) {
+    entries = entries.filter(a => a.ParentId === 0n)
     if (viewAllElem.checked) {
         selectItemList(entries, mode)
     } else {
