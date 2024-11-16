@@ -592,7 +592,15 @@ async function titleIdentification(provider, search, selectionElemOutput) {
     let text = await res.text()
     let [_, rest] = text.split("\x02")
 
-    let items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
+    /**@type {any[]}*/
+    let items
+    try{
+        items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
+    }
+    catch(err){
+        console.error("Could not parse json", rest.split('\n'))
+        return ""
+    }
 
     while (selectionElemOutput.children.length) {
         selectionElemOutput.firstChild?.remove()

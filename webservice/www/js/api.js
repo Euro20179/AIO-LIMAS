@@ -75,7 +75,12 @@ function mkIntItemId(jsonl) {
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
-    return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
+    try{
+        return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
+    }
+    catch(err){
+        console.error("Could not parse json", err)
+    }
 }
 
 /**

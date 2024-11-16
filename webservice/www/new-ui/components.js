@@ -212,7 +212,12 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".info-raw"))
-        this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+        try{
+            this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+        }
+        catch(err){
+            console.error("Could not parse json")
+        }
     }
 
     /**
@@ -220,7 +225,12 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-meta-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".meta-info-raw"))
-        this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+        try{
+            this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+        }
+        catch(err){
+            console.error("Could not parse json")
+        }
     }
 
     /**
@@ -262,7 +272,14 @@ customElements.define("display-entry", class extends HTMLElement {
 
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
 
-        let data = JSON.parse(val)
+        let data
+        try{
+            data = JSON.parse(val)
+        }
+        catch(err){
+            console.error("Could not parse json", val)
+            return
+        }
 
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         this.mkGenericTbl(mediaInfoTbl, data)

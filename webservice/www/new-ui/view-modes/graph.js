@@ -181,7 +181,14 @@ function getWatchTime(watchCount, meta) {
     if (!meta.MediaDependant) {
         return 0
     }
-    let data = JSON.parse(meta.MediaDependant)
+    let data
+    try{
+        data = JSON.parse(meta.MediaDependant)
+    }
+    catch(err){
+        console.error("Could not parse json", meta.MediaDependant)
+        return 0
+    }
     let length = 0
     for (let type of ["Show", "Movie"]) {
         if (!(`${type}-length` in data)) {
