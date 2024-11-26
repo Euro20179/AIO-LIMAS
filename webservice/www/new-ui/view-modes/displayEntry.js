@@ -1,7 +1,7 @@
 /**@type {HTMLElement[]}*/
 const displaying = []
 /**@type {InfoEntry[]}*/
-const displayQueue = []
+let displayQueue = []
 
 /**
  * @param {IntersectionObserverEntry[]} entries
@@ -49,6 +49,10 @@ const modeDisplayEntry = {
 
     subList(entry, updateStats = true) {
         updateStats && changeResultStatsWithItemList(entry, -1)
+
+        const itemIdsToRemove = entry.map(v => v.ItemId)
+        displayQueue = displayQueue.filter(i => !itemIdsToRemove.includes(i.ItemId))
+
         for (let item of entry) {
             removeDisplayItem(item)
         }
