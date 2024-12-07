@@ -171,6 +171,7 @@ var ( // `/` endpoints {{{
 		Handler:  api.Stream,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"subfile": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Download the file located by the {id}'s location",
 		Returns:     "any",

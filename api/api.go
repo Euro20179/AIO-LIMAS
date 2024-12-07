@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
 	db "aiolimas/db"
-	"aiolimas/types"
 	meta "aiolimas/metadata"
+	"aiolimas/types"
 )
 
 func wError(w http.ResponseWriter, status int, format string, args ...any) {
@@ -250,7 +251,6 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
 
-
 	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
@@ -269,7 +269,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		newMeta.ItemId = metadata.ItemId
 
 		err = db.UpdateMetadataEntry(&newMeta)
-		if err != nil{
+		if err != nil {
 			wError(w, 500, "Could not update metadata\n%s", err.Error())
 			return
 		}
@@ -346,8 +346,46 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	entry := parsedParams["id"].(db_types.InfoEntry)
+	subFile := parsedParams.Get("subfile", "").(string)
 
-	http.ServeFile(w, req, entry.Location)
+	subFile, err := url.QueryUnescape(subFile)
+	if err != nil {
+		subFile = ""
+	}
+
+
+	newLocation := os.ExpandEnv(entry.Location)
+
+	fullPath := newLocation
+
+	if subFile != "" {
+		fullPath += "/" + subFile
+	}
+
+	stat, err:= os.Stat(fullPath)
+	if err == nil && stat.IsDir() {
+		files, err := os.ReadDir(fullPath)
+		if err != nil {
+			return
+		}
+		w.Write([]byte("#EXTM3U\n"))
+		for _, file := range files {
+			path := url.QueryEscape(file.Name())
+			var data string
+			if subFile != "" {
+				data = fmt.Sprintf("stream-entry?id=%d&subfile=%s\n", entry.ItemId, subFile + "/" + path)
+			} else {
+				data = fmt.Sprintf("stream-entry?id=%d&subfile=%s\n", entry.ItemId, path)
+			}
+			w.Write([]byte(data))
+		}
+	} else if err != nil {
+		println(err.Error())
+		w.WriteHeader(500)
+		w.Write([]byte("ERROR"))
+	} else {
+		http.ServeFile(w, req, fullPath)
+	}
 }
 
 func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
