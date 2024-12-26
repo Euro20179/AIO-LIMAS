@@ -273,6 +273,15 @@ func GetMetadataEntryById(id int64) (db_types.MetadataEntry, error) {
 	return res, getById(id, "metadata", &res)
 }
 
+func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
+	if metadata.MediaDependant == "" {
+		metadata.MediaDependant = "{}"
+	}
+	if metadata.Datapoints == "" {
+		metadata.Datapoints = "{}"
+	}
+}
+
 // **WILL ASSIGN THE ENTRYINFO.ID**
 func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := rand.Int64()
@@ -280,6 +289,8 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 	entryInfo.ItemId = id
 	metadataEntry.ItemId = id
 	userViewingEntry.ItemId = id
+
+	ensureMetadataJsonNotEmpty(metadataEntry)
 
 	entries := map[string]db_types.TableRepresentation{
 		"entryInfo":       *entryInfo,
@@ -456,6 +467,7 @@ func updateTable(tblRepr db_types.TableRepresentation, tblName string) error {
 }
 
 func UpdateMetadataEntry(entry *db_types.MetadataEntry) error {
+	ensureMetadataJsonNotEmpty(entry)
 	return updateTable(*entry, "metadata")
 }
 
