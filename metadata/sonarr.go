@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	urlUtil "net/url"
 
 	"aiolimas/settings"
 	db_types "aiolimas/types"
@@ -28,34 +27,11 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	}
 	if query == "" {
 		println("No search possible")
-		return out, errors.New("No search possible")
+		return out, errors.New("no search possible")
 	}
 
-	fullUrl += "?term=" + urlUtil.QueryEscape(query)
+	all, err := Lookup(query, fullUrl, key)
 
-	client := http.Client {}
-	req, err := http.NewRequest("GET", fullUrl, nil)
-	if err != nil {
-		println(err.Error())
-		return out, err
-	}
-
-	req.Header.Set("X-Api-Key", key)
-	res, err := client.Do(req)
-	if err != nil {
-		println(err.Error())
-		return out, err
-	}
-
-	var all []map[string]interface{}
-
-	text, err := io.ReadAll(res.Body)
-	if err != nil {
-		println(err.Error())
-		return out, err
-	}
-
-	err = json.Unmarshal(text, &all)
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -89,31 +65,9 @@ func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	fullUrl := url + "api/v3/series/lookup"
 
 	query := info.Title
-	fullUrl += "?term=" + urlUtil.QueryEscape(query)
 
-	client := http.Client {}
-	req, err := http.NewRequest("GET", fullUrl, nil)
-	if err != nil {
-		println(err.Error())
-		return nil, err
-	}
+	all, err := Lookup(query, fullUrl, key)
 
-	req.Header.Set("X-Api-Key", key)
-	res, err := client.Do(req)
-	if err != nil {
-		println(err.Error())
-		return nil, err
-	}
-
-	var all []map[string]interface{}
-
-	text, err := io.ReadAll(res.Body)
-	if err != nil {
-		println(err.Error())
-		return nil, err
-	}
-
-	err = json.Unmarshal(text, &all)
 	if err != nil {
 		println(err.Error())
 		return nil, err

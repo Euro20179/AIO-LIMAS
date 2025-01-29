@@ -16,7 +16,7 @@ type IdentifyMetadata struct {
 func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
 
 	//anilist is still better for anime
-	if settings.Settings.SonarrURL != "" && entry.Type == db_types.TY_SHOW && !entry.IsAnime(){
+	if settings.Settings.SonarrURL != "" && entry.Type == db_types.TY_SHOW{
 		return SonarrProvider(entry)
 	}
 
