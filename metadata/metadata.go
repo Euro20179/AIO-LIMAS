@@ -18,6 +18,8 @@ func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntr
 	//anilist is still better for anime
 	if settings.Settings.SonarrURL != "" && entry.Type == db_types.TY_SHOW{
 		return SonarrProvider(entry)
+	} else if settings.Settings.RadarrURL != "" && entry.Type == db_types.TY_MOVIE {
+		return RadarrProvider(entry)
 	}
 
 	if entry.IsAnime(){
@@ -92,6 +94,7 @@ var Providers ProviderMap = ProviderMap{
 	"anilist-show":  AnilistShow,
 	"omdb":          OMDBProvider,
 	"sonarr":        SonarrProvider,
+	"radarr":        RadarrProvider,
 	"image":         ImageProvider,
 }
 
@@ -101,6 +104,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
 	"omdb":    OmdbIdentifier,
 	"sonarr": SonarrIdentifier,
+	"radarr": RadarrIdentifier,
 }
 
 type (
@@ -112,4 +116,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"anilist": AnilistById,
 	"omdb":    OmdbIdIdentifier,
 	"sonarr": SonarrIdIdentifier,
+	"radarr": RadarrIdIdentifier,
 }

@@ -12,13 +12,13 @@ import (
 
 )
 
-func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
+func RadarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 
-	url := settings.Settings.SonarrURL
-	key := settings.Settings.SonarrKey
+	url := settings.Settings.RadarrURL
+	key := settings.Settings.RadarrKey
 
-	fullUrl := url + "api/v3/series/lookup"
+	fullUrl := url + "api/v3/movie/lookup"
 
 	query := info.En_Title
 	if query == "" {
@@ -41,15 +41,13 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	idPretense, ok := data["id"]
 	//this will be nil, if its not in the user's library
 	if !ok {
-		if info.IsAnime() {
-			return AnilistShow(info)
-		}
+		//second best
 		return OMDBProvider(info)
 	}
 
 	id := uint64(idPretense.(float64))
 
-	out, err = SonarrIdIdentifier(fmt.Sprintf("%d", id))
+	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id))
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -59,11 +57,11 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	return out, err
 }
 
-func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
-	url := settings.Settings.SonarrURL
-	key := settings.Settings.SonarrKey
+func RadarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	url := settings.Settings.RadarrURL
+	key := settings.Settings.RadarrKey
 
-	fullUrl := url + "api/v3/series/lookup"
+	fullUrl := url + "api/v3/movie/lookup"
 
 	query := info.Title
 
@@ -83,7 +81,7 @@ func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 		cur.ItemId = id
 		cur.Title = entry["title"].(string)
 		images := entry["images"].([]interface{})
-		posterImg := images[1].(map[string]interface{})
+		posterImg := images[0].(map[string]interface{})
 		cur.Thumbnail = posterImg["remoteUrl"].(string)
 
 		cur.Provider = "sonarr"
@@ -95,13 +93,13 @@ func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func SonarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
+func RadarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
-	key := settings.Settings.SonarrKey
-	url := settings.Settings.SonarrURL
+	url := settings.Settings.RadarrURL
+	key := settings.Settings.RadarrKey
 
-	fullUrl := url + "api/v3/series/" + id
+	fullUrl := url + "api/v3/movie/" + id
 
 	client := http.Client {}
 	req, err := http.NewRequest("GET", fullUrl, nil)
@@ -132,35 +130,19 @@ func SonarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
 	}
 
 	out.Title = data["title"].(string)
+	out.Native_Title = data["originalTitle"].(string)
 	out.Description = data["overview"].(string)
 	images := data["images"].([]interface{})
-	posterImg := images[1].(map[string]interface{})
+	posterImg := images[0].(map[string]interface{})
 	out.Thumbnail = posterImg["remoteUrl"].(string)
 	out.ReleaseYear = int64(data["year"].(float64))
 	ratings := data["ratings"].(map[string]interface{})
-	out.Rating = ratings["value"].(float64)
+	imdbRatings := ratings["imdb"].(map[string]interface{})
+	out.Rating = imdbRatings["value"].(float64)
 	out.RatingMax = 10
 
-	seasonsArray := data["seasons"].([]interface{})
-
-	specialsCount := float64(0)
-
-	season0 := seasonsArray[0].(map[string]interface{})
-	if season0["seasonNumber"].(float64) == 0 {
-		season0Stats := season0["statistics"].(map[string]interface{})
-		specialsCount = season0Stats["totalEpisodeCount"].(float64)
-	}
-
-	stats := data["statistics"].(map[string]interface{})
-	totalEpisodes := stats["totalEpisodeCount"].(float64) - specialsCount
-	airingStatus := data["status"].(string)
-	episodeDuration := data["runtime"].(float64)
-
 	mediaDependant := map[string]string {
-		"Show-airing-status": airingStatus,
-		"Show-episode-duration": fmt.Sprintf("%0.2f", episodeDuration),
-		"Show-length": fmt.Sprintf("%0.2f", episodeDuration * totalEpisodes),
-		"Show-episodes": fmt.Sprintf("%0.2f", totalEpisodes),
+		"Movie-length": fmt.Sprintf("%0.2f", data["runtime"].(float64)),
 	}
 
 	mdMarshal, err := json.Marshal(mediaDependant)
