@@ -251,12 +251,6 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
 
-	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte("Error adding into table\n" + err.Error()))
-		return
-	}
-
 	if parsedParams.Get("get-metadata", false).(bool) {
 		providerOverride := parsedParams.Get("metadata-provider", "").(string)
 		var err error
@@ -266,13 +260,14 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 			return
 		}
 
-		newMeta.ItemId = metadata.ItemId
+		newMeta.ItemId = entryInfo.ItemId
+		metadata = newMeta
+	}
 
-		err = db.UpdateMetadataEntry(&newMeta)
-		if err != nil {
-			wError(w, 500, "Could not update metadata\n%s", err.Error())
-			return
-		}
+	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("Error adding into table\n" + err.Error()))
+		return
 	}
 
 	j, err := entryInfo.ToJson()

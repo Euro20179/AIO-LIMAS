@@ -12,6 +12,7 @@ import (
 	api "aiolimas/api"
 	db "aiolimas/db"
 	lua_api "aiolimas/lua-api"
+	"aiolimas/settings"
 	"aiolimas/webservice"
 )
 
@@ -688,6 +689,8 @@ func main() {
 	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
 
 	initConfig(aioPath)
+
+	settings.InitSettingsManager(aioPath)
 
 	flag.Parse()
 

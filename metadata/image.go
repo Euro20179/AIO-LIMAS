@@ -7,7 +7,7 @@ import (
 	"aiolimas/types"
 )
 
-func ImageProvider(entry db_types.InfoEntry) (db_types.MetadataEntry, error) {
+func ImageProvider(entry *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 	location := entry.Location
 

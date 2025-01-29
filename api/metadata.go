@@ -35,6 +35,11 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
+	err = db.UpdateInfoEntry(&mainEntry)
+	if err != nil {
+		wError(w, 500, "%s\n", err.Error())
+		return
+	}
 
 	success(w)
 }

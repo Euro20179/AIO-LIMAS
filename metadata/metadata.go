@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"aiolimas/types"
+
+	settings "aiolimas/settings"
 )
 
 type IdentifyMetadata struct {
@@ -12,22 +14,28 @@ type IdentifyMetadata struct {
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
+
+	//anilist is still better for anime
+	if settings.Settings.SonarrURL != "" && entry.Type == db_types.TY_SHOW && !entry.IsAnime(){
+		return SonarrProvider(entry)
+	}
+
 	if entry.IsAnime(){
-		return AnilistShow(*entry)
+		return AnilistShow(entry)
 	}
 	switch entry.Type {
 	case db_types.TY_MANGA:
-		return AnilistManga(*entry)
+		return AnilistManga(entry)
 
 	case db_types.TY_SHOW:
 		fallthrough
 	case db_types.TY_MOVIE:
-		return OMDBProvider(*entry)
+		return OMDBProvider(entry)
 
 	case db_types.TY_PICTURE:
 		fallthrough
 	case db_types.TY_MEME:
-		return ImageProvider(*entry)
+		return ImageProvider(entry)
 	}
 	var out db_types.MetadataEntry
 	return out, nil
@@ -74,7 +82,7 @@ func IsValidIdIdentifier(name string) bool {
 	return contains
 }
 
-type ProviderFunc func(db_types.InfoEntry) (db_types.MetadataEntry, error)
+type ProviderFunc func(*db_types.InfoEntry) (db_types.MetadataEntry, error)
 
 type ProviderMap map[string]ProviderFunc
 
@@ -83,6 +91,7 @@ var Providers ProviderMap = ProviderMap{
 	"anilist-manga": AnilistManga,
 	"anilist-show":  AnilistShow,
 	"omdb":          OMDBProvider,
+	"sonarr":        SonarrProvider,
 	"image":         ImageProvider,
 }
 
@@ -91,6 +100,7 @@ type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.Metadat
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
 	"omdb":    OmdbIdentifier,
+	"sonarr": SonarrIdentifier,
 }
 
 type (
@@ -101,4 +111,5 @@ type (
 var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"anilist": AnilistById,
 	"omdb":    OmdbIdIdentifier,
+	"sonarr": SonarrIdIdentifier,
 }
