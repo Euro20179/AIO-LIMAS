@@ -52,8 +52,23 @@ go run .
 A server and web ui will then be running on `localhost:8080`
 
 
+### Configuration
+
+By default things are stored in `$AIO_DIR` which by default is `$XDG_DATA_HOME/aio-limas`
+
+For sonarr integration, create a file called settings.json and add the following:
+```json
+{
+    "SonarrKey": "<YOUR SONARR API KEY>"
+    "SonarrUrl": "http://url-for-sonar:8989"
+}
+```
+
+
 ### Docs
-Basic documentation can be found at `/docs`
+Basic api documentation can be found at `/docs`
+
+Basic user facing docs can be found at `/usage`
 
 ### TODO
 
