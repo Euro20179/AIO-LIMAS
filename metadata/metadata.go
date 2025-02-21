@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"aiolimas/types"
-
-	settings "aiolimas/settings"
 )
 
 type IdentifyMetadata struct {
@@ -14,14 +12,6 @@ type IdentifyMetadata struct {
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
-
-	//anilist is still better for anime
-	if settings.Settings.SonarrURL != "" && entry.Type == db_types.TY_SHOW{
-		return SonarrProvider(entry)
-	} else if settings.Settings.RadarrURL != "" && entry.Type == db_types.TY_MOVIE {
-		return RadarrProvider(entry)
-	}
-
 	if entry.IsAnime(){
 		return AnilistShow(entry)
 	}
