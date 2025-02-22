@@ -11,14 +11,16 @@ type SettingsData struct {
 	SonarrKey string
 	RadarrURL string
 	RadarrKey string
+
+	WriteIdFile bool
 }
 
-var SettingsChannel chan [2]string
+var SettingsChannel chan [2]any
 
 var Settings SettingsData
 
 func InitSettingsManager(aioDir string) {
-	SettingsChannel = make(chan [2]string)
+	SettingsChannel = make(chan [2]any)
 
 	settingsFile := aioDir + "/settings.json"
 
@@ -56,13 +58,15 @@ func ManageSettings() {
 
 		switch key {
 		case "SonarrURL":
-			Settings.SonarrURL = value
+			Settings.SonarrURL = value.(string)
 		case "SonarrKey":
-			Settings.SonarrKey = value
+			Settings.SonarrKey = value.(string)
 		case "RadarrURL":
-			Settings.RadarrURL = value
+			Settings.RadarrURL = value.(string)
 		case "RadarrKey":
-			Settings.RadarrKey = value
+			Settings.RadarrKey = value.(string)
+		case "WriteIdFile":
+			Settings.WriteIdFile = value.(bool)
 		}
 	}
 }

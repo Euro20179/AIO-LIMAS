@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"aiolimas/search"
+	"aiolimas/settings"
 
 	"aiolimas/types"
 
@@ -335,6 +336,14 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 	if err != nil {
 		return err
 	}
+	
+
+	//This should happen after the added event, because well, it was added, this file is a luxury thing
+	err = WriteLocationFile(entryInfo)
+	if err != nil {
+		return err
+	}
+
 
 	return nil
 }
@@ -430,7 +439,6 @@ func ClearUserEventEntries(id int64) error {
 		DELETE FROM userEventInfo
 		WHERE itemId = ?
 	`, id)
-
 	if err != nil {
 		return err
 	}
@@ -471,18 +479,44 @@ func UpdateMetadataEntry(entry *db_types.MetadataEntry) error {
 	return updateTable(*entry, "metadata")
 }
 
+func WriteLocationFile(entry *db_types.InfoEntry) error{
+	if settings.Settings.WriteIdFile {
+		var aioIdPath string
+		stat, err := os.Stat(entry.Location)
+		if err == nil && !stat.IsDir() {
+			dir := filepath.Dir(entry.Location)
+			aioIdPath = filepath.Join(dir, ".AIO-ID")
+		} else if err != nil {
+			return err
+		} else {
+			aioIdPath = filepath.Join(entry.Location, ".AIO-ID")
+		}
+
+		err = os.WriteFile(aioIdPath, []byte(fmt.Sprintf("%d", entry.ItemId)), 0o644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func UpdateInfoEntry(entry *db_types.InfoEntry) error {
+
+	err := WriteLocationFile(entry)
+	if err != nil {
+		return err
+	}
+
 	return updateTable(*entry, "entryInfo")
 }
 
 func Delete(id int64) error {
 	transact, err := Db.Begin()
-
 	if err != nil {
 		return err
 	}
 
-	//item might have associated thumbnail, remove it
+	// item might have associated thumbnail, remove it
 	aioPath := os.Getenv("AIO_DIR")
 	thumbPath := fmt.Sprintf("%s/thumbnails/item-%d", aioPath, id)
 	if _, err := os.Stat(thumbPath); err == nil {
@@ -557,7 +591,6 @@ type SearchData struct {
 type SearchQuery []SearchData
 
 func colValToCorrectType(name string, value string) (any, error) {
-
 	u := func(val string) (uint64, error) {
 		n, err := strconv.ParseUint(val, 10, 64)
 		if err != nil {
