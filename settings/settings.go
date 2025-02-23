@@ -13,6 +13,8 @@ type SettingsData struct {
 	RadarrKey string
 
 	WriteIdFile bool
+
+	LocationAliases map[string]string
 }
 
 var SettingsChannel chan [2]any
@@ -67,6 +69,8 @@ func ManageSettings() {
 			Settings.RadarrKey = value.(string)
 		case "WriteIdFile":
 			Settings.WriteIdFile = value.(bool)
+		case "LocationAliases":
+			Settings.LocationAliases = value.(map[string]string)
 		}
 	}
 }

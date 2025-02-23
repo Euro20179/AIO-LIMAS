@@ -481,15 +481,20 @@ func UpdateMetadataEntry(entry *db_types.MetadataEntry) error {
 
 func WriteLocationFile(entry *db_types.InfoEntry) error{
 	if settings.Settings.WriteIdFile {
+		location := entry.Location
+		for k, v := range settings.Settings.LocationAliases {
+			location = strings.Replace(location, "${" + k + "}", v, 1)
+		}
+
 		var aioIdPath string
-		stat, err := os.Stat(entry.Location)
+		stat, err := os.Stat(location)
 		if err == nil && !stat.IsDir() {
-			dir := filepath.Dir(entry.Location)
+			dir := filepath.Dir(location)
 			aioIdPath = filepath.Join(dir, ".AIO-ID")
 		} else if err != nil {
 			return err
 		} else {
-			aioIdPath = filepath.Join(entry.Location, ".AIO-ID")
+			aioIdPath = filepath.Join(location, ".AIO-ID")
 		}
 
 		err = os.WriteFile(aioIdPath, []byte(fmt.Sprintf("%d", entry.ItemId)), 0o644)
