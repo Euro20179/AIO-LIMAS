@@ -341,9 +341,8 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 	//This should happen after the added event, because well, it was added, this file is a luxury thing
 	err = WriteLocationFile(entryInfo)
 	if err != nil {
-		return err
+		fmt.Printf("Error updating location file: %s\n", err.Error())
 	}
-
 
 	return nil
 }
@@ -509,7 +508,7 @@ func UpdateInfoEntry(entry *db_types.InfoEntry) error {
 
 	err := WriteLocationFile(entry)
 	if err != nil {
-		return err
+		fmt.Printf("Error updating location file: %s\n", err.Error())
 	}
 
 	return updateTable(*entry, "entryInfo")
