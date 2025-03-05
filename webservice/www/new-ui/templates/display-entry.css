@@ -194,7 +194,7 @@ figure.entry-progress {
     }
 
     .view-count::after {
-        content: " times"
+        content: " times (" attr(data-time-spent, "Unknown") " hours)"
     }
 
     figcaption {

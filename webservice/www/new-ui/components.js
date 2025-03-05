@@ -2,7 +2,7 @@
  * @param {HTMLElement | ShadowRoot} root
  * @param {string} selector
  * @param {string} text
- * @param {"append" | "innerhtml"} [fillmode="append"] 
+ * @param {"append" | "innerhtml" | `attribute=${string}`} [fillmode="append"] 
  */
 function fillElement(root, selector, text, fillmode = "append") {
     let elem = /**@type {HTMLElement}*/(root.querySelector(selector))
@@ -11,6 +11,9 @@ function fillElement(root, selector, text, fillmode = "append") {
     }
     if (fillmode === "append") {
         elem.innerText = text
+    } else if(fillmode.match(/attribute=.+/)) {
+        let attribute = fillmode.split("=")[1]
+        elem.setAttribute(attribute, text)
     } else {
         elem.innerHTML = text
     }
@@ -212,10 +215,10 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".info-raw"))
-        try{
+        try {
             this.mkGenericTbl(infoRawTbl, JSON.parse(val))
         }
-        catch(err){
+        catch (err) {
             console.error("Could not parse json")
         }
     }
@@ -225,11 +228,25 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-meta-info-raw"](val) {
         let infoRawTbl = /**@type {HTMLTableElement}*/(this.root.querySelector(".meta-info-raw"))
-        try{
-            this.mkGenericTbl(infoRawTbl, JSON.parse(val))
+        let data
+        try {
+            data = JSON.parse(val)
         }
-        catch(err){
-            console.error("Could not parse json")
+        catch (err) {
+            console.error("Could not parse meta info json")
+            return
+        }
+        this.mkGenericTbl(infoRawTbl, data)
+        let viewCount = this.getAttribute("data-view-count")
+        if (viewCount) {
+            let mediaDependant
+            try {
+                mediaDependant = JSON.parse(data["MediaDependant"])
+            } catch(err) {
+                console.error("Could not parse media dependant meta info json")
+                return
+            }
+            fillElement(this.root, ".entry-progress .view-count", String(Number(viewCount) * Number(mediaDependant["Show-length"] || mediaDependant["Movie-length"] || 0) / 60 || "unknown"), "attribute=data-time-spent")
         }
     }
 
@@ -261,6 +278,17 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-view-count"](val) {
         fillElement(this.root, ".entry-progress .view-count", val, "innerhtml")
+        let infoRawTbl = this.getAttribute("data-meta-info-raw")
+        if (infoRawTbl) {
+            let meta
+            try {
+                meta = JSON.parse(infoRawTbl)
+            }
+            catch (err) {
+                return
+            }
+            fillElement(this.root, ".entry-progress .view-count", String(Number(val) * Number(meta["Show-length"] || meta["Movie-length"])), "attribute=data-time-spent")
+        }
     }
 
     /**
@@ -273,10 +301,10 @@ customElements.define("display-entry", class extends HTMLElement {
         let caption = /**@type {HTMLElement}*/(this.root.querySelector(".entry-progress figcaption"))
 
         let data
-        try{
+        try {
             data = JSON.parse(val)
         }
-        catch(err){
+        catch (err) {
             console.error("Could not parse json", val)
             return
         }
