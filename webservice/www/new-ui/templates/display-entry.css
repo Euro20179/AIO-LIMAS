@@ -122,10 +122,17 @@ table {
 
     margin: 3cap 0;
 
+    --gap-size: 20px;
+
     /*There are a couple of flexboxes within here to group thigns together*/
     &.flex,
     & .flex {
-        gap: 20px;
+        gap: var(--gap-size);
+    }
+
+    /* for some reason the 2 divs didn't have a gap */
+    .flex:not(:last-of-type) {
+        margin-right: var(--gap-size);
     }
 }
 

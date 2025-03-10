@@ -15,7 +15,10 @@
 }
 
 @layer general {
-    *, *::before, *::after {
+
+    *,
+    *::before,
+    *::after {
         box-sizing: border-box;
     }
 
@@ -102,10 +105,12 @@
         appearance: none;
         border-style: solid;
         vertical-align: bottom;
-        &:checked {
-            border-color: var(--green);
-            background: var(--green);
-        }
+
+    }
+
+    input[type="checkbox"]:checked {
+        border-color: var(--green);
+        background: var(--green);
     }
 
     dialog {
@@ -124,7 +129,7 @@
     }
 
     dialog::backdrop {
-        background-color: #00000077 ;
+        background-color: #00000077;
         backdrop-filter: blur(1px);
         user-select: none;
         pointer-events: none;
@@ -135,6 +140,7 @@
     .center {
         text-align: center;
     }
+
     .margin-center {
         margin: 0 auto;
     }
@@ -156,32 +162,35 @@
 
     .flex {
         display: flex;
+    }
 
-        &.column {
-            flex-direction: column;
-        }
+    .flex.column {
+        flex-direction: column;
+    }
 
-        &.row {
-            flex-direction: row;
-        }
+    .flex.row {
+        flex-direction: row;
+    }
 
-        &.wrap {
-            flex-wrap: wrap;
-        }
+    .flex.wrap {
+        flex-wrap: wrap;
+    }
 
-        .grow {
-            flex-grow: 1;
-        }
+
+    .flex.grow {
+        flex-grow: 1;
     }
 
     .grid {
         display: grid;
-        &.row {
-            grid-auto-flow: row;
-        }
-        &.column {
-            grid-auto-flow: column;
-        }
+    }
+
+    .grid.row {
+        grid-auto-flow: row;
+    }
+
+    .grid.column {
+        grid-auto-flow: column;
     }
 
     .flex-row {
@@ -200,13 +209,15 @@
         overflow: auto auto;
     }
 
-    .float {
-        &.right {
-            float: right;
-        }
+    .float.left {
+        float: left;
+    }
 
-        &.left {
-            float: left;
-        }
+    .float.right {
+        float: right;
+    }
+
+    .center {
+        text-align: center;
     }
 }

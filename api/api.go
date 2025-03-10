@@ -18,6 +18,9 @@ import (
 func wError(w http.ResponseWriter, status int, format string, args ...any) {
 	w.WriteHeader(status)
 	fmt.Fprintf(w, format, args...)
+
+	//also write to stderr
+	fmt.Fprintf(os.Stderr, format, args...)
 }
 
 func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
