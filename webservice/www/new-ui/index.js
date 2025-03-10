@@ -89,11 +89,9 @@ function sumCollectionStats(collectionEntry, itself = true, children = true, cop
 
 const viewAllElem = /**@type {HTMLInputElement}*/(document.getElementById("view-all"))
 
-const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
 const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-output"))
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
-
 
 const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
 const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
@@ -364,27 +362,6 @@ async function loadMetadata() {
         obj[item.ItemId] = item
     }
     return globalsNewUi.metadataEntries = obj
-}
-
-function clearSidebar() {
-    while (sidebarItems.children.length) {
-        sidebarItems.firstChild?.remove()
-    }
-}
-
-/**
- * @param {InfoEntry} item
- */
-function refreshSidebarItem(item) {
-    let el = /**@type {HTMLElement}*/(document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`))
-    if (el) {
-        let user = findUserEntryById(item.ItemId)
-        let meta = findMetadataById(item.ItemId)
-        if (!user || !meta) return
-        applySidebarAttrs(item, user, meta, el)
-    } else {
-        renderSidebarItem(item)
-    }
 }
 
 /**
@@ -675,59 +652,6 @@ async function itemIdentification(form) {
         })
 }
 
-
-/**
- * @param {InfoEntry} item
- */
-function removeSidebarItem(item) {
-    sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`)?.remove()
-}
-
-/**
- * @param {InfoEntry} item
- * @param {UserEntry} user
- * @param {MetadataEntry} meta
- * @param {HTMLElement} el
- */
-function applySidebarAttrs(item, user, meta, el) {
-    el.setAttribute("data-entry-id", String(item.ItemId))
-    el.setAttribute("data-title", item.En_Title)
-    el.setAttribute("data-type", item.Type)
-
-    meta?.Thumbnail && el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    meta.ReleaseYear && el.setAttribute("data-release-year", String(meta.ReleaseYear))
-    user?.Status && el.setAttribute("data-user-status", user.Status)
-    user.ViewCount > 0 && el.setAttribute("data-user-rating", String(user.UserRating))
-    item.PurchasePrice && el.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
-}
-
-/**
- * @param {InfoEntry} item
- * @param {HTMLElement | DocumentFragment} [sidebarParent=sidebarItems]
- */
-function renderSidebarItem(item, sidebarParent = sidebarItems) {
-    let elem = document.createElement("sidebar-entry")
-    let meta = findMetadataById(item.ItemId)
-    let user = findUserEntryById(item.ItemId)
-    if (!user || !meta) return
-
-    applySidebarAttrs(item, user, meta, elem)
-
-    sidebarParent.append(elem)
-
-    let img = elem.shadowRoot?.querySelector("img")
-    if (img) {
-        img.addEventListener("click", _e => {
-            toggleItem(item)
-        })
-        img.addEventListener("dblclick", _e => {
-            clearItems()
-            selectItem(item, mode)
-        })
-    }
-}
-
-
 viewAllElem.addEventListener("change", e => {
     clearItems()
     if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
@@ -736,23 +660,6 @@ viewAllElem.addEventListener("change", e => {
         resultStatsProxy.reset()
     }
 })
-
-/**
-* @param {InfoEntry[]} entries
-*/
-function renderSidebar(entries) {
-    if (viewAllElem.checked) {
-        selectItemList(entries, mode)
-    } else {
-        selectItem(entries[0], mode)
-    }
-    let frag = document.createDocumentFragment()
-    for (let item of entries) {
-        renderSidebarItem(item, frag)
-    }
-    clearSidebar()
-    sidebarItems.append(frag)
-}
 
 /**
  * @typedef ClientSearchFilters
