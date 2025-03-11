@@ -1,0 +1,15 @@
+:root {
+    --pink: var(--aio-limas-pink, #f7c8e0);
+    --green: var(--aio-limas-green, #dfffd8);
+    --light-blue: var(--aio-limas-light-blue, #b4e4ff);
+    --blue: var(--aio-limas-blue, #95bdff);
+    --yellow: var(--aio-limas-yellow, #e5c890);
+    --lavender: var(--aio-limas-lavender, #b4befe);
+
+    --main: var(--aio-limas-main, #121626);
+    --secondary: hsl(from var(--main) h s calc(l * 1.8));
+
+    --border-roundness: var(--aio-limas-border-roundness, 5px);
+
+    --text-color: var(--aio-limas-text-color, #cdd6f4);
+}

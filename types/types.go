@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+	"time"
 )
 
 type ArtStyle uint
@@ -247,6 +248,10 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 	)
 }
 
+func (self *MetadataEntry) NormalizedRating() float64 {
+	return self.Rating / self.RatingMax * 100
+}
+
 func (self MetadataEntry) ToJson() ([]byte, error) {
 	return json.Marshal(self)
 }
@@ -324,6 +329,28 @@ func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 
 func (self UserViewingEvent) ToJson() ([]byte, error) {
 	return json.Marshal(self)
+}
+
+func (self *UserViewingEvent) ToHumanTime() string {
+	stamp := self.Timestamp / 1000
+	after := false
+
+	if self.After > 0 && self.Timestamp == 0 {
+		stamp = self.After / 1000
+		after = true
+	}
+
+	if stamp == 0 {
+		return "unkonown"
+	}
+
+	t := time.Unix(int64(stamp), 0)
+
+	if !after {
+		return t.Format("01/02/2006 - 15:04:05")
+	} else {
+		return t.Format("after 01/02/2006 - 15:04:05")
+	}
 }
 
 type UserViewingEntry struct {

@@ -14,7 +14,7 @@ import (
 	lua_api "aiolimas/lua-api"
 	"aiolimas/settings"
 	"aiolimas/webservice"
-	// "aiolimas/webservice/dynamic"
+	"aiolimas/webservice/dynamic"
 )
 
 func ckAuthorizationHeader(text string) (bool, error) {
@@ -650,7 +650,7 @@ func startServer() {
 
 	makeEndPointsFromList("/docs", docsEndpoints)
 
-	// http.HandleFunc("/html", dynamic.HtmlEndpoint)
+	http.HandleFunc("/html", dynamic.HtmlEndpoint)
 	http.HandleFunc("/", webservice.Root)
 
 	port := os.Getenv("AIO_PORT")

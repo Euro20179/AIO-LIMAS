@@ -1,0 +1,14 @@
+table {
+    border-collapse: collapse;
+}
+
+table :is(td, th) {
+    border: 1px dotted;
+}
+
+.boxed {
+    border: 1px dashed;
+    padding: 0.2em;
+    text-align: center;
+}
+

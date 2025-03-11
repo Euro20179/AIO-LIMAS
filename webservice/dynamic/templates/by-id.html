@@ -1,0 +1,64 @@
+<head>
+    <link rel="stylesheet" href="/css/general.css">
+    <link rel="stylesheet" href="/lite/css/by-item-id.css">
+
+    <link rel="icon" href="{{.Meta.Thumbnail}}">
+</head>
+
+<body>
+    <div style="margin: 0 auto; width: fit-content;">
+        <hgroup style="text-align: center">
+            <h1 name="En_Title">{{ if not .Meta.Title }} {{.Info.En_Title}} {{ else }} {{.Meta.Title}} {{end}}</h1>
+            <!--We only want the native title if one exists, hence the double if-->
+            {{ if .Meta.Native_Title }}
+            <h3 style="margin: 0" name="Native_Title">{{.Meta.Native_Title}}</h3>
+            {{ else if .Info.Native_Title }}
+            <h3 style="margin: 0" name="Native_Title">{{.Info.Native_Title}}</h3>
+            {{end}}
+            {{ if .Meta.ReleaseYear }}
+            <h5 name="ReleaseYear">{{.Meta.ReleaseYear}}</h5>
+            {{end}}
+        </hgroup>
+
+        <figure style="margin: 0; float: right">
+            <h3 class="boxed" style="margin-bottom: 0">{{.View.Status}}{{ if .View.UserRating }} - <span name="UserRating">{{ .View.UserRating }}</span>{{end}}</h3>
+            <img width="200px" src="{{.Meta.Thumbnail}}" style=" width: 200px;">
+            <p class="boxed" style="margin-top: 0">General - <span name="Rating">{{ .Meta.Rating }}</span> / <span name="RatingMax">{{ .Meta.RatingMax }}</span></p>
+        </figure>
+
+        <p style="max-width: 800px" id="description_output" name="Description">{{.Meta.Description}}</p>
+        <script>
+            //interprets the html
+            description_output.innerHTML = "{{.Meta.Description}}"
+        </script>
+
+        <hr>
+
+        <p>View count: <span name="ViewCount">{{.View.ViewCount}}</span></p>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <table id="events-table">
+                <tr>
+                    <th>Event</tH>
+                    <th>Timestamp</th>
+                </tr>
+                {{ range .Events }}
+                <tr>
+                    <td>{{ .Event }}</td>
+                    <td title="{{.Timestamp}}">{{ .ToHumanTime }}</td>
+                </tr>
+                {{ end}}
+            </table>
+        </div>
+
+        <hr>
+
+        {{ if .View.Notes }}
+        <h3>Notes</h3>
+        <p id="notes_output" name="Notes">{{ .View.Notes }}</p>
+        <script>
+            //interprets the html
+            notes_output.innerHTML = "{{ .View.Notes }}"
+        </script>
+        {{end}}
+    </div>
+</body>

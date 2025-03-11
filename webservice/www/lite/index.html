@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="/lite/css/lite.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>AIO LIMAS Lite UI</title>
+    </head>
+<style>
+    iframe[name="item"] {
+        width: 100%;
+        height: 100%;
+        border: none;
+        margin: 0;
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+    }
+
+</style>
+    <body class="grid row" style="grid-template-rows: min-content 1fr;">
+        <header style="display: flex; justify-content: center; gap: 2em;">
+            <form action="/html/search" method="get" target="item" class="center">
+                <input type="search" name="query" placeholder="search for item">
+                <button>search</button>
+            </form>
+
+            <form action="/html/by-id/" method="get" target="item">
+                <button>All</button>
+            </form>
+        </header>
+        <iframe name="item"></iframe>
+    </body>
+</html>

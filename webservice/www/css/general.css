@@ -24,7 +24,7 @@
 
     body {
         background: var(--main);
-        color: white;
+        color: var(--text-color);
     }
 
     input,
