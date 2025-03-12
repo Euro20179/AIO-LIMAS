@@ -56,8 +56,8 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request) {
 
 	template := `
 	<tr>
-		<td name="ItemId"><a href="/html/by-id/%d">%d</a></td>
-		<td name="En_Title"><a href="/html/by-id/%d?fancy">%s</a></td>
+		<td name="ItemId"><a href="/html/by-id/%d" target="aio-item-output">%d</a></td>
+		<td name="En_Title"><a href="/html/by-id/%d?fancy" target="aio-item-output">%s</a></td>
 		<td name="Native_Title">%s</td>
 		<td name="Format" data-format-raw="%d">%s</td>
 		<td name="Location">%s</td>

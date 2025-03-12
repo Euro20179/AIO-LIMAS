@@ -1,5 +1,12 @@
 <h1>/html</h1>
 For api-like html requests
+<p>
+    On every page that is served, each tag containing a piece of data, eg the user's rating will have an attribute <code>name</code> with the value of the name of the data that tag contains.<br>
+    For example:
+<pre>
+<p>View count: <span name="ViewCount">3</span>
+</pre>
+    This way, to find any data from any page, you can do a <code>name=</code> query selection. or regex search
 
 <h2>/by-id/[id]</h2>
 Serves an html page containing information about the item id <kbd>id</kbd>
