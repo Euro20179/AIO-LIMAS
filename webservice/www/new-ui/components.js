@@ -72,8 +72,6 @@ customElements.define("display-entry", class extends HTMLElement {
         let root = this.attachShadow({ mode: "open" })
         root.appendChild(content)
         this.root = root
-
-        this._internals = this.attachInternals()
     }
     /**
      * @param {HTMLElement} root
@@ -256,7 +254,6 @@ customElements.define("display-entry", class extends HTMLElement {
      * @param {string} val
      */
     ["data-user-status"](val) {
-        this._internals.states.add(val)
         fillElement(this.root, ".entry-progress .status", val, "innerhtml")
     }
 
@@ -315,7 +312,7 @@ customElements.define("display-entry", class extends HTMLElement {
         let mediaInfoTbl = /**@type {HTMLTableElement}*/(this.root.querySelector("figure .media-info"))
         this.mkGenericTbl(mediaInfoTbl, data)
 
-        if (data[`${type}-episodes`]) {
+        if (data[`${type}-episodes`] && this.getAttribute("data-user-status") === "Viewing") {
             let progress = /**@type {HTMLProgressElement}*/(this.root.querySelector("progress.entry-progress"))
             progress.max = data[`${type}-episodes`]
 

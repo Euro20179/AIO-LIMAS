@@ -10,7 +10,7 @@ hr {
     border-color: var(--text-color);
 }
 
-:host {
+:host(display-entry) {
     --text-color: rgb(230 230 230);
 
     color: var(--text-color);
@@ -29,13 +29,9 @@ hr {
     @container (width < 800px) {
         min-height: 50%;
     }
+
 }
 
-:host(:state(Finished)) {
-    progress {
-        display: none;
-    }
-}
 
 .root {
     width: 100%;
@@ -191,6 +187,10 @@ div:has(> .close) {
     content: attr(data-type-icon) " ";
 }
 
+:host(display-entry:not([data-user-status="Viewing"])) figure.entry-progress figcaption {
+    display: none;
+}
+
 figure.entry-progress {
     justify-self: center;
     width: 25cqw;
@@ -214,8 +214,7 @@ figure.entry-progress {
     }
 }
 
-/*if there's no max, then the progress bar contains no useful information*/
-progress:where(:not([max])) {
+progress:where(:not([max]), [value="0"]) {
     display: none;
 }
 
