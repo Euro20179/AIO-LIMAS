@@ -38,46 +38,22 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(200)
 
-	header := `
-<tr>
-	<th>Id</th>
-	<th>User Title</th>
-	<th>User Native Title</th>
-	<th>Format</th>
-	<th>Location</th>
-	<th>Purchase Price</th>
-	<th>Collection</th>
-	<th>Parent Id</th>
-	<th>Type</th>
-	<th>Art Style</th>
-	<th>Copy Of</th>
-</tr>
-`
-
-	template := `
-	<tr>
-		<td name="ItemId"><a href="/html/by-id/%d" target="aio-item-output">%d</a></td>
-		<td name="En_Title"><a href="/html/by-id/%d?fancy" target="aio-item-output">%s</a></td>
-		<td name="Native_Title">%s</td>
-		<td name="Format" data-format-raw="%d">%s</td>
-		<td name="Location">%s</td>
-		<td name="PurchasePrice">%.02f</td>
-		<td name="Collection">%s</td>
-		<td name="ParentId">%d</td>
-		<td name="Type">%s</td>
-		<td name="ArtStyle" data-art-raw="%d">%s</td>
-		<td name="CopyOf">%d</td>
-	</tr>
-`
-
-	text := "<head><link rel=\"stylesheet\" href=\"/css/general.css\"><link rel=\"stylesheet\" href=\"/lite/css/item-table.css\"></head><body><table id='info-table'>" + header
-	for _, item := range results {
-		artStr := db_types.ArtStyle2Str(item.ArtStyle)
-		fmtStr := db_types.ListFormats()[item.Format]
-		text += fmt.Sprintf(template, item.ItemId, item.ItemId, item.ItemId, item.En_Title, item.Native_Title, item.Format, fmtStr, item.Location, item.PurchasePrice, item.Collection, item.ParentId, item.Type, item.ArtStyle, artStr, item.CopyOf)
+	fnMap := template.FuncMap{
+		"ArtStyle2Str": db_types.ArtStyle2Str,
 	}
-	text += "</table></body>"
-	fmt.Fprint(w, text)
+
+	tmpl, err := template.New("base").Funcs(fnMap).ParseFiles(
+		"./webservice/dynamic/templates/search-results.html",
+		"./webservice/dynamic/templates/search-results-table-row.html",
+	)
+	if err != nil {
+		println(err.Error())
+	}
+
+	err = tmpl.ExecuteTemplate(w, "search-results", results)
+	if err != nil {
+		println(err.Error())
+	}
 }
 
 func handleById(w http.ResponseWriter, req *http.Request, id string) {

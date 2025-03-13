@@ -1,0 +1,15 @@
+{{define "search-result-row"}}
+<tr>
+    <td name="ItemId"><a href="/html/by-id/{{ .ItemId }}" target="aio-item-output">{{ .ItemId }}</a></td>
+    <td name="En_Title"><a href="/html/by-id/{{ .ItemId }}?fancy" target="aio-item-output">{{ .En_Title }}</a></td>
+    <td name="Native_Title">{{ .Native_Title }}</td>
+    <td name="Format" data-format-raw="%d">{{ .Format }}</td>
+    <td name="Location">{{ .Location }}</td>
+    <td name="PurchasePrice">{{ printf "%.02f" .PurchasePrice }}</td>
+    <td name="Collection">{{ .Collection }}</td>
+    <td name="ParentId">{{ .ParentId }}</td>
+    <td name="Type">{{ .Type }}</td>
+    <td name="ArtStyle" data-art-raw="%d">{{ ArtStyle2Str .ArtStyle }}</td>
+    <td name="CopyOf">{{ .CopyOf }}</td>
+</tr>
+{{end}}
