@@ -216,6 +216,11 @@ figure.entry-progress {
 
 progress:where(:not([max]), [value="0"]) {
     display: none;
+
+    /*this figcaption displays the x/y for how far along the user is*/
+    &~figcaption {
+        display: none;
+    }
 }
 
 progress {
