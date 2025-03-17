@@ -336,14 +336,13 @@ customElements.define("display-entry", class extends HTMLElement {
                 <thead>
                     <tr>
                         <!-- this nonsense is so that the title lines up with the events -->
-                        <th class="grid column"><span>✏</span><span style="text-align: center">Event</span></th>
+                        <th class="grid column"><button onclick="newEvent(this)">➕︎</button><span style="text-align: center">Event</span></th>
                         <th>Time</th>
                     </tr>
                 </thead>
                 <tbody>
             `
             for (let event of val.split(",")) {
-                console.log(event)
                 let [name, ts, afterts] = event.split(":")
                 let date = new Date(Number(ts))
                 let afterDate = new Date(Number(afterts))

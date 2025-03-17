@@ -37,6 +37,13 @@ function deleteEvent(el, ts, after) {
 
 }
 
+/**
+ * @param {HTMLElement} el
+ */
+function newEvent(el) {
+    //TODO: should be a modal thing for date picking
+}
+
 const observer = new IntersectionObserver(onIntersection, {
     root: document.querySelector("#entry-output"),
     rootMargin: "0px",

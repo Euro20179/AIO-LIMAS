@@ -46,6 +46,10 @@ hr {
     float: right;
     margin: 0;
 
+    /*this way, everything in the middle of the page is cenetered nicely*/
+    /*and the space to the right entirely belongs to the figure*/
+    height: 90cqb;
+
     font-size: min(1em, 3cqw);
 
     max-width: 40cqw;
@@ -96,7 +100,7 @@ table {
         padding: 0.5em;
     }
 
-    td button {
+    :is(td, th) button {
         width: fit-content;
         justify-self: center;
     }
