@@ -16,6 +16,27 @@ function onIntersection(entries) {
     }
 }
 
+/**
+ * @param {HTMLElement} el
+ * @param {number} ts
+ */
+function deleteEvent(el, ts) {
+    if(!confirm("Are you sure you would like to delete this event")) {
+        return
+    }
+    const itemId = getIdFromDisplayElement(el)
+    //FIXME needs access to `after` to properly delete any given event
+    apiDeleteEvent(itemId, ts, 0)
+        .then(res => res.text())
+        .then(() =>
+            refreshInfo().then(() =>
+                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
+            )
+        )
+        .catch(alert)
+
+}
+
 const observer = new IntersectionObserver(onIntersection, {
     root: document.querySelector("#entry-output"),
     rootMargin: "0px",

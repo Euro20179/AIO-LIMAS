@@ -75,10 +75,10 @@ function mkIntItemId(jsonl) {
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
-    try{
+    try {
         return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
     }
-    catch(err){
+    catch (err) {
         console.error("Could not parse json", err)
     }
 }
@@ -263,7 +263,7 @@ async function updateThumbnail(id, thumbnail) {
  */
 async function doQuery3(searchString) {
     const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`).catch(console.error)
-    if(!res) return []
+    if (!res) return []
 
     let itemsText = await res.text()
     if (res.status !== 200) {
@@ -273,11 +273,11 @@ async function doQuery3(searchString) {
 
     try {
         let jsonL = itemsText.split("\n")
-        .filter(Boolean)
-        .map(mkStrItemId)
-        .map(parseJsonL)
+            .filter(Boolean)
+            .map(mkStrItemId)
+            .map(parseJsonL)
         return jsonL
-    } catch(err) {
+    } catch (err) {
         console.error(err)
     }
 
@@ -341,4 +341,13 @@ function sortEntries(entries, sortBy) {
         }
     }
     return entries
+}
+
+/**
+ * @param {BigInt} itemId
+ * @param {number} ts
+ * @param {number} after
+*/
+async function apiDeleteEvent(itemId, ts, after) {
+    return await fetch(`${apiPath}/engagement/delete-event?id=${itemId}&after=${after}&timestamp=${ts}`)
 }

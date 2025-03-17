@@ -11,7 +11,7 @@ function fillElement(root, selector, text, fillmode = "append") {
     }
     if (fillmode === "append") {
         elem.innerText = text
-    } else if(fillmode.match(/attribute=.+/)) {
+    } else if (fillmode.match(/attribute=.+/)) {
         let attribute = fillmode.split("=")[1]
         elem.setAttribute(attribute, text)
     } else {
@@ -242,7 +242,7 @@ customElements.define("display-entry", class extends HTMLElement {
             let mediaDependant
             try {
                 mediaDependant = JSON.parse(data["MediaDependant"])
-            } catch(err) {
+            } catch (err) {
                 console.error("Could not parse media dependant meta info json")
                 return
             }
@@ -335,13 +335,15 @@ customElements.define("display-entry", class extends HTMLElement {
             let html = `
                 <thead>
                     <tr>
-                        <th>Event</th>
+                        <!-- this nonsense is so that the title lines up with the events -->
+                        <th class="grid column"><span>✏</span><span style="text-align: center">Event</span></th>
                         <th>Time</th>
                     </tr>
                 </thead>
                 <tbody>
             `
             for (let event of val.split(",")) {
+                console.log(event)
                 let [name, ts] = event.split(":")
                 let date = new Date(Number(ts))
                 let time = "unknown"
@@ -350,7 +352,14 @@ customElements.define("display-entry", class extends HTMLElement {
                     time = date.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
                     dd = date.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
                 }
-                html += `<tr><td>${name}</td><td title="${time}">${dd}</td></tr>`
+                html += `<tr>
+                            <td>
+                                <div class="grid column">
+                                    <button class="delete" onclick="deleteEvent(this, ${ts})">🗑</button>
+                                    ${name}
+                                </div>
+                            </td>
+                            <td title="${time}">${dd}</td></tr>`
             }
             html += "</tbody>"
             eventsTbl.innerHTML = html

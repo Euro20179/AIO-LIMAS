@@ -81,11 +81,33 @@ table {
     }
 }
 
-.user-actions {
-    width: 40cqw;
+.tables .user-actions {
+    width: 50cqw;
 
     text-align: center;
 
+    counter-reset: event-no;
+
+    .grid {
+        grid-template-columns: 20% 1fr;
+    }
+
+    :is(td, th) {
+        padding: 0.5em;
+    }
+
+    td button {
+        width: fit-content;
+        justify-self: center;
+    }
+
+    td:has(button) {
+        text-align: center;
+    }
+
+    tr:has(button:is(:hover, :focus-visible)) {
+        background: var(--secondary);
+    }
 }
 
 .tables {
