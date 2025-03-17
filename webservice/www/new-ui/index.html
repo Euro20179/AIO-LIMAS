@@ -139,7 +139,7 @@
                 </div>
 
                 <div id="gallery-output" class="overflow">
-                        <div id="gallery-items"></div>
+                    <div id="gallery-items"></div>
                 </div>
 
                 <div id="graph-output" class="overflow">
@@ -162,7 +162,8 @@
                             <option value="pie-percentage">pie percentage</option>
                         </select>
 
-                            <textarea type="text" name="group-by-expr" id="group-by-expr" placeholder="Group by expression"></textarea>
+                        <textarea type="text" name="group-by-expr" id="group-by-expr"
+                            placeholder="Group by expression"></textarea>
                     </form>
                     <div>
                         <div>
@@ -199,8 +200,30 @@
 
     <template id="display-entry">
         <style>
-            @import "/new-ui/templates/display-entry.css";
+            @import "/new-ui/templates/display-entry.css"
         </style>
+
+        <dialog id="new-event-form" popover>
+            <form action="javascript:void(0)" onsubmit="newEvent(this)">
+                <label for="name">Name: <input id="name" name="name" required></label>
+                <p>
+                    Please only fill out one of the time slots.<br>
+                    If you know the exact day (exact time is unimportant, put 0:0 if unsure) fill out the first one,<br>
+                    otherwise fill out the second one if you know the event happend after a certain time
+                </p>
+                <label for="timestamp">
+                    Exact: <input id="timestamp" name="timestamp" type="datetime-local">
+                </label>
+                <br>
+                <label for="after-timestamp">
+                    After: <input type="datetime-local" name="after" id="after-timestamp">
+                </label>
+                <br>
+                <button>Add</button>
+            </form>
+                <br>
+            <button popovertarget="new-event-form">Close</button>
+        </dialog>
 
         <dialog id="item-identification-form" popover>
             <form onsubmit="itemIdentification(this)" action="javascript:void(0)">
@@ -274,6 +297,7 @@
                 </div>
                 <div class="tables flex column">
                     <table class="user-actions"></table>
+                    <button id="new-event-button" popovertarget="new-event-form">New Event</button>
                 </div>
             </div>
             <div class="descriptors">

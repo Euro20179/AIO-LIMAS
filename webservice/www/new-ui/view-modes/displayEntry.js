@@ -22,7 +22,7 @@ function onIntersection(entries) {
  * @param {number} after
  */
 function deleteEvent(el, ts, after) {
-    if(!confirm("Are you sure you would like to delete this event")) {
+    if (!confirm("Are you sure you would like to delete this event")) {
         return
     }
     const itemId = getIdFromDisplayElement(el)
@@ -31,16 +31,43 @@ function deleteEvent(el, ts, after) {
         .then(() =>
             refreshInfo().then(() =>
                 refreshDisplayItem(globalsNewUi.entries[String(itemId)])
-            )
+            ).catch(alert)
         )
         .catch(alert)
 
 }
 
-/**
- * @param {HTMLElement} el
+/**@param
+ * {HTMLFormElement} form
  */
-function newEvent(el) {
+function newEvent(form) {
+    const data = new FormData(form)
+    const name = data.get("name")
+    if (name == null) {
+        alert("Name required")
+        return
+    }
+    const tsStr = data.get("timestamp")
+    const aftertsStr = data.get("after")
+    //@ts-ignore
+    let ts = new Date(tsStr).getTime()
+    if (isNaN(ts)) {
+        ts = 0
+    }
+    //@ts-ignore
+    let afterts = new Date(aftertsStr).getTime()
+    if (isNaN(afterts)) {
+        afterts = 0
+    }
+    const itemId = getIdFromDisplayElement(form)
+    apiRegisterEvent(itemId, name.toString(), ts, afterts)
+        .then(res => res.text())
+        .then(() => refreshInfo().then(() => {
+                form.parentElement?.hidePopover()
+                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
+            }
+        ))
+        .catch(alert)
     //TODO: should be a modal thing for date picking
 }
 

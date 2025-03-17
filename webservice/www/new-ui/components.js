@@ -336,7 +336,7 @@ customElements.define("display-entry", class extends HTMLElement {
                 <thead>
                     <tr>
                         <!-- this nonsense is so that the title lines up with the events -->
-                        <th class="grid column"><button onclick="newEvent(this)">➕︎</button><span style="text-align: center">Event</span></th>
+                        <th class="grid column"><button popovertarget="new-event-form">➕︎</button><span style="text-align: center">Event</span></th>
                         <th>Time</th>
                     </tr>
                 </thead>

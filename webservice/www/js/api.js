@@ -351,3 +351,13 @@ function sortEntries(entries, sortBy) {
 async function apiDeleteEvent(itemId, ts, after) {
     return await fetch(`${apiPath}/engagement/delete-event?id=${itemId}&after=${after}&timestamp=${ts}`)
 }
+
+/**
+ * @param {BigInt} itemId
+ * @param {string} name
+ * @param {number} ts
+ * @param {number} after
+*/
+async function apiRegisterEvent(itemId, name, ts, after) {
+    return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}`)
+}

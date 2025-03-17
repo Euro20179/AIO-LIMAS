@@ -85,6 +85,16 @@ table {
     }
 }
 
+#new-event-button {
+    align-self: center;
+    width: 50cqi;
+}
+
+/*if the table has events, we no longer need the new event button*/
+.user-actions:has(*) + #new-event-button {
+    display: none;
+}
+
 .tables .user-actions {
     width: 50cqw;
 
