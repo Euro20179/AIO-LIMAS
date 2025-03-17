@@ -545,7 +545,7 @@ function applyDisplayAttrs(item, user, meta, events, el) {
     meta?.MediaDependant && el.setAttribute("data-media-dependant", meta.MediaDependant)
 
     if (events.length) {
-        let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}`).join(",")
+        let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}:${e.After}`).join(",")
         el.setAttribute("data-user-events", eventsStr)
     }
 

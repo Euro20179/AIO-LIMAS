@@ -344,22 +344,30 @@ customElements.define("display-entry", class extends HTMLElement {
             `
             for (let event of val.split(",")) {
                 console.log(event)
-                let [name, ts] = event.split(":")
+                let [name, ts, afterts] = event.split(":")
                 let date = new Date(Number(ts))
-                let time = "unknown"
-                let dd = "unknown"
+                let afterDate = new Date(Number(afterts))
+                let timeTd = ""
                 if (ts !== "0") {
-                    time = date.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
-                    dd = date.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
+                    let time = date.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
+                    let dd = date.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
+                    timeTd = `<td title="${time}">${dd}</td>`
+                } else if(afterts !== "0") {
+                    let time = afterDate.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
+                    let dd = afterDate.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
+                    timeTd = `<td title="${time}">after: ${dd}</td>`
+                } else {
+                    timeTd = `<td title="unknown">unknown</td>`
                 }
                 html += `<tr>
                             <td>
                                 <div class="grid column">
-                                    <button class="delete" onclick="deleteEvent(this, ${ts})">🗑</button>
+                                    <button class="delete" onclick="deleteEvent(this, ${ts}, ${afterts})">🗑</button>
                                     ${name}
                                 </div>
                             </td>
-                            <td title="${time}">${dd}</td></tr>`
+                                ${timeTd}
+                            </tr>`
             }
             html += "</tbody>"
             eventsTbl.innerHTML = html

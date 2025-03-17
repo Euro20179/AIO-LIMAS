@@ -19,14 +19,14 @@ function onIntersection(entries) {
 /**
  * @param {HTMLElement} el
  * @param {number} ts
+ * @param {number} after
  */
-function deleteEvent(el, ts) {
+function deleteEvent(el, ts, after) {
     if(!confirm("Are you sure you would like to delete this event")) {
         return
     }
     const itemId = getIdFromDisplayElement(el)
-    //FIXME needs access to `after` to properly delete any given event
-    apiDeleteEvent(itemId, ts, 0)
+    apiDeleteEvent(itemId, ts, after)
         .then(res => res.text())
         .then(() =>
             refreshInfo().then(() =>
