@@ -571,10 +571,10 @@ async function titleIdentification(provider, search, selectionElemOutput) {
 
     /**@type {any[]}*/
     let items
-    try{
+    try {
         items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
     }
-    catch(err){
+    catch (err) {
         console.error("Could not parse json", rest.split('\n'))
         return ""
     }
@@ -664,8 +664,7 @@ viewAllElem.addEventListener("change", e => {
 /**
  * @typedef ClientSearchFilters
  * @type {object}
- * @property {number} start
- * @property {number} end
+ * @property {string[]} filterRules
  * @property {string} newSearch
  * @property {string} sortBy
  * @property {boolean} children
@@ -681,19 +680,27 @@ viewAllElem.addEventListener("change", e => {
  * eg: \[start:end\]
  */
 function parseClientsideSearchFiltering(searchForm) {
-    let start = 0
-    let end = -1
+    // let start = 0
+    // let end = -1
 
     let search = /**@type {string}*/(searchForm.get("search-query"))
 
-    let slicematch = search.match(/\[(\d*):(-?\d*)\]/)
-    if (slicematch) {
-        start = +slicematch[1]
-        end = +slicematch[2]
-        search = search.replace(slicematch[0], "")
+    //TODO: make a way for the user to apply filtering after a search is complete
+    //this way the user can say, select everything with `#` then go to a filter such as [:100][Type=Game]
+    //maybe syntax is like #search -> filter
+    //eg: # -> [0:100] -> is Game
 
-        searchForm.set("search-query", search)
-    }
+    let filters;
+    [search, ...filters] = search.split("->")
+    filters = filters.map(v => v.trim())
+    // let slicematch = search.match(/\[(\d*):(-?\d*)\]/)
+    // if (slicematch) {
+    //     start = +slicematch[1]
+    //     end = +slicematch[2]
+    //     search = search.replace(slicematch[0], "")
+    //
+    //     searchForm.set("search-query", search)
+    // }
 
     let sortBy = /**@type {string}*/(searchForm.get("sort-by"))
 
@@ -701,8 +708,7 @@ function parseClientsideSearchFiltering(searchForm) {
     let copies = /**@type {string}*/(searchForm.get("copies"))
 
     return {
-        start,
-        end,
+        filterRules: filters,
         newSearch: search,
         sortBy,
         children: children === "on",
@@ -726,11 +732,36 @@ function applyClientsideSearchFiltering(entries, filters) {
         entries = sortEntries(entries, filters.sortBy)
     }
 
-    if (filters.end < 0) {
-        filters.end += entries.length + 1
+    for (let filter of filters.filterRules) {
+        filter = filter.trim()
+        if (filter.startsWith("is")) {
+            let ty = filter.split("is")[1]?.trim()
+            if (!ty) continue
+            ty = ty.replace(/(\w)(\S*)/g, (_, $1, $2) => {
+                return $1.toUpperCase() + $2
+            })
+            entries = entries.filter(v => v.Type == ty)
+        }
+
+        let slicematch = filter.match(/\[(\d*):(-?\d*)\]/)
+        if (slicematch) {
+            let start = +slicematch[1]
+            let end = +slicematch[2]
+            entries = entries.slice(start, end)
+        }
+
+        if (filter.startsWith("/") && filter.endsWith("/")) {
+            let re = new RegExp(filter.slice(1, filter.length - 1))
+            entries = entries.filter(v => v.En_Title.match(re))
+        }
     }
 
-    return entries.slice(filters.start, filters.end)
+    // if (filters.end < 0) {
+    //     filters.end += entries.length + 1
+    // }
+    return entries
+    //
+    // return entries.slice(filters.start, filters.end)
 }
 
 async function loadSearch() {
