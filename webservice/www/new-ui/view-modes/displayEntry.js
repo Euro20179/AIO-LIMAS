@@ -134,7 +134,8 @@ function hookActionButtons(shadowRoot, item) {
                 }
             }
 
-            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media${queryParams}`)
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media${queryParams}&timezone=${encodeURIComponent(tz)}`)
                 .then(res => res.text())
                 .then(text => {
                     alert(text)

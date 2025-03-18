@@ -173,7 +173,7 @@ var ( // `/` endpoints {{{
 		EndPoint: "stream-entry",
 		Handler:  api.Stream,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"id":      api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
 			"subfile": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Download the file located by the {id}'s location",
@@ -342,8 +342,8 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "finish-media",
 		Handler:  api.FinishMedia,
 		QueryParams: api.QueryParams{
-			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
-			"rating": api.MkQueryInfo(api.P_Float64, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"rating":   api.MkQueryInfo(api.P_Float64, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Finishes a media, and registers a Finish event",
@@ -388,6 +388,7 @@ var ( // `/engagement` endpoints {{{
 			"name":      api.MkQueryInfo(api.P_NotEmpty, true),
 			"timestamp": api.MkQueryInfo(api.P_Int64, false),
 			"after":     api.MkQueryInfo(api.P_Int64, false),
+			"timezone":  api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Registers an event for an entry",
 	}
@@ -446,7 +447,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "drop-media",
 		Handler:  api.DropMedia,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Drops a media, and registers a Drop event",
@@ -456,7 +457,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "resume-media",
 		Handler:  api.ResumeMedia,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Resumes a media and registers a ReViewing event",
@@ -466,7 +467,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "pause-media",
 		Handler:  api.PauseMedia,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Pauses a media and registers a Pause event",
@@ -476,7 +477,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "plan-media",
 		Handler:  api.PlanMedia,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Plans a media and registers a Plan event",
@@ -486,7 +487,7 @@ var ( // `/engagement` endpoints {{{
 		EndPoint: "begin-media",
 		Handler:  api.BeginMedia,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"id":       api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Begins a media and registers a Begin event",
@@ -706,7 +707,7 @@ func main() {
 	db.InitDb(*dbPathPtr)
 
 	inst, err := lua_api.InitGlobalLuaInstance("./lua-extensions/init.lua")
-	if err != nil{
+	if err != nil {
 		panic("Could not initialize global lua instance")
 	}
 	lua_api.GlobalLuaInstance = inst

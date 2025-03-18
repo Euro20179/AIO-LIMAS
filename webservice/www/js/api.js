@@ -360,5 +360,6 @@ async function apiDeleteEvent(itemId, ts, after) {
  * @param {number} after
 */
 async function apiRegisterEvent(itemId, name, ts, after) {
-    return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}`)
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}&timezone=${encodeURIComponent(tz)}`)
 }

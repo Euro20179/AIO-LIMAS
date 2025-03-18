@@ -185,7 +185,9 @@ async function newEntry() {
     }
     const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURIComponent(String(v[1]))}`).join("&") + `&art-style=${artStyle}`
 
-    let res = await fetch(`${apiPath}/add-entry${queryString}`)
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+    let res = await fetch(`${apiPath}/add-entry${queryString}&timezone=${encodeURIComponent(tz)}`)
     let text = await res.text()
     if (res.status !== 200) {
         alert(text)
