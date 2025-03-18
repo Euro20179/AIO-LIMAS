@@ -76,6 +76,7 @@ Basic user facing docs can be found at `/usage`
 
 - [x] enable/disable children/copies
 - [ ] steam account linking
+- [ ] ability to save data: thumbnail urls as seperate files on the download-thumbnail endpoint
 - [x] image media type
     - [ ] when fetching metadata, use ai to generate a description of the image
 - [x] search by description
