@@ -351,9 +351,9 @@ func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_
 
 func RegisterUserEvent(event db_types.UserViewingEvent) error {
 	_, err := Db.Exec(`
-		INSERT INTO userEventInfo (itemId, timestamp, event, after)
-		VALUES (?, ?, ?, ?)
-	`, event.ItemId, event.Timestamp, event.Event, event.After)
+		INSERT INTO userEventInfo (itemId, timestamp, event, after, timezone)
+		VALUES (?, ?, ?, ?, ?)
+	`, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
 	return err
 }
 
