@@ -351,11 +351,11 @@ customElements.define("display-entry", class extends HTMLElement {
                 if (ts !== "0") {
                     let time = date.toLocaleTimeString("en", {timeZone})
                     let dd = date.toLocaleDateString("en", {timeZone})
-                    timeTd = `<td title="${time}">${dd}</td>`
+                    timeTd = `<td title="${time} (${timeZone})">${dd}</td>`
                 } else if(afterts !== "0") {
                     let time = afterDate.toLocaleTimeString("en", {timeZone})
                     let dd = afterDate.toLocaleDateString("en", {timeZone})
-                    timeTd = `<td title="${time}">after: ${dd}</td>`
+                    timeTd = `<td title="${time} (${timeZone})">after: ${dd}</td>`
                 } else {
                     timeTd = `<td title="unknown">unknown</td>`
                 }
