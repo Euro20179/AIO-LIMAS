@@ -1,71 +1,122 @@
-
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Usage</title>
-        <link rel="stylesheet" href="/css/general.css">
-    </head>
-    <body>
-        <h1>Usage</h1>
 
-        <section>
-            <h3>Searching</h3>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Usage</title>
+    <link rel="stylesheet" href="/css/general.css">
+</head>
 
-            <p>
-                A search query is much closer to an sql query with some extra features.
-            </p>
-            <p>
-                A basic title search might look something like this <code>En_Title ~ "Some title"</code>
-                <br>
-                However, for obvious reasons this sucks, hence  <a href="#builtin-macros" style="text-decoration: underline; cursor: pointer;"><b>macros</b></a>.
-                <br>
-                A macro starts with a <code>#</code> and gets sent to a lua script that expands it out to a proper query.
-                <br>
-                An example macro would be <code>#Some\ Title</code> which expands to <code>En_Title ~ "Some title"</code>
-            </p>
+<body>
+    <h1>Usage</h1>
 
-            <h4>Operators</h4>
-            <ul>
-                <li>~: same as LIKE in sql</li>
-                <li>=: exactly equal to</li>
-                <li>&lt;: less than</li>
-                <li>&lt;=: less than or equal</li>
-                <li>&gt;: greater than</li>
-                <li>&gt;=: greater than or equal</li>
-                <li>&amp;: same as AND in sql</li>
-                <li>.: same as &amp;</li>
-                <li>|: same as OR in sql</li>
-                <li>?: same as |</li>
-            </ul>
+    <section>
+        <h3>Configuration</h3>
+        <p>
+            By default, configuration is stored in <code>$AIO_DIR</code>, which by default is
+            <code>$XDG_DATA_HOME/aio-limas</code>.
+        </p>
+        <p>
+            Configuration is done within the <code>settings.json</code> file stored in <code>1AIO_DIR</code>.
+        </p>
+        Configuration schema:
+        <script type="application/json" style="display: block; white-space: pre; font-family: monospace;">
+{
+    SonarrURL: string,
+    SonarrKey: string,
+    RadarrURL: string,
+
+    WriteIdFile: bool,
+
+    LocationAliases: map[string] string,
+
+    DefaultTimeZone: string
+}
+        </script>
+        <h4>SonarrURL</h4>
+        The url to a sonarr instance, eg: <code>http://192.168.0.1:8989</code>
+        <h4>SonarrKey</h4>
+        API key for the sonarr instance
+        <h4>RadarrURL</h4>
+        The url to a radarr instance, eg: <code>http://192.168.0.1:7878</code>
+        <h4>RadarrKey</h4>
+        API key for the radarr instance
+
+        <h4>WriteIdFile</h4>
+        If true, when an entry is updated, it will attempt to write the id of that entry in a file called
+        <code>.AIO-ID</code> in the provided <code>Location</code> of that entry.<br>
+        Also see <a href="#LocationAliases">location aliases</a>
+
+        <h4 id="LocationAliases">LocationAliases</h4>
+        Essentially, variables that are used for <code>Location</code>.<br>
+        For example, if i set <code>{"LocationAliases": {"ANIME": "/path/to/anime/folder"}}</code><br>
+        aio limas will understand that a location of <code>${ANIME}/erased</code> is actually
+        <code>/path/to/anime/folder/erased</code>.
 
 
-            <h4 id="builtin-macros">Builtin Macros</h4>
-            <p>
-                I do plan to add support for lua extensions in <code>$AIO_DIR</code> but for now these are the builtin macros
-            </p>
-            <ul>
-                <li>r: userRating</li>
-                <li>R: rating</li>
-                <li>t: item type</li>
-                <li>T: title (metadata provided)</li>
-                <li>d: description</li>
-                <li>f: format</li>
-            </ul>
-            <p>
-                The <b>s:</b> macro indicates a status, eg: <code>#s:v</code> expands to <code>Status = "Viewing"</code>
-            </p>
-            <p>
-                If a macro is a type, eg <code>#Show</code> or <code>#Movie</code> it will expand to <code>type = "Show"</code>etc, ...
-            </p>
-            <p>
-                Lastly, if a macro fails to expand, it expands to <code>En_Title ~ "macro_text"</code>
-            </p>
-            <p>
-                An example would be <code>#r &gt; 78</code> which will expand to:
-                <code>userRating &gt; 78</code>
-            </p>
-        </section>
-    </body>
+    </section>
+    <hr>
+    <section>
+        <h3>Searching</h3>
+
+        <p>
+            A search query is much closer to an sql query with some extra features.
+        </p>
+        <p>
+            A basic title search might look something like this <code>En_Title ~ "Some title"</code>
+            <br>
+            However, for obvious reasons this sucks, hence <a href="#builtin-macros"
+                style="text-decoration: underline; cursor: pointer;"><b>macros</b></a>.
+            <br>
+            A macro starts with a <code>#</code> and gets sent to a lua script that expands it out to a proper query.
+            <br>
+            An example macro would be <code>#Some\ Title</code> which expands to <code>En_Title ~ "Some title"</code>
+        </p>
+
+        <h4>Operators</h4>
+        <ul>
+            <li>~: same as LIKE in sql</li>
+            <li>=: exactly equal to</li>
+            <li>&lt;: less than</li>
+            <li>&lt;=: less than or equal</li>
+            <li>&gt;: greater than</li>
+            <li>&gt;=: greater than or equal</li>
+            <li>&amp;: same as AND in sql</li>
+            <li>.: same as &amp;</li>
+            <li>|: same as OR in sql</li>
+            <li>?: same as |</li>
+        </ul>
+
+
+        <h4 id="builtin-macros">Builtin Macros</h4>
+        <p>
+            I do plan to add support for lua extensions in <code>$AIO_DIR</code> but for now these are the builtin
+            macros
+        </p>
+        <ul>
+            <li>r: userRating</li>
+            <li>R: rating</li>
+            <li>t: item type</li>
+            <li>T: title (metadata provided)</li>
+            <li>d: description</li>
+            <li>f: format</li>
+        </ul>
+        <p>
+            The <b>s:</b> macro indicates a status, eg: <code>#s:v</code> expands to <code>Status = "Viewing"</code>
+        </p>
+        <p>
+            If a macro is a type, eg <code>#Show</code> or <code>#Movie</code> it will expand to <code>type =
+                "Show"</code>etc, ...
+        </p>
+        <p>
+            Lastly, if a macro fails to expand, it expands to <code>En_Title ~ "macro_text"</code>
+        </p>
+        <p>
+            An example would be <code>#r &gt; 78</code> which will expand to:
+            <code>userRating &gt; 78</code>
+        </p>
+    </section>
+</body>
+
 </html>
