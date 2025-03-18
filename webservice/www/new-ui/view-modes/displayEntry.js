@@ -63,9 +63,9 @@ function newEvent(form) {
     apiRegisterEvent(itemId, name.toString(), ts, afterts)
         .then(res => res.text())
         .then(() => refreshInfo().then(() => {
-                form.parentElement?.hidePopover()
-                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
-            }
+            form.parentElement?.hidePopover()
+            refreshDisplayItem(globalsNewUi.entries[String(itemId)])
+        }
         ))
         .catch(alert)
     //TODO: should be a modal thing for date picking
@@ -143,6 +143,32 @@ function hookActionButtons(shadowRoot, item) {
                 })
                 .then(() => refreshDisplayItem(item))
         })
+    }
+
+
+    let imgEl = /**@type {HTMLImageElement}*/(shadowRoot.querySelector(".thumbnail"))
+    const fileUpload = /**@type {HTMLInputElement}*/ (shadowRoot.getElementById("thumbnail-file-upload"))
+
+    fileUpload.onchange = async function(e) {
+        const reader = new FileReader()
+        const blob = fileUpload.files?.[0]
+        if (!blob) return
+        reader.readAsDataURL(blob)
+        reader.onload = () => {
+            if (!reader.result) return
+            updateThumbnail(item.ItemId, reader.result.toString())
+                .then(() => {
+                refreshInfo().then(() => {
+                    refreshDisplayItem(item)
+                })
+            })
+        }
+    }
+    imgEl.onclick = function(e) {
+        if (!fileUpload) return
+
+        fileUpload.click()
+        console.log(fileUpload.value)
     }
 }
 

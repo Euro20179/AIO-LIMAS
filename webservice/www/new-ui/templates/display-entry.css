@@ -63,6 +63,8 @@ hr {
         align-self: center;
 
         width: 20cqw;
+
+        cursor: pointer;
     }
 
     table {

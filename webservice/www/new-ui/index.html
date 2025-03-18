@@ -200,7 +200,7 @@
 
     <template id="display-entry">
         <style>
-            @import "/new-ui/templates/display-entry.css"
+            @import "/new-ui/templates/display-entry.css";
         </style>
 
         <dialog id="new-event-form" popover>
@@ -255,6 +255,7 @@
                 <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
             </div>
             <figure class="thumbnail-fig flex column">
+                <input type="file" hidden id="thumbnail-file-upload">
                 <img src="" alt="" class="thumbnail">
                 <table class="media-info"></table>
                 <hr>
