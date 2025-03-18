@@ -371,6 +371,9 @@ customElements.define("display-entry", class extends HTMLElement {
             }
             html += "</tbody>"
             eventsTbl.innerHTML = html
+        } else {
+            //there are no events
+            eventsTbl.innerHTML = ""
         }
     }
 })

@@ -549,6 +549,8 @@ function applyDisplayAttrs(item, user, meta, events, el) {
     if (events.length) {
         let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}:${e.After}:${e.TimeZone}`).join(",")
         el.setAttribute("data-user-events", eventsStr)
+    } else {
+        el.setAttribute("data-user-events", "")
     }
 
     if (meta.Rating) {
