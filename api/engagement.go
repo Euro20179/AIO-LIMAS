@@ -9,6 +9,7 @@ import (
 	"time"
 
 	db "aiolimas/db"
+	"aiolimas/settings"
 	"aiolimas/types"
 )
 
@@ -49,13 +50,15 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
 
+	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+
 	if !entry.CanBegin() {
 		w.WriteHeader(405)
 		fmt.Fprintf(w, "This media is already being viewed, or has not been planned, could not start\n")
 		return
 	}
 
-	if err := db.Begin(&entry); err != nil {
+	if err := db.Begin(timezone, &entry); err != nil {
 		wError(w, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
@@ -72,6 +75,7 @@ func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	entry := parsedParams["id"].(db_types.UserViewingEntry)
+	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanFinish() {
 		w.WriteHeader(405)
@@ -82,7 +86,7 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	rating := parsedParams["rating"].(float64)
 	entry.UserRating = rating
 
-	if err := db.Finish(&entry); err != nil {
+	if err := db.Finish(timezone, &entry); err != nil {
 		wError(w, 500, "Could not finish media\n%s", err.Error())
 		return
 	}
@@ -99,13 +103,14 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 
 func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
+	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanPlan() {
 		wError(w, 400, "%d can not be planned\n", entry.ItemId)
 		return
 	}
 
-	db.Plan(&entry)
+	db.Plan(timezone, &entry)
 	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
@@ -117,8 +122,9 @@ func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
+	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	db.Drop(&entry)
+	db.Drop(timezone, &entry)
 	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
@@ -130,13 +136,14 @@ func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
+	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanPause() {
 		wError(w, 400, "%d cannot be dropped\n", entry.ItemId)
 		return
 	}
 
-	db.Pause(&entry)
+	db.Pause(timezone, &entry)
 
 	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
@@ -149,13 +156,14 @@ func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
+	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanResume() {
 		wError(w, 400, "%d cannot be resumed\n", entry.ItemId)
 		return
 	}
 
-	db.Resume(&entry)
+	db.Resume(timezone, &entry)
 	err := db.UpdateUserViewingEntry(&entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
@@ -318,12 +326,14 @@ func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams Parsed
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
 	name := parsedParams["name"].(string)
+	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	err := db.RegisterUserEvent(db_types.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),
 		Event: name,
+		TimeZone: timezone,
 	})
 	if err != nil{
 		wError(w, 500, "Could not register event\n%s", err.Error())

@@ -343,17 +343,18 @@ customElements.define("display-entry", class extends HTMLElement {
                 <tbody>
             `
             for (let event of val.split(",")) {
-                let [name, ts, afterts] = event.split(":")
+                let [name, ts, afterts, timeZone] = event.split(":")
+                timeZone ||= "UTC"
                 let date = new Date(Number(ts))
                 let afterDate = new Date(Number(afterts))
                 let timeTd = ""
                 if (ts !== "0") {
-                    let time = date.toLocaleTimeString("en")
-                    let dd = date.toLocaleDateString("en")
+                    let time = date.toLocaleTimeString("en", {timeZone})
+                    let dd = date.toLocaleDateString("en", {timeZone})
                     timeTd = `<td title="${time}">${dd}</td>`
                 } else if(afterts !== "0") {
-                    let time = afterDate.toLocaleTimeString("en")
-                    let dd = afterDate.toLocaleDateString("en")
+                    let time = afterDate.toLocaleTimeString("en", {timeZone})
+                    let dd = afterDate.toLocaleDateString("en", {timeZone})
                     timeTd = `<td title="${time}">after: ${dd}</td>`
                 } else {
                     timeTd = `<td title="unknown">unknown</td>`

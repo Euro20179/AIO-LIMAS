@@ -16,6 +16,7 @@
  * @property {string} Event
  * @property {number} Timestamp
  * @property {number} After
+ * @property {string} TimeZone
  */
 
 /**

@@ -97,6 +97,7 @@ var ( // `/` endpoints {{{
 			"title":             api.MkQueryInfo(api.P_NotEmpty, true),
 			"type":              api.MkQueryInfo(api.P_EntryType, true),
 			"format":            api.MkQueryInfo(api.P_EntryFormat, true),
+			"timezone":          api.MkQueryInfo(api.P_NotEmpty, false),
 			"price":             api.MkQueryInfo(api.P_Float64, false),
 			"is-digital":        api.MkQueryInfo(api.P_Bool, false),
 			"is-anime":          api.MkQueryInfo(api.P_Bool, false),
@@ -343,6 +344,7 @@ var ( // `/engagement` endpoints {{{
 		QueryParams: api.QueryParams{
 			"id":     api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
 			"rating": api.MkQueryInfo(api.P_Float64, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Finishes a media, and registers a Finish event",
 	}
@@ -445,6 +447,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:  api.DropMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Drops a media, and registers a Drop event",
 	}
@@ -454,6 +457,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:  api.ResumeMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Resumes a media and registers a ReViewing event",
 	}
@@ -463,6 +467,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:  api.PauseMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Pauses a media and registers a Pause event",
 	}
@@ -472,6 +477,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:  api.PlanMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Plans a media and registers a Plan event",
 	}
@@ -481,6 +487,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:  api.BeginMedia,
 		QueryParams: api.QueryParams{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetUserEntry, true),
+			"timezone": api.MkQueryInfo(api.P_NotEmpty, false),
 		},
 		Description: "Begins a media and registers a Begin event",
 	}

@@ -12,6 +12,7 @@ import (
 
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
+	"aiolimas/settings"
 	"aiolimas/types"
 )
 
@@ -267,7 +268,9 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		metadata = newMeta
 	}
 
-	if err := db.AddEntry(&entryInfo, &metadata, &userEntry); err != nil {
+	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+
+	if err := db.AddEntry(timezone, &entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return

@@ -15,6 +15,8 @@ type SettingsData struct {
 	WriteIdFile bool
 
 	LocationAliases map[string]string
+
+	DefaultTimeZone string
 }
 
 var SettingsChannel chan [2]any
@@ -52,6 +54,8 @@ func InitSettingsManager(aioDir string) {
 }
 
 func ManageSettings() {
+	//default timezone
+	Settings.DefaultTimeZone = "America/Los_Angeles"
 	for {
 		msg := <-SettingsChannel
 
@@ -71,6 +75,8 @@ func ManageSettings() {
 			Settings.WriteIdFile = value.(bool)
 		case "LocationAliases":
 			Settings.LocationAliases = value.(map[string]string)
+		case "DefaultTimeZone":
+			Settings.DefaultTimeZone = value.(string)
 		}
 	}
 }

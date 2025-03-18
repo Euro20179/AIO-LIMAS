@@ -91,8 +91,8 @@ func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 	return out, nil
 }
 
-func Begin(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("Viewing", entry.ItemId)
+func Begin(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "Viewing", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -106,8 +106,8 @@ func Begin(entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Finish(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("Finished", entry.ItemId)
+func Finish(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "Finished", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -118,8 +118,8 @@ func Finish(entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Plan(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("Planned", entry.ItemId)
+func Plan(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "Planned", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -129,8 +129,8 @@ func Plan(entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Resume(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("ReViewing", entry.ItemId)
+func Resume(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "ReViewing", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -139,8 +139,8 @@ func Resume(entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Drop(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("Dropped", entry.ItemId)
+func Drop(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "Dropped", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -150,8 +150,8 @@ func Drop(entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Pause(entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent("Paused", entry.ItemId)
+func Pause(timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(timezone, "Paused", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,8 @@ func InitDb(dbPath string) {
 			itemId INTEGER,
 			timestamp INTEGER,
 			after INTEGER,
-			event TEXT
+			event TEXT,
+			timezone TEXT
 		)
 	`)
 	if err != nil {
@@ -284,7 +285,7 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 // **WILL ASSIGN THE ENTRYINFO.ID**
-func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
+func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := rand.Int64()
 
 	entryInfo.ItemId = id
@@ -325,6 +326,7 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 			ItemId:    userViewingEntry.ItemId,
 			Timestamp: uint64(time.Now().UnixMilli()),
 			Event:     string(userViewingEntry.Status),
+			TimeZone: timezone,
 			After:     0,
 		})
 		if err != nil {
@@ -332,7 +334,7 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 		}
 	}
 
-	err := RegisterBasicUserEvent("Added", metadataEntry.ItemId)
+	err := RegisterBasicUserEvent(timezone, "Added", metadataEntry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -347,56 +349,6 @@ func AddEntry(entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEnt
 	return nil
 }
 
-func ScanFolderWithParent(path string, collection string, parent int64) []error {
-	stat, err := os.Stat(path)
-	if err != nil {
-		return []error{err}
-	}
-	if !stat.IsDir() {
-		return []error{fmt.Errorf("%s is not a directory\n", path)}
-	}
-
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return []error{err}
-	}
-
-	var errors []error
-	for _, entry := range entries {
-		var info db_types.InfoEntry
-		var userEntry db_types.UserViewingEntry
-		var metadata db_types.MetadataEntry
-		name := entry.Name()
-
-		fullPath := filepath.Join(path, entry.Name())
-		info.En_Title = name
-		info.ParentId = parent
-		info.Format = db_types.F_DIGITAL
-		info.Location = fullPath
-		info.Collection = collection
-
-		err := AddEntry(&info, &metadata, &userEntry)
-		if err != nil {
-			errors = append(errors, err)
-		}
-
-		if entry.IsDir() {
-			newErrors := ScanFolderWithParent(fullPath, collection, info.ItemId)
-			errors = append(errors, newErrors...)
-		}
-	}
-
-	if len(errors) > 0 {
-		return errors
-	}
-
-	return nil
-}
-
-func ScanFolder(path string, collection string) []error {
-	return ScanFolderWithParent(path, collection, 0)
-}
-
 func RegisterUserEvent(event db_types.UserViewingEvent) error {
 	_, err := Db.Exec(`
 		INSERT INTO userEventInfo (itemId, timestamp, event, after)
@@ -405,11 +357,12 @@ func RegisterUserEvent(event db_types.UserViewingEvent) error {
 	return err
 }
 
-func RegisterBasicUserEvent(event string, itemId int64) error {
+func RegisterBasicUserEvent(timezone string, event string, itemId int64) error {
 	var e db_types.UserViewingEvent
 	e.Event = event
 	e.Timestamp = uint64(time.Now().UnixMilli())
 	e.ItemId = itemId
+	e.TimeZone = timezone
 	return RegisterUserEvent(e)
 }
 
