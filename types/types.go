@@ -302,6 +302,9 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 	)
 }
 
+//FIXME:
+//an event should also have a time-zone associated with it
+//in case say, someone where to add an event in UTC-8, but then did something in UTC-2, they'd have very wacky times
 type UserViewingEvent struct {
 	ItemId    int64
 	Event     string

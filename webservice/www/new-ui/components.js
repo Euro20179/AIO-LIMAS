@@ -348,12 +348,12 @@ customElements.define("display-entry", class extends HTMLElement {
                 let afterDate = new Date(Number(afterts))
                 let timeTd = ""
                 if (ts !== "0") {
-                    let time = date.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
-                    let dd = date.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
+                    let time = date.toLocaleTimeString("en")
+                    let dd = date.toLocaleDateString("en")
                     timeTd = `<td title="${time}">${dd}</td>`
                 } else if(afterts !== "0") {
-                    let time = afterDate.toLocaleTimeString("en", { timeZone: "America/Los_Angeles" })
-                    let dd = afterDate.toLocaleDateString("en", { timeZone: "America/Los_Angeles" })
+                    let time = afterDate.toLocaleTimeString("en")
+                    let dd = afterDate.toLocaleDateString("en")
                     timeTd = `<td title="${time}">after: ${dd}</td>`
                 } else {
                     timeTd = `<td title="unknown">unknown</td>`
