@@ -19,12 +19,27 @@
             <p>
                 A basic title search might look something like this <code>En_Title ~ "Some title"</code>
                 <br>
-                However, for obvious reasons this sucks, hence <b> <a href="#builtin-macros">macros</a></b>.
+                However, for obvious reasons this sucks, hence  <a href="#builtin-macros" style="text-decoration: underline; cursor: pointer;"><b>macros</b></a>.
                 <br>
                 A macro starts with a <code>#</code> and gets sent to a lua script that expands it out to a proper query.
                 <br>
                 An example macro would be <code>#Some\ Title</code> which expands to <code>En_Title ~ "Some title"</code>
             </p>
+
+            <h4>Operators</h4>
+            <ul>
+                <li>~: same as LIKE in sql</li>
+                <li>=: exactly equal to</li>
+                <li>&lt;: less than</li>
+                <li>&lt;=: less than or equal</li>
+                <li>&gt;: greater than</li>
+                <li>&gt;=: greater than or equal</li>
+                <li>&amp;: same as AND in sql</li>
+                <li>.: same as &amp;</li>
+                <li>|: same as OR in sql</li>
+                <li>?: same as |</li>
+            </ul>
+
 
             <h4 id="builtin-macros">Builtin Macros</h4>
             <p>
@@ -33,9 +48,10 @@
             <ul>
                 <li>r: userRating</li>
                 <li>R: rating</li>
-                <li>t: en_title (user provided)</li>
+                <li>t: item type</li>
                 <li>T: title (metadata provided)</li>
                 <li>d: description</li>
+                <li>f: format</li>
             </ul>
             <p>
                 The <b>s:</b> macro indicates a status, eg: <code>#s:v</code> expands to <code>Status = "Viewing"</code>
