@@ -375,6 +375,12 @@ function saveItemChanges(root, item) {
         return
     }
 
+    const userEn_title = /**@type {HTMLHeadingElement}*/(root.querySelector(".title"))
+
+    if(userEn_title) {
+        item.En_Title = userEn_title.innerText
+    }
+
     let userEntry = findUserEntryById(item.ItemId)
     if (!userEntry) return
 
@@ -412,8 +418,6 @@ function saveItemChanges(root, item) {
     let meta = findMetadataById(item.ItemId)
     if (!meta) return
     updateWithTable(metaTable, meta)
-
-    //TODO: also save meta table
 
 
     const infoStringified = mkIntItemId(
