@@ -267,7 +267,7 @@ function changeResultStatsWithItemList(items, multiplier = 1) {
 }
 
 async function loadInfoEntries() {
-    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(`status=="Planned" | status=="Viewing"`)}`)
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(`status=="Planned" | status=="Viewing"`)}&uid=${uid}`)
         .catch(console.error)
     if (!res) {
         alert("Could not load entries")
@@ -287,7 +287,7 @@ async function loadInfoEntries() {
 
     //globalsNewUi.entries should contain ALL entries
     {
-        const res = await fetch(`${apiPath}/list-entries`).catch(console.error)
+        const res = await fetch(`${apiPath}/list-entries?uid=${uid}`).catch(console.error)
 
         if (!res) {
             alert("Could not load all entries")

@@ -75,6 +75,7 @@ function mkIntItemId(jsonl) {
 
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
+    console.log(jsonl)
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
     try {
         return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
@@ -91,7 +92,7 @@ function parseJsonL(jsonl) {
  * @returns {Promise<T[]>}
 */
 async function loadList(endpoint) {
-    const res = await fetch(`${apiPath}/${endpoint}`)
+    const res = await fetch(`${apiPath}/${endpoint}?uid=${uid}`)
     if (!res) {
         return []
     }
@@ -105,29 +106,6 @@ async function loadList(endpoint) {
     return lines
         .map(mkStrItemId)
         .map(parseJsonL)
-}
-
-/**
- * @param {[string[], string[], string[], number[]]} search
- */
-async function loadQueriedEntries2(search) {
-    let names = encodeURIComponent(search[0].join(","))
-    let values = encodeURIComponent(search[1].join(","))
-    let checkers = encodeURIComponent(search[2].join(","))
-    let gates = encodeURIComponent(search[3].join(","))
-    const res = await fetch(`${apiPath}/query-v2?names=${names}&values=${values}&checkers=${checkers}&gates=${gates}`)
-        .catch(console.error)
-    if (!res) {
-        alert("Could not query entries")
-        return []
-    }
-    let itemsText = await res.text()
-    let jsonL = itemsText.split("\n")
-        .filter(Boolean)
-        .map(mkStrItemId)
-        .map(parseJsonL)
-    return jsonL
-
 }
 
 /**
@@ -263,7 +241,7 @@ async function updateThumbnail(id, thumbnail) {
  * @param {string} searchString
  */
 async function doQuery3(searchString) {
-    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}`).catch(console.error)
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}&uid=${uid}`).catch(console.error)
     if (!res) return []
 
     let itemsText = await res.text()

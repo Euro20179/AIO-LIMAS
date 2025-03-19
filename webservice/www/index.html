@@ -4,11 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
-    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/general.css">
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
 </head>
 
 <body>
-    <script>window.location = "/new-ui/#entry-output"</script>
+    <h1 class="center">AIO LIMAS</h1>
+    <form class="center" action="/account/login" method="GET">
+        <div class='grid' style="grid-template-rows: 1fr 1fr 1fr; gap: 1em;">
+            <div>
+                <label for="username" class="j-self-right">Username </label>
+                <input type="text" placeholder="username" id="username" name="username" class="j-self-left">
+            </div>
+            <div>
+                <label for="password" class="j-self-right">Password </label>
+                <input type="password" placeholder="password" id="password" name="password" class="j-self-left">
+            </div>
+            <input type="submit" style="justify-self: center; grid-column: 1 / -1">
+        </div>
+    </form>
+
+<script>
+        const params = new URLSearchParams(document.location.search)
+        const uid = params.get("uid")
+        if(uid) {
+            window.location = `/new-ui/?uid=${uid}`
+        }
+</script>
 </body>
 
 </html>

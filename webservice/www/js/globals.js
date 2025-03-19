@@ -1,5 +1,8 @@
 const apiPath = "/api/v1"
 
+const urlParams = new URLSearchParams(document.location.search)
+const uid = urlParams.get("uid")
+
 /**
     * @param {string} text
     * @param {string} textFail

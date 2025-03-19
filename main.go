@@ -518,6 +518,19 @@ var ( // `/engagement` endpoints {{{
 		},
 		Description: "Creates an account",
 		UserIndependant: true,
+		GuestAllowed: true,
+	}
+
+	accountLogin = api.ApiEndPoint {
+		EndPoint: "login",
+		Handler: api.Login,
+		QueryParams: api.QueryParams{
+			"username": api.MkQueryInfo(api.P_NotEmpty, false),
+			"password": api.MkQueryInfo(api.P_NotEmpty, false),
+		},
+		Description: "Login",
+		UserIndependant: true,
+		GuestAllowed: true,
 	}
 	//}}}
 
@@ -654,6 +667,7 @@ var (
 
 	accountEndPoints = []api.ApiEndPoint{
 		createAccount,
+		accountLogin,
 	}
 
 	resourceEndpointList = []api.ApiEndPoint{

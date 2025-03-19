@@ -217,6 +217,14 @@
         float: right;
     }
 
+    .j-self-left {
+        justify-self: left;
+    }
+
+    .j-self-right {
+        justify-self: right;
+    }
+
     .center {
         text-align: center;
     }
