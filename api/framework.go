@@ -111,6 +111,8 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		parsedParams["uid"] = id
+	} else {
+		parsedParams["uid"] = int64(-1)
 	}
 
 	for name, info := range self.QueryParams {

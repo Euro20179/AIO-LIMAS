@@ -494,6 +494,20 @@ var ( // `/engagement` endpoints {{{
 	}
 	// }}}
 
+	// `/account` endpoints {{{
+	createAccount = api.ApiEndPoint{
+		EndPoint: "create",
+		Method:   api.POST,
+		Handler:  api.CreateAccount,
+		QueryParams: api.QueryParams{
+			"username": api.MkQueryInfo(api.P_NotEmpty, true),
+			"password": api.MkQueryInfo(api.P_NotEmpty, true),
+		},
+		Description: "Creates an account",
+		UserIndependant: true,
+	}
+	//}}}
+
 	// `/resource` endpoints {{{
 	thumbResource = api.ApiEndPoint{
 		EndPoint: "thumbnail",
@@ -517,36 +531,36 @@ var ( // `/engagement` endpoints {{{
 
 	// `/type` endpoints {{{
 	formatTypesApi = api.ApiEndPoint{
-		EndPoint:     "format",
-		Handler:      api.ListFormats,
-		Description:  "Lists the valid values for a Format",
-		GuestAllowed: true,
+		EndPoint:        "format",
+		Handler:         api.ListFormats,
+		Description:     "Lists the valid values for a Format",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	}
 
 	typeTypesApi = api.ApiEndPoint{
-		EndPoint:     "type",
-		Handler:      api.ListTypes,
-		Description:  "Lists the types for a Type",
-		GuestAllowed: true,
+		EndPoint:        "type",
+		Handler:         api.ListTypes,
+		Description:     "Lists the types for a Type",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	}
 
 	artStylesApi = api.ApiEndPoint{
-		EndPoint:     "artstyle",
-		Handler:      api.ListArtStyles,
-		Description:  "Lists the types art styles",
-		GuestAllowed: true,
+		EndPoint:        "artstyle",
+		Handler:         api.ListArtStyles,
+		Description:     "Lists the types art styles",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	}
 	//}}}
 
 	// `/docs` endpoints {{{
 	mainDocs = api.ApiEndPoint{
-		EndPoint:     "",
-		Handler:      DocHTML,
-		Description:  "The documentation",
-		GuestAllowed: true,
+		EndPoint:        "",
+		Handler:         DocHTML,
+		Description:     "The documentation",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	}
 	//}}}
@@ -625,6 +639,10 @@ var (
 		setUserEntry,
 	}
 
+	accountEndPoints = []api.ApiEndPoint{
+		createAccount,
+	}
+
 	resourceEndpointList = []api.ApiEndPoint{
 		thumbResource,
 		downloadThumb,
@@ -662,9 +680,11 @@ func startServer() {
 
 	makeEndPointsFromList("/docs", docsEndpoints)
 
-	htmlEndpoint :=  api.ApiEndPoint{
-		EndPoint: "html",
-		Handler:  dynamic.HtmlEndpoint,
+	makeEndPointsFromList("/account", accountEndPoints)
+
+	htmlEndpoint := api.ApiEndPoint{
+		EndPoint:     "html",
+		Handler:      dynamic.HtmlEndpoint,
 		Description:  "Dynamic html endpoints",
 		GuestAllowed: true,
 	}

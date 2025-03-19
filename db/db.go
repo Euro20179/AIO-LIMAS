@@ -20,7 +20,7 @@ import (
 
 func OpenUserDb(uid int64) (*sql.DB, error) {
 	aioPath := os.Getenv("AIO_DIR")
-	path := fmt.Sprintf("%s/users/%d", aioPath, uid)
+	path := fmt.Sprintf("%s/users/%d/all.db", aioPath, uid)
 	return sql.Open("sqlite3", path)
 }
 
