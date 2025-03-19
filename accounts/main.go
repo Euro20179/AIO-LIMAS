@@ -1,12 +1,15 @@
 package accounts
 
 import (
-	"aiolimas/db"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
+
+	"aiolimas/db"
 )
 
 func AccountsDbPath(aioPath string) string {
@@ -27,7 +30,6 @@ func InitAccountsDb(aioPath string) {
 					username TEXT UNIQUE,
 					password TEXT
 				)`)
-
 	if err != nil {
 		panic("Failed to create accounts database\n" + err.Error())
 	}
@@ -43,7 +45,7 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 	defer conn.Close()
 
 	res, err := conn.Exec(`INSERT INTO accounts (username, password) VALUES (?, ?)`, username, hashedPassword)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -54,14 +56,17 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 
 	usersDir := fmt.Sprintf("%s/users/%d", aioPath, id)
 
-	if err := os.MkdirAll(usersDir, 0700); err != nil {
+	if err := os.MkdirAll(usersDir, 0o700); err != nil {
 		return err
 	}
 
 	return db.InitDb(id)
 }
 
-func CreateAccount(username string, rawPassword string) error{
+func CreateAccount(username string, rawPassword string) error {
+	if strings.Contains(username, ":") {
+		return errors.New("username may not contain ':'")
+	}
 	h := sha256.New()
 	h.Write([]byte(rawPassword))
 	hash := hex.EncodeToString(h.Sum(nil))
@@ -71,37 +76,39 @@ func CreateAccount(username string, rawPassword string) error{
 	return InitializeAccount(aioPath, username, hash)
 }
 
-func CkLogin(username string, rawPassword string) (bool, error){
+func CkLogin(username string, rawPassword string) (string, error) {
 	h := sha256.New()
 	h.Write([]byte(rawPassword))
 	hash := hex.EncodeToString(h.Sum(nil))
 
 	aioPath := os.Getenv("AIO_DIR")
 	conn, err := sql.Open("sqlite3", AccountsDbPath(aioPath))
-
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	rows, err := conn.Query("SELECT password FROM accounts WHERE username = ?", username)
-	
-	if err != nil{
-		return false, err
+	rows, err := conn.Query("SELECT rowid, password FROM accounts WHERE username = ?", username)
+	if err != nil {
+		return "", err
 	}
 
 	defer rows.Close()
 
 	if rows.Next() {
+		var uid string
 		var password string
-		err = rows.Scan(&password)
-
+		err = rows.Scan(&uid, &password)
 		if err != nil {
-			return false, err
+			return "", err
 		}
 
-		return password == hash, nil
+		if(password == hash) {
+			return uid, nil
+		} else {
+			return "", errors.New("invalid password")
+		}
 	}
 
-	//no account was found in the db
-	return false, err
+	// no account was found in the db
+	return "", err
 }

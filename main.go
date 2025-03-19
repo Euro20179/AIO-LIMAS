@@ -17,7 +17,7 @@ import (
 	"aiolimas/webservice/dynamic"
 )
 
-func ckAuthorizationHeader(text string) (bool, error) {
+func ckAuthorizationHeader(text string) (string, error) {
 	var estring string
 
 	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 0 {
@@ -28,40 +28,53 @@ func ckAuthorizationHeader(text string) (bool, error) {
 			println(err.Error())
 			goto unauthorized
 		}
-		_, password, found := strings.Cut(string(info), ":")
+		username, password, found := strings.Cut(string(info), ":")
 		if !found {
 			estring = "Invalid credentials\n"
 			goto unauthorized
 		}
 
-		accNumber := os.Getenv("ACCOUNT_NUMBER")
-		if password == accNumber {
-			return true, nil
+		uid, err := accounts.CkLogin(username, password)
+
+		if err != nil {
+			println(err.Error())
+			return "", err
 		}
+
+		if uid == "" {
+			println(err.Error())
+			return "", err
+		}
+
+		return uid, nil
 	}
 
 unauthorized:
-	return false, errors.New(estring)
+	return "", errors.New(estring)
 }
 
 func authorizationWrapper(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		var uid string
+		var err error
 		authorized := true
 
 		auth := req.Header.Get("Authorization")
 
-		accNumber := os.Getenv("ACCOUNT_NUMBER")
+		q := req.URL.Query()
 
-		if auth == "" && accNumber != "" {
+		if auth == "" {
 			goto unauthorzied
 		}
 
-		if accNumber != "" {
-			authorized, err := ckAuthorizationHeader(auth)
-			if !authorized || err != nil {
-				goto unauthorzied
-			}
+		uid, err = ckAuthorizationHeader(auth)
+		if uid == "" || err != nil {
+			goto unauthorzied
 		}
+
+		q.Set("uid", uid)
+		req.URL.RawQuery = q.Encode()
+
 		if authorized {
 			fn(w, req)
 			return
