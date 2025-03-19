@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"aiolimas/api"
 	"aiolimas/db"
 	db_types "aiolimas/types"
 )
@@ -22,14 +23,14 @@ func wError(w http.ResponseWriter, status int, format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format, args...)
 }
 
-func handleSearchPath(w http.ResponseWriter, req *http.Request) {
+func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 	query := req.URL.Query().Get("query")
 
 	if query == "" {
 		query = "#"
 	}
 
-	results, err := db.Search3(query)
+	results, err := db.Search3(uid, query)
 	if err != nil {
 		wError(w, 500, "Could not complete search: %s", err.Error())
 		return
@@ -56,35 +57,35 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func handleById(w http.ResponseWriter, req *http.Request, id string) {
+func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) {
 	i, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		wError(w, 400, "Item id is not a valid id")
 		return
 	}
 
-	info, err := db.GetInfoEntryById(i)
+	info, err := db.GetInfoEntryById(uid, i)
 	if err != nil {
 		wError(w, 404, "Item not found")
 		println(err.Error())
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(i)
+	meta, err := db.GetMetadataEntryById(uid, i)
 	if err != nil {
 		wError(w, 500, "Could not retrieve item metadata")
 		println(err.Error())
 		return
 	}
 
-	view, err := db.GetUserViewEntryById(i)
+	view, err := db.GetUserViewEntryById(uid, i)
 	if err != nil {
 		wError(w, 500, "Could not retrieve item viewing info")
 		println(err.Error())
 		return
 	}
 
-	events, err := db.GetEvents(i)
+	events, err := db.GetEvents(uid, i)
 	if err != nil {
 		wError(w, 500, "Could not retrieve item events")
 		println(err.Error())
@@ -146,19 +147,19 @@ func handleById(w http.ResponseWriter, req *http.Request, id string) {
 	w.Write([]byte(text))
 }
 
-func HtmlEndpoint(w http.ResponseWriter, req *http.Request) {
+func HtmlEndpoint(w http.ResponseWriter, req *http.Request, pp api.ParsedParams) {
 	// the first item will be "", ignore it
 	pathArguments := strings.Split(req.URL.Path, "/")[1:]
 
 	switch pathArguments[1] {
 	case "search":
-		handleSearchPath(w, req)
+		handleSearchPath(w, req, pp["uid"].(int64))
 	case "by-id":
 		if len(pathArguments) < 3 || pathArguments[2] == "" {
-			handleSearchPath(w, req)
+			handleSearchPath(w, req, pp["uid"].(int64))
 		} else {
 			id := pathArguments[2]
-			handleById(w, req, id)
+			handleById(w, req, id, pp["uid"].(int64))
 		}
 	case "":
 		http.ServeFile(w, req, "./webservice/dynamic/help.html")

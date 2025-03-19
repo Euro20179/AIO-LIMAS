@@ -19,25 +19,25 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 
 	oldId := userEntry.ItemId
 
-	err := db.MoveUserViewingEntry(&userEntry, libraryEntry.ItemId)
+	err := db.MoveUserViewingEntry(parsedParams["uid"].(int64), &userEntry, libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
 	}
 
-	err = db.ClearUserEventEntries(libraryEntry.ItemId)
+	err = db.ClearUserEventEntries(parsedParams["uid"].(int64), libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to clear event information\n%s", err.Error())
 		return
 	}
 
-	events, err := db.GetEvents(oldId)
+	events, err := db.GetEvents(parsedParams["uid"].(int64), oldId)
 	if err != nil {
 		wError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
 	}
 
-	err = db.MoveUserEventEntries(events, libraryEntry.ItemId)
+	err = db.MoveUserEventEntries(parsedParams["uid"].(int64), events, libraryEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
@@ -58,12 +58,12 @@ func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 
-	if err := db.Begin(timezone, &entry); err != nil {
+	if err := db.Begin(pp["uid"].(int64), timezone, &entry); err != nil {
 		wError(w, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -86,12 +86,12 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	rating := parsedParams["rating"].(float64)
 	entry.UserRating = rating
 
-	if err := db.Finish(timezone, &entry); err != nil {
+	if err := db.Finish(parsedParams["uid"].(int64), timezone, &entry); err != nil {
 		wError(w, 500, "Could not finish media\n%s", err.Error())
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -110,8 +110,8 @@ func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 
-	db.Plan(timezone, &entry)
-	err := db.UpdateUserViewingEntry(&entry)
+	db.Plan(pp["uid"].(int64), timezone, &entry)
+	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -124,8 +124,8 @@ func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	db.Drop(timezone, &entry)
-	err := db.UpdateUserViewingEntry(&entry)
+	db.Drop(pp["uid"].(int64), timezone, &entry)
+	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -143,9 +143,9 @@ func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 
-	db.Pause(timezone, &entry)
+	db.Pause(pp["uid"].(int64), timezone, &entry)
 
-	err := db.UpdateUserViewingEntry(&entry)
+	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -163,8 +163,8 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 		return
 	}
 
-	db.Resume(timezone, &entry)
-	err := db.UpdateUserViewingEntry(&entry)
+	db.Resume(pp["uid"].(int64), timezone, &entry)
+	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
 		wError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -189,13 +189,13 @@ func SetUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 		return
 	}
 
-	err = db.UpdateUserViewingEntry(&user)
+	err = db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
 	if err != nil {
 		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(user.ItemId)
+	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), user.ItemId)
 	if err != nil{
 		wError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -211,6 +211,17 @@ func SetUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	w.Write(outJson)
 }
 
+func outputUserEntry(item db_types.UserViewingEntry, w http.ResponseWriter) error{
+	j, err := item.ToJson()
+	if err != nil {
+		println(err.Error())
+		return err
+	}
+	w.Write(j)
+	w.Write([]byte("\n"))
+	return nil
+}
+
 func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 	w.WriteHeader(200)
 	for items.Next() {
@@ -220,63 +231,42 @@ func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
 			println(err.Error())
 			continue
 		}
-		j, err := row.ToJson()
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
+		outputUserEntry(row, w)
 	}
 	w.Write([]byte("\n"))
 }
 
 func GetUserEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.UserViewingEntry)
-	items, err := db.Db.Query("SELECT * FROM userViewingInfo WHERE itemId = ?;", entry.ItemId)
+	item, err := db.GetUserEntry(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
 		return
 	}
-	defer items.Close()
-	outputUserEntries(items, w)
+	outputUserEntry(item, w)
 }
 
 func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	items, err := db.Db.Query("SELECT * FROM userViewingInfo")
+	items, err := db.AllUserEntries(pp["uid"].(int64))
 	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
-	defer items.Close()
-	outputUserEntries(items, w)
+	for _, item := range items {
+		outputUserEntry(item, w)
+	}
 }
 
 func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
-	events, err := db.Db.Query(`
-		SELECT * from userEventInfo
-		ORDER BY
-			CASE timestamp
-				WHEN 0 THEN
-					userEventInfo.after
-				ELSE timestamp
-			END`)
+	events, err := db.GetEvents(parsedParams["uid"].(int64), -1)
 	if err != nil {
 		wError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
 	}
-	defer events.Close()
 
 	w.WriteHeader(200)
-	for events.Next() {
-		var event db_types.UserViewingEvent
-		err := event.ReadEntry(events)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-
+	for _, event := range events {
 		j, err := event.ToJson()
 		if err != nil {
 			println(err.Error())
@@ -290,7 +280,7 @@ func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedPar
 func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	id := parsedParams["id"].(db_types.InfoEntry)
 
-	events, err := db.GetEvents(id.ItemId)
+	events, err := db.GetEvents(parsedParams["uid"].(int64), id.ItemId)
 	if err != nil {
 		wError(w, 400, "Could not get events\n%s", err.Error())
 		return
@@ -313,7 +303,7 @@ func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	id := parsedParams["id"].(db_types.InfoEntry)
 	timestamp := parsedParams["timestamp"].(int64)
 	after := parsedParams["after"].(int64)
-	err := db.DeleteEvent(id.ItemId, timestamp, after)
+	err := db.DeleteEvent(parsedParams["uid"].(int64), id.ItemId, timestamp, after)
 	if err != nil{
 		wError(w, 500, "Could not delete event\n%s", err.Error())
 		return
@@ -328,7 +318,7 @@ func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams Parsed
 	name := parsedParams["name"].(string)
 	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	err := db.RegisterUserEvent(db_types.UserViewingEvent{
+	err := db.RegisterUserEvent(parsedParams["uid"].(int64), db_types.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),
@@ -350,7 +340,7 @@ func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 	user.CurrentPosition = parsedParams.Get("current-position", user.CurrentPosition).(string)
 	user.Status = parsedParams.Get("status", user.Status).(db_types.Status)
 
-	err := db.UpdateUserViewingEntry(&user)
+	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
 	if err != nil {
 		wError(w, 500, "Could not update user entry\n%s", err.Error())
 		return

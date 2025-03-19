@@ -18,10 +18,20 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-var Db *sql.DB
+func OpenUserDb(uid int64) (*sql.DB, error) {
+	aioPath := os.Getenv("AIO_DIR")
+	path := fmt.Sprintf("%s/users/%d", aioPath, uid)
+	return sql.Open("sqlite3", path)
+}
 
-func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
+func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
+
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
 
 	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
 	if err != nil {
@@ -36,19 +46,19 @@ func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 			println(err.Error())
 			continue
 		}
-		cur.UserInfo, err = GetUserViewEntryById(cur.EntryInfo.ItemId)
+		cur.UserInfo, err = GetUserViewEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			println(err.Error())
 			continue
 		}
 
-		cur.MetaInfo, err = GetMetadataEntryById(cur.EntryInfo.ItemId)
+		cur.MetaInfo, err = GetMetadataEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			println(err.Error())
 			continue
 		}
 
-		children, err := GetChildren(cur.EntryInfo.ItemId)
+		children, err := GetChildren(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			println(err.Error())
 			continue
@@ -58,7 +68,7 @@ func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
 		}
 
-		copies, err := GetCopiesOf(cur.EntryInfo.ItemId)
+		copies, err := GetCopiesOf(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			println(err.Error())
 			continue
@@ -74,8 +84,8 @@ func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 	return out, nil
 }
 
-func Begin(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "Viewing", entry.ItemId)
+func Begin(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Viewing", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -89,8 +99,8 @@ func Begin(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Finish(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "Finished", entry.ItemId)
+func Finish(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Finished", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -101,8 +111,8 @@ func Finish(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Plan(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "Planned", entry.ItemId)
+func Plan(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Planned", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -112,8 +122,8 @@ func Plan(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Resume(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "ReViewing", entry.ItemId)
+func Resume(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "ReViewing", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -122,8 +132,8 @@ func Resume(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Drop(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "Dropped", entry.ItemId)
+func Drop(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Dropped", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -133,8 +143,8 @@ func Drop(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func Pause(timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(timezone, "Paused", entry.ItemId)
+func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Paused", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -144,12 +154,14 @@ func Pause(timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func InitDb(dbPath string) {
-	conn, err := sql.Open("sqlite3", dbPath)
-	sqlite3.Version()
+func InitDb(uid int64) error {
+	conn, err := OpenUserDb(uid)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
+	defer conn.Close()
+
+	sqlite3.Version()
 	// parent is for somethign like a season of a show
 	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS entryInfo (
 			 itemId INTEGER,
@@ -165,7 +177,7 @@ func InitDb(dbPath string) {
 			copyOf INTEGER
 		)`)
 	if err != nil {
-		panic("Failed to create general info table\n" + err.Error())
+		return err
 	}
 	_, err = conn.Exec(`
 		CREATE TABLE IF NOT EXISTS metadata (
@@ -184,7 +196,7 @@ func InitDb(dbPath string) {
 		)
 `)
 	if err != nil {
-		panic("Failed to create metadata table\n" + err.Error())
+		return err
 	}
 
 	_, err = conn.Exec(`
@@ -197,6 +209,10 @@ func InitDb(dbPath string) {
 			currentPosition TEXT
 		)
 	`)
+	if err != nil {
+		return err
+	}
+
 	_, err = conn.Exec(`
 		CREATE TABLE IF NOT EXISTS userEventInfo (
 			itemId INTEGER,
@@ -207,14 +223,20 @@ func InitDb(dbPath string) {
 		)
 	`)
 	if err != nil {
-		panic("Failed to create user status/mal/letterboxd table\n" + err.Error())
+		return err
 	}
 
-	Db = conn
+	return nil
 }
 
-func getById[T db_types.TableRepresentation](id int64, tblName string, out *T) error {
+func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string, out *T) error {
 	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
+
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
 
 	rows, err := Db.Query(query, id)
 	if err != nil {
@@ -238,24 +260,24 @@ func getById[T db_types.TableRepresentation](id int64, tblName string, out *T) e
 	return nil
 }
 
-func GetInfoEntryById(id int64) (db_types.InfoEntry, error) {
+func GetInfoEntryById(uid int64, id int64) (db_types.InfoEntry, error) {
 	var res db_types.InfoEntry
-	return res, getById(id, "entryInfo", &res)
+	return res, getById(uid, id, "entryInfo", &res)
 }
 
-func GetUserViewEntryById(id int64) (db_types.UserViewingEntry, error) {
+func GetUserViewEntryById(uid int64, id int64) (db_types.UserViewingEntry, error) {
 	var res db_types.UserViewingEntry
-	return res, getById(id, "userViewingInfo", &res)
+	return res, getById(uid, id, "userViewingInfo", &res)
 }
 
-func GetUserEventEntryById(id int64) (db_types.UserViewingEvent, error) {
+func GetUserEventEntryById(uid int64, id int64) (db_types.UserViewingEvent, error) {
 	var res db_types.UserViewingEvent
-	return res, getById(id, "userEventInfo", &res)
+	return res, getById(uid, id, "userEventInfo", &res)
 }
 
-func GetMetadataEntryById(id int64) (db_types.MetadataEntry, error) {
+func GetMetadataEntryById(uid int64, id int64) (db_types.MetadataEntry, error) {
 	var res db_types.MetadataEntry
-	return res, getById(id, "metadata", &res)
+	return res, getById(uid, id, "metadata", &res)
 }
 
 func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
@@ -267,9 +289,42 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 	}
 }
 
+func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	items, err := Db.Query("SELECT * FROM metadata")
+	if err != nil {
+		return nil, err
+	}
+
+	var out []db_types.MetadataEntry
+
+	for items.Next() {
+		var row db_types.MetadataEntry
+		err := row.ReadEntry(items)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+// TODO: remove timezone parameter from this function, maybe combine it witih userViewingEntry since that also keeps track of the timezone
 // **WILL ASSIGN THE ENTRYINFO.ID**
-func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
+func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := rand.Int64()
+
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
 
 	entryInfo.ItemId = id
 	metadataEntry.ItemId = id
@@ -305,11 +360,11 @@ func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_
 	}
 
 	if userViewingEntry.Status != db_types.Status("") {
-		err := RegisterUserEvent(db_types.UserViewingEvent{
+		err := RegisterUserEvent(uid, db_types.UserViewingEvent{
 			ItemId:    userViewingEntry.ItemId,
 			Timestamp: uint64(time.Now().UnixMilli()),
 			Event:     string(userViewingEntry.Status),
-			TimeZone: timezone,
+			TimeZone:  timezone,
 			After:     0,
 		})
 		if err != nil {
@@ -317,13 +372,12 @@ func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_
 		}
 	}
 
-	err := RegisterBasicUserEvent(timezone, "Added", metadataEntry.ItemId)
+	err = RegisterBasicUserEvent(uid, timezone, "Added", metadataEntry.ItemId)
 	if err != nil {
 		return err
 	}
-	
 
-	//This should happen after the added event, because well, it was added, this file is a luxury thing
+	// This should happen after the added event, because well, it was added, this file is a luxury thing
 	err = WriteLocationFile(entryInfo)
 	if err != nil {
 		fmt.Printf("Error updating location file: %s\n", err.Error())
@@ -332,36 +386,42 @@ func AddEntry(timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_
 	return nil
 }
 
-func RegisterUserEvent(event db_types.UserViewingEvent) error {
-	_, err := Db.Exec(`
+func RegisterUserEvent(uid int64, event db_types.UserViewingEvent) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	_, err = Db.Exec(`
 		INSERT INTO userEventInfo (itemId, timestamp, event, after, timezone)
 		VALUES (?, ?, ?, ?, ?)
 	`, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
 	return err
 }
 
-func RegisterBasicUserEvent(timezone string, event string, itemId int64) error {
+func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int64) error {
 	var e db_types.UserViewingEvent
 	e.Event = event
 	e.Timestamp = uint64(time.Now().UnixMilli())
 	e.ItemId = itemId
 	e.TimeZone = timezone
-	return RegisterUserEvent(e)
+	return RegisterUserEvent(uid, e)
 }
 
-func UpdateUserViewingEntry(entry *db_types.UserViewingEntry) error {
-	return updateTable(*entry, "userViewingInfo")
+func UpdateUserViewingEntry(uid int64, entry *db_types.UserViewingEntry) error {
+	return updateTable(uid, *entry, "userViewingInfo")
 }
 
-func MoveUserViewingEntry(oldEntry *db_types.UserViewingEntry, newId int64) error {
+func MoveUserViewingEntry(uid int64, oldEntry *db_types.UserViewingEntry, newId int64) error {
 	oldEntry.ItemId = newId
-	return UpdateUserViewingEntry(oldEntry)
+	return UpdateUserViewingEntry(uid, oldEntry)
 }
 
-func MoveUserEventEntries(eventList []db_types.UserViewingEvent, newId int64) error {
+func MoveUserEventEntries(uid int64, eventList []db_types.UserViewingEvent, newId int64) error {
 	for _, e := range eventList {
 		e.ItemId = newId
-		err := RegisterUserEvent(e)
+		err := RegisterUserEvent(uid, e)
 		if err != nil {
 			return err
 		}
@@ -369,8 +429,14 @@ func MoveUserEventEntries(eventList []db_types.UserViewingEvent, newId int64) er
 	return nil
 }
 
-func ClearUserEventEntries(id int64) error {
-	_, err := Db.Exec(`
+func ClearUserEventEntries(uid int64, id int64) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	_, err = Db.Exec(`
 		DELETE FROM userEventInfo
 		WHERE itemId = ?
 	`, id)
@@ -381,7 +447,13 @@ func ClearUserEventEntries(id int64) error {
 	return nil
 }
 
-func updateTable(tblRepr db_types.TableRepresentation, tblName string) error {
+func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	updateStr := `UPDATE ` + tblName + ` SET `
 
 	data := db_types.StructNamesToDict(tblRepr)
@@ -401,7 +473,7 @@ func updateTable(tblRepr db_types.TableRepresentation, tblName string) error {
 	updateStr = updateStr[:len(updateStr)-1]
 	updateStr += "\nWHERE itemId = ?"
 
-	_, err := Db.Exec(updateStr, updateArgs...)
+	_, err = Db.Exec(updateStr, updateArgs...)
 	if err != nil {
 		return err
 	}
@@ -409,16 +481,16 @@ func updateTable(tblRepr db_types.TableRepresentation, tblName string) error {
 	return nil
 }
 
-func UpdateMetadataEntry(entry *db_types.MetadataEntry) error {
+func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 	ensureMetadataJsonNotEmpty(entry)
-	return updateTable(*entry, "metadata")
+	return updateTable(uid, *entry, "metadata")
 }
 
-func WriteLocationFile(entry *db_types.InfoEntry) error{
+func WriteLocationFile(entry *db_types.InfoEntry) error {
 	if settings.Settings.WriteIdFile {
 		location := entry.Location
 		for k, v := range settings.Settings.LocationAliases {
-			location = strings.Replace(location, "${" + k + "}", v, 1)
+			location = strings.Replace(location, "${"+k+"}", v, 1)
 		}
 
 		var aioIdPath string
@@ -440,17 +512,22 @@ func WriteLocationFile(entry *db_types.InfoEntry) error{
 	return nil
 }
 
-func UpdateInfoEntry(entry *db_types.InfoEntry) error {
-
+func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
 	err := WriteLocationFile(entry)
 	if err != nil {
 		fmt.Printf("Error updating location file: %s\n", err.Error())
 	}
 
-	return updateTable(*entry, "entryInfo")
+	return updateTable(uid, *entry, "entryInfo")
 }
 
-func Delete(id int64) error {
+func Delete(uid int64, id int64) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	transact, err := Db.Begin()
 	if err != nil {
 		return err
@@ -577,7 +654,13 @@ func colValToCorrectType(name string, value string) (any, error) {
 	return value, nil
 }
 
-func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
+func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	var out []db_types.InfoEntry
 
 	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
@@ -608,7 +691,13 @@ func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func ListCollections() ([]string, error) {
+func ListCollections(uid int64) ([]string, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	var out []string
 	rows, err := Db.Query(`SELECT en_title FROM entryInfo WHERE type = 'Collection'`)
 	if err != nil {
@@ -625,7 +714,13 @@ func ListCollections() ([]string, error) {
 	return out, nil
 }
 
-func GetCopiesOf(id int64) ([]db_types.InfoEntry, error) {
+func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	var out []db_types.InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo WHERE copyOf = ?", id)
 	if err != nil {
@@ -648,7 +743,13 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func GetChildren(id int64) ([]db_types.InfoEntry, error) {
+func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	var out []db_types.InfoEntry
 	rows, err := Db.Query("SELECT * FROM entryInfo where parentId = ?", id)
 	if err != nil {
@@ -657,8 +758,14 @@ func GetChildren(id int64) ([]db_types.InfoEntry, error) {
 	return mkRows(rows)
 }
 
-func DeleteEvent(id int64, timestamp int64, after int64) error {
-	_, err := Db.Exec(`
+func DeleteEvent(uid int64, id int64, timestamp int64, after int64) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	_, err = Db.Exec(`
 		DELETE FROM userEventInfo
 		WHERE 
 			itemId == ? and timestamp == ? and after == ?
@@ -666,9 +773,20 @@ func DeleteEvent(id int64, timestamp int64, after int64) error {
 	return err
 }
 
-func GetEvents(id int64) ([]db_types.UserViewingEvent, error) {
+// /if id is -1, it lists all events
+func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
 	var out []db_types.UserViewingEvent
-	events, err := Db.Query(`
+
+	var events *sql.Rows
+	//if an id is given
+	if id > -1 {
+		events, err = Db.Query(`
 		SELECT * from userEventInfo
 		WHERE
 			itemId == ?
@@ -678,6 +796,17 @@ func GetEvents(id int64) ([]db_types.UserViewingEvent, error) {
 					userEventInfo.after
 				ELSE timestamp
 			END`, id)
+	//otherweise the caller wants all events
+	} else {
+		events, err = Db.Query(`
+		SELECT * from userEventInfo
+		ORDER BY
+			CASE timestamp
+				WHEN 0 THEN
+					userEventInfo.after
+				ELSE timestamp
+			END`, id)
+	}
 	if err != nil {
 		return out, err
 	}
@@ -696,20 +825,96 @@ func GetEvents(id int64) ([]db_types.UserViewingEvent, error) {
 	return out, nil
 }
 
-func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
+// /sort must be valid sql
+func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	items, err := Db.Query(fmt.Sprintf(`
+		SELECT entryInfo.*
+		FROM
+			entryInfo JOIN userViewingInfo
+		ON
+			entryInfo.itemId = userViewingInfo.itemId
+		ORDER BY %s`, sort))
+	if err != nil {
+		return nil, err
+	}
+
+	var out []db_types.InfoEntry
+
+	for items.Next() {
+		var row db_types.InfoEntry
+		err = row.ReadEntry(items)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	var row db_types.UserViewingEntry
+
+	items, err := Db.Query("SELECT * FROM userViewingInfo WHERE itemId = ?;", itemId)
+	if err != nil {
+		return row, err
+	}
+	items.Next()
+	err = row.ReadEntry(items)
+	return row, err
+}
+
+func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	items, err := Db.Query("SELECT * FROM userViewingInfo")
+	if err != nil {
+		return nil, err
+	}
+
+	var out []db_types.UserViewingEntry
+	for items.Next() {
+		var row db_types.UserViewingEntry
+		err := row.ReadEntry(items)
+		if err != nil {
+			println(err.Error())
+			continue
+		}
+		out = append(out, row)
+	}
+	return out, nil
+}
+
+func getDescendants(uid int64, id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 	if recurse > maxRecurse {
 		return out, nil
 	}
 
-	children, err := GetChildren(id)
+	children, err := GetChildren(uid, id)
 	if err != nil {
 		return out, err
 	}
 
 	for _, item := range children {
 		out = append(out, item)
-		newItems, err := getDescendants(item.ItemId, recurse+1, maxRecurse)
+		newItems, err := getDescendants(uid, item.ItemId, recurse+1, maxRecurse)
 		if err != nil {
 			continue
 		}
@@ -718,6 +923,6 @@ func getDescendants(id int64, recurse uint64, maxRecurse uint64) ([]db_types.Inf
 	return out, nil
 }
 
-func GetDescendants(id int64) ([]db_types.InfoEntry, error) {
-	return getDescendants(id, 0, 10)
+func GetDescendants(uid int64, id int64) ([]db_types.InfoEntry, error) {
+	return getDescendants(uid, id, 0, 10)
 }

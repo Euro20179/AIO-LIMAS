@@ -13,7 +13,7 @@ import (
 func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	mainEntry := pp["id"].(db_types.InfoEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(mainEntry.ItemId)
+	metadataEntry, err := db.GetMetadataEntryById(pp["uid"].(int64), mainEntry.ItemId)
 	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
@@ -30,12 +30,12 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 		return
 	}
 	newMeta.ItemId = mainEntry.ItemId
-	err = db.UpdateMetadataEntry(&newMeta)
+	err = db.UpdateMetadataEntry(pp["uid"].(int64), &newMeta)
 	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
 	}
-	err = db.UpdateInfoEntry(&mainEntry)
+	err = db.UpdateInfoEntry(pp["uid"].(int64), &mainEntry)
 	if err != nil {
 		wError(w, 500, "%s\n", err.Error())
 		return
@@ -73,13 +73,13 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 		return
 	}
 
-	err = db.UpdateMetadataEntry(&meta)
+	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &meta)
 	if err != nil{
 		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(meta.ItemId)
+	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), meta.ItemId)
 	if err != nil{
 		wError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -108,7 +108,7 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 	metadataEntry.MediaDependant = pp.Get("media-dependant", metadataEntry.MediaDependant).(string)
 	metadataEntry.Datapoints = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
-	err := db.UpdateMetadataEntry(&metadataEntry)
+	err := db.UpdateMetadataEntry(pp["uid"].(int64), &metadataEntry)
 	if err != nil{
 		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
@@ -118,23 +118,15 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 }
 
 func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	items, err := db.Db.Query("SELECT * FROM metadata")
+	items, err := db.ListMetadata(pp["uid"].(int64))
 	if err != nil {
 		wError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
 
-	defer items.Close()
-
 	w.WriteHeader(200)
-	for items.Next() {
-		var row db_types.MetadataEntry
-		err := row.ReadEntry(items)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		j, err := row.ToJson()
+	for _, item := range items {
+		j, err := item.ToJson()
 		if err != nil {
 			println(err.Error())
 			continue
@@ -182,7 +174,7 @@ func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedPara
 	}
 
 	data.ItemId = itemToApplyTo.ItemId
-	err = db.UpdateMetadataEntry(&data)
+	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &data)
 	if err != nil {
 		wError(w, 500, "Failed to update metadata\n%s", err.Error())
 		return

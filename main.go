@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"aiolimas/accounts"
 	api "aiolimas/api"
-	db "aiolimas/db"
 	lua_api "aiolimas/lua-api"
 	"aiolimas/settings"
 	"aiolimas/webservice"
@@ -521,6 +521,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:      api.ListFormats,
 		Description:  "Lists the valid values for a Format",
 		GuestAllowed: true,
+		UserIndependant: true,
 	}
 
 	typeTypesApi = api.ApiEndPoint{
@@ -528,6 +529,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:      api.ListTypes,
 		Description:  "Lists the types for a Type",
 		GuestAllowed: true,
+		UserIndependant: true,
 	}
 
 	artStylesApi = api.ApiEndPoint{
@@ -535,6 +537,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:      api.ListArtStyles,
 		Description:  "Lists the types art styles",
 		GuestAllowed: true,
+		UserIndependant: true,
 	}
 	//}}}
 
@@ -544,6 +547,7 @@ var ( // `/engagement` endpoints {{{
 		Handler:      DocHTML,
 		Description:  "The documentation",
 		GuestAllowed: true,
+		UserIndependant: true,
 	}
 	//}}}
 )
@@ -658,7 +662,13 @@ func startServer() {
 
 	makeEndPointsFromList("/docs", docsEndpoints)
 
-	http.HandleFunc("/html", dynamic.HtmlEndpoint)
+	htmlEndpoint :=  api.ApiEndPoint{
+		EndPoint: "html",
+		Handler:  dynamic.HtmlEndpoint,
+		Description:  "Dynamic html endpoints",
+		GuestAllowed: true,
+	}
+	http.HandleFunc("/html", htmlEndpoint.Listener)
 	http.HandleFunc("/", webservice.Root)
 
 	port := os.Getenv("AIO_PORT")
@@ -695,16 +705,13 @@ func main() {
 	aioPath := setupAIODir()
 	setEnvOrPanic("AIO_DIR", aioPath)
 
-	dbPath := fmt.Sprintf("%s/all.db", aioPath)
-	dbPathPtr := flag.String("db-path", dbPath, "Path to the database file")
-
 	initConfig(aioPath)
+
+	accounts.InitAccountsDb(aioPath)
 
 	settings.InitSettingsManager(aioPath)
 
 	flag.Parse()
-
-	db.InitDb(*dbPathPtr)
 
 	inst, err := lua_api.InitGlobalLuaInstance("./lua-extensions/init.lua")
 	if err != nil {
