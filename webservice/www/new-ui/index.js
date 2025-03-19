@@ -759,10 +759,11 @@ function applyClientsideSearchFiltering(entries, filters) {
                 case "a":
                     entries.sort((a, b) => (a.En_Title > b.En_Title ? 1 : -1) * reversed)
                     break;
-                case "e":
+                case "e": {
                     const fn = type.slice(1)
                     entries.sort((a, b) => eval(fn))
                     break
+                }
             }
         } else if (filter.startsWith("filter")) {
             let expr = filter.slice("filter".length).trim()

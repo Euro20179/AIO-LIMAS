@@ -20,10 +20,8 @@ const sidebarObserver = new IntersectionObserver((entries) => {
 function clearSidebar() {
     sidebarQueue.length = 0
     while (sidebarItems.children.length) {
-        try {
+        if(sidebarItems.firstChild?.nodeType === 1) {
             sidebarObserver.unobserve(sidebarItems.firstChild)
-        } catch (err) {
-            console.error(err)
         }
         sidebarItems.firstChild?.remove()
     }
