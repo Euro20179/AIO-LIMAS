@@ -206,7 +206,7 @@ function formatToName(format) {
     let out = ""
     if ((format & DIGI_MOD) === DIGI_MOD) {
         format -= DIGI_MOD
-        out = "+digital"
+        out = " +digital"
     }
     const formats = [
         "VHS",
@@ -227,9 +227,9 @@ function formatToName(format) {
         "IMAGE"
     ]
     if (format >= formats.length) {
-        return `unknown ${out}`
+        return `unknown${out}`
     }
-    return `${formats[format]} ${out}`
+    return `${formats[format]}${out}`
 }
 
 /**
