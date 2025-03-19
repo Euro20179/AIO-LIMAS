@@ -688,23 +688,9 @@ function parseClientsideSearchFiltering(searchForm) {
     // let end = -1
 
     let search = /**@type {string}*/(searchForm.get("search-query"))
-
-    //TODO: make a way for the user to apply filtering after a search is complete
-    //this way the user can say, select everything with `#` then go to a filter such as [:100][Type=Game]
-    //maybe syntax is like #search -> filter
-    //eg: # -> [0:100] -> is Game
-
     let filters;
     [search, ...filters] = search.split("->")
     filters = filters.map(v => v.trim())
-    // let slicematch = search.match(/\[(\d*):(-?\d*)\]/)
-    // if (slicematch) {
-    //     start = +slicematch[1]
-    //     end = +slicematch[2]
-    //     search = search.replace(slicematch[0], "")
-    //
-    //     searchForm.set("search-query", search)
-    // }
 
     let sortBy = /**@type {string}*/(searchForm.get("sort-by"))
 
@@ -757,6 +743,30 @@ function applyClientsideSearchFiltering(entries, filters) {
         if (filter.startsWith("/") && filter.endsWith("/")) {
             let re = new RegExp(filter.slice(1, filter.length - 1))
             entries = entries.filter(v => v.En_Title.match(re))
+        } else if (filter == "shuffle" || filter == "shuf") {
+            entries = entries.sort(() => Math.random() - Math.random())
+        } else if (filter.startsWith("head")) {
+            const n = filter.slice("head".length).trim() || 1
+            entries = entries.slice(0, Number(n))
+        } else if (filter.startsWith("tail")) {
+            const n = filter.slice("tail".length).trim() || 1
+            entries = entries.slice(entries.length - Number(n))
+        } else if (filter.startsWith("sort")) {
+            let type = filter.slice("sort".length).trim() || "a"
+            const reversed = type.startsWith("-") ? -1 : 1
+            if(reversed == -1) type = type.slice(1)
+            switch(type[0]) {
+                case "a":
+                    entries.sort((a, b) => (a.En_Title > b.En_Title ? 1 : -1) * reversed)
+                    break;
+                case "e":
+                    const fn = type.slice(1)
+                    entries.sort((a, b) => eval(fn))
+                    break
+            }
+        } else if (filter.startsWith("filter")) {
+            let expr = filter.slice("filter".length).trim()
+            entries = entries.filter((a) => eval(expr))
         }
     }
 
@@ -775,7 +785,7 @@ async function loadSearch() {
 
     let filters = parseClientsideSearchFiltering(formData)
 
-    let entries = await doQuery3(String(formData.get("search-query")))
+    let entries = await doQuery3(String(filters.newSearch))
 
     entries = applyClientsideSearchFiltering(entries, filters)
 
