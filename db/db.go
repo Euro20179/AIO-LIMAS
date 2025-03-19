@@ -15,27 +15,10 @@ import (
 
 	"aiolimas/types"
 
-	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
 )
 
 var Db *sql.DB
-
-func dbHasCol(db *sql.DB, colName string) bool {
-	info, _ := db.Query("PRAGMA table_info('entryInfo')")
-	defer info.Close()
-	for info.Next() {
-		var id, x, y int
-		var name string
-		var ty string
-		var z string
-		info.Scan(&id, &name, &ty, &x, &z, &y)
-		if name == colName {
-			return true
-		}
-	}
-	return false
-}
 
 func BuildEntryTree() (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
@@ -592,77 +575,6 @@ func colValToCorrectType(name string, value string) (any, error) {
 	}
 
 	return value, nil
-}
-
-func searchData2Query(query *sqlbuilder.SelectBuilder, previousExpr string, searchData SearchData) string {
-	name := searchData.DataName
-	origValue := searchData.DataValue
-	logicType := searchData.LogicType
-
-	if name == "" {
-		panic("Name cannot be empty when turning searchData into query")
-	}
-
-	var coercedValues []any
-	for _, val := range origValue {
-		newVal, err := colValToCorrectType(name, val)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		coercedValues = append(coercedValues, newVal)
-	}
-
-	logicFN := query.And
-	if logicType == LOGIC_OR {
-		logicFN = query.Or
-	}
-
-	exprFn := query.EQ
-
-	switch searchData.Checker {
-	case DATA_GT:
-		exprFn = query.GT
-	case DATA_GE:
-		exprFn = query.GE
-	case DATA_LT:
-		exprFn = query.LT
-	case DATA_LE:
-		exprFn = query.LE
-	case DATA_EQ:
-		exprFn = query.EQ
-	case DATA_NE:
-		exprFn = query.NE
-	case DATA_IN:
-		flattenedValue := []interface{}{
-			coercedValues,
-		}
-		exprFn = func(field string, value interface{}) string {
-			return query.In(name, sqlbuilder.Flatten(flattenedValue)...)
-		}
-	case DATA_NOTIN:
-		flattenedValue := []interface{}{
-			coercedValues,
-		}
-		exprFn = func(field string, value interface{}) string {
-			return query.NotIn(name, sqlbuilder.Flatten(flattenedValue)...)
-		}
-	case DATA_LIKE:
-		exprFn = query.Like
-	case DATA_NOTLIKE:
-		exprFn = query.NotLike
-	}
-
-	newPrevious := exprFn(name, coercedValues[0])
-
-	var newExpr string
-	if previousExpr == "" {
-		newExpr = newPrevious
-	} else {
-		newExpr = logicFN(previousExpr, newPrevious)
-	}
-
-	return newExpr
 }
 
 func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
