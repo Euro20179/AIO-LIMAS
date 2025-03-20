@@ -510,7 +510,6 @@ var ( // `/engagement` endpoints {{{
 	// `/account` endpoints {{{
 	createAccount = api.ApiEndPoint{
 		EndPoint: "create",
-		Method:   api.POST,
 		Handler:  api.CreateAccount,
 		QueryParams: api.QueryParams{
 			"username": api.MkQueryInfo(api.P_NotEmpty, true),

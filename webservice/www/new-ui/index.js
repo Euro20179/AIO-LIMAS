@@ -196,7 +196,6 @@ async function newEntry() {
     await refreshInfo()
 
     clearItems()
-    clearSidebar()
 
     let json = parseJsonL(mkStrItemId(text))
     selectItem(json, mode, true)
