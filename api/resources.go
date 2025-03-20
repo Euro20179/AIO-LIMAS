@@ -3,6 +3,7 @@ package api
 import (
 	"compress/gzip"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -11,8 +12,8 @@ import (
 	"os"
 	"strings"
 
-	"aiolimas/util"
 	"aiolimas/types"
+	"aiolimas/util"
 )
 
 type gzipResponseWriter struct {
@@ -78,8 +79,10 @@ func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp Parsed
 	http.ServeFile(w, req, itemThumbnailPath)
 }
 
-var ThumbnailResource = gzipMiddleman(thumbnailResource)
-var ThumbnailResourceLegacy = gzipMiddleman(thumbnailResourceLegacy)
+var (
+	ThumbnailResource       = gzipMiddleman(thumbnailResource)
+	ThumbnailResourceLegacy = gzipMiddleman(thumbnailResourceLegacy)
+)
 
 func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	item := pp["id"].(db_types.MetadataEntry)
@@ -95,28 +98,42 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	thumbnailPath := fmt.Sprintf("%s/thumbnails", aioPath)
 
-	//FIXME: data uri download
-	// if strings.HasPrefix(thumb, "data:") {
-	// 	_, after, found := strings.Cut(thumb, "base64,")
-	// 	if !found {
-	// 		util.WError(w, 403, "Thumbnail is encoded in base64")
-	// 		return
-	// 	}
-	//
-	// 	data, err := base64.StdEncoding.DecodeString(after)
-	// 	if err != nil {
-	// 		util.WError(w, 500, "Could not decode base64\n%s", err.Error())
-	// 		return
-	// 	}
-	//
-	// 	err = os.WriteFile(itemThumbnailPath, data, 0o644)
-	// 	if err != nil {
-	// 		util.WError(w, 500, "Could not save thumbnail\n%s", err.Error())
-	// 		return
-	// 	}
-	//
-	// 	success(w)
-	// }
+	if strings.HasPrefix(thumb, "data:") {
+		_, after, found := strings.Cut(thumb, "base64,")
+		if !found {
+			util.WError(w, 403, "Thumbnail is encoded in base64")
+			return
+		}
+
+		data, err := base64.StdEncoding.DecodeString(after)
+		if err != nil {
+			util.WError(w, 500, "Could not decode base64\n%s", err.Error())
+			return
+		}
+
+		h := sha1.New()
+		h.Sum(data)
+		shaSum := h.Sum(nil)
+
+		sumHex := hex.EncodeToString(shaSum)
+
+		itemThumbnailPath := fmt.Sprintf("%s/%c/%s", thumbnailPath, sumHex[0], sumHex)
+
+		// path alr exists, no need to write it again
+		if _, err := os.Stat(itemThumbnailPath); err == nil {
+			goto done
+		}
+
+		err = os.WriteFile(itemThumbnailPath, data, 0o644)
+		if err != nil {
+			util.WError(w, 500, "Could not save thumbnail\n%s", err.Error())
+			return
+		}
+
+	done:
+		w.Write([]byte(sumHex))
+		return
+	}
 
 	client := http.Client{}
 	resp, err := client.Get(thumb)
@@ -148,6 +165,12 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	}
 
 	itemThumbnailPath := fmt.Sprintf("%s/%s", thumbnailPath, sumHex)
+
+	// path alr exists, no need to write it again
+	if _, err := os.Stat(itemThumbnailPath); err == nil {
+		w.Write([]byte(sumHex))
+		return
+	}
 
 	file, err := os.OpenFile(itemThumbnailPath, os.O_CREATE|os.O_WRONLY, 0o664)
 	if err != nil {

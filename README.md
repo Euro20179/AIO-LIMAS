@@ -104,3 +104,7 @@ Basic user facing docs can be found at `/usage`
     in the Show table there will be columns relevant to shows
     episode-length episodes, length, airing-status, etc...
     the primary key will be the ItemId
+
+- [ ] refactor `settings.json` instead of having that one global file:
+    there should be a table in accounts.db called like `settigns` or something
+    it contains the same information as `settings.json` but for each user
