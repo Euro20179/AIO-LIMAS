@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"aiolimas/util"
 	db "aiolimas/db"
 	"aiolimas/settings"
 	"aiolimas/types"
@@ -21,25 +22,25 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 
 	err := db.MoveUserViewingEntry(parsedParams["uid"].(int64), &userEntry, libraryEntry.ItemId)
 	if err != nil {
-		wError(w, 500, "Failed to reassociate entry\n%s", err.Error())
+		util.WError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
 	}
 
 	err = db.ClearUserEventEntries(parsedParams["uid"].(int64), libraryEntry.ItemId)
 	if err != nil {
-		wError(w, 500, "Failed to clear event information\n%s", err.Error())
+		util.WError(w, 500, "Failed to clear event information\n%s", err.Error())
 		return
 	}
 
 	events, err := db.GetEvents(parsedParams["uid"].(int64), oldId)
 	if err != nil {
-		wError(w, 500, "Failed to get events for item\n%s", err.Error())
+		util.WError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
 	}
 
 	err = db.MoveUserEventEntries(parsedParams["uid"].(int64), events, libraryEntry.ItemId)
 	if err != nil {
-		wError(w, 500, "Failed to copy events\n%s", err.Error())
+		util.WError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
 	}
 
@@ -59,13 +60,13 @@ func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 
 	if err := db.Begin(pp["uid"].(int64), timezone, &entry); err != nil {
-		wError(w, 500, "Could not begin show\n%s", err.Error())
+		util.WError(w, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
 
 	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -87,13 +88,13 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	entry.UserRating = rating
 
 	if err := db.Finish(parsedParams["uid"].(int64), timezone, &entry); err != nil {
-		wError(w, 500, "Could not finish media\n%s", err.Error())
+		util.WError(w, 500, "Could not finish media\n%s", err.Error())
 		return
 	}
 
 	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -106,14 +107,14 @@ func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanPlan() {
-		wError(w, 400, "%d can not be planned\n", entry.ItemId)
+		util.WError(w, 400, "%d can not be planned\n", entry.ItemId)
 		return
 	}
 
 	db.Plan(pp["uid"].(int64), timezone, &entry)
 	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -127,7 +128,7 @@ func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	db.Drop(pp["uid"].(int64), timezone, &entry)
 	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -139,7 +140,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanPause() {
-		wError(w, 400, "%d cannot be dropped\n", entry.ItemId)
+		util.WError(w, 400, "%d cannot be dropped\n", entry.ItemId)
 		return
 	}
 
@@ -147,7 +148,7 @@ func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -159,14 +160,14 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
 	if !entry.CanResume() {
-		wError(w, 400, "%d cannot be resumed\n", entry.ItemId)
+		util.WError(w, 400, "%d cannot be resumed\n", entry.ItemId)
 		return
 	}
 
 	db.Resume(pp["uid"].(int64), timezone, &entry)
 	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 
@@ -178,32 +179,32 @@ func SetUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 
 	data, err := io.ReadAll(req.Body)
 	if err != nil {
-		wError(w, 500, "Could not read body\n%s", err.Error())
+		util.WError(w, 500, "Could not read body\n%s", err.Error())
 		return
 	}
 
 	var user db_types.UserViewingEntry
 	err = json.Unmarshal(data, &user)
 	if err != nil {
-		wError(w, 400, "Could not parse json\n%s", err.Error())
+		util.WError(w, 400, "Could not parse json\n%s", err.Error())
 		return
 	}
 
 	err = db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
 	if err != nil {
-		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
 	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), user.ItemId)
 	if err != nil{
-		wError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
+		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
 	}
 
 	outJson, err := json.Marshal(entry)
 	if err != nil{
-		wError(w, 500, "Could not marshal new user entry\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal new user entry\n%s", err.Error())
 		return
 	}
 
@@ -250,7 +251,7 @@ func GetUserEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	items, err := db.AllUserEntries(pp["uid"].(int64))
 	if err != nil {
-		wError(w, 500, "Could not fetch data\n%s", err.Error())
+		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
 	for _, item := range items {
@@ -261,7 +262,7 @@ func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
 	events, err := db.GetEvents(parsedParams["uid"].(int64), -1)
 	if err != nil {
-		wError(w, 500, "Could not fetch events\n%s", err.Error())
+		util.WError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
 	}
 
@@ -282,7 +283,7 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 
 	events, err := db.GetEvents(parsedParams["uid"].(int64), id.ItemId)
 	if err != nil {
-		wError(w, 400, "Could not get events\n%s", err.Error())
+		util.WError(w, 400, "Could not get events\n%s", err.Error())
 		return
 	}
 
@@ -305,7 +306,7 @@ func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	after := parsedParams["after"].(int64)
 	err := db.DeleteEvent(parsedParams["uid"].(int64), id.ItemId, timestamp, after)
 	if err != nil{
-		wError(w, 500, "Could not delete event\n%s", err.Error())
+		util.WError(w, 500, "Could not delete event\n%s", err.Error())
 		return
 	}
 	success(w)
@@ -326,7 +327,7 @@ func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams Parsed
 		TimeZone: timezone,
 	})
 	if err != nil{
-		wError(w, 500, "Could not register event\n%s", err.Error())
+		util.WError(w, 500, "Could not register event\n%s", err.Error())
 		return
 	}
 }
@@ -342,7 +343,7 @@ func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedP
 
 	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
 	if err != nil {
-		wError(w, 500, "Could not update user entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update user entry\n%s", err.Error())
 		return
 	}
 

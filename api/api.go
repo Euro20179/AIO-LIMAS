@@ -10,24 +10,17 @@ import (
 	"os"
 	"strconv"
 
+	"aiolimas/util"
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
 	"aiolimas/settings"
 	"aiolimas/types"
 )
 
-func wError(w http.ResponseWriter, status int, format string, args ...any) {
-	w.WriteHeader(status)
-	fmt.Fprintf(w, format, args...)
-
-	//also write to stderr
-	fmt.Fprintf(os.Stderr, format, args...)
-}
-
 func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	collections, err := db.ListCollections(pp["uid"].(int64))
 	if err != nil {
-		wError(w, 500, "Could not get collections\n%s", err.Error())
+		util.WError(w, 500, "Could not get collections\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
@@ -52,37 +45,37 @@ func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams Parse
 
 	events, err := db.GetEvents(parsedParams["uid"].(int64), info.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get events\n%s", err.Error())
+		util.WError(w, 500, "Could not get events\n%s", err.Error())
 		return
 	}
 
 	user, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), info.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get user info\n%s", err.Error())
+		util.WError(w, 500, "Could not get user info\n%s", err.Error())
 		return
 	}
 
 	meta, err := db.GetMetadataEntryById(parsedParams["uid"].(int64), info.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get metadata info\n%s", err.Error())
+		util.WError(w, 500, "Could not get metadata info\n%s", err.Error())
 		return
 	}
 
 	uj, err := user.ToJson()
 	if err != nil {
-		wError(w, 500, "Could not marshal user info\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal user info\n%s", err.Error())
 		return
 	}
 
 	mj, err := meta.ToJson()
 	if err != nil {
-		wError(w, 500, "Could not marshal metadata info\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal metadata info\n%s", err.Error())
 		return
 	}
 
 	ij, err := info.ToJson()
 	if err != nil {
-		wError(w, 500, "Could not marshal main entry info\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal main entry info\n%s", err.Error())
 		return
 	}
 
@@ -105,20 +98,20 @@ func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	data, err := io.ReadAll(req.Body)
 	if err != nil {
-		wError(w, 500, "Could not ready body\n%s", err.Error())
+		util.WError(w, 500, "Could not ready body\n%s", err.Error())
 		return
 	}
 
 	var entry db_types.InfoEntry
 	err = json.Unmarshal(data, &entry)
 	if err != nil {
-		wError(w, 400, "Could not parse json into entry\n%s", err.Error())
+		util.WError(w, 400, "Could not parse json into entry\n%s", err.Error())
 		return
 	}
 
 	err = db.UpdateInfoEntry(parsedParams["uid"].(int64), &entry)
 	if err != nil {
-		wError(w, 500, "Could not update info entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update info entry\n%s", err.Error())
 		return
 	}
 	success(w)
@@ -176,7 +169,7 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	err := db.UpdateInfoEntry(parsedParams["uid"].(int64), &info)
 	if err != nil {
-		wError(w, 500, "Could not update entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
 	success(w)
@@ -260,7 +253,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 		var err error
 		newMeta, err := meta.GetMetadata(&entryInfo, &metadata, providerOverride)
 		if err != nil {
-			wError(w, 500, "Could not get metadata\n%s", err.Error())
+			util.WError(w, 500, "Could not get metadata\n%s", err.Error())
 			return
 		}
 
@@ -278,7 +271,7 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 
 	j, err := entryInfo.ToJson()
 	if err != nil {
-		wError(w, 500, "Could not convert new entry to json\n%s", err.Error())
+		util.WError(w, 500, "Could not convert new entry to json\n%s", err.Error())
 		return
 	}
 
@@ -314,7 +307,7 @@ func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	results, err := db.Search3(pp["uid"].(int64), search)
 	if err != nil {
-		wError(w, 500, "Could not complete search\n%s", err.Error())
+		util.WError(w, 500, "Could not complete search\n%s", err.Error())
 		return
 	}
 
@@ -327,7 +320,7 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	copies, err := db.GetCopiesOf(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get copies of %d\n%s", entry.ItemId, err.Error())
+		util.WError(w, 500, "Could not get copies of %d\n%s", entry.ItemId, err.Error())
 		return
 	}
 	w.WriteHeader(200)
@@ -382,7 +375,7 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	entry := pp["id"].(db_types.InfoEntry)
 	err := db.Delete(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not delete entry\n%s", err.Error())
+		util.WError(w, 500, "Could not delete entry\n%s", err.Error())
 		return
 	}
 	success(w)
@@ -393,7 +386,7 @@ func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	items, err := db.GetDescendants(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get items\n%s", err.Error())
+		util.WError(w, 500, "Could not get items\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
@@ -405,12 +398,12 @@ func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 func GetTree(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	tree, err := db.BuildEntryTree(pp["uid"].(int64), )
 	if err != nil {
-		wError(w, 500, "Could not build tree\n%s", err.Error())
+		util.WError(w, 500, "Could not build tree\n%s", err.Error())
 		return
 	}
 	jStr, err := json.Marshal(tree)
 	if err != nil {
-		wError(w, 500, "Could not marshal tree\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal tree\n%s", err.Error())
 		return
 	}
 
@@ -423,7 +416,7 @@ func TotalCostOf(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	info := pp["id"].(db_types.InfoEntry)
 	desc, err := db.GetDescendants(pp["uid"].(int64), info.ItemId)
 	if err != nil {
-		wError(w, 500, "Could not get descendants\n%s", err.Error())
+		util.WError(w, 500, "Could not get descendants\n%s", err.Error())
 		return
 	}
 

@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"aiolimas/util"
 	"aiolimas/types"
 )
 
@@ -51,7 +52,7 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/%c/%s", aioPath, hash[0], hash)
 
 	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
-		wError(w, 404, "Thumbnail hash does not exist")
+		util.WError(w, 404, "Thumbnail hash does not exist")
 		return
 	}
 
@@ -70,7 +71,7 @@ func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp Parsed
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%s", aioPath, id)
 
 	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
-		wError(w, 404, "Thumbnail hash does not exist")
+		util.WError(w, 404, "Thumbnail hash does not exist")
 		return
 	}
 
@@ -86,7 +87,7 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	thumb := item.Thumbnail
 
 	if thumb == "" {
-		wError(w, 403, "There is no thumbnail for this entry, cannot download it")
+		util.WError(w, 403, "There is no thumbnail for this entry, cannot download it")
 		return
 	}
 
@@ -98,19 +99,19 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	// if strings.HasPrefix(thumb, "data:") {
 	// 	_, after, found := strings.Cut(thumb, "base64,")
 	// 	if !found {
-	// 		wError(w, 403, "Thumbnail is encoded in base64")
+	// 		util.WError(w, 403, "Thumbnail is encoded in base64")
 	// 		return
 	// 	}
 	//
 	// 	data, err := base64.StdEncoding.DecodeString(after)
 	// 	if err != nil {
-	// 		wError(w, 500, "Could not decode base64\n%s", err.Error())
+	// 		util.WError(w, 500, "Could not decode base64\n%s", err.Error())
 	// 		return
 	// 	}
 	//
 	// 	err = os.WriteFile(itemThumbnailPath, data, 0o644)
 	// 	if err != nil {
-	// 		wError(w, 500, "Could not save thumbnail\n%s", err.Error())
+	// 		util.WError(w, 500, "Could not save thumbnail\n%s", err.Error())
 	// 		return
 	// 	}
 	//
@@ -120,7 +121,7 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	client := http.Client{}
 	resp, err := client.Get(thumb)
 	if err != nil {
-		wError(w, 500, "Failed to download thumbnail\n%s", err.Error())
+		util.WError(w, 500, "Failed to download thumbnail\n%s", err.Error())
 		return
 	}
 
@@ -128,7 +129,7 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	out, err := io.ReadAll(resp.Body)
 	if err != nil {
-		wError(w, 500, "Failed to download thumbnail from url\n%s", err.Error())
+		util.WError(w, 500, "Failed to download thumbnail from url\n%s", err.Error())
 		return
 	}
 	h := sha1.New()
@@ -141,7 +142,7 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 	thumbnailPath = fmt.Sprintf("%s/%c", thumbnailPath, sumHex[0])
 
 	if err := os.MkdirAll(thumbnailPath, 0o700); err != nil {
-		wError(w, 500, "Failed to create thumbnail dir")
+		util.WError(w, 500, "Failed to create thumbnail dir")
 		println(err.Error())
 		return
 	}
@@ -150,13 +151,13 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	file, err := os.OpenFile(itemThumbnailPath, os.O_CREATE|os.O_WRONLY, 0o664)
 	if err != nil {
-		wError(w, 500, "Failed to open thumbnail file location\n%s", err.Error())
+		util.WError(w, 500, "Failed to open thumbnail file location\n%s", err.Error())
 		return
 	}
 
 	_, err = file.Write(out)
 	if err != nil {
-		wError(w, 500, "Failed to save thumbnail\n%s", err.Error())
+		util.WError(w, 500, "Failed to save thumbnail\n%s", err.Error())
 		return
 	}
 

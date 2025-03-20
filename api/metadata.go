@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 
+	"aiolimas/util"
 	"aiolimas/db"
 	"aiolimas/metadata"
 	"aiolimas/types"
@@ -15,7 +16,7 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 
 	metadataEntry, err := db.GetMetadataEntryById(pp["uid"].(int64), mainEntry.ItemId)
 	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
+		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
 
@@ -26,18 +27,18 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 
 	newMeta, err := metadata.GetMetadata(&mainEntry, &metadataEntry, providerOverride)
 	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
+		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
 	newMeta.ItemId = mainEntry.ItemId
 	err = db.UpdateMetadataEntry(pp["uid"].(int64), &newMeta)
 	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
+		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
 	err = db.UpdateInfoEntry(pp["uid"].(int64), &mainEntry)
 	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
+		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
 
@@ -49,7 +50,7 @@ func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request, pp Parse
 
 	data, err := json.Marshal(entry)
 	if err != nil {
-		wError(w, 500, "%s\n", err.Error())
+		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
 
@@ -62,32 +63,32 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 
 	data, err := io.ReadAll(req.Body)
 	if err != nil{
-		wError(w, 500, "Could not read body\n%s", err.Error())
+		util.WError(w, 500, "Could not read body\n%s", err.Error())
 		return
 	}
 
 	var meta db_types.MetadataEntry
 	err = json.Unmarshal(data, &meta)
 	if err != nil{
-		wError(w, 400, "Could not parse json\n%s", err.Error())
+		util.WError(w, 400, "Could not parse json\n%s", err.Error())
 		return
 	}
 
 	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &meta)
 	if err != nil{
-		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
 	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), meta.ItemId)
 	if err != nil{
-		wError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
+		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
 	}
 
 	outJson, err := json.Marshal(entry)
 	if err != nil{
-		wError(w, 500, "Could not marshal new user entry\n%s", err.Error())
+		util.WError(w, 500, "Could not marshal new user entry\n%s", err.Error())
 		return
 	}
 
@@ -110,7 +111,7 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 
 	err := db.UpdateMetadataEntry(pp["uid"].(int64), &metadataEntry)
 	if err != nil{
-		wError(w, 500, "Could not update metadata entry\n%s", err.Error())
+		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
@@ -120,7 +121,7 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	items, err := db.ListMetadata(pp["uid"].(int64))
 	if err != nil {
-		wError(w, 500, "Could not fetch data\n%s", err.Error())
+		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
 
@@ -145,7 +146,7 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 
 	infoList, provider, err := metadata.Identify(search, parsedParsms["provider"].(string))
 	if err != nil {
-		wError(w, 500, "Could not identify\n%s", err.Error())
+		util.WError(w, 500, "Could not identify\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
@@ -169,14 +170,14 @@ func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedPara
 
 	data, err := metadata.GetMetadataById(id, provider)
 	if err != nil {
-		wError(w, 500, "Could not get metadata\n%s", err.Error())
+		util.WError(w, 500, "Could not get metadata\n%s", err.Error())
 		return
 	}
 
 	data.ItemId = itemToApplyTo.ItemId
 	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &data)
 	if err != nil {
-		wError(w, 500, "Failed to update metadata\n%s", err.Error())
+		util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
 		return
 	}
 }

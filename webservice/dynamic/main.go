@@ -12,16 +12,8 @@ import (
 	"aiolimas/accounts"
 	"aiolimas/db"
 	db_types "aiolimas/types"
+	"aiolimas/util"
 )
-
-// FIXME: make the codepath for this function and the IDENTICAL function in api/api.go  the same function
-func wError(w http.ResponseWriter, status int, format string, args ...any) {
-	w.WriteHeader(status)
-	fmt.Fprintf(w, format, args...)
-
-	// also write to stderr
-	fmt.Fprintf(os.Stderr, format, args...)
-}
 
 func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 	query := req.URL.Query().Get("query")
@@ -32,7 +24,7 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 
 	results, err := db.Search3(uid, query)
 	if err != nil {
-		wError(w, 500, "Could not complete search: %s", err.Error())
+		util.WError(w, 500, "Could not complete search: %s", err.Error())
 		return
 	}
 
@@ -61,34 +53,34 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) {
 	i, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		wError(w, 400, "Item id is not a valid id")
+		util.WError(w, 400, "Item id is not a valid id")
 		return
 	}
 
 	info, err := db.GetInfoEntryById(uid, i)
 	if err != nil {
-		wError(w, 404, "Item not found")
+		util.WError(w, 404, "Item not found")
 		println(err.Error())
 		return
 	}
 
 	meta, err := db.GetMetadataEntryById(uid, i)
 	if err != nil {
-		wError(w, 500, "Could not retrieve item metadata")
+		util.WError(w, 500, "Could not retrieve item metadata")
 		println(err.Error())
 		return
 	}
 
 	view, err := db.GetUserViewEntryById(uid, i)
 	if err != nil {
-		wError(w, 500, "Could not retrieve item viewing info")
+		util.WError(w, 500, "Could not retrieve item viewing info")
 		println(err.Error())
 		return
 	}
 
 	events, err := db.GetEvents(uid, i)
 	if err != nil {
-		wError(w, 500, "Could not retrieve item events")
+		util.WError(w, 500, "Could not retrieve item events")
 		println(err.Error())
 		return
 	}
@@ -175,7 +167,7 @@ func HtmlEndpoint(w http.ResponseWriter, req *http.Request) {
 		uid := pp.Get("uid")
 		id, err := strconv.ParseInt(uid, 10, 64)
 		if err != nil {
-			wError(w, 400, "Invalid user id")
+			util.WError(w, 400, "Invalid user id")
 			return 0
 		}
 
