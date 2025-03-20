@@ -18,10 +18,14 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-func OpenUserDb(uid int64) (*sql.DB, error) {
+func UserRoot(uid int64) string {
 	aioPath := os.Getenv("AIO_DIR")
-	path := fmt.Sprintf("%s/users/%d/all.db", aioPath, uid)
-	return sql.Open("sqlite3", path)
+	return fmt.Sprintf("%s/users/%d/", aioPath, uid)
+}
+
+func OpenUserDb(uid int64) (*sql.DB, error) {
+	path := UserRoot(uid)
+	return sql.Open("sqlite3", path + "all.db")
 }
 
 func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {

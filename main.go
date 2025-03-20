@@ -532,6 +532,14 @@ var ( // `/engagement` endpoints {{{
 		UserIndependant: true,
 		GuestAllowed: true,
 	}
+
+	accountList = api.ApiEndPoint {
+		EndPoint: "list",
+		Handler: api.ListUsers,
+		Description: "List all users",
+		UserIndependant: true,
+		GuestAllowed:  true,
+	}
 	//}}}
 
 	// `/resource` endpoints {{{
@@ -552,6 +560,7 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
 		Description: "If the id has a remote thumbnail, download it, does not update metadata",
+		UserIndependant: true,
 	}
 	//}}}
 
@@ -668,6 +677,7 @@ var (
 	accountEndPoints = []api.ApiEndPoint{
 		createAccount,
 		accountLogin,
+		accountList,
 	}
 
 	resourceEndpointList = []api.ApiEndPoint{

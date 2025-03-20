@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"aiolimas/accounts"
 )
@@ -33,4 +34,19 @@ func Login(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 
 	success(w)
+}
+
+func ListUsers(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	aioPath := os.Getenv("AIO_DIR")
+	users, err := accounts.ListUsers(aioPath)
+
+	if err != nil{
+		wError(w, 500, "Could not list users")
+		return
+	}
+
+	w.WriteHeader(200)
+	for _, user := range users{
+		fmt.Fprintf(w, "%d:%s\n", user.Id, user.Username)
+	}
 }

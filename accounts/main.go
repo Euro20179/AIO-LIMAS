@@ -12,8 +12,36 @@ import (
 	"aiolimas/db"
 )
 
+type AccountInfo struct {
+	Id int64
+	Username string
+}
+
 func AccountsDbPath(aioPath string) string {
 	return fmt.Sprintf("%s/accounts.db", aioPath)
+}
+
+func ListUsers(aioPath string) ([]AccountInfo, error) {
+	dbPath := AccountsDbPath(aioPath)
+	conn, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer conn.Close()
+
+	res, err := conn.Query("SELECT rowid, username FROM accounts")
+	if err != nil {
+		return nil, err
+	}
+
+	var out []AccountInfo
+	for res.Next() {
+		var acc AccountInfo
+		res.Scan(&acc.Id, &acc.Username)
+		out = append(out, acc)
+	}
+
+	return out, nil
 }
 
 func InitAccountsDb(aioPath string) {
