@@ -376,7 +376,7 @@ function saveItemChanges(root, item) {
 
     const userEn_title = /**@type {HTMLHeadingElement}*/(root.querySelector(".title"))
 
-    if(userEn_title) {
+    if (userEn_title) {
         item.En_Title = userEn_title.innerText
     }
 
@@ -757,8 +757,8 @@ function applyClientsideSearchFiltering(entries, filters) {
         } else if (filter.startsWith("sort")) {
             let type = filter.slice("sort".length).trim() || "a"
             const reversed = type.startsWith("-") ? -1 : 1
-            if(reversed == -1) type = type.slice(1)
-            switch(type[0]) {
+            if (reversed == -1) type = type.slice(1)
+            switch (type[0]) {
                 case "a":
                     entries.sort((a, b) => (a.En_Title > b.En_Title ? 1 : -1) * reversed)
                     break;
@@ -890,6 +890,9 @@ async function remote2LocalThumbService() {
 
         if (!thumbnail) continue
         if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
+
+        //FIXME: this should work, but for some reason just doesn't
+        if(thumbnail.startsWith("data:")) continue
         // if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) {
         //     updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
         //     continue
@@ -897,7 +900,11 @@ async function remote2LocalThumbService() {
 
         console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
-        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}&uid=${uid}`).then(res => res.text()).then(hash => {
+        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}&uid=${uid}`).then(res => {
+            if (res.status !== 200) return ""
+            return res.text()
+        }).then(hash => {
+            if (!hash) return
             console.log(`THUMBNAIL HASH: ${hash}`)
             updateThumbnail(metadata.ItemId, `${apiPath}/resource/get-thumbnail?hash=${hash}`).then(res => res.text()).then(console.log)
         })

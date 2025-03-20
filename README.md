@@ -1,5 +1,10 @@
 # The **A**ll **I**n **O**ne **Li**brary **Ma**gement **S**ystem
 
+> [!NOTE]
+This software is written for me and me foremost, so a lot of things are very how-i-would-do-them.
+The most notable of which is how search works.
+
+
 ### AIO LIMAS For short
 
 ![entries](./readme-assets/entries.png)
