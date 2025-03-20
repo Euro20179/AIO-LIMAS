@@ -731,13 +731,13 @@ func startServer() {
 
 	makeEndPointsFromList("/account", accountEndPoints)
 
-	htmlEndpoint := api.ApiEndPoint{
-		EndPoint:     "html",
-		Handler:      dynamic.HtmlEndpoint,
-		Description:  "Dynamic html endpoints",
-		GuestAllowed: true,
-	}
-	http.HandleFunc("/html", htmlEndpoint.Listener)
+	// htmlEndpoint := api.ApiEndPoint{
+	// 	EndPoint:     "html",
+	// 	Handler:      dynamic.HtmlEndpoint,
+	// 	Description:  "Dynamic html endpoints",
+	// 	GuestAllowed: true,
+	// }
+	http.HandleFunc("/html/", dynamic.HtmlEndpoint)
 	http.HandleFunc("/", webservice.Root)
 
 	port := os.Getenv("AIO_PORT")

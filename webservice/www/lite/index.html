@@ -86,13 +86,11 @@
 
 <body class="grid row" style="grid-template-rows: min-content 1fr;">
     <header style="display: flex; justify-content: center; gap: 2em;">
+        <a href="/html/users">All Users</a>
         <form action="/html/search" method="get" target="item" class="center">
+                <input type="number" name="uid" placeholder="uid">
             <input type="search" name="query" placeholder="search for item">
             <button>search</button>
-        </form>
-
-        <form action="/html/by-id/" method="get" target="item">
-            <button>All</button>
         </form>
     </header>
     <!-- <iframe src="/lite/output.html" id="main-content"> -->

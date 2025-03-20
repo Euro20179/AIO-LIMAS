@@ -56,7 +56,7 @@
         cursor: default;
     }
 
-    a[href*=":"] {
+    a[href] {
         color: var(--light-blue);
         cursor: pointer;
         text-decoration: underline;
