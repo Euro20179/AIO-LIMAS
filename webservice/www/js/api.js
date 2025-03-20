@@ -75,7 +75,6 @@ function mkIntItemId(jsonl) {
 
 /**@param {string} jsonl*/
 function parseJsonL(jsonl) {
-    console.log(jsonl)
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
     try {
         return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
@@ -113,7 +112,6 @@ async function loadList(endpoint) {
 * @param {bigint} newid
 */
 async function copyUserInfo(oldid, newid) {
-    console.log(oldid, newid)
     return await fetch(`${apiPath}/engagement/copy?src-id=${oldid}&dest-id=${newid}`).catch(console.error)
 }
 

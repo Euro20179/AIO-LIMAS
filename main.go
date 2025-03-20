@@ -544,13 +544,26 @@ var ( // `/engagement` endpoints {{{
 
 	// `/resource` endpoints {{{
 	thumbResource = api.ApiEndPoint{
-		EndPoint: "thumbnail",
+		EndPoint: "get-thumbnail",
 		Handler:  api.ThumbnailResource,
 		QueryParams: api.QueryParams{
-			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"hash": api.MkQueryInfo(api.P_NotEmpty, true),
 		},
 		Description:  "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
 		GuestAllowed: true,
+		UserIndependant: true,
+	}
+
+	//this is the legacy one, since the url is hardcoded I can't really change it.
+	thumbResourceLegacy = api.ApiEndPoint{
+		EndPoint: "thumbnail",
+		Handler:  api.ThumbnailResourceLegacy,
+		QueryParams: api.QueryParams{
+			"id": api.MkQueryInfo(api.P_NotEmpty, true),
+		},
+		Description:  "LEGACY, Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
+		GuestAllowed: true,
+		UserIndependant: true,
 	}
 
 	downloadThumb = api.ApiEndPoint{
@@ -560,7 +573,6 @@ var ( // `/engagement` endpoints {{{
 			"id": api.MkQueryInfo(api.P_VerifyIdAndGetMetaEntry, true),
 		},
 		Description: "If the id has a remote thumbnail, download it, does not update metadata",
-		UserIndependant: true,
 	}
 	//}}}
 
@@ -682,6 +694,7 @@ var (
 
 	resourceEndpointList = []api.ApiEndPoint{
 		thumbResource,
+		thumbResourceLegacy,
 		downloadThumb,
 	}
 

@@ -891,16 +891,17 @@ async function remote2LocalThumbService() {
 
         if (!thumbnail) continue
         if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
-        if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) {
-            updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
-            continue
-        }
+        // if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) {
+        //     updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
+        //     continue
+        // }
 
         console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
-        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
-
-        updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`).then(res => res.text()).then(console.log)
+        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}&uid=${uid}`).then(res => res.text()).then(hash => {
+            console.log(`THUMBNAIL HASH: ${hash}`)
+            updateThumbnail(metadata.ItemId, `${apiPath}/resource/get-thumbnail?hash=${hash}`).then(res => res.text()).then(console.log)
+        })
 
         await new Promise(res => setTimeout(res, 200))
 

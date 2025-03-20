@@ -33,7 +33,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 	Db, err := OpenUserDb(uid)
 	if err != nil {
-		panic(err.Error())
+		return out, err
 	}
 	defer Db.Close()
 

@@ -97,3 +97,10 @@ Basic user facing docs can be found at `/usage`
      - if an entry requires more than 1 entry, make a collection containing all the requirements
 - [x] In thee ui, in graph mode, allow the user to write a function of some kind to determine how the grouping will work, isntead of the predetermined year/item name/tags etc...
     - the user's function should return a string for each item indicating which group it's in
+
+- [ ] refactor the json metadata fields into their own tables
+    for example, Shows have json that looks like `{"Show-episode-length": 49}`, etc...
+    instead, have a table for each type, such as a Show table
+    in the Show table there will be columns relevant to shows
+    episode-length episodes, length, airing-status, etc...
+    the primary key will be the ItemId

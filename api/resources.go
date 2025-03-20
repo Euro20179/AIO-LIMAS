@@ -2,7 +2,8 @@ package api
 
 import (
 	"compress/gzip"
-	"encoding/base64"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -39,7 +40,7 @@ func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedPa
 }
 
 func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	item := pp["id"].(db_types.InfoEntry)
+	hash := pp["hash"].(string)
 
 	aioPath := os.Getenv("AIO_DIR")
 	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
@@ -47,10 +48,29 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 		panic("$AIO_DIR should not be empty")
 	}
 
-	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%d", aioPath, item.ItemId)
+	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/%c/%s", aioPath, hash[0], hash)
 
 	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
-		wError(w, 404, "Item does not have a local thumbnail")
+		wError(w, 404, "Thumbnail hash does not exist")
+		return
+	}
+
+	http.ServeFile(w, req, itemThumbnailPath)
+}
+
+func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+	id := pp["id"].(string)
+
+	aioPath := os.Getenv("AIO_DIR")
+	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
+	if aioPath == "" {
+		panic("$AIO_DIR should not be empty")
+	}
+
+	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%s", aioPath, id)
+
+	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
+		wError(w, 404, "Thumbnail hash does not exist")
 		return
 	}
 
@@ -58,6 +78,7 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 }
 
 var ThumbnailResource = gzipMiddleman(thumbnailResource)
+var ThumbnailResourceLegacy = gzipMiddleman(thumbnailResourceLegacy)
 
 func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	item := pp["id"].(db_types.MetadataEntry)
@@ -71,29 +92,30 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	aioPath := os.Getenv("AIO_DIR")
 
-	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%d", aioPath, item.ItemId)
+	thumbnailPath := fmt.Sprintf("%s/thumbnails", aioPath)
 
-	if strings.HasPrefix(thumb, "data:") {
-		_, after, found := strings.Cut(thumb, "base64,")
-		if !found {
-			wError(w, 403, "Thumbnail is encoded in base64")
-			return
-		}
-
-		data, err := base64.StdEncoding.DecodeString(after)
-		if err != nil {
-			wError(w, 500, "Could not decode base64\n%s", err.Error())
-			return
-		}
-
-		err = os.WriteFile(itemThumbnailPath, data, 0o644)
-		if err != nil {
-			wError(w, 500, "Could not save thumbnail\n%s", err.Error())
-			return
-		}
-
-		success(w)
-	}
+	//FIXME: data uri download
+	// if strings.HasPrefix(thumb, "data:") {
+	// 	_, after, found := strings.Cut(thumb, "base64,")
+	// 	if !found {
+	// 		wError(w, 403, "Thumbnail is encoded in base64")
+	// 		return
+	// 	}
+	//
+	// 	data, err := base64.StdEncoding.DecodeString(after)
+	// 	if err != nil {
+	// 		wError(w, 500, "Could not decode base64\n%s", err.Error())
+	// 		return
+	// 	}
+	//
+	// 	err = os.WriteFile(itemThumbnailPath, data, 0o644)
+	// 	if err != nil {
+	// 		wError(w, 500, "Could not save thumbnail\n%s", err.Error())
+	// 		return
+	// 	}
+	//
+	// 	success(w)
+	// }
 
 	client := http.Client{}
 	resp, err := client.Get(thumb)
@@ -104,16 +126,39 @@ func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	defer resp.Body.Close()
 
+	out, err := io.ReadAll(resp.Body)
+	if err != nil {
+		wError(w, 500, "Failed to download thumbnail from url\n%s", err.Error())
+		return
+	}
+	h := sha1.New()
+	h.Sum(out)
+
+	shaSum := h.Sum(nil)
+
+	sumHex := hex.EncodeToString(shaSum)
+
+	thumbnailPath = fmt.Sprintf("%s/%c", thumbnailPath, sumHex[0])
+
+	if err := os.MkdirAll(thumbnailPath, 0o700); err != nil {
+		wError(w, 500, "Failed to create thumbnail dir")
+		println(err.Error())
+		return
+	}
+
+	itemThumbnailPath := fmt.Sprintf("%s/%s", thumbnailPath, sumHex)
+
 	file, err := os.OpenFile(itemThumbnailPath, os.O_CREATE|os.O_WRONLY, 0o664)
 	if err != nil {
 		wError(w, 500, "Failed to open thumbnail file location\n%s", err.Error())
 		return
 	}
 
-	_, err = io.Copy(file, resp.Body)
+	_, err = file.Write(out)
 	if err != nil {
-		wError(w, 500, "Failed to write thumbnail to file\n%s", err.Error())
+		wError(w, 500, "Failed to save thumbnail\n%s", err.Error())
 		return
 	}
-	success(w)
+
+	w.Write([]byte(sumHex))
 }
