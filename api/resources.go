@@ -41,6 +41,15 @@ func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedPa
 	}
 }
 
+func serveThumbnail(w http.ResponseWriter, req *http.Request, path string) {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		util.WError(w, 404, "Thumbnail does not exist")
+		return
+	}
+
+	http.ServeFile(w, req, path)
+}
+
 func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	hash := pp["hash"].(string)
 
@@ -52,12 +61,7 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/%c/%s", aioPath, hash[0], hash)
 
-	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
-		util.WError(w, 404, "Thumbnail hash does not exist")
-		return
-	}
-
-	http.ServeFile(w, req, itemThumbnailPath)
+	serveThumbnail(w, req, itemThumbnailPath)
 }
 
 func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
@@ -71,12 +75,7 @@ func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp Parsed
 
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%s", aioPath, id)
 
-	if _, err := os.Stat(itemThumbnailPath); errors.Is(err, os.ErrNotExist) {
-		util.WError(w, 404, "Thumbnail hash does not exist")
-		return
-	}
-
-	http.ServeFile(w, req, itemThumbnailPath)
+	serveThumbnail(w, req, itemThumbnailPath)
 }
 
 var (
