@@ -39,7 +39,8 @@ function Expand_macro(macro)
         XBOX360      = 12,
         OTHER        = 13,
         VINYL        = 14,
-        IMAGE        = 15
+        IMAGE        = 15,
+        UNOWNED      = 16,
     }
     local F_MOD_DIGITAL = 0x1000
 

@@ -131,6 +131,7 @@ function typeToSymbol(type) {
         "BoardGame": "🎲︎",
         "Picture": "🖼",
         "Meme": "🃏",
+        "Unowned": "X"
     }
     if (type in conversion) {
         //@ts-ignore
@@ -200,7 +201,8 @@ function formatToName(format) {
         "XBOX 360",
         "OTHER",
         "VINYL",
-        "IMAGE"
+        "IMAGE",
+        "UNOWNED"
     ]
     if (format >= formats.length) {
         return `unknown${out}`

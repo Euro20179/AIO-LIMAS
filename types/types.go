@@ -99,6 +99,7 @@ const (
 	F_OTHER      Format = iota // 13
 	F_VINYL      Format = iota // 14
 	F_IMAGE      Format = iota // 15
+	F_UNOWNED    Format = iota // 16
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -121,6 +122,7 @@ func ListFormats() map[Format]string {
 		F_OTHER:       "OTHER",
 		F_VINYL:       "VINYL",
 		F_IMAGE:       "IMAGE",
+		F_UNOWNED:     "UNOWNED",
 		F_MOD_DIGITAL: "MOD_DIGITAL",
 	}
 }
@@ -144,7 +146,7 @@ func IsValidFormat(format int64) bool {
 	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}
-	return format >= int64(F_VHS) && format <= int64(F_IMAGE)
+	return format >= int64(F_VHS) && format <= int64(F_UNOWNED)
 }
 
 type MediaTypes string
