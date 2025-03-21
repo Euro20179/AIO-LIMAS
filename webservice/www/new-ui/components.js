@@ -55,15 +55,6 @@ customElements.define("display-entry", class extends HTMLElement {
 })
 
 customElements.define("sidebar-entry", class extends HTMLElement {
-    /**@type {string[]}*/
-    static observedAttributes = [
-        "data-title",
-        "data-thumbnail-src",
-        "data-cost",
-        "data-user-rating",
-        "data-type",
-        "data-release-year"
-    ]
     constructor() {
         super()
         let template = /**@type {HTMLTemplateElement}*/(document.getElementById("sidebar-entry"))
@@ -72,79 +63,6 @@ customElements.define("sidebar-entry", class extends HTMLElement {
         root.appendChild(content)
         this.root = root
 
-    }
-
-    /**
-     * @param {string} val
-     */
-    ["data-title"](val) {
-        fillElement(this.root, ".title", val)
-        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        imgEl.alt = `${val} thumbnail`
-    }
-
-    /**
-     * @param {string} val
-     */
-    ["data-thumbnail-src"](val) {
-        let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
-        if (imgEl.src === val) return
-        imgEl.src = String(val)
-    }
-
-    /**
-     * @param {string} val
-     */
-    ["data-cost"](val) {
-        fillElement(this.root, ".cost", `$${val}`)
-    }
-
-    /**
-     * @param {string} val
-     */
-    ["data-user-rating"](val) {
-        let ratingA = val
-        if (ratingA) {
-            let rating = Number(ratingA)
-            let ratingE = /**@type {HTMLElement?}*/(this.root.querySelector(".rating"))
-            if (ratingE) {
-                applyUserRating(rating, ratingE)
-                ratingE.innerHTML = ratingA
-            }
-        }
-    }
-
-
-    /**
-     * @param {string} val
-     */
-    ["data-release-year"](val) {
-        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-        title.setAttribute("data-release-year", val)
-    }
-
-    /**
-     * @param {string} val
-     */
-    ["data-type"](val) {
-        let typeIcon = typeToSymbol(String(val))
-        let title = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-        title.setAttribute("data-type-icon", typeIcon)
-    }
-
-    /**
-     * @param {string} name
-     * @param {string} ov
-     * @param {string} nv
-     */
-    attributeChangedCallback(name, ov, nv) {
-        let root = this.shadowRoot
-        if (!root) return
-
-        if (name in this) {
-            //@ts-ignore
-            this[name](nv)
-        }
     }
 })
 

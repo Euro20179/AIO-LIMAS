@@ -20,7 +20,7 @@ const sidebarObserver = new IntersectionObserver((entries) => {
 function clearSidebar() {
     sidebarQueue.length = 0
     while (sidebarItems.children.length) {
-        if(sidebarItems.firstChild?.nodeType === 1) {
+        if (sidebarItems.firstChild?.nodeType === 1) {
             sidebarObserver.unobserve(sidebarItems.firstChild)
         }
         sidebarItems.firstChild?.remove()
@@ -36,7 +36,7 @@ function refreshSidebarItem(item) {
         let user = findUserEntryById(item.ItemId)
         let meta = findMetadataById(item.ItemId)
         if (!user || !meta) return
-        applySidebarAttrs(item, user, meta, el)
+        changeSidebarItemData(item, user, meta, el.shadowRoot)
     } else {
         sidebarObserver.unobserve(el)
         renderSidebarItem(item)
@@ -50,6 +50,35 @@ function refreshSidebarItem(item) {
 function removeSidebarItem(item) {
     sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`)?.remove()
 }
+/**
+ * @param {InfoEntry} item
+ * @param {UserEntry} user
+ * @param {MetadataEntry} meta
+ * @param {ShadowRoot} el
+ */
+function updateSidebarEntryContents(item, user, meta, el) {
+    const titleEl = /**@type {HTMLDivElement}*/(el.querySelector(".title"))
+    const imgEl = /**@type {HTMLImageElement}*/(el.querySelector(".thumbnail"))
+
+    //Title
+    titleEl.innerText = item.En_Title || item.Native_Title
+    titleEl.title = meta.Title
+
+    //Type
+    let typeIcon = typeToSymbol(String(item.Type))
+    titleEl.setAttribute("data-type-icon", typeIcon)
+
+    //Thumbnail
+    if (imgEl.src !== meta.Thumbnail) {
+        imgEl.src = meta.Thumbnail
+    }
+
+    //Release year
+    if (meta.ReleaseYear)
+        titleEl.setAttribute("data-release-year", String(meta.ReleaseYear))
+    else
+        titleEl.setAttribute("data-release-year", "unknown")
+}
 
 /**
  * @param {InfoEntry} item
@@ -57,17 +86,18 @@ function removeSidebarItem(item) {
  * @param {MetadataEntry} meta
  * @param {HTMLElement} el
  */
-function applySidebarAttrs(item, user, meta, el) {
+function changeSidebarItemData(item, user, meta, el) {
+    const e = new CustomEvent("data-changed", {
+        detail: {
+            item,
+            user,
+            meta,
+        }
+    })
+    el.dispatchEvent(e)
     el.setAttribute("data-entry-id", String(item.ItemId))
-    el.setAttribute("data-title", item.En_Title)
-    el.setAttribute("data-type", item.Type)
-
-    meta?.Thumbnail && el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    meta.ReleaseYear && el.setAttribute("data-release-year", String(meta.ReleaseYear))
-    user?.Status && el.setAttribute("data-user-status", user.Status)
-    user.ViewCount > 0 && el.setAttribute("data-user-rating", String(user.UserRating))
-    item.PurchasePrice && el.setAttribute("data-cost", String(Math.round(item.PurchasePrice * 100) / 100))
 }
+
 
 /**
  * @param {InfoEntry} item
@@ -84,8 +114,6 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
     let user = findUserEntryById(item.ItemId)
     if (!user || !meta) return
 
-    applySidebarAttrs(item, user, meta, elem)
-
     sidebarParent.append(elem)
 
     let img = elem.shadowRoot?.querySelector("img")
@@ -98,6 +126,17 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
             selectItem(item, mode)
         })
     }
+
+    elem.addEventListener("data-changed", function(e) {
+        const event = /**@type {CustomEvent}*/(e)
+        const item = /**@type {InfoEntry}*/(event.detail.item)
+        const user = /**@type {UserEntry}*/(event.detail.user)
+        const meta = /**@type {MetadataEntry}*/(event.detail.meta)
+        const events = /**@type {UserEvent[]}*/(event.detail.events)
+        updateSidebarEntryContents(item, user, meta, elem.shadowRoot)
+    })
+
+    changeSidebarItemData(item, user, meta, elem)
 }
 
 /**

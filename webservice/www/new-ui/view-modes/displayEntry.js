@@ -24,29 +24,6 @@ function mkGenericTbl(root, data) {
     html += "</tbody>"
     root.innerHTML = html
 }
-/**
- * @param {number} rating
- * @param {HTMLElement} root
- */
-function applyUserRating(rating, root) {
-    if (rating > 100) {
-        root.classList.add("splus-tier")
-    } else if (rating > 96) {
-        root.classList.add("s-tier")
-    } else if (rating > 87) {
-        root.classList.add("a-tier")
-    } else if (rating > 78) {
-        root.classList.add("b-tier")
-    } else if (rating > 70) {
-        root.classList.add("c-tier")
-    } else if (rating > 65) {
-        root.classList.add("d-tier")
-    } else if (rating > 0) {
-        root.classList.add('f-tier')
-    } else {
-        root.classList.add("z-tier")
-    }
-}
 
 /**
  * @param {IntersectionObserverEntry[]} entries
