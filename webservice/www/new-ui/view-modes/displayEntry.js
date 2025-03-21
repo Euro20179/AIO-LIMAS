@@ -327,6 +327,11 @@ const displayEntryProgress = displayEntryAction(async (item, root) => {
 })
 
 const displayEntryRating = displayEntryAction(item => {
+    let user = findUserEntryById(item.ItemId)
+    if(!user) {
+        alert("Failed to get current rating")
+        return
+    }
     let newRating = prompt("New rating")
     if (!newRating || isNaN(Number(newRating))) {
         return
@@ -339,5 +344,5 @@ const displayEntryRating = displayEntryAction(item => {
             refreshDisplayItem(newItem)
         })
         .catch(console.error)
-    apiRegisterEvent(item.ItemId, "rating-change", Date.now(), 0).catch(console.error)
+    apiRegisterEvent(item.ItemId, `rating-change - ${user?.UserRating} -> ${newRating}`, Date.now(), 0).catch(console.error)
 })
