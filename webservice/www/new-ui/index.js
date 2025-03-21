@@ -531,40 +531,17 @@ function overwriteEntryMetadata(_root, item) {
  * @param {UserEvent[]} events
  * @param {HTMLElement} el
  */
-function applyDisplayAttrs(item, user, meta, events, el) {
-    //this MUST happen before data-true-title
-    //otherwise, the title header will be filled in with the user's title instead of the real one
-    el.setAttribute("data-title", item.En_Title)
+function changeDisplayItemData(item, user, meta, events, el) {
+    const e = new CustomEvent("data-changed", {
+        detail: {
+            item,
+            user,
+            meta,
+            events,
+        }
+    })
+    el.dispatchEvent(e)
     el.setAttribute("data-item-id", String(item.ItemId))
-    el.setAttribute("data-format", String(item.Format))
-    el.setAttribute("data-view-count", String(user.ViewCount))
-    el.setAttribute("data-type", item.Type)
-
-    user.CurrentPosition && el.setAttribute('data-user-current-position', user.CurrentPosition)
-    meta.Thumbnail && el.setAttribute("data-thumbnail-src", meta.Thumbnail)
-    meta.Title && el.setAttribute("data-true-title", meta.Title)
-    meta.Native_Title && el.setAttribute("data-native-title", meta.Native_Title)
-    user.ViewCount > 0 && el.setAttribute("data-user-rating", String(user.UserRating))
-    user.Notes && el.setAttribute('data-user-notes', user.Notes)
-    user.Status && el.setAttribute("data-user-status", user.Status)
-    item.PurchasePrice && el.setAttribute("data-cost", String(item.PurchasePrice))
-    meta.Description && el.setAttribute("data-description", meta.Description)
-    meta?.MediaDependant && el.setAttribute("data-media-dependant", meta.MediaDependant)
-
-    if (events.length) {
-        let eventsStr = events.map(e => `${e.Event}:${e.Timestamp}:${e.After}:${e.TimeZone}`).join(",")
-        el.setAttribute("data-user-events", eventsStr)
-    } else {
-        el.setAttribute("data-user-events", "")
-    }
-
-    if (meta.Rating) {
-        el.setAttribute("data-audience-rating-max", String(meta.RatingMax))
-        el.setAttribute("data-audience-rating", String(meta.Rating))
-    }
-
-    el.setAttribute("data-info-raw", JSON.stringify(item, (_, v) => typeof v === 'bigint' ? v.toString() : v))
-    el.setAttribute("data-meta-info-raw", JSON.stringify(meta, (_, v) => typeof v === 'bigint' ? v.toString() : v))
 }
 
 /**

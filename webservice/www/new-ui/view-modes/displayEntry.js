@@ -4,6 +4,51 @@ const displaying = []
 let displayQueue = []
 
 /**
+ * @param {HTMLElement} root
+ * @param {Record<any, any>} data
+ */
+function mkGenericTbl(root, data) {
+    let html = `
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `
+
+    for (let key in data) {
+        html += `<tr><td>${key}</td><td contenteditable>${data[key]}</td></tr>`
+    }
+    html += "</tbody>"
+    root.innerHTML = html
+}
+/**
+ * @param {number} rating
+ * @param {HTMLElement} root
+ */
+function applyUserRating(rating, root) {
+    if (rating > 100) {
+        root.classList.add("splus-tier")
+    } else if (rating > 96) {
+        root.classList.add("s-tier")
+    } else if (rating > 87) {
+        root.classList.add("a-tier")
+    } else if (rating > 78) {
+        root.classList.add("b-tier")
+    } else if (rating > 70) {
+        root.classList.add("c-tier")
+    } else if (rating > 65) {
+        root.classList.add("d-tier")
+    } else if (rating > 0) {
+        root.classList.add('f-tier')
+    } else {
+        root.classList.add("z-tier")
+    }
+}
+
+/**
  * @param {IntersectionObserverEntry[]} entries
  */
 function onIntersection(entries) {
@@ -158,10 +203,10 @@ function hookActionButtons(shadowRoot, item) {
             if (!reader.result) return
             updateThumbnail(item.ItemId, reader.result.toString())
                 .then(() => {
-                refreshInfo().then(() => {
-                    refreshDisplayItem(item)
+                    refreshInfo().then(() => {
+                        refreshDisplayItem(item)
+                    })
                 })
-            })
         }
     }
     imgEl.onclick = function(e) {
@@ -169,6 +214,191 @@ function hookActionButtons(shadowRoot, item) {
 
         fileUpload.click()
         console.log(fileUpload.value)
+    }
+}
+
+/**
+ * @param {InfoEntry} item
+ * @param {UserEntry} user
+ * @param {MetadataEntry} meta
+ * @param {UserEvent[]} events
+ * @param {ShadowRoot} el
+ */
+function updateDisplayEntryContents(item, user, meta, events, el) {
+    const displayEntryTitle = /**@type {HTMLHeadingElement}*/(el.querySelector(".title"))
+    const displayEntryNativeTitle = /**@type {HTMLHeadingElement}*/(el.querySelector(".official-native-title"))
+    const imgEl = /**@type {HTMLImageElement}*/(el.querySelector(".thumbnail"))
+    const costEl = /**@type {HTMLSpanElement}*/(el.querySelector(".cost"))
+    const descEl = /**@type {HTMLParagraphElement}*/(el.querySelector(".description"))
+    const notesEl = /**@type {HTMLParagraphElement}*/(el.querySelector(".notes"))
+    const ratingEl = /**@type {HTMLSpanElement}*/(el.querySelector(".rating"))
+    const audienceRatingEl = /**@type {HTMLElement}*/(el.querySelector(".audience-rating"))
+    const infoRawTbl = /**@type {HTMLTableElement}*/(el.querySelector(".info-raw"))
+    const metaRawtbl = /**@type {HTMLTableElement}*/(el.querySelector(".meta-info-raw"))
+    const viewCountEl = /**@type {HTMLSpanElement}*/(el.querySelector(".entry-progress .view-count"))
+    const progressEl = /**@type {HTMLProgressElement}*/(el.querySelector(".entry-progress progress"))
+    const captionEl = /**@type {HTMLElement}*/(el.querySelector(".entry-progress figcaption"))
+    const mediaInfoTbl = /**@type {HTMLTableElement}*/(el.querySelector("figure .media-info"))
+    const eventsTbl = /**@type {HTMLTableElement}*/(el.querySelector(".user-actions"))
+
+    //type icon
+    let typeIcon = typeToSymbol(item.Type)
+    displayEntryTitle?.setAttribute("data-type-icon", typeIcon)
+
+
+    //format
+    let formatName = formatToName(item.Format)
+    displayEntryTitle?.setAttribute("data-format-name", formatName)
+
+    //Title
+    displayEntryTitle.innerText = meta.Title || item.En_Title
+    //only set the title of the heading to the user's title if the metadata title exists
+    //otherwise it looks dumb
+    if (meta.Title && item.En_Title) {
+        displayEntryTitle.title = item.En_Title
+    }
+
+    console.log(meta)
+
+    //Native title
+    displayEntryNativeTitle.innerText = meta.Native_Title || item.Native_Title
+    //Same as with the regular title
+    if (meta.Native_Title && item.Native_Title) {
+        displayEntryNativeTitle.title = item.Native_Title
+    }
+
+    //Thumbnail
+    imgEl.alt = meta.Title || item.En_Title
+    imgEl.src = meta.Thumbnail
+
+    //Cost
+    costEl.innerText = `$${item.PurchasePrice}`
+
+    //Description
+    descEl.innerHTML = meta.Description
+
+    //Notes
+    notesEl.innerHTML = user.Notes
+
+    //Rating
+    if (user.UserRating) {
+        applyUserRating(user.UserRating, ratingEl)
+        ratingEl.innerHTML = String(user.UserRating)
+    } else {
+        ratingEl.innerText = "Unrated"
+    }
+
+    //Audience Rating
+    let max = meta.RatingMax
+    if (meta.Rating) {
+        let rating = meta.Rating
+        let normalizedRating = rating
+        if (max !== 0) {
+            normalizedRating = rating / max * 100
+        }
+        applyUserRating(normalizedRating, audienceRatingEl)
+        audienceRatingEl.innerHTML = String(rating)
+    } else if (audienceRatingEl) {
+        audienceRatingEl.innerText = "Unrated"
+    }
+
+    //Info table raw
+    mkGenericTbl(infoRawTbl, item)
+
+    //Meta table raw
+    let data = meta
+    mkGenericTbl(metaRawtbl, data)
+
+    //View count
+    let viewCount = user.ViewCount
+    if (viewCount) {
+        let mediaDependant
+        try {
+            mediaDependant = JSON.parse(data["MediaDependant"])
+        } catch (err) {
+            console.error("Could not parse media dependant meta info json")
+            return
+        }
+        viewCountEl.setAttribute("data-time-spent", String(Number(viewCount) * Number(mediaDependant["Show-length"] || mediaDependant["Movie-length"] || 0) / 60 || "unknown"))
+    }
+
+
+    //Media dependant
+    let type = item.Type
+    type = String(type)
+    let mediaDeptData
+    try {
+        mediaDeptData = JSON.parse(meta.MediaDependant)
+    }
+    catch (err) {
+        console.error("Could not parse json", meta.MediaDependant)
+        return
+    }
+    mkGenericTbl(mediaInfoTbl, mediaDeptData)
+
+    if (mediaDeptData[`${type}-episodes`] && user.Status === "Viewing") {
+        progressEl.max = mediaDeptData[`${type}-episodes`]
+
+        let pos = Number(user.CurrentPosition)
+        progressEl.value = pos
+
+        captionEl.innerText = `${pos}/${progressEl.max}`
+        captionEl.title = `${Math.round(pos / progressEl.max * 1000) / 10}%`
+    }
+
+    //Current position
+    progressEl.title = user.CurrentPosition
+    if (progressEl.max) {
+        progressEl.title = `${user.CurrentPosition}/${progressEl.max}`
+    }
+
+    //Events
+    if (events.length) {
+        let html = `
+            <thead>
+                <tr>
+                    <!-- this nonsense is so that the title lines up with the events -->
+                    <th class="grid column"><button popovertarget="new-event-form">➕︎</button><span style="text-align: center">Event</span></th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+        `
+        for (let event of events) {
+            const ts = event.Timestamp
+            const afterts = event.After
+            const timeZone = event.TimeZone || "UTC"
+            const name = event.Event
+
+            let date = new Date(event.Timestamp)
+            let afterDate = new Date(event.After)
+            let timeTd = ""
+            if (ts !== 0) {
+                let time = date.toLocaleTimeString("en", {timeZone})
+                let dd = date.toLocaleDateString("en", {timeZone})
+                timeTd = `<td title="${time} (${timeZone})">${dd}</td>`
+            } else if(afterts !== 0) {
+                let time = afterDate.toLocaleTimeString("en", {timeZone})
+                let dd = afterDate.toLocaleDateString("en", {timeZone})
+                timeTd = `<td title="${time} (${timeZone})">after: ${dd}</td>`
+            } else {
+                timeTd = `<td title="unknown">unknown</td>`
+            }
+            html += `<tr>
+                        <td>
+                            <div class="grid column">
+                                <button class="delete" onclick="deleteEvent(this, ${ts}, ${afterts})">🗑</button>
+                                ${name}
+                            </div>
+                        </td>
+                            ${timeTd}
+                        </tr>`
+        }
+        html += "</tbody>"
+        eventsTbl.innerHTML = html
+    } else {
+        //there are no events
+        eventsTbl.innerHTML = ""
     }
 }
 
@@ -187,8 +417,6 @@ function renderDisplayItem(item, parent = displayItems) {
     let user = findUserEntryById(item.ItemId)
     let events = findUserEventsById(item.ItemId)
     if (!user || !meta || !events) return
-
-    applyDisplayAttrs(item, user, meta, events, el)
 
 
     parent.append(el)
@@ -230,6 +458,17 @@ function renderDisplayItem(item, parent = displayItems) {
 
     hookActionButtons(root, item)
 
+    el.addEventListener("data-changed", function(e) {
+        const event = /**@type {CustomEvent}*/(e)
+        const item = /**@type {InfoEntry}*/(event.detail.item)
+        const user = /**@type {UserEntry}*/(event.detail.user)
+        const meta = /**@type {MetadataEntry}*/(event.detail.meta)
+        const events = /**@type {UserEvent[]}*/(event.detail.events)
+        updateDisplayEntryContents(item, user, meta, events, el.shadowRoot)
+    })
+
+    changeDisplayItemData(item, user, meta, events, el)
+
     for (let el of root.querySelectorAll("[contenteditable]")) {
         /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
     }
@@ -255,7 +494,7 @@ function refreshDisplayItem(item) {
         let events = findUserEventsById(item.ItemId)
         let meta = findMetadataById(item.ItemId)
         if (!user || !events || !meta) return
-        applyDisplayAttrs(item, user, meta, events, el)
+        changeDisplayItemData(item, user, meta, events, el)
     } else {
         renderDisplayItem(item)
     }
@@ -328,7 +567,7 @@ const displayEntryProgress = displayEntryAction(async (item, root) => {
 
 const displayEntryRating = displayEntryAction(item => {
     let user = findUserEntryById(item.ItemId)
-    if(!user) {
+    if (!user) {
         alert("Failed to get current rating")
         return
     }
