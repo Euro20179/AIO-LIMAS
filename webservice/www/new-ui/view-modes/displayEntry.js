@@ -320,6 +320,7 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
             return
         }
         viewCountEl.setAttribute("data-time-spent", String(Number(viewCount) * Number(mediaDependant["Show-length"] || mediaDependant["Movie-length"] || 0) / 60 || "unknown"))
+        viewCountEl.innerText = String(viewCount)
     }
 
 
