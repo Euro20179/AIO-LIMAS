@@ -64,6 +64,8 @@ function updateSidebarEntryContents(item, user, meta, el) {
     titleEl.innerText = item.En_Title || item.Native_Title
     titleEl.title = meta.Title
 
+    imgEl.alt = "thumbnail"
+
     //Type
     let typeIcon = typeToSymbol(String(item.Type))
     titleEl.setAttribute("data-type-icon", typeIcon)
