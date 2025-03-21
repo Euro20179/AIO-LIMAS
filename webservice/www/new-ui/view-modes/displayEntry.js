@@ -339,4 +339,5 @@ const displayEntryRating = displayEntryAction(item => {
             refreshDisplayItem(newItem)
         })
         .catch(console.error)
+    apiRegisterEvent(item.ItemId, "rating-change", Date.now(), 0).catch(console.error)
 })
