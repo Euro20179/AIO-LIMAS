@@ -532,6 +532,8 @@ function overwriteEntryMetadata(_root, item) {
  * @param {HTMLElement} el
  */
 function applyDisplayAttrs(item, user, meta, events, el) {
+    //this MUST happen before data-true-title
+    //otherwise, the title header will be filled in with the user's title instead of the real one
     el.setAttribute("data-title", item.En_Title)
     el.setAttribute("data-item-id", String(item.ItemId))
     el.setAttribute("data-format", String(item.Format))

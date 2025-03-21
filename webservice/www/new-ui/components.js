@@ -48,6 +48,7 @@ customElements.define("display-entry", class extends HTMLElement {
         "data-type",
         "data-format",
         "data-title",
+        "data-true-title",
         "data-thumbnail-src",
         "data-cost",
         "data-description",
@@ -134,9 +135,21 @@ customElements.define("display-entry", class extends HTMLElement {
      */
     ["data-title"](val) {
         fillElement(this.root, ".title", val)
+        let elem = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
+        if (!elem) {
+            return
+        }
+        elem.title = val
 
         let imgEl = /**@type {HTMLImageElement}*/(this.root.querySelector(".thumbnail"))
         imgEl.alt = val
+    }
+
+    /**
+     * @param {string} val
+     */
+    ["data-true-title"](val) {
+        fillElement(this.root, ".title", val)
     }
 
     /**
@@ -172,8 +185,7 @@ customElements.define("display-entry", class extends HTMLElement {
      * @param {string} val
      */
     ["data-native-title"](val) {
-        let el = /**@type {HTMLElement}*/(this.root.querySelector(".title"))
-        el.title = val
+        fillElement(this.root, ".official-native-title", val)
     }
 
     /**

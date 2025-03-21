@@ -210,8 +210,12 @@ div:has(> .close) {
     /* } */
 }
 
-.title {
+hgroup {
     clear: left;
+
+    > * {
+        text-wrap: balance;
+    }
 }
 
 .title::after {
