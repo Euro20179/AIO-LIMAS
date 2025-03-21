@@ -31,6 +31,16 @@
         }
     }
 
+    #help-link {
+        text-align: center;
+        display: block;
+        align-content: center;
+        border: 1px dashed;
+        padding: 0 1ch;
+        margin: 0 1ch;
+        cursor: help;
+    }
+
     #gallery-items img {
         width: 50cqb;
     }
