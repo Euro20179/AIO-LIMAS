@@ -192,8 +192,8 @@ func InitDb(uid int64) error {
 			thumbnail TEXT,
 			mediaDependant TEXT,
 			dataPoints TEXT,
-			native_title TEXT,
 			title TEXT,
+			native_title TEXT,
 			ratingMax NUMERIC,
 			provider TEXT,
 			providerID TEXT
