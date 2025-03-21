@@ -177,8 +177,8 @@ func InitDb(uid int64) error {
 			 collection TEXT,
 			 type TEXT,
 			 parentId INTEGER,
-			 artStyle INTEGER,
-			copyOf INTEGER
+			copyOf INTEGER,
+			artStyle INTEGER
 		)`)
 	if err != nil {
 		return err
