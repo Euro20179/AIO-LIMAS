@@ -314,6 +314,8 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
     }
     mkGenericTbl(mediaInfoTbl, mediaDeptData)
 
+
+    el.host.setAttribute("data-user-status", user.Status)
     if (mediaDeptData[`${type}-episodes`] && user.Status === "Viewing") {
         progressEl.max = mediaDeptData[`${type}-episodes`]
 
