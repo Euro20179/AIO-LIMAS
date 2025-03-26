@@ -462,6 +462,7 @@ function renderDisplayItem(item, parent = displayItems) {
     KEY_TREE.add(["a", "f"], finishBtn.click.bind(finishBtn))
     KEY_TREE.add(["a", "p"], planBtn.click.bind(planBtn))
     KEY_TREE.add(["a", "b"], startBtn.click.bind(startBtn))
+    KEY_TREE.add(["a", "s"], startBtn.click.bind(startBtn))
     KEY_TREE.add(["a", "d"], dropBtn.click.bind(dropBtn))
     KEY_TREE.add(["a", "P"], pauseBtn.click.bind(pauseBtn))
     KEY_TREE.add(["a", "r"], resumeBtn.click.bind(resumeBtn))
