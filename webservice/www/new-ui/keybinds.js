@@ -130,6 +130,11 @@ const searchBar = /**@type {HTMLInputElement} */(document.querySelector("[name=\
 
 let KEY_TREE = new KeyTree("", nop)
 KEY_TREE.add(["g", "i"], searchBar.focus.bind(searchBar))
+KEY_TREE.add(["Escape"], () => {
+    if(document.activeElement?.tagName === "INPUT") {
+        document.activeElement.blur()
+    }
+})
 
 const ks = new KeyState(KEY_TREE)
 
@@ -145,7 +150,7 @@ document.addEventListener("keydown", e => {
     //if the user is interacting with input elements, just let them do their thing
     //if it's a modifier we should drop it
     //TODO: add some way for the keystate to keep track of modifiers
-    if (document.activeElement?.tagName === "INPUT" || isModifier(e.key)) {
+    if ((e.key !== "Escape" && document.activeElement?.tagName === "INPUT") || isModifier(e.key)) {
         return
     }
     if (ks.applyKey(e.key)) {
