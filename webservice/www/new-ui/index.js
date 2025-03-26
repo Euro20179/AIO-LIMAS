@@ -871,7 +871,7 @@ async function remote2LocalThumbService() {
         if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
 
         //FIXME: this should work, but for some reason just doesn't
-        if(thumbnail.startsWith("data:")) continue
+        if (thumbnail.startsWith("data:")) continue
         // if (thumbnail.startsWith(`${location.origin}${apiPath}/resource/thumbnail`)) {
         //     updateThumbnail(metadata.ItemId, `${apiPath}/resource/thumbnail?id=${metadata.ItemId}`)
         //     continue

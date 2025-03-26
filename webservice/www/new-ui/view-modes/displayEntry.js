@@ -452,6 +452,19 @@ function renderDisplayItem(item, parent = displayItems) {
     for (let el of root.querySelectorAll("[contenteditable]")) {
         /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
     }
+
+    const finishBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Finish\"]"))
+    const planBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Plan\"]"))
+    const startBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Begin\"]"))
+    const dropBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Drop\"]"))
+    const pauseBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Pause\"]"))
+    const resumeBtn = /**@type {HTMLButtonElement}*/ (root.querySelector("[data-action=\"Resume\"]"))
+    KEY_TREE.add(["a", "f"], finishBtn.click.bind(finishBtn))
+    KEY_TREE.add(["a", "p"], planBtn.click.bind(planBtn))
+    KEY_TREE.add(["a", "b"], startBtn.click.bind(startBtn))
+    KEY_TREE.add(["a", "d"], dropBtn.click.bind(dropBtn))
+    KEY_TREE.add(["a", "P"], pauseBtn.click.bind(pauseBtn))
+    KEY_TREE.add(["a", "r"], resumeBtn.click.bind(resumeBtn))
 }
 
 /**
