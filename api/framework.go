@@ -88,7 +88,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method != string(method) {
 		w.WriteHeader(401)
-		fmt.Fprintf(w, "Invalid method: %s", method)
+		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, method)
 		return
 	}
 
