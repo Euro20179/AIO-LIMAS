@@ -127,6 +127,7 @@ class KeyState {
 }
 
 const searchBar = /**@type {HTMLInputElement} */(document.querySelector("[name=\"search-query\"]"))
+const newEntryButton = /**@type {HTMLInputElement} */(document.getElementById("new-entry-button"))
 
 let KEY_TREE = new KeyTree("", nop)
 KEY_TREE.add(["g", "i"], searchBar.focus.bind(searchBar))
@@ -135,6 +136,8 @@ KEY_TREE.add(["Escape"], () => {
         document.activeElement.blur()
     }
 })
+
+KEY_TREE.add(["n"], newEntryButton.click.bind(newEntryButton))
 
 const ks = new KeyState(KEY_TREE)
 

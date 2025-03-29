@@ -128,7 +128,7 @@
 
         border-bottom: 2px solid var(--secondary);
 
-        #new-entry {
+        #new-entry-button {
             @container (width < 70ch) {
                 justify-self: center;
                 width: 100%;
