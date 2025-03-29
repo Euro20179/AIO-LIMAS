@@ -27,6 +27,14 @@ type QueryParamInfo struct {
 	Required bool
 }
 
+type RequestContext struct {
+	Uid int64
+	Req *http.Request
+	W http.ResponseWriter
+	Authorized bool
+	PP ParsedParams
+}
+
 func MkQueryInfo(parser Parser, required bool) QueryParamInfo {
 	return QueryParamInfo{
 		Parser: parser, Required: required,
@@ -50,7 +58,7 @@ const (
 )
 
 type ApiEndPoint struct {
-	Handler        func(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
+	Handler        func(ctx RequestContext)
 	EndPoint       string
 	QueryParams    QueryParams
 	Method         Method
@@ -81,13 +89,17 @@ func (self *ApiEndPoint) GenerateDocHTML() string {
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	parsedParams := ParsedParams{}
 
+	ctx := RequestContext{}
+	ctx.Req = req
+	ctx.W = w
+
 	method := self.Method
 	if method == "" {
 		method = "GET"
 	}
 
 	if req.Method != string(method) {
-		w.WriteHeader(401)
+		w.WriteHeader(405)
 		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, method)
 		return
 	}
@@ -138,7 +150,9 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		parsedParams[name] = val
 	}
 
-	self.Handler(w, req, parsedParams)
+	ctx.PP = parsedParams
+
+	self.Handler(ctx)
 }
 
 func P_Int64(uid int64, in string) (any, error) {

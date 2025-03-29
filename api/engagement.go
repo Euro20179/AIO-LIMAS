@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +13,9 @@ import (
 	"aiolimas/types"
 )
 
-func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func CopyUserViewingEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	userEntry := parsedParams["src-id"].(db_types.UserViewingEntry)
 	libraryEntry := parsedParams["dest-id"].(db_types.InfoEntry)
 
@@ -48,7 +49,9 @@ func CopyUserViewingEntry(w http.ResponseWriter, req *http.Request, parsedParams
 }
 
 // engagement endpoints
-func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func BeginMedia(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
@@ -74,7 +77,9 @@ func BeginMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	fmt.Fprintf(w, "%d started\n", entry.ItemId)
 }
 
-func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func FinishMedia(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	entry := parsedParams["id"].(db_types.UserViewingEntry)
 	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
@@ -102,7 +107,9 @@ func FinishMedia(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	fmt.Fprintf(w, "%d finished\n", entry.ItemId)
 }
 
-func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func PlanMedia(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
@@ -121,7 +128,9 @@ func PlanMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func DropMedia(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
@@ -135,7 +144,9 @@ func DropMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func PauseMedia(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
@@ -155,7 +166,9 @@ func PauseMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ResumeMedia(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
@@ -174,7 +187,10 @@ func ResumeMedia(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func SetUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func SetUserEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+	req := ctx.Req
 	defer req.Body.Close()
 
 	data, err := io.ReadAll(req.Body)
@@ -223,21 +239,9 @@ func outputUserEntry(item db_types.UserViewingEntry, w http.ResponseWriter) erro
 	return nil
 }
 
-func outputUserEntries(items *sql.Rows, w http.ResponseWriter) {
-	w.WriteHeader(200)
-	for items.Next() {
-		var row db_types.UserViewingEntry
-		err := row.ReadEntry(items)
-		if err != nil {
-			println(err.Error())
-			continue
-		}
-		outputUserEntry(row, w)
-	}
-	w.Write([]byte("\n"))
-}
-
-func GetUserEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func GetUserEntry(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 	item, err := db.GetUserEntry(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
@@ -248,7 +252,9 @@ func GetUserEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	outputUserEntry(item, w)
 }
 
-func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func UserEntries(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	items, err := db.AllUserEntries(pp["uid"].(int64))
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
@@ -259,7 +265,9 @@ func UserEntries(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	}
 }
 
-func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func ListEvents(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	events, err := db.GetEvents(parsedParams["uid"].(int64), -1)
 	if err != nil {
 		util.WError(w, 500, "Could not fetch events\n%s", err.Error())
@@ -278,7 +286,9 @@ func ListEvents(w http.ResponseWriter, req *http.Request, parsedParams ParsedPar
 	}
 }
 
-func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func GetEventsOf(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 
 	events, err := db.GetEvents(parsedParams["uid"].(int64), id.ItemId)
@@ -300,7 +310,9 @@ func GetEventsOf(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	}
 }
 
-func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func DeleteEvent(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 	timestamp := parsedParams["timestamp"].(int64)
 	after := parsedParams["after"].(int64)
@@ -312,7 +324,9 @@ func DeleteEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	success(w)
 }
 
-func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func RegisterEvent(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
@@ -332,7 +346,9 @@ func RegisterEvent(w http.ResponseWriter, req *http.Request, parsedParams Parsed
 	}
 }
 
-func ModUserEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func ModUserEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	user := parsedParams["id"].(db_types.UserViewingEntry)
 
 	user.Notes = parsedParams.Get("notes", user.Notes).(string)

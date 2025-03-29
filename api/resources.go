@@ -25,8 +25,12 @@ func (self gzipResponseWriter) Write(b []byte) (int, error) {
 	return self.Writer.Write(b)
 }
 
-func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedParams)) func(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	return func(w http.ResponseWriter, r *http.Request, pp ParsedParams) {
+func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedParams)) func(ctx RequestContext) {
+	return func(ctx RequestContext) {
+		r := ctx.Req
+		w := ctx.W
+		pp := ctx.PP
+
 		var gz *gzip.Writer
 
 		acceptedEncoding := r.Header.Get("Accept-Encoding")
@@ -83,7 +87,10 @@ var (
 	ThumbnailResourceLegacy = gzipMiddleman(thumbnailResourceLegacy)
 )
 
-func DownloadThumbnail(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func DownloadThumbnail(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
+
 	item := pp["id"].(db_types.MetadataEntry)
 
 	thumb := item.Thumbnail

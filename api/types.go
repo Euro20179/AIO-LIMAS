@@ -2,13 +2,13 @@ package api
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"aiolimas/util"
 	"aiolimas/types"
 )
 
-func ListFormats(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListFormats(ctx RequestContext) {
+	w := ctx.W
 	text, err := json.Marshal(db_types.ListFormats())
 	if err != nil{
 		util.WError(w, 500, "Could not encode formats\n%s", err.Error())
@@ -19,7 +19,8 @@ func ListFormats(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	w.Write(text)
 }
 
-func ListTypes(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListTypes(ctx RequestContext) {
+	w := ctx.W
 	text, err := json.Marshal(db_types.ListMediaTypes())
 	if err != nil{
 		util.WError(w, 500, "Could not encode types\n%s", err.Error())
@@ -30,7 +31,8 @@ func ListTypes(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	w.Write(text)
 }
 
-func ListArtStyles(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListArtStyles(ctx RequestContext) {
+	w := ctx.W
 	text, err := json.Marshal(db_types.ListArtStyles())
 	if err != nil{
 		util.WError(w, 500, "Could not encode artstyles\n%s", err.Error())

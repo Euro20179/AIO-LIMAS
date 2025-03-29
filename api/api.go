@@ -17,7 +17,9 @@ import (
 	"aiolimas/types"
 )
 
-func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListCollections(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	collections, err := db.ListCollections(pp["uid"].(int64))
 	if err != nil {
 		util.WError(w, 500, "Could not get collections\n%s", err.Error())
@@ -29,7 +31,7 @@ func ListCollections(w http.ResponseWriter, req *http.Request, pp ParsedParams) 
 	}
 }
 
-func DownloadDB(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func DownloadDB(ctx RequestContext) {
 	dir := os.Getenv("AIO_DIR")
 	if dir == "" {
 		panic("$AIO_DIR should not be empty")
@@ -37,10 +39,13 @@ func DownloadDB(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 
 	dbPath := fmt.Sprintf("%s/all.db", dir)
 
-	http.ServeFile(w, req, dbPath)
+	http.ServeFile(ctx.W, ctx.Req, dbPath)
 }
 
-func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func GetAllForEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+
 	info := parsedParams["id"].(db_types.InfoEntry)
 
 	events, err := db.GetEvents(parsedParams["uid"].(int64), info.ItemId)
@@ -93,7 +98,11 @@ func GetAllForEntry(w http.ResponseWriter, req *http.Request, parsedParams Parse
 	writeSQLRowResults(w, events)
 }
 
-func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func SetEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+	req := ctx.Req
+
 	defer req.Body.Close()
 
 	data, err := io.ReadAll(req.Body)
@@ -117,7 +126,9 @@ func SetEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 	success(w)
 }
 
-func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func ModEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	info := parsedParams["id"].(db_types.InfoEntry)
 
 	title, exists := parsedParams["en-title"].(string)
@@ -176,7 +187,9 @@ func ModEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 }
 
 // lets the user add an item in their library
-func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func AddEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	title := parsedParams["title"].(string)
 
 	priceNum := parsedParams.Get("price", 0.0).(float64)
@@ -280,7 +293,9 @@ func AddEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParam
 }
 
 // simply will list all entries as a json from the entryInfo table
-func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func ListEntries(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	sortBy, _ := parsedParams.Get("sort-by", "userRating").(string)
 	entries, err := db.ListEntries(parsedParams["uid"].(int64), sortBy)
 	if err != nil {
@@ -302,7 +317,9 @@ func ListEntries(w http.ResponseWriter, req *http.Request, parsedParams ParsedPa
 	w.Write([]byte("\n"))
 }
 
-func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func QueryEntries3(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	search := pp["search"].(string)
 
 	results, err := db.Search3(pp["uid"].(int64), search)
@@ -315,7 +332,9 @@ func QueryEntries3(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	writeSQLRowResults(w, results)
 }
 
-func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func GetCopies(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
 	copies, err := db.GetCopiesOf(pp["uid"].(int64), entry.ItemId)
@@ -327,7 +346,10 @@ func GetCopies(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	writeSQLRowResults(w, copies)
 }
 
-func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func Stream(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+	req := ctx.Req
 	entry := parsedParams["id"].(db_types.InfoEntry)
 	subFile := parsedParams.Get("subfile", "").(string)
 
@@ -371,7 +393,9 @@ func Stream(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams)
 	}
 }
 
-func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func DeleteEntry(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 	err := db.Delete(pp["uid"].(int64), entry.ItemId)
 	if err != nil {
@@ -381,7 +405,9 @@ func DeleteEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func GetDescendants(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
 	items, err := db.GetDescendants(pp["uid"].(int64), entry.ItemId)
@@ -395,7 +421,9 @@ func GetDescendants(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	w.Write([]byte("\n"))
 }
 
-func GetTree(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func GetTree(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	tree, err := db.BuildEntryTree(pp["uid"].(int64), )
 	if err != nil {
 		util.WError(w, 500, "Could not build tree\n%s", err.Error())
@@ -412,7 +440,9 @@ func GetTree(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 }
 
 // TODO: allow this to accept multiple ids
-func TotalCostOf(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func TotalCostOf(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	info := pp["id"].(db_types.InfoEntry)
 	desc, err := db.GetDescendants(pp["uid"].(int64), info.ItemId)
 	if err != nil {

@@ -20,3 +20,8 @@ func WError(w http.ResponseWriter, status int, format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format, args...)
 }
 
+func Assert(condition bool, failFmt string, args... string) {
+	if (!condition) {
+		panic(fmt.Sprintf(failFmt, args))
+	}
+}

@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 
 	"aiolimas/util"
 	"aiolimas/db"
@@ -11,7 +10,10 @@ import (
 	"aiolimas/types"
 )
 
-func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func FetchMetadataForEntry(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
+	req := ctx.Req
 	mainEntry := pp["id"].(db_types.InfoEntry)
 
 	metadataEntry, err := db.GetMetadataEntryById(pp["uid"].(int64), mainEntry.ItemId)
@@ -45,7 +47,9 @@ func FetchMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedPa
 	success(w)
 }
 
-func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func RetrieveMetadataForEntry(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	entry := pp["id"].(db_types.MetadataEntry)
 
 	data, err := json.Marshal(entry)
@@ -58,7 +62,10 @@ func RetrieveMetadataForEntry(w http.ResponseWriter, req *http.Request, pp Parse
 	w.Write(data)
 }
 
-func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func SetMetadataEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+	req := ctx.Req
 	defer req.Body.Close()
 
 	data, err := io.ReadAll(req.Body)
@@ -96,7 +103,9 @@ func SetMetadataEntry(w http.ResponseWriter, req *http.Request, parsedParams Par
 	w.Write(outJson)
 }
 
-func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ModMetadataEntry(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	metadataEntry := pp["id"].(db_types.MetadataEntry)
 
 	metadataEntry.Rating = pp.Get("rating", metadataEntry.Rating).(float64)
@@ -118,7 +127,9 @@ func ModMetadataEntry(w http.ResponseWriter, req *http.Request, pp ParsedParams)
 	success(w)
 }
 
-func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListMetadata(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	items, err := db.ListMetadata(pp["uid"].(int64))
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
@@ -138,7 +149,10 @@ func ListMetadata(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	w.Write([]byte("\n"))
 }
 
-func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms ParsedParams) {
+func IdentifyWithSearch(ctx RequestContext) {
+	parsedParsms := ctx.PP
+	w := ctx.W
+
 	title := parsedParsms["title"].(string)
 	search := metadata.IdentifyMetadata{
 		Title: title,
@@ -163,7 +177,9 @@ func IdentifyWithSearch(w http.ResponseWriter, req *http.Request, parsedParsms P
 	}
 }
 
-func FinalizeIdentification(w http.ResponseWriter, req *http.Request, parsedParams ParsedParams) {
+func FinalizeIdentification(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
 	itemToApplyTo := parsedParams["apply-to"].(db_types.MetadataEntry)
 	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)

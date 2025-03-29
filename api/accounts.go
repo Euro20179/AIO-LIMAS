@@ -2,14 +2,15 @@ package api
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"aiolimas/util"
 	"aiolimas/accounts"
 )
 
-func CreateAccount(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func CreateAccount(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	err := accounts.CreateAccount(pp["username"].(string), pp["password"].(string))
 	if err != nil {
 		fmt.Printf("/account/create %s", err.Error())
@@ -20,7 +21,9 @@ func CreateAccount(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func Login(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func Login(ctx RequestContext) {
+	pp := ctx.PP
+	w := ctx.W
 	username := pp.Get("username", "").(string)
 	password := pp.Get("password", "").(string)
 	if username == "" || password == "" {
@@ -37,7 +40,8 @@ func Login(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
 	success(w)
 }
 
-func ListUsers(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
+func ListUsers(ctx RequestContext) {
+	w := ctx.W
 	aioPath := os.Getenv("AIO_DIR")
 	users, err := accounts.ListUsers(aioPath)
 

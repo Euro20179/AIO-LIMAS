@@ -791,7 +791,9 @@ func main() {
 	startServer()
 }
 
-func DocHTML(w http.ResponseWriter, req *http.Request, pp api.ParsedParams) {
+func DocHTML(ctx api.RequestContext) {
+	w := ctx.W
+
 	html := ""
 	for _, list := range endPointLists {
 		for _, endP := range list {
