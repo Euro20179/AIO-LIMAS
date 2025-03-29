@@ -221,6 +221,12 @@ hgroup {
     > * {
         text-wrap: balance;
     }
+
+    .title {
+        margin: 0;
+    }
+
+    margin-bottom: 10px;
 }
 
 .title:not([data-format-name="UNOWNED"])[data-format-name]::after {

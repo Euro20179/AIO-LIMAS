@@ -229,6 +229,10 @@
         justify-content: space-between;
     }
 
+    .j-center {
+        justify-content: center;
+    }
+
     .j-space-evenly {
         justify-content: space-evenly;
     }
