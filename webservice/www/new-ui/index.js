@@ -243,6 +243,14 @@ let resultStatsProxy = new Proxy({
  * @param {keyof ResultStats} key
  * @param {number} value
  */
+function setResultStat(key, value) {
+    resultStatsProxy[key] = value
+}
+
+/**
+ * @param {keyof ResultStats} key
+ * @param {number} value
+ */
 function changeResultStats(key, value) {
     resultStatsProxy[key] += value
 }
@@ -285,7 +293,7 @@ async function loadInfoEntries() {
         obj[item.ItemId] = item
     }
 
-    changeResultStats("results", jsonL.length)
+    setResultStat("results", jsonL.length)
 
     return globalsNewUi.entries = obj
 }
@@ -755,7 +763,7 @@ async function loadSearch() {
 
     entries = applyClientsideSearchFiltering(entries, filters)
 
-    changeResultStats("results", entries.length)
+    setResultStat("results", entries.length)
 
     globalsNewUi.results = entries
 
