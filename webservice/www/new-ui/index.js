@@ -214,6 +214,7 @@ function resetResultStats() {
 let resultStatsProxy = new Proxy({
     count: 0,
     totalCost: 0,
+    results: 0,
     reset() {
         this.count = 0
         this.totalCost = 0
@@ -235,6 +236,7 @@ let resultStatsProxy = new Proxy({
  * @type {object}
  * @property {number} totalCost
  * @property {number} count
+ * @property {number} results
  */
 
 /**
@@ -265,15 +267,15 @@ function changeResultStatsWithItemList(items, multiplier = 1) {
 }
 
 async function loadInfoEntries() {
-    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(`status=="Planned" | status=="Viewing"`)}&uid=${uid}`)
-        .catch(console.error)
+    const res = await fetch(`${apiPath}/list-entries?uid=${uid}`).catch(console.error)
+
     if (!res) {
-        alert("Could not load entries")
+        alert("Could not load all entries")
         return
     }
-    let itemsText = await res.text()
-    /**@type {string[]}*/
-    let jsonL = itemsText.split("\n").filter(Boolean)
+
+    const text = await res.text()
+    let jsonL = text.split("\n").filter(Boolean)
     /**@type {Record<string, InfoEntry>}*/
     let obj = {}
     for (let item of jsonL
@@ -283,27 +285,9 @@ async function loadInfoEntries() {
         obj[item.ItemId] = item
     }
 
-    //globalsNewUi.entries should contain ALL entries
-    {
-        const res = await fetch(`${apiPath}/list-entries?uid=${uid}`).catch(console.error)
+    changeResultStats("results", jsonL.length)
 
-        if (!res) {
-            alert("Could not load all entries")
-            return
-        }
-
-        const text = await res.text()
-        let jsonL = text.split("\n").filter(Boolean)
-        /**@type {Record<string, InfoEntry>}*/
-        let obj = {}
-        for (let item of jsonL
-            .map(mkStrItemId)
-            .map(parseJsonL)
-        ) {
-            obj[item.ItemId] = item
-        }
-        return globalsNewUi.entries = obj
-    }
+    return globalsNewUi.entries = obj
 }
 
 /**
@@ -770,6 +754,8 @@ async function loadSearch() {
     let entries = await doQuery3(String(filters.newSearch))
 
     entries = applyClientsideSearchFiltering(entries, filters)
+
+    changeResultStats("results", entries.length)
 
     globalsNewUi.results = entries
 
