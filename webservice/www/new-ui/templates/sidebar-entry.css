@@ -2,11 +2,9 @@
 @import "/new-ui/css-styles/rating-styles.css";
 
 :host(sidebar-entry)::before {
-    counter-increment: item-list;
-    content: counter(item-list);
     float: left;
-
 }
+
 @media (width < 800px) {
     :host(sidebar-entry)::before {
         content: ''
@@ -26,27 +24,15 @@
 
     height: 100%;
 
-    @media (width < 800px) {
-        width: fit-content;
-
-        figure {
-            width: fit-content;
-
-            .title {
-                display: none;
-            }
-        }
-    }
-
-    [data-type-icon]::after {
-        content: " (" attr(data-type-icon) " " attr(data-release-year) ")";
+    [data-type-icon]::before {
+        content: attr(data-type-icon) " "
     }
 
     .root {
         container-type: inline-size;
 
-        height: 150px;
-        aspect-ratio: 1 / 1;
+        height: 20cqb;
+        align-content: center;
 
         overflow: hidden;
 
@@ -56,22 +42,38 @@
             width: 25vw;
             height: min-content;
             aspect-ratio: initial;
-
-            figure .title {
-                display: none;
-            }
         }
     }
 
     figure {
-        display: flex;
+        @media (width >= 800px) {
+            display: grid;
+            justify-items: center;
+
+            .title {
+                text-align: center;
+            }
+        }
+
+        @media (width < 800px) {
+            display: grid;
+            .title {
+                display: none;
+            }
+
+            img {
+                justify-self: center;
+            }
+        }
+
         gap: 0.4em;
-        margin: 10px 0 0 10px;
+        margin: 0;
 
         contain: inline-size;
 
         .title {
             font-size: 0.8em;
+            width: 100%;
         }
 
         img {
