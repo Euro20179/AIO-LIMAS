@@ -25,12 +25,18 @@ function mkGenericTbl(root, data) {
     root.innerHTML = html
 }
 
+/**@type {Set<string>} */
+const displayEntryIntersected = new Set()
+
 /**
  * @param {IntersectionObserverEntry[]} entries
  */
 function onIntersection(entries) {
     for (let entry of entries) {
-        if (entry.isIntersecting && displayQueue.length) {
+        const entryId = entry.target.getAttribute("data-item-id") || "NA"
+        if (entry.isIntersecting && displayQueue.length && !displayEntryIntersected.has(entryId)) {
+            displayEntryIntersected.add(entryId)
+
             let newItem = displayQueue.shift()
             if (!newItem) continue
             modeDisplayEntry.add(newItem, false)
@@ -114,6 +120,8 @@ const modeDisplayEntry = {
     },
 
     addList(entry, updateStats = true) {
+        displayEntryIntersected.clear()
+
         updateStats && changeResultStatsWithItemList(entry, 1)
         for (let i = 0; i < entry.length; i++) {
             if (i > 5) {
@@ -472,6 +480,7 @@ function renderDisplayItem(item, parent = displayItems) {
  * @param {InfoEntry} item
  */
 function removeDisplayItem(item) {
+    displayEntryIntersected.delete(String(item.ItemId))
     const el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
     if (!el) return
     el.remove()

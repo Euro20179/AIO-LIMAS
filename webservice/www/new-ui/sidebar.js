@@ -3,9 +3,15 @@ const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--
 /**@type {InfoEntry[]}*/
 const sidebarQueue = []
 
+/**@type {Set<string>} */
+const sidebarIntersected = new Set()
 const sidebarObserver = new IntersectionObserver((entries) => {
     for (let entry of entries) {
-        if (entry.isIntersecting && sidebarQueue.length) {
+        //keep track of which items have already triggered a new item to be added
+        //otherwise each time the user scrolls, more items are added which is ugly lol
+        const entryId = entry.target.getAttribute("data-entry-id") || "NA"
+        if (entry.isIntersecting && sidebarQueue.length && !sidebarIntersected.has(entryId)) {
+            sidebarIntersected.add(entryId)
             let newItem = sidebarQueue.shift()
             if (!newItem) continue
             renderSidebarItem(newItem)
@@ -18,6 +24,9 @@ const sidebarObserver = new IntersectionObserver((entries) => {
 })
 
 function clearSidebar() {
+
+    sidebarIntersected.clear()
+
     sidebarQueue.length = 0
     while (sidebarItems.children.length) {
         if (sidebarItems.firstChild?.nodeType === 1) {
@@ -48,6 +57,8 @@ function refreshSidebarItem(item) {
  * @param {InfoEntry} item
  */
 function removeSidebarItem(item) {
+    sidebarIntersected.delete(String(item.ItemId))
+
     sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`)?.remove()
 }
 /**
