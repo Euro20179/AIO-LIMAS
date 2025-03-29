@@ -11,28 +11,42 @@
 <body>
     <div id="main" class="flex column">
         <div id="main-ui" class="overflow">
-            <form action="javascript:loadSearch()" id="sidebar-form">
-                <input type="text" name="search-query" placeholder="search query">
-                <a href="/usage#searching" id="help-link">ℹ</a>
-                <select name="sort-by" title="sort">
-                    <option value="">None</option>
-                    <option value="rating">Rating</option>
-                    <option value="general-rating">General rating</option>
-                    <option value="rating-disparity" title="How different your rating is from the general consensous">
-                        Rating disparity</option>
-                    <option value="release-year">Release year</option>
-                    <option value="cost">Cost</option>
-                </select>
-                <div class="flex column">
-                    <label><input type="checkbox" name="children" id="">children</label>
-                    <label><input type="checkbox" name="copies" id="">copies</label>
+            <div id="form-area">
+                <div class="flex row">
                 </div>
-                <input type="submit" value="sort'n'search">
-            </form>
+                <form action="javascript:loadSearch()" id="sidebar-form">
+                    <a href="/usage#searching" id="help-link">?</a>
+                    <input type="text" name="search-query" placeholder="search query">
+                    <select name="sort-by" title="sort">
+                        <option value="">None</option>
+                        <option value="rating">Rating</option>
+                        <option value="general-rating">General rating</option>
+                        <option value="rating-disparity" title="How different your rating is from the general consensous">
+                            Rating disparity</option>
+                        <option value="release-year">Release year</option>
+                        <option value="cost">Cost</option>
+                    </select>
+                    <div class="flex column">
+                        <label><input type="checkbox" name="children" id="">children</label>
+                        <label><input type="checkbox" name="copies" id="">copies</label>
+                    </div>
+                    <input type="submit" value="sort'n'search">
+                </form>
+                <button popovertarget="new-entry" type="button" id="new-entry">➕︎</button>
+                <div class="result-stats">
+                    <entries-statistic data-stat-name="totalCost" class="stat"></entries-statistic>
+                    <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
+                    <select name="view-toggle" id="view-toggle" class="view-toggle">
+                        <option value="entry-output">Normal mode</option>
+                        <option value="graph-output">Graph mode</option>
+                        <option value="calc-output">Calc mode</option>
+                        <option value="gallery-output">Gallery mode</option>
+                    </select>
+                </div>
+            </div>
             <nav class="sidebar overflow">
                 <div class="flex row j-space-between sidebar--navigation">
-                    <label class="grow"><input type="checkbox" name="view-all" id="view-all">View all</label>
-                    <button popovertarget="new-entry">➕︎</button>
+                    <label class="center block" style="width: 100%; align-content: center;"><input type="checkbox" name="view-all" id="view-all">View all</label>
                 </div>
                 <dialog id="new-entry" popover>
                     <h3>New Entry</h3>
@@ -119,16 +133,6 @@
                 </div>
             </nav>
             <section id="viewing-area" class="flex column overflow">
-                <div class="result-stats">
-                    <entries-statistic data-stat-name="totalCost" class="stat"></entries-statistic>
-                    <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
-                    <select name="view-toggle" id="view-toggle" class="view-toggle">
-                        <option value="entry-output">Normal mode</option>
-                        <option value="graph-output">Graph mode</option>
-                        <option value="calc-output">Calc mode</option>
-                        <option value="gallery-output">Gallery mode</option>
-                    </select>
-                </div>
 
                 <div id="entry-output" class="overflow"> </div>
 
