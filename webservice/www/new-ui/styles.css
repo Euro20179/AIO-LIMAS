@@ -20,7 +20,7 @@
         height: 100%;
         margin: 0;
 
-        container-type: inline-size;
+        container: body / inline-size;
     }
 
     :is(#entry-output, #graph-output, #calc-output, #gallery-output) {
@@ -62,7 +62,7 @@
 
         gap: 1em;
 
-        @container (width >=800px) {
+        @container body (width >=800px) {
             grid-template-areas:
                 "sidebar form form"
                 "sidebar main main"
@@ -71,7 +71,7 @@
             grid-template-rows: min-content 1fr 1fr;
         }
 
-        @container (width < 800px) {
+        @container body (width < 800px) {
             grid-template-rows: max-content min-content 3fr;
             grid-template-columns: 1fr 1fr 0.5fr;
             grid-template-areas:
@@ -167,12 +167,12 @@
             align-items: center;
         }
 
-        @container (width < 800px) {
+        @container body (width < 800px) {
             grid-column: 1 / -1;
             overflow: auto auto;
         }
 
-        @container (width >=800px) {
+        @container body (width >=800px) {
             grid-area: main;
         }
 
@@ -233,15 +233,15 @@
 
         display: flex;
 
-        @container (width >=800px) {
+        @container body (width >=800px) {
             flex-wrap: wrap;
         }
 
-        @container (orientation: landscape) {
+        @container body (orientation: landscape) {
             flex-direction: row;
         }
 
-        @container (orientation: portrait) {
+        @container body (orientation: portrait) {
             flex-direction: column;
         }
 
@@ -249,11 +249,10 @@
 
     .sidebar {
         grid-area: sidebar;
-        min-height: 200px;
+        height: 100%;
+        width: clamp(100px, 20cqi, 200px);
 
-        @container (width < 800px) {
-            overflow-y: hidden;
-        }
+        container: sidebar / inline-size;
 
         .sidebar--navigation {
             position: sticky;
@@ -285,7 +284,7 @@
         grid-area: results;
     }
 
-    @container (width < 800px) {
+    @container body (width < 800px) {
         #main-ui {
             position: relative;
 
@@ -297,7 +296,7 @@
                 left: 0;
             }
 
-            min-height: unset;
+            width: 100%;
         }
 
         .sidebar--items {

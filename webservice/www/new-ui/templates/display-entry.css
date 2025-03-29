@@ -22,7 +22,6 @@ hr {
     overflow: auto auto;
 
     @container (aspect-ratio < 1) {
-        height: 50%;
         width: 100%;
     }
 
