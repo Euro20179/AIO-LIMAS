@@ -16,7 +16,7 @@ func FetchMetadataForEntry(ctx RequestContext) {
 	req := ctx.Req
 	mainEntry := pp["id"].(db_types.InfoEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(pp["uid"].(int64), mainEntry.ItemId)
+	metadataEntry, err := db.GetMetadataEntryById(ctx.Uid, mainEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
@@ -33,12 +33,12 @@ func FetchMetadataForEntry(ctx RequestContext) {
 		return
 	}
 	newMeta.ItemId = mainEntry.ItemId
-	err = db.UpdateMetadataEntry(pp["uid"].(int64), &newMeta)
+	err = db.UpdateMetadataEntry(ctx.Uid, &newMeta)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
 	}
-	err = db.UpdateInfoEntry(pp["uid"].(int64), &mainEntry)
+	err = db.UpdateInfoEntry(ctx.Uid, &mainEntry)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
@@ -63,7 +63,6 @@ func RetrieveMetadataForEntry(ctx RequestContext) {
 }
 
 func SetMetadataEntry(ctx RequestContext) {
-	parsedParams := ctx.PP
 	w := ctx.W
 	req := ctx.Req
 	defer req.Body.Close()
@@ -81,13 +80,13 @@ func SetMetadataEntry(ctx RequestContext) {
 		return
 	}
 
-	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &meta)
+	err = db.UpdateMetadataEntry(ctx.Uid, &meta)
 	if err != nil{
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), meta.ItemId)
+	entry, err := db.GetUserViewEntryById(ctx.Uid, meta.ItemId)
 	if err != nil{
 		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -118,7 +117,7 @@ func ModMetadataEntry(ctx RequestContext) {
 	metadataEntry.MediaDependant = pp.Get("media-dependant", metadataEntry.MediaDependant).(string)
 	metadataEntry.Datapoints = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
-	err := db.UpdateMetadataEntry(pp["uid"].(int64), &metadataEntry)
+	err := db.UpdateMetadataEntry(ctx.Uid, &metadataEntry)
 	if err != nil{
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
@@ -128,9 +127,8 @@ func ModMetadataEntry(ctx RequestContext) {
 }
 
 func ListMetadata(ctx RequestContext) {
-	pp := ctx.PP
 	w := ctx.W
-	items, err := db.ListMetadata(pp["uid"].(int64))
+	items, err := db.ListMetadata(ctx.Uid)
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
@@ -191,7 +189,7 @@ func FinalizeIdentification(ctx RequestContext) {
 	}
 
 	data.ItemId = itemToApplyTo.ItemId
-	err = db.UpdateMetadataEntry(parsedParams["uid"].(int64), &data)
+	err = db.UpdateMetadataEntry(ctx.Uid, &data)
 	if err != nil {
 		util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
 		return

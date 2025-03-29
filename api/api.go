@@ -18,9 +18,8 @@ import (
 )
 
 func ListCollections(ctx RequestContext) {
-	pp := ctx.PP
 	w := ctx.W
-	collections, err := db.ListCollections(pp["uid"].(int64))
+	collections, err := db.ListCollections(ctx.Uid)
 	if err != nil {
 		util.WError(w, 500, "Could not get collections\n%s", err.Error())
 		return
@@ -48,19 +47,19 @@ func GetAllForEntry(ctx RequestContext) {
 
 	info := parsedParams["id"].(db_types.InfoEntry)
 
-	events, err := db.GetEvents(parsedParams["uid"].(int64), info.ItemId)
+	events, err := db.GetEvents(ctx.Uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get events\n%s", err.Error())
 		return
 	}
 
-	user, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), info.ItemId)
+	user, err := db.GetUserViewEntryById(ctx.Uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get user info\n%s", err.Error())
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(parsedParams["uid"].(int64), info.ItemId)
+	meta, err := db.GetMetadataEntryById(ctx.Uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get metadata info\n%s", err.Error())
 		return
@@ -99,7 +98,6 @@ func GetAllForEntry(ctx RequestContext) {
 }
 
 func SetEntry(ctx RequestContext) {
-	parsedParams := ctx.PP
 	w := ctx.W
 	req := ctx.Req
 
@@ -118,7 +116,7 @@ func SetEntry(ctx RequestContext) {
 		return
 	}
 
-	err = db.UpdateInfoEntry(parsedParams["uid"].(int64), &entry)
+	err = db.UpdateInfoEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update info entry\n%s", err.Error())
 		return
@@ -178,7 +176,7 @@ func ModEntry(ctx RequestContext) {
 	info.ArtStyle = db_types.ArtStyle(parsedParams.Get("art-style", uint(0)).(uint))
 	info.Type = parsedParams.Get("type", info.Type).(db_types.MediaTypes)
 
-	err := db.UpdateInfoEntry(parsedParams["uid"].(int64), &info)
+	err := db.UpdateInfoEntry(ctx.Uid, &info)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -276,7 +274,7 @@ func AddEntry(ctx RequestContext) {
 
 	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	if err := db.AddEntry(parsedParams["uid"].(int64), timezone, &entryInfo, &metadata, &userEntry); err != nil {
+	if err := db.AddEntry(ctx.Uid, timezone, &entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return
@@ -297,7 +295,7 @@ func ListEntries(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
 	sortBy, _ := parsedParams.Get("sort-by", "userRating").(string)
-	entries, err := db.ListEntries(parsedParams["uid"].(int64), sortBy)
+	entries, err := db.ListEntries(ctx.Uid, sortBy)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
@@ -322,7 +320,7 @@ func QueryEntries3(ctx RequestContext) {
 	w := ctx.W
 	search := pp["search"].(string)
 
-	results, err := db.Search3(pp["uid"].(int64), search)
+	results, err := db.Search3(ctx.Uid, search)
 	if err != nil {
 		util.WError(w, 500, "Could not complete search\n%s", err.Error())
 		return
@@ -337,7 +335,7 @@ func GetCopies(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
-	copies, err := db.GetCopiesOf(pp["uid"].(int64), entry.ItemId)
+	copies, err := db.GetCopiesOf(ctx.Uid, entry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get copies of %d\n%s", entry.ItemId, err.Error())
 		return
@@ -397,7 +395,7 @@ func DeleteEntry(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
-	err := db.Delete(pp["uid"].(int64), entry.ItemId)
+	err := db.Delete(ctx.Uid, entry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not delete entry\n%s", err.Error())
 		return
@@ -410,7 +408,7 @@ func GetDescendants(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
-	items, err := db.GetDescendants(pp["uid"].(int64), entry.ItemId)
+	items, err := db.GetDescendants(ctx.Uid, entry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get items\n%s", err.Error())
 		return
@@ -422,9 +420,8 @@ func GetDescendants(ctx RequestContext) {
 }
 
 func GetTree(ctx RequestContext) {
-	pp := ctx.PP
 	w := ctx.W
-	tree, err := db.BuildEntryTree(pp["uid"].(int64), )
+	tree, err := db.BuildEntryTree(ctx.Uid, )
 	if err != nil {
 		util.WError(w, 500, "Could not build tree\n%s", err.Error())
 		return
@@ -444,7 +441,7 @@ func TotalCostOf(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	info := pp["id"].(db_types.InfoEntry)
-	desc, err := db.GetDescendants(pp["uid"].(int64), info.ItemId)
+	desc, err := db.GetDescendants(ctx.Uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get descendants\n%s", err.Error())
 		return

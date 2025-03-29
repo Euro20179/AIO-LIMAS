@@ -1,10 +1,12 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -12,6 +14,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"aiolimas/accounts"
 	"aiolimas/db"
 	"aiolimas/metadata"
 	"aiolimas/types"
@@ -28,11 +31,11 @@ type QueryParamInfo struct {
 }
 
 type RequestContext struct {
-	Uid int64
-	Req *http.Request
-	W http.ResponseWriter
+	Uid        int64
+	Req        *http.Request
+	W          http.ResponseWriter
 	Authorized bool
-	PP ParsedParams
+	PP         ParsedParams
 }
 
 func MkQueryInfo(parser Parser, required bool) QueryParamInfo {
@@ -70,7 +73,7 @@ type ApiEndPoint struct {
 	// because by default this will be false
 	GuestAllowed bool
 
-	//whether or not a user id is a required parameter
+	// whether or not a user id is a required parameter
 	UserIndependant bool
 }
 
@@ -84,6 +87,43 @@ func (self *ApiEndPoint) GenerateDocHTML() string {
 					<p>%s</p>
 		</div>
 	`, self.EndPoint, self.Description, self.Returns)
+}
+
+
+func ckAuthorizationHeader(text string) (string, error) {
+	var estring string
+
+	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 0 {
+		b64 := b64L[1]
+		info, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			estring = "You're bad at encoding base64 😀\n"
+			println(err.Error())
+			goto unauthorized
+		}
+		username, password, found := strings.Cut(string(info), ":")
+		if !found {
+			estring = "Invalid credentials\n"
+			goto unauthorized
+		}
+
+		uid, err := accounts.CkLogin(username, password)
+
+		if err != nil {
+			println(err.Error())
+			return "", err
+		}
+
+		if uid == "" {
+			println(err.Error())
+			return "", err
+		}
+
+		return uid, nil
+	}
+
+unauthorized:
+	return "", errors.New(estring)
 }
 
 func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
@@ -104,27 +144,58 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var uidStr = req.URL.Query().Get("uid")
+
+	authorized := true
+
+	privateAll := os.Getenv("AIO_PRIVATE")
+	if !self.GuestAllowed || privateAll != "" {
+		auth := req.Header.Get("Authorization")
+
+		if auth == "" {
+			authorized = false
+		}
+
+		newUid, err := ckAuthorizationHeader(auth)
+
+		if newUid == "" || err != nil {
+			authorized = false
+		}
+
+		if newUid != uidStr && uidStr != "" {
+			w.WriteHeader(400)
+			w.Write([]byte("You are attempting to perform a privileged action for user id: %d, while logged into your account"))
+			return
+		}
+
+		uidStr = newUid
+	}
+
+	if !authorized {
+		w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
+		w.WriteHeader(401)
+		return
+	}
 
 	query := req.URL.Query()
 
-	//uid is required on almost all endpoints, so
-	//have UserIndependant that keeps track of if it's **not** required
-	//this also saves the hassle of having to say it is required in QueryParams
-	if !self.UserIndependant && !query.Has("uid") {
+	uidInt := int64(-1)
+
+	// uid is required on almost all endpoints, so
+	// have UserIndependant that keeps track of if it's **not** required
+	// this also saves the hassle of having to say it is required in QueryParams
+	if !self.UserIndependant && uidStr == "" {
 		w.WriteHeader(400)
 		fmt.Fprintf(w, "Missing parameter: 'uid'")
 		return
-	} else if !self.UserIndependant{
-		uid := query.Get("uid")
-		id, err := strconv.ParseInt(uid, 10, 64)
+	} else if !self.UserIndependant {
+		var err error
+		uidInt, err = strconv.ParseInt(uidStr, 10, 64)
 		if err != nil {
 			w.WriteHeader(400)
 			fmt.Fprintf(w, "Invalid user id, %s", err.Error())
 			return
 		}
-		parsedParams["uid"] = id
-	} else {
-		parsedParams["uid"] = int64(-1)
 	}
 
 	for name, info := range self.QueryParams {
@@ -139,7 +210,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 		queryVal := query.Get(name)
 
-		val, err := info.Parser(parsedParams["uid"].(int64), queryVal)
+		val, err := info.Parser(uidInt, queryVal)
 		if err != nil {
 			w.WriteHeader(400)
 			funcName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
@@ -151,6 +222,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx.PP = parsedParams
+	ctx.Uid = uidInt
 
 	self.Handler(ctx)
 }

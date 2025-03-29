@@ -21,25 +21,25 @@ func CopyUserViewingEntry(ctx RequestContext) {
 
 	oldId := userEntry.ItemId
 
-	err := db.MoveUserViewingEntry(parsedParams["uid"].(int64), &userEntry, libraryEntry.ItemId)
+	err := db.MoveUserViewingEntry(ctx.Uid, &userEntry, libraryEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Failed to reassociate entry\n%s", err.Error())
 		return
 	}
 
-	err = db.ClearUserEventEntries(parsedParams["uid"].(int64), libraryEntry.ItemId)
+	err = db.ClearUserEventEntries(ctx.Uid, libraryEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Failed to clear event information\n%s", err.Error())
 		return
 	}
 
-	events, err := db.GetEvents(parsedParams["uid"].(int64), oldId)
+	events, err := db.GetEvents(ctx.Uid, oldId)
 	if err != nil {
 		util.WError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
 	}
 
-	err = db.MoveUserEventEntries(parsedParams["uid"].(int64), events, libraryEntry.ItemId)
+	err = db.MoveUserEventEntries(ctx.Uid, events, libraryEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Failed to copy events\n%s", err.Error())
 		return
@@ -62,12 +62,12 @@ func BeginMedia(ctx RequestContext) {
 		return
 	}
 
-	if err := db.Begin(pp["uid"].(int64), timezone, &entry); err != nil {
+	if err := db.Begin(ctx.Uid, timezone, &entry); err != nil {
 		util.WError(w, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -92,12 +92,12 @@ func FinishMedia(ctx RequestContext) {
 	rating := parsedParams["rating"].(float64)
 	entry.UserRating = rating
 
-	if err := db.Finish(parsedParams["uid"].(int64), timezone, &entry); err != nil {
+	if err := db.Finish(ctx.Uid, timezone, &entry); err != nil {
 		util.WError(w, 500, "Could not finish media\n%s", err.Error())
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -118,8 +118,8 @@ func PlanMedia(ctx RequestContext) {
 		return
 	}
 
-	db.Plan(pp["uid"].(int64), timezone, &entry)
-	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
+	db.Plan(ctx.Uid, timezone, &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -134,8 +134,8 @@ func DropMedia(ctx RequestContext) {
 	entry := pp["id"].(db_types.UserViewingEntry)
 	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	db.Drop(pp["uid"].(int64), timezone, &entry)
-	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
+	db.Drop(ctx.Uid, timezone, &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -155,9 +155,9 @@ func PauseMedia(ctx RequestContext) {
 		return
 	}
 
-	db.Pause(pp["uid"].(int64), timezone, &entry)
+	db.Pause(ctx.Uid, timezone, &entry)
 
-	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -177,8 +177,8 @@ func ResumeMedia(ctx RequestContext) {
 		return
 	}
 
-	db.Resume(pp["uid"].(int64), timezone, &entry)
-	err := db.UpdateUserViewingEntry(pp["uid"].(int64), &entry)
+	db.Resume(ctx.Uid, timezone, &entry)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -188,7 +188,6 @@ func ResumeMedia(ctx RequestContext) {
 }
 
 func SetUserEntry(ctx RequestContext) {
-	parsedParams := ctx.PP
 	w := ctx.W
 	req := ctx.Req
 	defer req.Body.Close()
@@ -206,13 +205,13 @@ func SetUserEntry(ctx RequestContext) {
 		return
 	}
 
-	err = db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &user)
 	if err != nil {
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(parsedParams["uid"].(int64), user.ItemId)
+	entry, err := db.GetUserViewEntryById(ctx.Uid, user.ItemId)
 	if err != nil{
 		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -243,7 +242,7 @@ func GetUserEntry(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	item, err := db.GetUserEntry(pp["uid"].(int64), entry.ItemId)
+	item, err := db.GetUserEntry(ctx.Uid, entry.ItemId)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
@@ -253,9 +252,8 @@ func GetUserEntry(ctx RequestContext) {
 }
 
 func UserEntries(ctx RequestContext) {
-	pp := ctx.PP
 	w := ctx.W
-	items, err := db.AllUserEntries(pp["uid"].(int64))
+	items, err := db.AllUserEntries(ctx.Uid)
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
@@ -266,9 +264,8 @@ func UserEntries(ctx RequestContext) {
 }
 
 func ListEvents(ctx RequestContext) {
-	parsedParams := ctx.PP
 	w := ctx.W
-	events, err := db.GetEvents(parsedParams["uid"].(int64), -1)
+	events, err := db.GetEvents(ctx.Uid, -1)
 	if err != nil {
 		util.WError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
@@ -291,7 +288,7 @@ func GetEventsOf(ctx RequestContext) {
 	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 
-	events, err := db.GetEvents(parsedParams["uid"].(int64), id.ItemId)
+	events, err := db.GetEvents(ctx.Uid, id.ItemId)
 	if err != nil {
 		util.WError(w, 400, "Could not get events\n%s", err.Error())
 		return
@@ -316,7 +313,7 @@ func DeleteEvent(ctx RequestContext) {
 	id := parsedParams["id"].(db_types.InfoEntry)
 	timestamp := parsedParams["timestamp"].(int64)
 	after := parsedParams["after"].(int64)
-	err := db.DeleteEvent(parsedParams["uid"].(int64), id.ItemId, timestamp, after)
+	err := db.DeleteEvent(ctx.Uid, id.ItemId, timestamp, after)
 	if err != nil{
 		util.WError(w, 500, "Could not delete event\n%s", err.Error())
 		return
@@ -333,7 +330,7 @@ func RegisterEvent(ctx RequestContext) {
 	name := parsedParams["name"].(string)
 	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
 
-	err := db.RegisterUserEvent(parsedParams["uid"].(int64), db_types.UserViewingEvent{
+	err := db.RegisterUserEvent(ctx.Uid, db_types.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),
@@ -357,7 +354,7 @@ func ModUserEntry(ctx RequestContext) {
 	user.CurrentPosition = parsedParams.Get("current-position", user.CurrentPosition).(string)
 	user.Status = parsedParams.Get("status", user.Status).(db_types.Status)
 
-	err := db.UpdateUserViewingEntry(parsedParams["uid"].(int64), &user)
+	err := db.UpdateUserViewingEntry(ctx.Uid, &user)
 	if err != nil {
 		util.WError(w, 500, "Could not update user entry\n%s", err.Error())
 		return

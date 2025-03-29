@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
 	"errors"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"aiolimas/accounts"
 	api "aiolimas/api"
@@ -17,83 +15,10 @@ import (
 	"aiolimas/webservice/dynamic"
 )
 
-func ckAuthorizationHeader(text string) (string, error) {
-	var estring string
-
-	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 0 {
-		b64 := b64L[1]
-		info, err := base64.StdEncoding.DecodeString(b64)
-		if err != nil {
-			estring = "You're bad at encoding base64 😀\n"
-			println(err.Error())
-			goto unauthorized
-		}
-		username, password, found := strings.Cut(string(info), ":")
-		if !found {
-			estring = "Invalid credentials\n"
-			goto unauthorized
-		}
-
-		uid, err := accounts.CkLogin(username, password)
-
-		if err != nil {
-			println(err.Error())
-			return "", err
-		}
-
-		if uid == "" {
-			println(err.Error())
-			return "", err
-		}
-
-		return uid, nil
-	}
-
-unauthorized:
-	return "", errors.New(estring)
-}
-
-func authorizationWrapper(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, req *http.Request) {
-		var uid string
-		var err error
-		authorized := true
-
-		auth := req.Header.Get("Authorization")
-
-		q := req.URL.Query()
-
-		if auth == "" {
-			goto unauthorzied
-		}
-
-		uid, err = ckAuthorizationHeader(auth)
-		if uid == "" || err != nil {
-			goto unauthorzied
-		}
-
-		q.Set("uid", uid)
-		req.URL.RawQuery = q.Encode()
-
-		if authorized {
-			fn(w, req)
-			return
-		}
-	unauthorzied:
-		w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
-		w.WriteHeader(401)
-	}
-}
-
 func makeEndPointsFromList(root string, endPoints []api.ApiEndPoint) {
 	// if the user sets this var, make all endpoints behind authorization
-	privateAll := os.Getenv("AIO_PRIVATE")
 	for _, endPoint := range endPoints {
-		if !endPoint.GuestAllowed || privateAll != "" {
-			http.HandleFunc(root+"/"+endPoint.EndPoint, authorizationWrapper(endPoint.Listener))
-		} else {
-			http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
-		}
+		http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
 	}
 }
 

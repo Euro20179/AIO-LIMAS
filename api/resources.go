@@ -47,7 +47,7 @@ func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedPa
 
 func serveThumbnail(w http.ResponseWriter, req *http.Request, path string) {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		util.WError(w, 404, "Thumbnail does not exist")
+		util.WError(w, 404, "Thumbnail does not exist\n")
 		return
 	}
 
