@@ -132,6 +132,7 @@
 
     #viewing-area {
         height: 100%;
+        container-name: viewing-area;
         container-type: size;
 
         .result-stats {
@@ -233,15 +234,15 @@
 
         display: flex;
 
-        @container body (width >=800px) {
+        @container viewing-area (width >=800px) {
             flex-wrap: wrap;
         }
 
-        @container body (orientation: landscape) {
+        @container viewing-area (orientation: landscape) {
             flex-direction: row;
         }
 
-        @container body (orientation: portrait) {
+        @container viewing-area (orientation: portrait) {
             flex-direction: column;
         }
 
