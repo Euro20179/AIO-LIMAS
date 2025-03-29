@@ -225,7 +225,19 @@
         justify-self: right;
     }
 
+    .j-space-between {
+        justify-content: space-between;
+    }
+
+    .j-space-evenly {
+        justify-content: space-evenly;
+    }
+
     .center {
         text-align: center;
+    }
+
+    .m-5 {
+        margin: 5px;
     }
 }

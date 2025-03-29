@@ -7,7 +7,6 @@
 //the stats of the collection will be the stats of itself + stats of children
 //eg: the total cost
 
-
 /**
  * @typedef DisplayMode
  * @type {object}
