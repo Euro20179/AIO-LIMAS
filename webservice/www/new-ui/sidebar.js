@@ -111,6 +111,21 @@ function changeSidebarItemData(item, user, meta, el) {
     el.setAttribute("data-entry-id", String(item.ItemId))
 }
 
+/**
+ * @param {InfoEntry} item
+ * @param {DisplayMode} mode
+ */
+function dblclickSideBarEntry(item, mode) {
+    clearItems()
+    selectItem(item, mode)
+}
+
+/**
+ * @param {InfoEntry} item
+ */
+function clickSideBarEntry(item) {
+                toggleItem(item)
+}
 
 /**
  * @param {InfoEntry} item
@@ -132,11 +147,14 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
     let img = elem.shadowRoot?.querySelector("img")
     if (img) {
         img.addEventListener("click", _e => {
-            toggleItem(item)
+            (innerWidth / innerHeight >= 1)
+            ? clickSideBarEntry(item)
+            : dblclickSideBarEntry(item, mode)
         })
         img.addEventListener("dblclick", _e => {
-            clearItems()
-            selectItem(item, mode)
+            (innerWidth / innerHeight >= 1)
+            ? dblclickSideBarEntry(item, mode)
+            : clickSideBarEntry(item)
         })
     }
 
