@@ -309,8 +309,8 @@
             flex-wrap: wrap;
         }
 
-        @container viewing-area (orientation: landscape) {
-            flex-direction: row;
+        @container body (max-width: 800px) {
+            flex-direction: column;
         }
 
         @container viewing-area (orientation: portrait) {
