@@ -116,7 +116,7 @@
         grid-template-columns: min-content 2fr 1fr;
         width: 100%;
 
-        @container (width < 100ch) {
+        @container (width < 112ch) {
             grid-template-areas:
                 "new searching searching"
                 "stats stats stats";
