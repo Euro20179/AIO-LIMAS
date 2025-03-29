@@ -160,7 +160,8 @@ table {
 .actions {
     justify-content: center;
 
-    margin: 3cap 0;
+    /*not sure why the bottom margin has to be double*/
+    margin: 1cap 0 2cap 0;
 
     --gap-size: 20px;
 

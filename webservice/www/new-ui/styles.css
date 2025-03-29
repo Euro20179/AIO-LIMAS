@@ -207,10 +207,12 @@
         }
 
         .result-stats::before {
-            content: "Stats: ";
+            content: "Stats";
             border-right: 1px dashed white;
-            padding-right: 10px;
+            border-left: 1px dashed white;
+            text-align: center;
 
+            padding: 0 10px;
             align-content: center;
         }
 
