@@ -241,9 +241,11 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
         del.onclick = function() {
             item.Collection = item.Collection.replace(tag, "").trim()
             setEntryTags(item.ItemId, item.Collection.split(" "))
-                .then(res => res.text())
-                .then(() => {
-                    changeDisplayItemData(item, user, meta, events, /**@type {HTMLElement}*/(el.host))
+                .then(res => {
+                    if(res.status !== 200) return ""
+                    res.text().then(() => {
+                        changeDisplayItemData(item, user, meta, events, /**@type {HTMLElement}*/(el.host))
+                    })
                 })
                 .catch(console.error)
         }
@@ -485,9 +487,9 @@ function renderDisplayItem(item, parent = displayItems) {
         item.Collection += ` ${name}`
         item.Collection = item.Collection.trim()
         setEntryTags(item.ItemId, item.Collection.split(" "))
-            .then(res => res.text())
-            .then(() => {
-                changeDisplayItemData(item, user, meta, events, el)
+            .then(res => {
+                if(res.status !== 200) return ""
+                res.text().then(() => changeDisplayItemData(item, user, meta, events, el))
             })
             .catch(console.error)
     }
