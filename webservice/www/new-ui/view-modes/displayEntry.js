@@ -355,7 +355,15 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
         console.error("Could not parse json", meta.MediaDependant)
         return
     }
-    mkGenericTbl(mediaInfoTbl, mediaDeptData)
+    //remove the <Media>- part from the key looks ugly
+    /**@type {{[k: string]: string}}*/
+    let modifiedKeys = {}
+    for(let key in mediaDeptData) {
+        const val = mediaDeptData[key]
+        key = key.split("-").slice(1).join(" ")
+        modifiedKeys[key] = val
+    }
+    mkGenericTbl(mediaInfoTbl, modifiedKeys)
 
 
     el.host.setAttribute("data-user-status", user.Status)
