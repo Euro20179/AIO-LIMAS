@@ -1,19 +1,4 @@
-:root {
-    --pink: #f7c8e0;
-    --green: #dfffd8;
-    --light-blue: #b4e4ff;
-    --blue: #95bdff;
-    --yellow: #e5c890;
-    --lavender: #b4befe;
-
-    --main: #121626;
-    --secondary: hsl(from var(--main) h s calc(l * 1.8));
-
-    --border-roundness: 5px;
-
-    --text-color: white;
-}
-
+@import "/css/colors.css";
 @layer general {
 
     *,
@@ -43,6 +28,7 @@
 
     button,
     textarea,
+    select,
     input,
     select {
         background: hsl(from var(--main) h s calc(l * 1.8))
@@ -67,7 +53,6 @@
         top: 2%;
         right: 2%;
 
-        background: var(--secondary);
         border: 1px solid white;
         border-radius: var(--border-roundness);
         padding: 5px;
@@ -75,7 +60,6 @@
 
     input {
         color: white;
-        background: var(--secondary);
         border-style: dotted;
         padding: 5px;
         border-radius: var(--border-roundness);
@@ -86,7 +70,6 @@
     }
 
     select {
-        background: var(--secondary);
         border-style: solid;
         color: white;
         border-radius: var(--border-roundness);
@@ -96,7 +79,6 @@
     input[type="submit"] {
         border: 1px solid currentColor;
         border-radius: var(--border-roundness);
-        background: var(--secondary);
         color: white;
         cursor: pointer;
     }

@@ -3,6 +3,7 @@
 
 * {
     box-sizing: border-box;
+    border-color: var(--blue);
 }
 
 hr {
@@ -201,6 +202,7 @@ div:has(> .close) {
 
 .delete {
     color: var(--red);
+    border-color: var(--red);
 }
 
 .notes:empty::before {
@@ -208,16 +210,50 @@ div:has(> .close) {
     opacity: 50%;
 }
 
+section:has(.tags) {
+    display: flex;
+    flex-direction: column;
+}
+
+div:has(> .tags) {
+    display: flex;
+    gap: 3ch;
+}
+
+div:has(> .tag) {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+
+.tags {
+    display: flex;
+    gap: 2ch;
+}
+
+.tag {
+    background-color: var(--secondary);
+    border: 1px solid var(--blue);
+    border-radius: var(--border-roundness);
+    padding: 0 3px;
+
+    vertical-align: middle;
+
+    text-wrap: nowrap;
+}
+
+.tag::before {
+    content: "🏷︎ ";
+    line-height: 0;
+}
+
+button:has(~ .tag) {
+    vertical-align:  middle;
+}
+
+
 .descriptors {
     display: block
-    /**/
-    /* @media (orientation: landscape) { */
-    /*     grid-auto-flow: row; */
-    /* } */
-    /**/
-    /* @media (orientation: portrait) { */
-    /*     display: block; */
-    /* } */
 }
 
 hgroup {

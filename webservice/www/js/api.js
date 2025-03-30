@@ -341,3 +341,11 @@ async function apiRegisterEvent(itemId, name, ts, after) {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
     return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}&timezone=${encodeURIComponent(tz)}`)
 }
+
+/**
+ * @param {BigInt} itemId
+ * @param {string[]} tags
+*/
+async function setEntryTags(itemId, tags) {
+    return await fetch(`${apiPath}/mod-entry?tags=${encodeURIComponent(tags.join(" "))}&id=${itemId}`)
+}

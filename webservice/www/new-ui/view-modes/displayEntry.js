@@ -226,6 +226,39 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
     const mediaInfoTbl = /**@type {HTMLTableElement}*/(el.querySelector("figure .media-info"))
     const eventsTbl = /**@type {HTMLTableElement}*/(el.querySelector(".user-actions"))
 
+    //tags
+    const tagsRoot = /**@type {HTMLDivElement}*/(el.querySelector(".tags"))
+    tagsRoot.innerHTML = ""
+    for (let tag of item.Collection.split(" ")) {
+        tag = tag.trim()
+        if (!tag) continue
+        const outer = document.createElement("div")
+
+        const del = document.createElement("button")
+        del.innerText = "🗑"
+        del.classList.add("delete")
+
+        del.onclick = function() {
+            item.Collection = item.Collection.replace(tag, "").trim()
+            setEntryTags(item.ItemId, item.Collection.split(" "))
+                .then(res => res.text())
+                .then(() => {
+                    changeDisplayItemData(item, user, meta, events, /**@type {HTMLElement}*/(el.host))
+                })
+                .catch(console.error)
+        }
+
+        outer.append(del)
+
+        const span = document.createElement("span")
+        span.classList.add("tag")
+        span.innerText = tag
+
+        outer.append(span)
+
+        tagsRoot?.append(outer)
+    }
+
     //type icon
     let typeIcon = typeToSymbol(item.Type)
     displayEntryTitle?.setAttribute("data-type-icon", typeIcon)
@@ -362,12 +395,12 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
             let afterDate = new Date(event.After)
             let timeTd = ""
             if (ts !== 0) {
-                let time = date.toLocaleTimeString("en", {timeZone})
-                let dd = date.toLocaleDateString("en", {timeZone})
+                let time = date.toLocaleTimeString("en", { timeZone })
+                let dd = date.toLocaleDateString("en", { timeZone })
                 timeTd = `<td title="${time} (${timeZone})">${dd}</td>`
-            } else if(afterts !== 0) {
-                let time = afterDate.toLocaleTimeString("en", {timeZone})
-                let dd = afterDate.toLocaleDateString("en", {timeZone})
+            } else if (afterts !== 0) {
+                let time = afterDate.toLocaleTimeString("en", { timeZone })
+                let dd = afterDate.toLocaleDateString("en", { timeZone })
                 timeTd = `<td title="${time} (${timeZone})">after: ${dd}</td>`
             } else {
                 timeTd = `<td title="unknown">unknown</td>`
@@ -445,6 +478,19 @@ function renderDisplayItem(item, parent = displayItems) {
     createRelationButtons(copyEl, findCopies(item.ItemId))
 
     hookActionButtons(root, item)
+
+    const newTag = /**@type {HTMLButtonElement}*/(root.getElementById("create-tag"))
+    newTag.onclick = function() {
+        const name = prompt("Tag name (space seperated)")
+        item.Collection += ` ${name}`
+        item.Collection = item.Collection.trim()
+        setEntryTags(item.ItemId, item.Collection.split(" "))
+            .then(res => res.text())
+            .then(() => {
+                changeDisplayItemData(item, user, meta, events, el)
+            })
+            .catch(console.error)
+    }
 
     el.addEventListener("data-changed", function(e) {
         const event = /**@type {CustomEvent}*/(e)
