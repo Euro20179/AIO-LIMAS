@@ -93,7 +93,7 @@ func (self *ApiEndPoint) GenerateDocHTML() string {
 func ckAuthorizationHeader(text string) (string, error) {
 	var estring string
 
-	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 0 {
+	if b64L := strings.SplitN(text, "Basic ", 2); len(b64L) > 1 {
 		b64 := b64L[1]
 		info, err := base64.StdEncoding.DecodeString(b64)
 		if err != nil {
