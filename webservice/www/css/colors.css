@@ -13,5 +13,5 @@
 
     --border-roundness: var(--aio-limas-border-roundness, 5px);
 
-    --text-color: var(--aio-limas-text-color, white);
+    --text-color: var(--aio-limas-text-color, hsl(from var(--light-blue) h s 95%));
 }

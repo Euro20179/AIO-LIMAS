@@ -15,7 +15,6 @@ hr {
 }
 
 :host(display-entry) {
-    --text-color: rgb(230 230 230);
 
     color: var(--text-color);
 
@@ -96,7 +95,7 @@ table {
 
     td,
     th {
-        border: 1px solid hsl(from var(--text-color) h s calc(l * 0.5));
+        border: 1px solid;
     }
 }
 
@@ -147,11 +146,6 @@ table {
         width: 100%;
         margin: 0 auto;
         height: fit-content;
-
-        td,
-        th {
-            border-color: hsl(from var(--text-color) h s calc(l * 0.5))
-        }
     }
 
 }
