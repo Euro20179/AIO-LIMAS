@@ -68,6 +68,7 @@
         color: white;
         padding: 5px;
         border-radius: var(--border-roundness);
+        border-width: 1px;
     }
 
     form button {
