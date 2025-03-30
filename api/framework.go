@@ -115,7 +115,6 @@ func ckAuthorizationHeader(text string) (string, error) {
 		}
 
 		if uid == "" {
-			println(err.Error())
 			return "", err
 		}
 
