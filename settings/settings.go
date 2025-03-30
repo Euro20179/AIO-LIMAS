@@ -19,13 +19,9 @@ type SettingsData struct {
 	DefaultTimeZone string
 }
 
-var SettingsChannel chan [2]any
-
 var Settings SettingsData
 
 func InitSettingsManager(aioDir string) {
-	SettingsChannel = make(chan [2]any)
-
 	settingsFile := aioDir + "/settings.json"
 
 	if file, err := os.Open(settingsFile); err == nil {
@@ -50,33 +46,5 @@ func InitSettingsManager(aioDir string) {
 	file.Write([]byte("{}"))
 	if err := file.Close(); err != nil {
 		panic("Failed to create settings file, writing {}")
-	}
-}
-
-func ManageSettings() {
-	//default timezone
-	Settings.DefaultTimeZone = "America/Los_Angeles"
-	for {
-		msg := <-SettingsChannel
-
-		key := msg[0]
-		value := msg[1]
-
-		switch key {
-		case "SonarrURL":
-			Settings.SonarrURL = value.(string)
-		case "SonarrKey":
-			Settings.SonarrKey = value.(string)
-		case "RadarrURL":
-			Settings.RadarrURL = value.(string)
-		case "RadarrKey":
-			Settings.RadarrKey = value.(string)
-		case "WriteIdFile":
-			Settings.WriteIdFile = value.(bool)
-		case "LocationAliases":
-			Settings.LocationAliases = value.(map[string]string)
-		case "DefaultTimeZone":
-			Settings.DefaultTimeZone = value.(string)
-		}
 	}
 }
