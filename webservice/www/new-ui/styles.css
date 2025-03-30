@@ -40,16 +40,6 @@
         padding: 0 1ch;
         margin: 0 1ch;
         cursor: pointer;
-
-        /*position inside of the search box instead of next to it*/
-        @supports (position-anchor: --search-anchor) {
-            position: absolute;
-            position-anchor: --search-anchor;
-            left: calc(anchor(left) + 10ch);
-            bottom: calc(anchor(bottom) + 0.8cap);
-            border-radius: 5em;
-            aspect-ratio: 1 / 1;
-        }
     }
 
     #gallery-items img {
@@ -149,7 +139,6 @@
 
 
         [name="search-query"] {
-            anchor-name: --search-anchor;
             max-width: 500px;
             flex-grow: 1;
         }

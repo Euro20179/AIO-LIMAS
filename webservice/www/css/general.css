@@ -42,7 +42,6 @@
     }
 
 
-    /*make sure there is actually something in the anchor*/
     a {
         color: unset;
         text-decoration: unset;
