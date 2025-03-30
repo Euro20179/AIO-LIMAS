@@ -7,7 +7,9 @@
     --lavender: var(--aio-limas-lavender, #b4befe);
 
     --main: var(--aio-limas-main, #121626);
-    --secondary: hsl(from var(--main) h s calc(l * 1.8));
+    --secondary: var(--aio-limas-secondary, hsl(from var(--main) h s calc(l * 1.8)));
+
+    --input-border-color: var(--aio-limas-input-border-color, var(--blue));
 
     --border-roundness: var(--aio-limas-border-roundness, 5px);
 

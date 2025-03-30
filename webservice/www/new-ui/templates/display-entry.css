@@ -3,7 +3,10 @@
 
 * {
     box-sizing: border-box;
-    border-color: var(--blue);
+}
+
+input, button, select {
+    border-color: var(--input-border-color);
 }
 
 hr {
@@ -233,7 +236,7 @@ div:has(> .tag) {
 
 .tag {
     background-color: var(--secondary);
-    border: 1px solid var(--blue);
+    border: 1px solid var(--input-border-color);
     border-radius: var(--border-roundness);
     padding: 0 3px;
 

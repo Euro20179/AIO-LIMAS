@@ -71,6 +71,11 @@ For sonarr/radarr integration, create a file called settings.json and add the fo
 }
 ```
 
+### Styling
+
+Styles can always be overridden by your choice (eg userStyles.css in firefox).
+
+But i've also tried to make it easy to override colors. Please see `webservice/www/css/colors.css` for a list of variables that can be overridden.
 
 ### Docs
 Basic api documentation can be found at `/docs`

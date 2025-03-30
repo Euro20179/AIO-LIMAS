@@ -28,10 +28,17 @@
 
     button,
     textarea,
-    select,
     input,
     select {
-        background: hsl(from var(--main) h s calc(l * 1.8))
+        border-style: solid;
+        background: hsl(from var(--main) h s calc(l * 1.8));
+        &:not([type="checkbox"]) {
+            border-color: var(--input-border-color);
+        }
+    }
+
+    select {
+        border-width: 1px;
     }
 
 
@@ -60,7 +67,6 @@
 
     input {
         color: white;
-        border-style: dotted;
         padding: 5px;
         border-radius: var(--border-roundness);
     }
@@ -78,8 +84,9 @@
     button,
     input[type="submit"] {
         border: 1px solid currentColor;
+        border-color: var(--input-border-color);
         border-radius: var(--border-roundness);
-        color: white;
+        color: var(--text-color);
         cursor: pointer;
     }
 
