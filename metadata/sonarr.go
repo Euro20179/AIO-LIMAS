@@ -161,6 +161,7 @@ func SonarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
 		"Show-episode-duration": fmt.Sprintf("%0.2f", episodeDuration),
 		"Show-length": fmt.Sprintf("%0.2f", episodeDuration * totalEpisodes),
 		"Show-episodes": fmt.Sprintf("%0.2f", totalEpisodes),
+		"Show-sonarrid": id,
 	}
 
 	mdMarshal, err := json.Marshal(mediaDependant)

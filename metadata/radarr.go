@@ -143,6 +143,7 @@ func RadarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
 
 	mediaDependant := map[string]string {
 		"Movie-length": fmt.Sprintf("%0.2f", data["runtime"].(float64)),
+		"Movie-radarrid": fmt.Sprintf("%d", id),
 	}
 
 	mdMarshal, err := json.Marshal(mediaDependant)
