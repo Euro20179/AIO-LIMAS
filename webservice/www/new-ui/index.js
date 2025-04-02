@@ -842,11 +842,7 @@ async function main() {
 
         globalsNewUi.results = entries
 
-        await Promise.all([
-            loadMetadata(),
-            loadUserEntries(),
-            loadUserEvents()
-        ])
+        await refreshInfo()
 
         if (entries.length === 0) {
             alert("No results")
