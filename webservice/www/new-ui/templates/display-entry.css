@@ -173,16 +173,12 @@ table {
     & .flex {
         gap: var(--gap-size);
     }
-
-    /* for some reason the 2 divs didn't have a gap */
-    .flex:not(:last-of-type) {
-        margin-right: var(--gap-size);
-    }
 }
 
 .action {
     font-size: 1.2rem;
     aspect-ratio: 1 / 1;
+    width: 35px;
 }
 
 div:has(> .close) {
@@ -193,7 +189,7 @@ div:has(> .close) {
 
     button {
         aspect-ratio: 1 / 1;
-        height: 3cap;
+        height: 35px;
     }
 }
 
