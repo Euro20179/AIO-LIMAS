@@ -106,7 +106,8 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	return out, nil
 }
 
-func OMDBProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
+func OMDBProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	entry := info.Entry
 	var out db_types.MetadataEntry
 
 	key := os.Getenv("OMDB_KEY")
@@ -114,9 +115,9 @@ func OMDBProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 		return out, errors.New("No api key")
 	}
 
-	search := info.En_Title
+	search := entry.En_Title
 	if search == "" {
-		search = info.Native_Title
+		search = entry.Native_Title
 	}
 	if search == "" {
 		return out, errors.New("No search possible")

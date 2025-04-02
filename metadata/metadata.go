@@ -6,31 +6,44 @@ import (
 	"aiolimas/types"
 )
 
+type IdIdentifyMetadata struct {
+	Id string;
+	Uid int64;
+}
+
 type IdentifyMetadata struct {
-	Title string
+	Title string;
+	Uid int64
+}
+
+type GetMetadataInfo struct {
+	Entry *db_types.InfoEntry;
+	MetadataEntry *db_types.MetadataEntry;
+	Override string;
+	Uid int64
 }
 
 // entryType is used as a hint for where to get the metadata from
-func GetMetadata(entry *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, override string) (db_types.MetadataEntry, error) {
+func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	entry := info.Entry
 	if entry.IsAnime(){
-		return AnilistShow(entry)
+		return AnilistShow(info)
 	}
 	switch entry.Type {
 	case db_types.TY_MANGA:
-		return AnilistManga(entry)
+		return AnilistManga(info)
 
 	case db_types.TY_SHOW:
 		fallthrough
 	case db_types.TY_MOVIE:
-		return OMDBProvider(entry)
+		return OMDBProvider(info)
 
 	case db_types.TY_PICTURE:
 		fallthrough
 	case db_types.TY_MEME:
-		return ImageProvider(entry)
+		return ImageProvider(info)
 	}
-	var out db_types.MetadataEntry
-	return out, nil
+	return db_types.MetadataEntry{}, nil
 }
 
 func Identify(identifySearch IdentifyMetadata, identifier string) ([]db_types.MetadataEntry, string, error) {
@@ -74,7 +87,7 @@ func IsValidIdIdentifier(name string) bool {
 	return contains
 }
 
-type ProviderFunc func(*db_types.InfoEntry) (db_types.MetadataEntry, error)
+type ProviderFunc func(*GetMetadataInfo) (db_types.MetadataEntry, error)
 
 type ProviderMap map[string]ProviderFunc
 

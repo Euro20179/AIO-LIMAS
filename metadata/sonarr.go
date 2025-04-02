@@ -12,7 +12,8 @@ import (
 
 )
 
-func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
+func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	entry := info.Entry
 	var out db_types.MetadataEntry
 
 	url := settings.Settings.SonarrURL
@@ -20,9 +21,9 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 
 	fullUrl := url + "api/v3/series/lookup"
 
-	query := info.En_Title
+	query := entry.En_Title
 	if query == "" {
-		query = info.Native_Title
+		query = entry.Native_Title
 	}
 	if query == "" {
 		println("No search possible")
@@ -41,7 +42,7 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 	idPretense, ok := data["id"]
 	//this will be nil, if its not in the user's library
 	if !ok {
-		if info.IsAnime() {
+		if entry.IsAnime() {
 			return AnilistShow(info)
 		}
 		return OMDBProvider(info)
@@ -54,8 +55,8 @@ func SonarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 		println(err.Error())
 		return out, err
 	}
-	out.ItemId = info.ItemId
-	info.Location = data["path"].(string)
+	out.ItemId = info.Entry.ItemId
+	info.Entry.Location = data["path"].(string)
 	return out, err
 }
 

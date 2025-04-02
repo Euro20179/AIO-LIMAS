@@ -12,7 +12,7 @@ import (
 
 )
 
-func RadarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
+func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 
 	url := settings.Settings.RadarrURL
@@ -20,9 +20,9 @@ func RadarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 
 	fullUrl := url + "api/v3/movie/lookup"
 
-	query := info.En_Title
+	query := info.Entry.En_Title
 	if query == "" {
-		query = info.Native_Title
+		query = info.Entry.Native_Title
 	}
 	if query == "" {
 		println("No search possible")
@@ -52,8 +52,8 @@ func RadarrProvider(info *db_types.InfoEntry) (db_types.MetadataEntry, error) {
 		println(err.Error())
 		return out, err
 	}
-	out.ItemId = info.ItemId
-	info.Location = data["path"].(string)
+	out.ItemId = info.Entry.ItemId
+	info.Entry.Location = data["path"].(string)
 	return out, err
 }
 

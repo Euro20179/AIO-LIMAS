@@ -2,19 +2,17 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 
-	"aiolimas/util"
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
 	"aiolimas/settings"
 	"aiolimas/types"
+	"aiolimas/util"
 )
 
 func ListCollections(ctx RequestContext) {
@@ -262,7 +260,12 @@ func AddEntry(ctx RequestContext) {
 	if parsedParams.Get("get-metadata", false).(bool) {
 		providerOverride := parsedParams.Get("metadata-provider", "").(string)
 		var err error
-		newMeta, err := meta.GetMetadata(&entryInfo, &metadata, providerOverride)
+		newMeta, err := meta.GetMetadata(&meta.GetMetadataInfo{
+			Entry:         &entryInfo,
+			MetadataEntry: &metadata,
+			Override:      providerOverride,
+			Uid:           ctx.Uid,
+		})
 		if err != nil {
 			util.WError(w, 500, "Could not get metadata\n%s", err.Error())
 			return
@@ -356,7 +359,6 @@ func Stream(ctx RequestContext) {
 		subFile = ""
 	}
 
-
 	newLocation := os.ExpandEnv(entry.Location)
 
 	fullPath := newLocation
@@ -365,7 +367,7 @@ func Stream(ctx RequestContext) {
 		fullPath += "/" + subFile
 	}
 
-	stat, err:= os.Stat(fullPath)
+	stat, err := os.Stat(fullPath)
 	if err == nil && stat.IsDir() {
 		files, err := os.ReadDir(fullPath)
 		if err != nil {
@@ -376,7 +378,7 @@ func Stream(ctx RequestContext) {
 			path := url.QueryEscape(file.Name())
 			var data string
 			if subFile != "" {
-				data = fmt.Sprintf("stream-entry?id=%d&subfile=%s\n", entry.ItemId, subFile + "/" + path)
+				data = fmt.Sprintf("stream-entry?id=%d&subfile=%s\n", entry.ItemId, subFile+"/"+path)
 			} else {
 				data = fmt.Sprintf("stream-entry?id=%d&subfile=%s\n", entry.ItemId, path)
 			}
@@ -421,7 +423,7 @@ func GetDescendants(ctx RequestContext) {
 
 func GetTree(ctx RequestContext) {
 	w := ctx.W
-	tree, err := db.BuildEntryTree(ctx.Uid, )
+	tree, err := db.BuildEntryTree(ctx.Uid)
 	if err != nil {
 		util.WError(w, 500, "Could not build tree\n%s", err.Error())
 		return
@@ -453,19 +455,6 @@ func TotalCostOf(ctx RequestContext) {
 	}
 	w.WriteHeader(200)
 	fmt.Fprintf(w, "%f", cost)
-}
-
-func verifyIdQueryParam(req *http.Request) (int64, error) {
-	id := req.URL.Query().Get("id")
-	if id == "" {
-		return 0, errors.New("No id given\n")
-	}
-
-	idInt, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("%s is not an int\n", id)
-	}
-	return idInt, nil
 }
 
 func success(w http.ResponseWriter) {

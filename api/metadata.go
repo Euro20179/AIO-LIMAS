@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"io"
 
-	"aiolimas/util"
 	"aiolimas/db"
 	"aiolimas/metadata"
 	"aiolimas/types"
+	"aiolimas/util"
 )
 
 func FetchMetadataForEntry(ctx RequestContext) {
@@ -27,7 +27,12 @@ func FetchMetadataForEntry(ctx RequestContext) {
 		providerOverride = ""
 	}
 
-	newMeta, err := metadata.GetMetadata(&mainEntry, &metadataEntry, providerOverride)
+	newMeta, err := metadata.GetMetadata(&metadata.GetMetadataInfo{
+		Entry:         &mainEntry,
+		MetadataEntry: &metadataEntry,
+		Override:      providerOverride,
+		Uid:           ctx.Uid,
+	})
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
@@ -68,32 +73,32 @@ func SetMetadataEntry(ctx RequestContext) {
 	defer req.Body.Close()
 
 	data, err := io.ReadAll(req.Body)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not read body\n%s", err.Error())
 		return
 	}
 
 	var meta db_types.MetadataEntry
 	err = json.Unmarshal(data, &meta)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 400, "Could not parse json\n%s", err.Error())
 		return
 	}
 
 	err = db.UpdateMetadataEntry(ctx.Uid, &meta)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
 
 	entry, err := db.GetUserViewEntryById(ctx.Uid, meta.ItemId)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
 	}
 
 	outJson, err := json.Marshal(entry)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not marshal new user entry\n%s", err.Error())
 		return
 	}
@@ -109,7 +114,7 @@ func ModMetadataEntry(ctx RequestContext) {
 
 	metadataEntry.Rating = pp.Get("rating", metadataEntry.Rating).(float64)
 
-	metadataEntry.Description = pp.Get("description", metadataEntry.Description).(string) 
+	metadataEntry.Description = pp.Get("description", metadataEntry.Description).(string)
 
 	metadataEntry.ReleaseYear = pp.Get("release-year", metadataEntry.ReleaseYear).(int64)
 
@@ -118,7 +123,7 @@ func ModMetadataEntry(ctx RequestContext) {
 	metadataEntry.Datapoints = pp.Get("datapoints", metadataEntry.Datapoints).(string)
 
 	err := db.UpdateMetadataEntry(ctx.Uid, &metadataEntry)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())
 		return
 	}
