@@ -230,6 +230,7 @@ func Lex(search string) []Token {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				ty = TT_NUMBER
 				val = parseNumber()
+			case '@': fallthrough
 			case '#':
 				ty = TT_MACRO
 				// parseWord includes the first char, ignore it

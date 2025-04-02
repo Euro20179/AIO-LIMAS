@@ -833,17 +833,39 @@ function handleRichText(e) {
 }
 
 async function main() {
-    await refreshInfo()
 
-    let tree = Object.values(globalsNewUi.entries).sort((a, b) => {
-        let aUInfo = findUserEntryById(a.ItemId)
-        let bUInfo = findUserEntryById(b.ItemId)
-        if (!aUInfo || !bUInfo) return 0
-        return bUInfo?.UserRating - aUInfo?.UserRating
-    })
 
-    globalsNewUi.results = tree
-    renderSidebar(tree)
+    if (initialSearch) {
+        let entries = await doQuery3(initialSearch)
+
+        setResultStat("results", entries.length)
+
+        globalsNewUi.results = entries
+
+        await Promise.all([
+            loadMetadata(),
+            loadUserEntries(),
+            loadUserEvents()
+        ])
+
+        if (entries.length === 0) {
+            alert("No results")
+            return
+        }
+        renderSidebar(entries)
+    } else {
+        await refreshInfo()
+        let tree = Object.values(globalsNewUi.entries).sort((a, b) => {
+            let aUInfo = findUserEntryById(a.ItemId)
+            let bUInfo = findUserEntryById(b.ItemId)
+            if (!aUInfo || !bUInfo) return 0
+            return bUInfo?.UserRating - aUInfo?.UserRating
+        })
+
+        globalsNewUi.results = tree
+        renderSidebar(tree)
+    }
+
 }
 
 main()
