@@ -83,7 +83,7 @@ function sumCollectionStats(collectionEntry, itself = true, children = true, cop
 
 const viewAllElem = document.getElementById("view-all") as HTMLInputElement
 
-const displayItems = /**@type {HTMLElement}*/(document.getElementById("entry-output"))
+const displayItems = document.getElementById("entry-output") as HTMLElement
 
 const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
 

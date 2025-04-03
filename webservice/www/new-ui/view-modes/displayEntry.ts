@@ -391,7 +391,11 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
             <thead>
                 <tr>
                     <!-- this nonsense is so that the title lines up with the events -->
-                    <th class="grid column"><button popovertarget="new-event-form">➕︎</button><span style="text-align: center">Event</span></th>
+                    <th>
+                        <div class="grid column">
+                            <button popovertarget="new-event-form">➕︎</button><span style="text-align: center">Event</span>
+                        </div>
+                    </th>
                     <th>Time</th>
                 </tr>
             </thead>
@@ -435,11 +439,7 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
     }
 }
 
-/**
- * @param {InfoEntry} item
- * @param {HTMLElement | DocumentFragment} [parent=displayItems]
- */
-function renderDisplayItem(item, parent = displayItems) {
+function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragment = displayItems) {
     let el = document.createElement("display-entry")
 
     displaying.push(el)
@@ -457,11 +457,7 @@ function renderDisplayItem(item, parent = displayItems) {
     let root = el.shadowRoot
     if (!root) return
 
-    /**
-     * @param {HTMLElement} elementParent
-     * @param {Generator<InfoEntry>} relationGenerator
-     */
-    function createRelationButtons(elementParent, relationGenerator) {
+    function createRelationButtons(elementParent: HTMLElement, relationGenerator: Generator<InfoEntry>) {
         let relationships = relationGenerator.toArray()
         let titles = relationships.map(i => i.En_Title)
         relationships = relationships.sort((a, b) => {
@@ -486,10 +482,10 @@ function renderDisplayItem(item, parent = displayItems) {
         }
     }
 
-    let childEl = /**@type {HTMLElement}*/(root.querySelector(".descendants div"))
+    let childEl = root.querySelector(".descendants div") as HTMLElement
     createRelationButtons(childEl, findDescendants(item.ItemId))
 
-    let copyEl = /**@type {HTMLElement}*/(root.querySelector(".copies div"))
+    let copyEl = root.querySelector(".copies div") as HTMLElement
     createRelationButtons(copyEl, findCopies(item.ItemId))
 
     hookActionButtons(root, item)
@@ -507,8 +503,9 @@ function renderDisplayItem(item, parent = displayItems) {
             .catch(console.error)
     }
 
-    el.addEventListener("data-changed", function(e) {
-        const event = /**@type {CustomEvent}*/(e)
+    el.addEventListener("data-changed", function(_e) {
+        let e = _e as CustomEvent
+        const event = e
         const item = /**@type {InfoEntry}*/(event.detail.item)
         const user = /**@type {UserEntry}*/(event.detail.user)
         const meta = /**@type {MetadataEntry}*/(event.detail.meta)
