@@ -63,11 +63,11 @@ function Expand_macro(macro)
     }
 
     for _, item in ipairs(mediaTypes) do
-        basicMacros[string.lower(item)] = '(type == "' .. item .. '")'
+        basicMacros[string.lower(item)] = '(type = \'' .. item .. '\')'
     end
 
     for _, item in ipairs(statuses) do
-        basicMacros[string.lower(item)] = '(status == "' .. item .. '")'
+        basicMacros[string.lower(item)] = '(status = \'' .. item .. '\')'
     end
 
     if basicMacros[macro] ~= nil then

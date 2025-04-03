@@ -14,7 +14,7 @@
         <form id="new-item-form" action="javascript:newEntry()">
             <input type="text" placeholder="title" name="title" required>
             <input type="text" placeholder="native title" name="native-title">
-            <input type="text" placeholder="location" name="location">
+            <input type="text" placeholder="item location (eg D:\Movies\bolt, eg: bookshelf)" name="location">
             <label>Price <input type="number" min="0" step="0.01" name="price"></label>
             <br>
             <div>
@@ -258,7 +258,6 @@
                 <button class="copy-to" onclick="displayEntryCopyTo(this)"
                     title="copy user info to another item">➡</button>
                 <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
-                <!-- <button class="identify" title="identify item" popovertarget="identify-items">ℹ</button> -->
                 <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
                 <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
             </div>
