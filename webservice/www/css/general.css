@@ -123,6 +123,10 @@
         user-select: none;
         pointer-events: none;
     }
+
+    :is(input, select):required:invalid {
+        border-color: var(--red);
+    }
 }
 
 @layer utility {
