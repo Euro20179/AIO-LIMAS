@@ -105,7 +105,7 @@ function Expand_macro(macro)
         return string.format("(artStyle & %d == %d)", as_int, as_int), ""
     elseif aio.hasprefix(macro, "tag:") then
         local tag = string.sub(macro, 5)
-        return "Collection LIKE (char(31) || '" .. tag .. "' || char(31))", ""
+        return "Collection LIKE ('%' || char(31) || '" .. tag .. "' || char(31) || '%')", ""
     else
         return string.format("(en_title LIKE '%%%s%%')", string.sub(macro, 1)), ""
     end
