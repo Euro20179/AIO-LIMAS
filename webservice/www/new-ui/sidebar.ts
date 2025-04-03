@@ -1,20 +1,12 @@
-const sidebarItems = /**@type {HTMLElement}*/(document.querySelector(".sidebar--items"))
+const sidebarItems = document.querySelector(".sidebar--items") as HTMLElement
 
-/**@type {InfoEntry[]}*/
-const sidebarQueue = []
+const sidebarQueue: InfoEntry[] = []
 
-/**@type {Set<string>} */
-const sidebarIntersected = new Set()
+const sidebarIntersected: Set<string> = new Set()
 const sidebarObserver = new IntersectionObserver((entries) => {
     for (let entry of entries) {
-        //keep track of which items have already triggered a new item to be added
-        //otherwise each time the user scrolls, more items are added which is ugly lol
-        const entryId = entry.target.getAttribute("data-entry-id") || "NA"
-        if (entry.isIntersecting && sidebarQueue.length && !sidebarIntersected.has(entryId)) {
-            sidebarIntersected.add(entryId)
-            let newItem = sidebarQueue.shift()
-            if (!newItem) continue
-            renderSidebarItem(newItem)
+        if (entry.isIntersecting) {
+            entry.target.dispatchEvent(new Event("on-screen-appear"))
         }
     }
 }, {
@@ -27,20 +19,14 @@ function clearSidebar() {
 
     sidebarIntersected.clear()
 
-    sidebarQueue.length = 0
-    while (sidebarItems.children.length) {
-        if (sidebarItems.firstChild?.nodeType === 1) {
-            sidebarObserver.unobserve(sidebarItems.firstChild)
-        }
-        sidebarItems.firstChild?.remove()
+    while (sidebarItems.firstElementChild) {
+        sidebarObserver.unobserve(sidebarItems.firstElementChild)
+        sidebarItems.firstElementChild.remove()
     }
 }
 
-/**
- * @param {InfoEntry} item
- */
-function refreshSidebarItem(item) {
-    let el = /**@type {HTMLElement}*/(document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`))
+function refreshSidebarItem(item: InfoEntry) {
+    let el = document.querySelector(`sidebar-entry[data-entry-id="${item.ItemId}"]`) as HTMLElement
     if (el) {
         let user = findUserEntryById(item.ItemId)
         let meta = findMetadataById(item.ItemId)
@@ -75,16 +61,12 @@ function updateSidebarEntryContents(item, user, meta, el) {
     titleEl.innerText = item.En_Title || item.Native_Title
     titleEl.title = meta.Title
 
+    //thumbnail source is updated in `on-screen-appear` event as to make sure it doesn't request 300 images at once
     imgEl.alt = "thumbnail"
 
     //Type
     let typeIcon = typeToSymbol(String(item.Type))
     titleEl.setAttribute("data-type-icon", typeIcon)
-
-    //Thumbnail
-    if (imgEl.src !== meta.Thumbnail) {
-        imgEl.src = meta.Thumbnail
-    }
 
     //Release year
     if (meta.ReleaseYear)
@@ -127,13 +109,7 @@ function clickSideBarEntry(item) {
     toggleItem(item)
 }
 
-/**
- * @param {InfoEntry} item
- * @param {HTMLElement | DocumentFragment} [sidebarParent=sidebarItems]
- */
-function renderSidebarItem(item, sidebarParent = sidebarItems) {
-
-
+function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | DocumentFragment = sidebarItems) {
     let elem = document.createElement("sidebar-entry")
 
     sidebarObserver.observe(elem)
@@ -144,7 +120,7 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
 
     sidebarParent.append(elem)
 
-    let img = elem.shadowRoot?.querySelector("img")
+    let img = elem.shadowRoot?.querySelector("img") as HTMLImageElement
     if (img) {
         img.addEventListener("click", e => {
             if (e.ctrlKey) {
@@ -155,6 +131,12 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
             }
         })
     }
+
+    elem.addEventListener("on-screen-appear", function(e) {
+        if (img.src !== meta.Thumbnail) {
+            img.src = meta.Thumbnail
+        }
+    })
 
     elem.addEventListener("data-changed", function(e) {
         const event = /**@type {CustomEvent}*/(e)
@@ -168,10 +150,7 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
     changeSidebarItemData(item, user, meta, elem)
 }
 
-/**
-* @param {InfoEntry[]} entries
-*/
-function renderSidebar(entries) {
+function renderSidebar(entries: InfoEntry[]) {
     if (viewAllElem.checked) {
         selectItemList(entries, mode)
     } else {
@@ -179,14 +158,7 @@ function renderSidebar(entries) {
     }
     clearSidebar()
     for (let i = 0; i < entries.length; i++) {
-        if (i > 15) {
-            sidebarQueue.push(entries[i])
-        } else {
             renderSidebarItem(entries[i], sidebarItems)
-        }
     }
-    // for (let item of entries) {
-    //     renderSidebarItem(item, frag)
-    // }
 }
 

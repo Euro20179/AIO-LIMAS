@@ -9,6 +9,9 @@ aiolimas
 start
 sql-parent-children-getter
 
+#generated
+*.js
+
 backup
 start
 shows-to-aiolimas
