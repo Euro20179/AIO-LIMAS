@@ -938,8 +938,8 @@ func AddTags(uid int64, id int64, tags []string) error {
 	}
 	defer Db.Close()
 
-	tagsString := strings.Join(tags, "\x1F")
-	_, err = Db.Exec("UPDATE entryInfo SET collection = concat(collection, char(31), ?, char(31)) WHERE itemId = ?", tagsString, id)
+	tagsString := strings.Join(tags, "\x1F\x1F")
+	_, err = Db.Exec("UPDATE entryInfo SET collection = (collection || char(31) || ? || char(31)) WHERE itemId = ?", tagsString, id)
 	return err
 }
 
@@ -953,7 +953,7 @@ func DelTags(uid int64, id int64, tags []string) error {
 	for _, tag := range tags {
 		if tag == "" { continue }
 
-		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, concat(char(31), ?, char(31)), '')", tag)
+		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '')", tag)
 		if err != nil {
 			return err
 		}
