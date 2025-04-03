@@ -106,6 +106,10 @@
             The <b>s:</b> macro indicates a status, eg: <code>#s:v</code> expands to <code>Status = "Viewing"</code>
         </p>
         <p>
+                The <b>tag:</b> macro searches for a tag. eg: <code>#tag:ghibli</code>, this is equivelent to <code>Collection ~ '%\x1Fghibli\x1F%'</code><br>
+                The reason the equivelent is so horrible is because it's an <code>\x1F</code> deliminated list of tags
+        </p>
+        <p>
             If a macro is a type, eg <code>#Show</code> or <code>#Movie</code> it will expand to <code>type =
                 "Show"</code>etc, ...
         </p>
