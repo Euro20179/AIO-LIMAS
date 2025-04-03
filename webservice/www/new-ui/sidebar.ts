@@ -124,7 +124,7 @@ function dblclickSideBarEntry(item, mode) {
  * @param {InfoEntry} item
  */
 function clickSideBarEntry(item) {
-                toggleItem(item)
+    toggleItem(item)
 }
 
 /**
@@ -146,15 +146,13 @@ function renderSidebarItem(item, sidebarParent = sidebarItems) {
 
     let img = elem.shadowRoot?.querySelector("img")
     if (img) {
-        img.addEventListener("click", _e => {
-            (innerWidth / innerHeight >= 1)
-            ? clickSideBarEntry(item)
-            : dblclickSideBarEntry(item, mode)
-        })
-        img.addEventListener("dblclick", _e => {
-            (innerWidth / innerHeight >= 1)
-            ? dblclickSideBarEntry(item, mode)
-            : clickSideBarEntry(item)
+        img.addEventListener("click", e => {
+            if (e.ctrlKey) {
+                clickSideBarEntry(item)
+            } else {
+
+                dblclickSideBarEntry(item, mode)
+            }
         })
     }
 

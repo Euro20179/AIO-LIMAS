@@ -21,6 +21,11 @@ func CreateAccount(ctx RequestContext) {
 	success(w)
 }
 
+func Logout(ctx RequestContext) {
+	ctx.W.Header().Add("Clear-Site-Data", "\"*\"")
+	ctx.W.WriteHeader(200)
+}
+
 func Login(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
