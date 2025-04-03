@@ -351,8 +351,8 @@ func P_UserStatus(uid int64, in string) (any, error) {
 	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
 }
 
-func P_TList[T any](uid int64, sep string, toT func(in string) T) func(string) (any, error) {
-	return func(in string) (any, error) {
+func P_TList[T any](sep string, toT func(in string) T) func(int64, string) (any, error) {
+	return func(uid int64, in string) (any, error) {
 		var arr []T
 		items := strings.Split(in, sep)
 		for _, i := range items {

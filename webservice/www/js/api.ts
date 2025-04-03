@@ -263,6 +263,10 @@ async function apiRegisterEvent(itemId: bigint, name: string, ts: number, after:
     return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}&timezone=${encodeURIComponent(tz)}`)
 }
 
-async function setEntryTags(itemId: bigint, tags: string[]) {
-    return await fetch(`${apiPath}/mod-entry?tags=${encodeURIComponent(tags.join(" "))}&id=${itemId}`)
+async function addEntryTags(itemId: bigint, tags: string[]) {
+    return await fetch(`${apiPath}/add-tags?tags=${encodeURIComponent(tags.join("\x1F"))}&id=${itemId}`)
+}
+
+async function deleteEntryTags(itemId: bigint, tags: string[]) {
+    return await fetch(`${apiPath}/delete-tags?tags=${encodeURIComponent(tags.join("\x1F"))}&id=${itemId}`)
 }

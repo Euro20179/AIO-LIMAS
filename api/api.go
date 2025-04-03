@@ -28,6 +28,34 @@ func ListCollections(ctx RequestContext) {
 	}
 }
 
+func AddTags(ctx RequestContext) {
+	entry := ctx.PP["id"].(db_types.InfoEntry)
+	newTags := ctx.PP["tags"].([]string)
+	uid := ctx.Uid
+
+	if err := db.AddTags(uid, entry.ItemId, newTags); err != nil {
+		ctx.W.WriteHeader(500)
+		ctx.W.Write([]byte("Could not add tags"))
+		return
+	}
+
+	success(ctx.W)
+}
+
+func DeleteTags(ctx RequestContext) {
+	entry := ctx.PP["id"].(db_types.InfoEntry)
+	newTags := ctx.PP["tags"].([]string)
+	uid := ctx.Uid
+
+	if err := db.DelTags(uid, entry.ItemId, newTags); err != nil {
+		ctx.W.WriteHeader(500)
+		ctx.W.Write([]byte("Could not add tags"))
+		return
+	}
+
+	success(ctx.W)
+}
+
 func DownloadDB(ctx RequestContext) {
 	dir := os.Getenv("AIO_DIR")
 	if dir == "" {

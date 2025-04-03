@@ -1,9 +1,6 @@
-/**
- * @param {string} id
- */
-function getCtx2(id) {
-    const canv = /**@type {HTMLCanvasElement}*/(document.getElementById(id))
-    return /**@type {CanvasRenderingContext2D}*/(canv.getContext("2d"))
+function getCtx2(id: string) {
+    const canv = document.getElementById(id) as HTMLCanvasElement
+    return canv.getContext("2d")
 }
 
 const typeColors = {
@@ -25,16 +22,9 @@ const typeSelection = /**@type {HTMLSelectElement}*/(document.getElementById("ch
 
 const groupByInput = /**@type {HTMLInputElement}*/(document.getElementById("group-by-expr"))
 
-/**
- * @param {(entries: InfoEntry[]) => Promise<any>} mkChart
- */
-function ChartManager(mkChart) {
-    /**@type {any}*/
-    let chrt = null
-    /**
-     * @param {InfoEntry[]} entries
-     */
-    return async function(entries) {
+function ChartManager(mkChart: (entries: InfoEntry[]) => Promise<any>) {
+    let chrt: any = null
+    return async function(entries: InfoEntry[]) {
         if (chrt) {
             chrt.destroy()
         }
@@ -276,7 +266,7 @@ async function organizeData(entries) {
     if (groupBy === "Tags") {
         data = {}
         for (let item of entries) {
-            for (let tag of item.Collection.split(",")) {
+            for (let tag of item.Collection.split("\x1F")) {
                 if (data[tag]) {
                     data[tag].push(item)
                 } else {

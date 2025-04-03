@@ -229,7 +229,7 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
     //tags
     const tagsRoot = /**@type {HTMLDivElement}*/(el.querySelector(".tags"))
     tagsRoot.innerHTML = ""
-    for (let tag of item.Collection.split(" ")) {
+    for (let tag of item.Collection.split("\x1F")) {
         tag = tag.trim()
         if (!tag) continue
         const outer = document.createElement("div")
@@ -239,11 +239,11 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
         del.classList.add("delete")
 
         del.onclick = function() {
-            item.Collection = item.Collection.replace(tag, "").trim()
-            setEntryTags(item.ItemId, item.Collection.split(" "))
+            deleteEntryTags(item.ItemId, [tag])
                 .then(res => {
                     if(res.status !== 200) return ""
                     res.text().then(() => {
+                        item.Collection = item.Collection.split("\x1F").filter((t: string) => t != tag).join("\x1F") + "\x1F"
                         changeDisplayItemData(item, user, meta, events, /**@type {HTMLElement}*/(el.host))
                     })
                 })
@@ -494,12 +494,12 @@ function renderDisplayItem(item, parent = displayItems) {
 
     hookActionButtons(root, item)
 
-    const newTag = /**@type {HTMLButtonElement}*/(root.getElementById("create-tag"))
+    const newTag = (root.getElementById("create-tag")) as HTMLButtonElement
     newTag.onclick = function() {
-        const name = prompt("Tag name (space seperated)")
-        item.Collection += ` ${name}`
-        item.Collection = item.Collection.trim()
-        setEntryTags(item.ItemId, item.Collection.split(" "))
+        const name = prompt("Tag name (, seperated)")
+        if(!name) return
+        item.Collection += name.replaceAll(",", "\x1F") + "\x1F"
+        addEntryTags(item.ItemId, name.split(","))
             .then(res => {
                 if(res.status !== 200) return ""
                 res.text().then(() => changeDisplayItemData(item, user, meta, events, el))

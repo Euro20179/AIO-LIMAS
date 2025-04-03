@@ -7,29 +7,24 @@
 //the stats of the collection will be the stats of itself + stats of children
 //eg: the total cost
 
-/**
- * @typedef DisplayMode
- * @type {object}
- * @property {(entry: InfoEntry, updateStats?: boolean) => any} add
- * @property {(entry: InfoEntry, updateStats?: boolean) => any} sub
- * @property {(entry: InfoEntry[], updateStats?: boolean) => any} addList
- * @property {(entry: InfoEntry[], updateStats?: boolean) => any} subList
- */
+type DisplayMode = {
+    add: (entry: InfoEntry, updateStats?: boolean) => any
+    sub: (entry: InfoEntry, updateStats?: boolean) => any
+    addList: (entry: InfoEntry[], updateStats?: boolean) => any
+    subList: (entry: InfoEntry[], updateStats?: boolean) => any
+}
 
 
-/**
- * @typedef GlobalsNewUi
- * @type {object}
- * @property {Record<string, UserEntry>} userEntries
- * @property {Record<string, MetadataEntry>} metadataEntries
- * @property {Record<string, InfoEntry>} entries
- * @property {UserEvent[]} events
- * @property {InfoEntry[]} results
- * @property {InfoEntry[]} selectedEntries
- */
-/**@type {GlobalsNewUi}*/
+type GlobalsNewUi = {
+    userEntries: Record<string, UserEntry>
+    metadataEntries: Record<string, MetadataEntry>
+    entries: Record<string, InfoEntry>
+    events: UserEvent[]
+    results: InfoEntry[]
+    selectedEntries: InfoEntry[]
+}
 
-let globalsNewUi = {
+let globalsNewUi: GlobalsNewUi = {
     userEntries: {},
     metadataEntries: {},
     entries: {},

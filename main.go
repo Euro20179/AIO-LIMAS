@@ -29,6 +29,30 @@ var ( // `/` endpoints {{{
 		EndPoint:    "download-db",
 	}
 
+	addTags = api.ApiEndPoint {
+		Handler: api.AddTags,
+		Description: "Adds tag(s) to an entry",
+		EndPoint: "add-tags",
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"tags": api.MkQueryInfo(api.P_TList[string]("\x1F", func(in string) string{
+				return in
+			}), true),
+		},
+	}
+
+	delTags = api.ApiEndPoint {
+		Handler: api.DeleteTags,
+		Description: "Delets tag(s) from an entry",
+		EndPoint: "delete-tags",
+		QueryParams: api.QueryParams {
+			"id": api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, true),
+			"tags": api.MkQueryInfo(api.P_TList[string]("\x1F", func(in string) string{
+				return in
+			}), true),
+		},
+	}
+
 	addEntry = api.ApiEndPoint{
 		Handler: api.AddEntry,
 		QueryParams: api.QueryParams{
@@ -577,6 +601,8 @@ var (
 		getTree,
 		getAllEntry,
 		downloadDB,
+		addTags,
+		delTags,
 	}
 
 	metadataEndpointList = []api.ApiEndPoint{
