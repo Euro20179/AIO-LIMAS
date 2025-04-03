@@ -1,80 +1,71 @@
-/**
- * @typedef UserEntry
- * @type {object}
- * @property {bigint} ItemId
- * @property {string} Status
- * @property {number} ViewCount
- * @property {number} UserRating
- * @property {string} Notes
- * @property {string} CurrentPosition
- */
+type UserEntry = {
+    ItemId: bigint
+    Status: string
+    ViewCount: number
+    UserRating: number
+    Notes: string
+    CurrentPosition: string
+}
 
-/**
- * @typedef UserEvent
- * @type {object}
- * @property {bigint} ItemId
- * @property {string} Event
- * @property {number} Timestamp
- * @property {number} After
- * @property {string} TimeZone
- */
 
-/**
- * @typedef InfoEntry
- * @type {object}
- * @property {bigint} ItemId
- * @property {string} Collection
- * @property {number} Format
- * @property {number} ArtStyle
- * @property {string} Location
- * @property {string} Native_Title
- * @property {bigint} ParentId
- * @property {number} PurchasePrice
- * @property {string} Type
- * @property {string} En_Title
- * @property {bigint} CopyOf
- */
+type UserEvent = {
+    ItemId: bigint
+    Event: string
+    Timestamp: number
+    After: number
+    TimeZone: string
+}
 
-/**
- * @typedef MetadataEntry
- * @type {object}
- * @property {bigint} ItemId
- * @property {number} Rating
- * @property {number} RatingMax
- * @property {string} Description
- * @property {number} ReleaseYear
- * @property {string} Thumbnail
- * @property {string} MediaDependant
- * @property {string} Datapoints
- * @property {string} Title
- * @property {string} Native_Title
- */
 
-/**
- * @typedef IdentifyResult
- * @property {number} id
- * @property {string} Description
- * @property {string} Thumbnail
- */
+type InfoEntry = {
+    ItemId: bigint
+    Collection: string
+    Format: number
+    ArtStyle: number
+    Location: string
+    Native_Title: string
+    ParentId: bigint
+    PurchasePrice: number
+    Type: string
+    En_Title: string
+    CopyOf: bigint
+}
 
-/**@param {string} jsonl*/
-function mkStrItemId(jsonl) {
+
+type MetadataEntry = {
+    ItemId: bigint
+    Rating: number
+    RatingMax: number
+    Description: string
+    ReleaseYear: number
+    Thumbnail: string
+    MediaDependant: string
+    Datapoints: string
+    Title: string
+    Native_Title: string
+}
+
+
+type IdentifyResult = {
+    Description: string
+    Thumbnail: string
+}
+
+function mkStrItemId(jsonl: string) {
     return jsonl
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
         .replace(/"ParentId":\s*(\d+),/, "\"ParentId\": \"$1\",")
         .replace(/"CopyOf":\s*(\d+)(,)?/, "\"CopyOf\": \"$1\"$2")
 }
 
-/**@param {string} jsonl*/
-function mkIntItemId(jsonl) {
+function mkIntItemId(jsonl: string) {
     return jsonl
         .replace(/"ItemId":"(\d+)",/, "\"ItemId\": $1,")
         .replace(/"ParentId":"(\d+)",/, "\"ParentId\": $1,")
         .replace(/"CopyOf":"(\d+)"(,)?/, "\"CopyOf\": $1$2")
 }
 
-/**@param {string} jsonl*/
-function parseJsonL(jsonl) {
+function parseJsonL(jsonl: string) {
     const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
     try {
         return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
@@ -84,13 +75,7 @@ function parseJsonL(jsonl) {
     }
 }
 
-/**
- * @function
- * @template T
- * @param {string} endpoint 
- * @returns {Promise<T[]>}
-*/
-async function loadList(endpoint) {
+async function loadList<T>(endpoint: string): Promise<T[]> {
     const res = await fetch(`${apiPath}/${endpoint}?uid=${uid}`)
     if (!res) {
         return []
@@ -107,18 +92,11 @@ async function loadList(endpoint) {
         .map(parseJsonL)
 }
 
-/**
-* @param {bigint} oldid
-* @param {bigint} newid
-*/
-async function copyUserInfo(oldid, newid) {
+async function copyUserInfo(oldid: bigint, newid: bigint) {
     return await fetch(`${apiPath}/engagement/copy?src-id=${oldid}&dest-id=${newid}`).catch(console.error)
 }
 
-/**
-    * @param {string} type
-    */
-function typeToSymbol(type) {
+function typeToSymbol(type: string) {
     const conversion = {
         "Show": "📺︎",
         "Movie": "📽",
@@ -140,11 +118,7 @@ function typeToSymbol(type) {
     return type
 }
 
-/**
- * @param {string} name
- * @returns {number}
- */
-function nameToFormat(name) {
+function nameToFormat(name: string): number {
     const DIGI_MOD = 0x1000
     let val = 0
     name = name.toLowerCase()
@@ -170,15 +144,12 @@ function nameToFormat(name) {
         "vinyl": 14,
         "image": 15
     }
-    val |= formats[/**@type {keyof typeof formats}*/(name)]
+    val |= formats[name as keyof typeof formats]
     return val
 
 }
 
-/**
-    * @param {number} format
-    */
-function formatToName(format) {
+function formatToName(format: number) {
     const DIGI_MOD = 0x1000
     let out = ""
     if ((format & DIGI_MOD) === DIGI_MOD) {
@@ -210,37 +181,21 @@ function formatToName(format) {
     return `${formats[format]}${out}`
 }
 
-/**
-    * @param {string} title
-    * @param {string} provider
-    */
-async function identify(title, provider) {
+async function identify(title: string, provider: string) {
     return await fetch(`${apiPath}/metadata/identify?title=${encodeURIComponent(title)}&provider=${provider}`)
 }
 
-/**
-    * @param {string} identifiedId
-    * @param {string} provider
-    * @param {bigint} applyTo
-    */
-async function finalizeIdentify(identifiedId, provider, applyTo) {
+async function finalizeIdentify(identifiedId: string, provider: string, applyTo: bigint) {
     identifiedId = encodeURIComponent(identifiedId)
     provider = encodeURIComponent(provider)
     return await fetch(`${apiPath}/metadata/finalize-identify?identified-id=${identifiedId}&provider=${provider}&apply-to=${applyTo}`)
 }
 
-/**
- * @param {bigint} id
- * @param {string} thumbnail
- */
-async function updateThumbnail(id, thumbnail) {
+async function updateThumbnail(id: bigint, thumbnail: string) {
     return await fetch(`${apiPath}/metadata/mod-entry?id=${id}&thumbnail=${encodeURIComponent(thumbnail)}`)
 }
 
-/**
- * @param {string} searchString
- */
-async function doQuery3(searchString) {
+async function doQuery3(searchString: string) {
     const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}&uid=${uid}`).catch(console.error)
     if (!res) return []
 
@@ -263,19 +218,11 @@ async function doQuery3(searchString) {
     return []
 }
 
-/**
- * @param {bigint} id
- * @param {string} pos
- */
-async function setPos(id, pos) {
+async function setPos(id: bigint, pos: string) {
     return fetch(`${apiPath}/engagement/mod-entry?id=${id}&current-position=${pos}`)
 }
 
-/**
-* @param {InfoEntry[]} entries
-* @param {string} sortBy
-*/
-function sortEntries(entries, sortBy) {
+function sortEntries(entries: InfoEntry[], sortBy: string) {
     if (sortBy != "") {
         if (sortBy == "rating") {
             entries = entries.sort((a, b) => {
@@ -322,30 +269,15 @@ function sortEntries(entries, sortBy) {
     return entries
 }
 
-/**
- * @param {BigInt} itemId
- * @param {number} ts
- * @param {number} after
-*/
-async function apiDeleteEvent(itemId, ts, after) {
+async function apiDeleteEvent(itemId: bigint, ts: number, after: number) {
     return await fetch(`${apiPath}/engagement/delete-event?id=${itemId}&after=${after}&timestamp=${ts}`)
 }
 
-/**
- * @param {BigInt} itemId
- * @param {string} name
- * @param {number} ts
- * @param {number} after
-*/
-async function apiRegisterEvent(itemId, name, ts, after) {
+async function apiRegisterEvent(itemId: bigint, name: string, ts: number, after: number) {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
     return await fetch(`${apiPath}/engagement/register-event?name=${encodeURIComponent(name)}&id=${itemId}&after=${after}&timestamp=${ts}&timezone=${encodeURIComponent(tz)}`)
 }
 
-/**
- * @param {BigInt} itemId
- * @param {string[]} tags
-*/
-async function setEntryTags(itemId, tags) {
+async function setEntryTags(itemId: bigint, tags: string[]) {
     return await fetch(`${apiPath}/mod-entry?tags=${encodeURIComponent(tags.join(" "))}&id=${itemId}`)
 }
