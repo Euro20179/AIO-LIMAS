@@ -51,7 +51,9 @@ git clone https://github.com/euro20179/aio-limas
 
 cd aio-limas
 
-go run .
+./build
+
+./aiolimas
 ```
 
 A server and web ui will then be running on `localhost:8080`

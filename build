@@ -1,0 +1,4 @@
+#!/bin/sh
+
+esbuild webservice/www/**/*.ts --minify --outdir=webservice/www
+go build .
