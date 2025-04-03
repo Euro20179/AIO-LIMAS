@@ -86,7 +86,7 @@ func Lex(search string) []Token {
 		return final
 	}
 
-	parseWord := func(quote string) string {
+	parseWord := func(quote string, forbiddenchars []rune) string {
 		inQuote := true
 
 		final := ""
@@ -100,6 +100,9 @@ func Lex(search string) []Token {
 
 		for next() && inQuote {
 			ch := search[i]
+			if slices.Contains(forbiddenchars, rune(ch)) {
+				break
+			}
 			if ch == '\\' {
 				escape = true
 				continue
@@ -223,10 +226,10 @@ func Lex(search string) []Token {
 				val = "!"
 			case '"':
 				ty = TT_STRING
-				val = parseWord("\"")
+				val = parseWord("\"", []rune{})
 			case '\'':
 				ty = TT_STRING
-				val = parseWord("'")
+				val = parseWord("'", []rune{})
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				ty = TT_NUMBER
 				val = parseNumber()
@@ -234,10 +237,10 @@ func Lex(search string) []Token {
 			case '#':
 				ty = TT_MACRO
 				// parseWord includes the first char, ignore it
-				val = parseWord("")[1:]
+				val = parseWord("", []rune{'\'', '|', '&', '"', ')', '('})[1:]
 			default:
 				ty = TT_WORD
-				val = parseWord("")
+				val = parseWord("", []rune{})
 			}
 
 			tokens = append(tokens, Token{
