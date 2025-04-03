@@ -833,8 +833,6 @@ function handleRichText(e) {
 }
 
 async function main() {
-
-
     if (initialSearch) {
         let entries = await doQuery3(initialSearch)
 
@@ -861,7 +859,6 @@ async function main() {
         globalsNewUi.results = tree
         renderSidebar(tree)
     }
-
 }
 
 main()

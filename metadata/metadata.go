@@ -13,7 +13,7 @@ type IdIdentifyMetadata struct {
 
 type IdentifyMetadata struct {
 	Title string;
-	Uid int64
+	ForUid int64
 }
 
 type GetMetadataInfo struct {

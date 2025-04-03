@@ -159,6 +159,7 @@ func IdentifyWithSearch(ctx RequestContext) {
 	title := parsedParsms["title"].(string)
 	search := metadata.IdentifyMetadata{
 		Title: title,
+		ForUid: parsedParsms["uid"].(int64),
 	}
 
 	infoList, provider, err := metadata.Identify(search, parsedParsms["provider"].(string))
