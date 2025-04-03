@@ -31,7 +31,7 @@ function refreshSidebarItem(item: InfoEntry) {
         let user = findUserEntryById(item.ItemId)
         let meta = findMetadataById(item.ItemId)
         if (!user || !meta) return
-        changeSidebarItemData(item, user, meta, el.shadowRoot)
+        changeSidebarItemData(item, user, meta, el)
     } else {
         sidebarObserver.unobserve(el)
         renderSidebarItem(item)
@@ -39,23 +39,15 @@ function refreshSidebarItem(item: InfoEntry) {
 }
 
 
-/**
- * @param {InfoEntry} item
- */
-function removeSidebarItem(item) {
+function removeSidebarItem(item: InfoEntry) {
     sidebarIntersected.delete(String(item.ItemId))
 
     sidebarItems.querySelector(`[data-entry-id="${item.ItemId}"]`)?.remove()
 }
-/**
- * @param {InfoEntry} item
- * @param {UserEntry} user
- * @param {MetadataEntry} meta
- * @param {ShadowRoot} el
- */
-function updateSidebarEntryContents(item, user, meta, el) {
-    const titleEl = /**@type {HTMLDivElement}*/(el.querySelector(".title"))
-    const imgEl = /**@type {HTMLImageElement}*/(el.querySelector(".thumbnail"))
+
+function updateSidebarEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, el: ShadowRoot) {
+    const titleEl = el.querySelector(".title") as HTMLDivElement
+    const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
 
     //Title
     titleEl.innerText = item.En_Title || item.Native_Title
@@ -75,13 +67,7 @@ function updateSidebarEntryContents(item, user, meta, el) {
         titleEl.setAttribute("data-release-year", "unknown")
 }
 
-/**
- * @param {InfoEntry} item
- * @param {UserEntry} user
- * @param {MetadataEntry} meta
- * @param {HTMLElement} el
- */
-function changeSidebarItemData(item, user, meta, el) {
+function changeSidebarItemData(item: InfoEntry, user: UserEntry, meta: MetadataEntry, el: HTMLElement) {
     const e = new CustomEvent("data-changed", {
         detail: {
             item,
@@ -93,19 +79,12 @@ function changeSidebarItemData(item, user, meta, el) {
     el.setAttribute("data-entry-id", String(item.ItemId))
 }
 
-/**
- * @param {InfoEntry} item
- * @param {DisplayMode} mode
- */
-function dblclickSideBarEntry(item, mode) {
+function sidebarEntryOpenMultiple(item: InfoEntry, mode: DisplayMode) {
     clearItems()
     selectItem(item, mode)
 }
 
-/**
- * @param {InfoEntry} item
- */
-function clickSideBarEntry(item) {
+function sidebarEntryOpenOne(item: InfoEntry) {
     toggleItem(item)
 }
 
@@ -124,10 +103,10 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
     if (img) {
         img.addEventListener("click", e => {
             if (e.ctrlKey) {
-                clickSideBarEntry(item)
+                sidebarEntryOpenOne(item)
             } else {
 
-                dblclickSideBarEntry(item, mode)
+                sidebarEntryOpenMultiple(item, mode)
             }
         })
     }
@@ -139,12 +118,12 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
     })
 
     elem.addEventListener("data-changed", function(e) {
-        const event = /**@type {CustomEvent}*/(e)
-        const item = /**@type {InfoEntry}*/(event.detail.item)
-        const user = /**@type {UserEntry}*/(event.detail.user)
-        const meta = /**@type {MetadataEntry}*/(event.detail.meta)
-        const events = /**@type {UserEvent[]}*/(event.detail.events)
-        updateSidebarEntryContents(item, user, meta, elem.shadowRoot)
+        const event = e as CustomEvent
+        const item = event.detail.item as InfoEntry
+        const user = event.detail.user as UserEntry
+        const meta = event.detail.meta as MetadataEntry
+        const events = event.detail.events as UserEvent[]
+        updateSidebarEntryContents(item, user, meta, elem.shadowRoot as ShadowRoot)
     })
 
     changeSidebarItemData(item, user, meta, elem)

@@ -1,6 +1,6 @@
-function getCtx2(id: string) {
+function getCtx2(id: string): CanvasRenderingContext2D {
     const canv = document.getElementById(id) as HTMLCanvasElement
-    return canv.getContext("2d")
+    return canv.getContext("2d") as CanvasRenderingContext2D
 }
 
 const typeColors = {
@@ -17,10 +17,10 @@ const typeColors = {
 const ctx = getCtx2("by-year")
 const rbyCtx = getCtx2("rating-by-year")
 
-const groupBySelect = /**@type {HTMLSelectElement}*/(document.getElementById("group-by"))
-const typeSelection = /**@type {HTMLSelectElement}*/(document.getElementById("chart-type"))
+const groupBySelect = document.getElementById("group-by") as HTMLSelectElement
+const typeSelection = document.getElementById("chart-type") as HTMLSelectElement
 
-const groupByInput = /**@type {HTMLInputElement}*/(document.getElementById("group-by-expr"))
+const groupByInput = document.getElementById("group-by-expr") as HTMLInputElement
 
 function ChartManager(mkChart: (entries: InfoEntry[]) => Promise<any>) {
     let chrt: any = null
@@ -32,14 +32,7 @@ function ChartManager(mkChart: (entries: InfoEntry[]) => Promise<any>) {
     }
 }
 
-/**
- * @param {CanvasRenderingContext2D} ctx
- * @param {string[]} labels
- * @param {number[]} data
- * @param {string} labelText
- * @param {string[]} [colors=[]]
- */
-function mkPieChart(ctx, labels, data, labelText, colors = []) {
+function mkPieChart(ctx: CanvasRenderingContext2D, labels: string[], data: number[], labelText: string, colors: string[] = []) {
     let obj = {
         type: 'pie',
         data: {
@@ -74,13 +67,7 @@ function mkPieChart(ctx, labels, data, labelText, colors = []) {
     return new Chart(ctx, obj)
 }
 
-/**
- * @param {CanvasRenderingContext2D} ctx
- * @param {any[]} x
- * @param {any[]} y
- * @param {string} labelText
- */
-function mkBarChart(ctx, x, y, labelText) {
+function mkBarChart(ctx: CanvasRenderingContext2D, x: any[], y: any[], labelText: string) {
     //@ts-ignore
     return new Chart(ctx, {
         type: 'bar',
@@ -125,13 +112,7 @@ function mkBarChart(ctx, x, y, labelText) {
     })
 }
 
-/**
- * @param {CanvasRenderingContext2D} ctx
- * @param {any[]} x
- * @param {any[]} y
- * @param {string} labelText
- */
-function mkXTypeChart(ctx, x, y, labelText) {
+function mkXTypeChart(ctx: CanvasRenderingContext2D, x: any[], y: any[], labelText: string) {
     const ty = typeSelection.value
     if (ty === "bar") {
         return mkBarChart(ctx, x, y, labelText)
@@ -144,8 +125,7 @@ function mkXTypeChart(ctx, x, y, labelText) {
         //this makes the pie chart look better
 
         //put x, y into a dict so that a given x can be assigned to a given y easily
-        /**@type {Record<any, any>}*/
-        let dict = {}
+        let dict: Record<any, any> = {}
         for (let i = 0; i < y.length; i++) {
             dict[x[i]] = ty === 'pie-percentage' ? y[i] / totalY * 100 : y[i]
         }
@@ -162,12 +142,7 @@ function mkXTypeChart(ctx, x, y, labelText) {
     }
 }
 
-/**
- * @param {number} watchCount
- * @param {MetadataEntry} meta
- * @returns {number}
- */
-function getWatchTime(watchCount, meta) {
+function getWatchTime(watchCount: number, meta: MetadataEntry): number {
     if (!meta.MediaDependant) {
         return 0
     }
@@ -193,31 +168,23 @@ function getWatchTime(watchCount, meta) {
     return length * watchCount
 }
 
-/**
-* @param {Record<any, any>} obj
-* @param {string} label
-*/
-function fillGap(obj, label) {
+function fillGap(obj: Record<any, any>, label: string) {
     obj[label] = []
     if (!((Number(label) + 1) in obj)) {
         fillGap(obj, String(Number(label) + 1))
     }
 }
 
-/**
- * @param {InfoEntry[]} entries
- * @returns {Record<string, InfoEntry[]>}
- */
-function organizeDataByExpr(entries) {
+function organizeDataByExpr(entries: InfoEntry[]): Record<string, InfoEntry[]> {
     let expr = groupByInput.value
 
-    let group = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, item => {
+    let group: Record<string, InfoEntry[]> = Object.groupBy(entries, item => {
         let meta = findMetadataById(item.ItemId)
         let user = findUserEntryById(item.ItemId)
         let symbols = makeSymbolsTableFromObj({ ...item, ...meta, ...user })
 
         return parseExpression(expr, symbols).toStr().jsValue
-    }))
+    }) as Record<string, InfoEntry[]>
     //Sometimes there's just empty groups i'm not sure why
     for (let key in group) {
         if (group[key].length === 0) {
@@ -227,11 +194,7 @@ function organizeDataByExpr(entries) {
     return group
 }
 
-/**
- * @param {InfoEntry[]} entries
- * @returns {Promise<[string[], InfoEntry[][]]>}
- */
-async function organizeData(entries) {
+async function organizeData(entries: InfoEntry[]): Promise<[string[], InfoEntry[][]]> {
     let groupBy = groupBySelect.value
 
     const groupings: Record<string, (i: InfoEntry) => any> = {
@@ -261,8 +224,7 @@ async function organizeData(entries) {
         "Item-name": i => i.En_Title
     }
 
-    /**@type {Record<string, InfoEntry[]>}*/
-    let data
+    let data: Record<string, InfoEntry[]>
     if (groupBy === "Tags") {
         data = {}
         for (let item of entries) {
@@ -279,11 +241,11 @@ async function organizeData(entries) {
         data = organizeDataByExpr(entries)
     }
     else {
-        data = /**@type {Record<string, InfoEntry[]>}*/(Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)])))
+        data = Object.groupBy(entries, (groupings[/**@type {keyof typeof groupings}*/(groupBy)])) as Record<string, InfoEntry[]>
     }
 
 
-    let sortBy = /**@type {HTMLInputElement}*/(document.getElementsByName("sort-by")[0])
+    let sortBy = document.getElementsByName("sort-by")[0] as HTMLInputElement
 
     //filling in years messes up the sorting, idk why
     if (sortBy.value == "") {
@@ -336,13 +298,8 @@ async function organizeData(entries) {
     return [x, y]
 }
 
-/**
- * @param {string[]} x
- * @param {any[]} y
- */
-function sortXY(x, y) {
-    /**@type {Record<string, any>}*/
-    let associated = {}
+function sortXY(x: string[], y: any[]) {
+    let associated: Record<string, any> = {}
     for (let i = 0; i < x.length; i++) {
         associated[x[i]] = y[i]
     }
@@ -391,7 +348,7 @@ const adjRatingByYear = ChartManager(async (entries) => {
                 .reduce((p, c) => (p + c), 0)
 
             let avgRating = totalRating / v.length
-            let min = Math.min(...ratings)
+            // let min = Math.min(...ratings)
 
             return (avgRating - generalAvgRating) + (v.length - avgItems)
 
@@ -464,10 +421,7 @@ const byc = ChartManager(async (entries) => {
     return mkXTypeChart(ctx, years, counts, '#items')
 })
 
-/**
-* @param {InfoEntry[]} entries
-*/
-function makeGraphs(entries) {
+function makeGraphs(entries: InfoEntry[]) {
     byc(entries)
     ratingByYear(entries)
     adjRatingByYear(entries)
@@ -485,10 +439,7 @@ groupBySelect.onchange = typeSelection.onchange = function() {
     makeGraphs(globalsNewUi.selectedEntries)
 }
 
-/**
- * @type {DisplayMode}
- */
-const modeGraphView = {
+const modeGraphView: DisplayMode = {
     add(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry)
         makeGraphs(globalsNewUi.selectedEntries)

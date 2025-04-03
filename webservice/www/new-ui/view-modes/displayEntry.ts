@@ -1,13 +1,7 @@
-/**@type {HTMLElement[]}*/
-const displaying = []
-/**@type {InfoEntry[]}*/
-let displayQueue = []
+const displaying: HTMLElement[] = []
+let displayQueue: InfoEntry[] = []
 
-/**
- * @param {HTMLElement} root
- * @param {Record<any, any>} data
- */
-function mkGenericTbl(root, data) {
+function mkGenericTbl(root: HTMLElement, data: Record<any, any>) {
     let html = `
                 <thead>
                     <tr>
@@ -25,13 +19,9 @@ function mkGenericTbl(root, data) {
     root.innerHTML = html
 }
 
-/**@type {Set<string>} */
-const displayEntryIntersected = new Set()
+const displayEntryIntersected: Set<string> = new Set()
 
-/**
- * @param {IntersectionObserverEntry[]} entries
- */
-function onIntersection(entries) {
+function onIntersection(entries: IntersectionObserverEntry[]) {
     for (let entry of entries) {
         const entryId = entry.target.getAttribute("data-item-id") || "NA"
         if (entry.isIntersecting && displayQueue.length && !displayEntryIntersected.has(entryId)) {
@@ -44,12 +34,7 @@ function onIntersection(entries) {
     }
 }
 
-/**
- * @param {HTMLElement} el
- * @param {number} ts
- * @param {number} after
- */
-function deleteEvent(el, ts, after) {
+function deleteEvent(el: HTMLElement, ts: number, after: number) {
     if (!confirm("Are you sure you would like to delete this event")) {
         return
     }
@@ -65,10 +50,7 @@ function deleteEvent(el, ts, after) {
 
 }
 
-/**@param
- * {HTMLFormElement} form
- */
-function newEvent(form) {
+function newEvent(form: HTMLFormElement) {
     const data = new FormData(form)
     const name = data.get("name")
     if (name == null) {
@@ -105,10 +87,7 @@ const observer = new IntersectionObserver(onIntersection, {
     threshold: 0.1
 })
 
-/**
- * @type {DisplayMode}
- */
-const modeDisplayEntry = {
+const modeDisplayEntry: DisplayMode = {
     add(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry)
         renderDisplayItem(entry)
@@ -144,14 +123,10 @@ const modeDisplayEntry = {
     }
 }
 
-/**
- * @param {ShadowRoot} shadowRoot
- * @param {InfoEntry} item 
- */
-function hookActionButtons(shadowRoot, item) {
+function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
     for (let btn of shadowRoot.querySelectorAll("[data-action]") || []) {
         let action = btn.getAttribute("data-action")
-        btn.addEventListener("click", e => {
+        btn.addEventListener("click", _ => {
             if (!confirm(`Are you sure you want to ${action} this entry`)) {
                 return
             }
@@ -176,10 +151,10 @@ function hookActionButtons(shadowRoot, item) {
     }
 
 
-    let imgEl = /**@type {HTMLImageElement}*/(shadowRoot.querySelector(".thumbnail"))
-    const fileUpload = /**@type {HTMLInputElement}*/ (shadowRoot.getElementById("thumbnail-file-upload"))
+    let imgEl = shadowRoot.querySelector(".thumbnail") as HTMLImageElement
+    const fileUpload =  (shadowRoot.getElementById("thumbnail-file-upload")) as HTMLInputElement
 
-    fileUpload.onchange = async function(e) {
+    fileUpload.onchange = async function(_) {
         const reader = new FileReader()
         const blob = fileUpload.files?.[0]
         if (!blob) return
@@ -194,7 +169,7 @@ function hookActionButtons(shadowRoot, item) {
                 })
         }
     }
-    imgEl.onclick = function(e) {
+    imgEl.onclick = function(_) {
         if (!fileUpload) return
 
         fileUpload.click()
@@ -202,32 +177,25 @@ function hookActionButtons(shadowRoot, item) {
     }
 }
 
-/**
- * @param {InfoEntry} item
- * @param {UserEntry} user
- * @param {MetadataEntry} meta
- * @param {UserEvent[]} events
- * @param {ShadowRoot} el
- */
-function updateDisplayEntryContents(item, user, meta, events, el) {
-    const displayEntryTitle = /**@type {HTMLHeadingElement}*/(el.querySelector(".title"))
-    const displayEntryNativeTitle = /**@type {HTMLHeadingElement}*/(el.querySelector(".official-native-title"))
-    const imgEl = /**@type {HTMLImageElement}*/(el.querySelector(".thumbnail"))
-    const costEl = /**@type {HTMLSpanElement}*/(el.querySelector(".cost"))
-    const descEl = /**@type {HTMLParagraphElement}*/(el.querySelector(".description"))
-    const notesEl = /**@type {HTMLParagraphElement}*/(el.querySelector(".notes"))
-    const ratingEl = /**@type {HTMLSpanElement}*/(el.querySelector(".rating"))
-    const audienceRatingEl = /**@type {HTMLElement}*/(el.querySelector(".audience-rating"))
-    const infoRawTbl = /**@type {HTMLTableElement}*/(el.querySelector(".info-raw"))
-    const metaRawtbl = /**@type {HTMLTableElement}*/(el.querySelector(".meta-info-raw"))
-    const viewCountEl = /**@type {HTMLSpanElement}*/(el.querySelector(".entry-progress .view-count"))
-    const progressEl = /**@type {HTMLProgressElement}*/(el.querySelector(".entry-progress progress"))
-    const captionEl = /**@type {HTMLElement}*/(el.querySelector(".entry-progress figcaption"))
-    const mediaInfoTbl = /**@type {HTMLTableElement}*/(el.querySelector("figure .media-info"))
-    const eventsTbl = /**@type {HTMLTableElement}*/(el.querySelector(".user-actions"))
+function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: ShadowRoot) {
+    const displayEntryTitle = el.querySelector(".title") as HTMLHeadingElement
+    const displayEntryNativeTitle = el.querySelector(".official-native-title") as HTMLHeadingElement
+    const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
+    const costEl = el.querySelector(".cost") as HTMLSpanElement
+    const descEl = el.querySelector(".description") as HTMLParagraphElement
+    const notesEl = el.querySelector(".notes") as HTMLParagraphElement
+    const ratingEl = el.querySelector(".rating") as HTMLSpanElement
+    const audienceRatingEl = el.querySelector(".audience-rating") as HTMLElement
+    const infoRawTbl = el.querySelector(".info-raw") as HTMLTableElement
+    const metaRawtbl = el.querySelector(".meta-info-raw") as HTMLTableElement
+    const viewCountEl = el.querySelector(".entry-progress .view-count") as HTMLSpanElement
+    const progressEl = el.querySelector(".entry-progress progress") as HTMLProgressElement
+    const captionEl = el.querySelector(".entry-progress figcaption") as HTMLElement
+    const mediaInfoTbl = el.querySelector("figure .media-info") as HTMLTableElement
+    const eventsTbl = el.querySelector(".user-actions") as HTMLTableElement
 
     //tags
-    const tagsRoot = /**@type {HTMLDivElement}*/(el.querySelector(".tags"))
+    const tagsRoot = el.querySelector(".tags") as HTMLDivElement
     tagsRoot.innerHTML = ""
     for (let tag of item.Collection.split("\x1F")) {
         tag = tag.trim()
@@ -244,7 +212,7 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
                     if(res.status !== 200) return ""
                     res.text().then(() => {
                         item.Collection = item.Collection.split("\x1F").filter((t: string) => t != tag).join("\x1F") + "\x1F"
-                        changeDisplayItemData(item, user, meta, events, /**@type {HTMLElement}*/(el.host))
+                        changeDisplayItemData(item, user, meta, events, el.host as HTMLElement)
                     })
                 })
                 .catch(console.error)
@@ -358,8 +326,7 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
         return
     }
     //remove the <Media>- part from the key looks ugly
-    /**@type {{[k: string]: string}}*/
-    let modifiedKeys = {}
+    let modifiedKeys: {[k: string]: string} = {}
     for(let key in mediaDeptData) {
         const val = mediaDeptData[key]
         key = key.split("-").slice(1).join(" ")
@@ -510,20 +477,17 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
         const user = /**@type {UserEntry}*/(event.detail.user)
         const meta = /**@type {MetadataEntry}*/(event.detail.meta)
         const events = /**@type {UserEvent[]}*/(event.detail.events)
-        updateDisplayEntryContents(item, user, meta, events, el.shadowRoot)
+        updateDisplayEntryContents(item, user, meta, events, el.shadowRoot as ShadowRoot)
     })
 
     changeDisplayItemData(item, user, meta, events, el)
 
     for (let el of root.querySelectorAll("[contenteditable]")) {
-        /**@type {HTMLElement}*/(el).addEventListener("keydown", handleRichText)
+        (el as HTMLElement).addEventListener("keydown", handleRichText)
     }
 }
 
-/**
- * @param {InfoEntry} item
- */
-function removeDisplayItem(item) {
+function removeDisplayItem(item: InfoEntry) {
     displayEntryIntersected.delete(String(item.ItemId))
     const el = /**@type {HTMLElement}*/(displayItems.querySelector(`[data-item-id="${item.ItemId}"]`))
     if (!el) return
@@ -531,11 +495,8 @@ function removeDisplayItem(item) {
     observer.unobserve(el)
 }
 
-/**
- * @param {InfoEntry} item
- */
-function refreshDisplayItem(item) {
-    let el = /**@type {HTMLElement}*/(document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`))
+function refreshDisplayItem(item: InfoEntry) {
+    let el = document.querySelector(`display-entry[data-item-id="${item.ItemId}"]`) as HTMLElement
     if (el) {
         let user = findUserEntryById(item.ItemId)
         let events = findUserEventsById(item.ItemId)
@@ -547,11 +508,8 @@ function refreshDisplayItem(item) {
     }
 }
 
-/**
-* @param {HTMLElement} element
-*/
-function getIdFromDisplayElement(element) {
-    let rootNode = /**@type {ShadowRoot}*/(element.getRootNode())
+function getIdFromDisplayElement(element: HTMLElement) {
+    let rootNode = element.getRootNode() as ShadowRoot
     let host = rootNode.host
     if (!host) {
         return 0n
@@ -559,15 +517,11 @@ function getIdFromDisplayElement(element) {
     return BigInt(String(host.getAttribute("data-item-id")))
 }
 
-/**
- * @param {(item: InfoEntry, root: ShadowRoot) => any} func
- */
-function displayEntryAction(func) {
-    /**@param {HTMLElement} elem*/
-    return function(elem) {
+function displayEntryAction(func: (item: InfoEntry, root: ShadowRoot) => any) {
+    return function(elem: HTMLElement) {
         let id = getIdFromDisplayElement(elem)
         let item;
-        (item = findInfoEntryById(id)) && func(item, /**@type {ShadowRoot}*/(elem.getRootNode()))
+        (item = findInfoEntryById(id)) && func(item, elem.getRootNode() as ShadowRoot)
     }
 }
 
@@ -602,7 +556,7 @@ const displayEntryViewCount = displayEntryAction(item => {
 })
 
 const displayEntryProgress = displayEntryAction(async (item, root) => {
-    let progress = /**@type {HTMLProgressElement}*/(root.querySelector(".entry-progress progress"))
+    let progress = root.querySelector(".entry-progress progress") as HTMLProgressElement
 
     let newEp = promptNumber("Current position:", "Not a number, current position")
     if (!newEp) return

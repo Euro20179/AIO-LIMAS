@@ -33,31 +33,19 @@ let globalsNewUi: GlobalsNewUi = {
     selectedEntries: []
 }
 
-/**
- * @param {bigint} itemId
- */
-function* findDescendants(itemId) {
+function* findDescendants(itemId: bigint) {
     let entries = Object.values(globalsNewUi.entries)
     yield* entries.values()
         .filter(v => v.ParentId === itemId)
 }
 
-/**
- * @param {bigint} itemId
- */
-function* findCopies(itemId) {
+function* findCopies(itemId: bigint) {
     let entries = Object.values(globalsNewUi.entries)
     yield* entries.values()
         .filter(v => v.CopyOf === itemId)
 }
 
-/**
- * @param {InfoEntry} collectionEntry
- * @param {boolean} itself
- * @param {boolean} children
- * @param {boolean} copies
- */
-function sumCollectionStats(collectionEntry, itself = true, children = true, copies = false) {
+function sumCollectionStats(collectionEntry: InfoEntry, itself: boolean = true, children: boolean = true, copies: boolean = false) {
     const stats = {
         totalItems: 0,
         cost: 0
@@ -85,7 +73,7 @@ const viewAllElem = document.getElementById("view-all") as HTMLInputElement
 
 const displayItems = document.getElementById("entry-output") as HTMLElement
 
-const statsOutput = /**@type {HTMLElement}*/(document.querySelector(".result-stats"))
+const statsOutput = document.querySelector(".result-stats") as HTMLElement
 
 const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
 const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
@@ -94,40 +82,22 @@ let idx = modeOutputIds.indexOf(location.hash.slice(1))
 
 let mode = modes[idx]
 
-/**
- * @param {InfoEntry} item
- * @param {DisplayMode} mode
- * @param {boolean} [updateStats=true]
- */
-function selectItem(item, mode, updateStats = true) {
+function selectItem(item: InfoEntry, mode: DisplayMode, updateStats: boolean = true) {
     globalsNewUi.selectedEntries.push(item)
     mode.add(item, updateStats)
 }
 
-/**
- * @param {InfoEntry} item
- * @param {boolean} [updateStats=true]
- */
-function deselectItem(item, updateStats = true) {
+function deselectItem(item: InfoEntry, updateStats: boolean = true) {
     globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter(a => a.ItemId !== item.ItemId)
     mode.sub(item, updateStats)
 }
 
-/**
- * @param {InfoEntry[]} itemList
- * @param {DisplayMode} mode
- * @param {boolean} [updateStats=true]
- */
-function selectItemList(itemList, mode, updateStats = true) {
+function selectItemList(itemList: InfoEntry[], mode: DisplayMode, updateStats: boolean = true) {
     globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.concat(itemList)
     mode.addList(itemList, updateStats)
 }
 
-/**
- * @param {InfoEntry} item
- * @param {boolean} [updateStats=true]
- */
-function toggleItem(item, updateStats = true) {
+function toggleItem(item: InfoEntry, updateStats: boolean = true) {
     if (globalsNewUi.selectedEntries.find(a => a.ItemId === item.ItemId)) {
         deselectItem(item, updateStats)
     } else {
@@ -143,7 +113,7 @@ function clearItems() {
 document.querySelector(".view-toggle")?.addEventListener("change", e => {
     mode.subList(globalsNewUi.selectedEntries)
 
-    let name = /**@type {HTMLSelectElement}*/(e.target).value
+    let name = (e.target as HTMLSelectElement).value
 
     let curModeIdx = modeOutputIds.indexOf(name)
 
@@ -156,7 +126,7 @@ document.querySelector(".view-toggle")?.addEventListener("change", e => {
 
 
 async function newEntry() {
-    const form = /**@type {HTMLFormElement}*/(document.getElementById("new-item-form"))
+    const form = document.getElementById("new-item-form") as HTMLFormElement
     document.getElementById("new-entry")?.hidePopover()
     const data = new FormData(form)
 
@@ -171,8 +141,7 @@ async function newEntry() {
         }
     }
 
-    /**@type {Record<string, FormDataEntryValue>}*/
-    let validEntries = {}
+    let validEntries: Record<string, FormDataEntryValue> = {}
     for (let [name, value] of data.entries()) {
         if (value == "") continue
         validEntries[name] = value
@@ -220,50 +189,32 @@ let resultStatsProxy = new Proxy({
         if (!Reflect.set(...arguments)) {
             return false
         }
-        let el = /**@type {HTMLElement}*/(statsOutput.querySelector(`[data-stat-name="${String(prop)}"]`))
+        let el = statsOutput.querySelector(`[data-stat-name="${String(prop)}"]`) as HTMLElement
         el.setAttribute("data-value", String(value))
         return true
     }
 })
 
-/**
- * @typedef ResultStats
- * @type {object}
- * @property {number} totalCost
- * @property {number} count
- * @property {number} results
- */
+type ResultStats = {
+    totalCost: number
+    count: number
+    results: number
+}
 
-/**
- * @param {keyof ResultStats} key
- * @param {number} value
- */
-function setResultStat(key, value) {
+function setResultStat(key: keyof ResultStats, value: number) {
     resultStatsProxy[key] = value
 }
 
-/**
- * @param {keyof ResultStats} key
- * @param {number} value
- */
-function changeResultStats(key, value) {
+function changeResultStats(key: keyof ResultStats, value: number) {
     resultStatsProxy[key] += value
 }
 
-/**
- * @param {InfoEntry} item
- * @param {number} [multiplier=1]
- */
-function changeResultStatsWithItem(item, multiplier = 1) {
+function changeResultStatsWithItem(item: InfoEntry, multiplier: number = 1) {
     changeResultStats("totalCost", item.PurchasePrice * multiplier)
     changeResultStats("count", 1 * multiplier)
 }
 
-/**
- * @param {InfoEntry[]} items
- * @param {number} [multiplier=1]
- */
-function changeResultStatsWithItemList(items, multiplier = 1) {
+function changeResultStatsWithItemList(items: InfoEntry[], multiplier: number = 1) {
     for (let item of items) {
         changeResultStatsWithItem(item, multiplier)
     }
@@ -279,8 +230,7 @@ async function loadInfoEntries() {
 
     const text = await res.text()
     let jsonL = text.split("\n").filter(Boolean)
-    /**@type {Record<string, InfoEntry>}*/
-    let obj = {}
+    let obj: Record<string, InfoEntry> = {}
     for (let item of jsonL
         .map(mkStrItemId)
         .map(parseJsonL)
@@ -293,45 +243,27 @@ async function loadInfoEntries() {
     return globalsNewUi.entries = obj
 }
 
-/**
- * @param {bigint} id
- * @returns {MetadataEntry?}
- */
-function findMetadataById(id) {
+function findMetadataById(id: bigint): MetadataEntry | null {
     return globalsNewUi.metadataEntries[String(id)]
 }
 
-/**
- * @param {bigint} id
- * @returns {UserEntry?}
- */
-function findUserEntryById(id) {
+function findUserEntryById(id: bigint): UserEntry | null {
     return globalsNewUi.userEntries[String(id)]
 }
 
-/**
- * @param {bigint} id
- * @returns {UserEvent[]}
- */
-function findUserEventsById(id) {
+function findUserEventsById(id: bigint): UserEvent[] {
     return globalsNewUi.events.filter(v => v.ItemId === id)
 }
 
-/**
- * @param {bigint} id
- * @returns {InfoEntry?}
- */
-function findInfoEntryById(id) {
+function findInfoEntryById(id: bigint): InfoEntry | null {
     return globalsNewUi.entries[String(id)]
 }
 
-/**@returns {Promise<Record<string, UserEntry>>}*/
-async function loadUserEntries() {
-    let items = await loadList("engagement/list-entries")
-    /**@type {Record<string, UserEntry>}*/
-    let obj = {}
+async function loadUserEntries(): Promise<Record<string, UserEntry>>  {
+    let items = await loadList<UserEntry>("engagement/list-entries")
+    let obj: Record<string, UserEntry> = {}
     for (let item of items) {
-        obj[item.ItemId] = item
+        obj[String(item.ItemId)] = item
     }
     return globalsNewUi.userEntries = obj
 }
@@ -340,27 +272,21 @@ async function loadUserEvents() {
     return globalsNewUi.events = await loadList("engagement/list-events")
 }
 
-/**@returns {Promise<Record<string, MetadataEntry>>}*/
-async function loadMetadata() {
-    let items = await loadList("metadata/list-entries")
-    /**@type {Record<string, MetadataEntry>}*/
-    let obj = {}
+async function loadMetadata(): Promise<Record<string, MetadataEntry>> {
+    let items = await loadList<MetadataEntry>("metadata/list-entries")
+    let obj: Record<string, MetadataEntry> = {}
     for (let item of items) {
-        obj[item.ItemId] = item
+        obj[String(item.ItemId)] = item
     }
     return globalsNewUi.metadataEntries = obj
 }
 
-/**
- * @param {ShadowRoot} root
- * @param {InfoEntry} item
- */
-function saveItemChanges(root, item) {
+function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
     if (!confirm("Are you sure you want to save changes?")) {
         return
     }
 
-    const userEn_title = /**@type {HTMLHeadingElement}*/(root.querySelector(".title"))
+    const userEn_title = root.querySelector(".title") as HTMLHeadingElement
 
     if (userEn_title) {
         item.En_Title = userEn_title.innerText
@@ -369,21 +295,20 @@ function saveItemChanges(root, item) {
     let userEntry = findUserEntryById(item.ItemId)
     if (!userEntry) return
 
-    let notes = /**@type {HTMLElement}*/(root?.querySelector(".notes")).innerHTML
+    let notes = (root?.querySelector(".notes"))?.innerHTML
     if (notes === "<br>") {
         notes = ""
     }
-    userEntry.Notes = notes
+    userEntry.Notes = notes || ""
 
     let infoTable = root.querySelector("table.info-raw")
     let metaTable = root.querySelector("table.meta-info-raw")
     if (!infoTable || !metaTable) return
 
-    /**@type {(table: Element, item: InfoEntry | MetadataEntry) => void}*/
-    const updateWithTable = (table, item) => {
+    const updateWithTable: (table: Element, item: InfoEntry | MetadataEntry) => void = (table, item) => {
         for (let row of table?.querySelectorAll("tr") || []) {
-            let nameChild = /**@type {HTMLElement}*/(row.firstElementChild)
-            let valueChild = /**@type {HTMLElement}*/(row.firstElementChild?.nextElementSibling)
+            let nameChild = row.firstElementChild as HTMLElement
+            let valueChild = row.firstElementChild?.nextElementSibling as HTMLElement
             let name = nameChild.innerText.trim()
             let value = valueChild.innerText.trim()
             if (!(name in item)) {
@@ -393,7 +318,7 @@ function saveItemChanges(root, item) {
                 console.log("Skipping ItemId")
                 continue
             }
-            let ty = item[/**@type {keyof typeof item}*/(name)].constructor
+            let ty = item[name as keyof typeof item].constructor
             //@ts-ignore
             item[name] = ty(value)
         }
@@ -464,10 +389,7 @@ function saveItemChanges(root, item) {
 
 }
 
-/**
- * @param {InfoEntry} item
- */
-function deleteEntry(item) {
+function deleteEntry(item: InfoEntry) {
     if (!confirm("Are you sure you want to delete this item")) {
         return
     }
@@ -487,11 +409,7 @@ function deleteEntry(item) {
 }
 
 
-/**
- * @param {ShadowRoot} _root
- * @param {InfoEntry} item
- */
-function overwriteEntryMetadata(_root, item) {
+function overwriteEntryMetadata(_root: ShadowRoot, item: InfoEntry) {
     if (!confirm("Are you sure you want to overwrite the metadata with a refresh")) {
         return
     }
@@ -510,14 +428,7 @@ function overwriteEntryMetadata(_root, item) {
     })
 }
 
-/**
- * @param {InfoEntry} item
- * @param {UserEntry} user
- * @param {MetadataEntry} meta
- * @param {UserEvent[]} events
- * @param {HTMLElement} el
- */
-function changeDisplayItemData(item, user, meta, events, el) {
+function changeDisplayItemData(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: HTMLElement) {
     const e = new CustomEvent("data-changed", {
         detail: {
             item,
@@ -530,19 +441,12 @@ function changeDisplayItemData(item, user, meta, events, el) {
     el.setAttribute("data-item-id", String(item.ItemId))
 }
 
-/**
- * @param {string} provider
- * @param {string} search
- * @param {HTMLElement} selectionElemOutput
- * @returns {Promise<string>}
- */
-async function titleIdentification(provider, search, selectionElemOutput) {
+async function titleIdentification(provider: string, search: string, selectionElemOutput: HTMLElement): Promise<string> {
     let res = await identify(search, provider)
     let text = await res.text()
     let [_, rest] = text.split("\x02")
 
-    /**@type {any[]}*/
-    let items
+    let items: any[]
     try {
         items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
     }
@@ -582,20 +486,17 @@ async function titleIdentification(provider, search, selectionElemOutput) {
     })
 }
 
-/**
- * @param {HTMLFormElement} form
- */
-async function itemIdentification(form) {
+async function itemIdentification(form: HTMLFormElement) {
     form.parentElement?.hidePopover()
     let data = new FormData(form)
 
-    let provider = /**@type {string}*/(data.get("provider"))
+    let provider = data.get("provider") as string
 
-    let queryType = /**@type {"by-title" | "by-id"}*/(data.get("query-type"))
+    let queryType = data.get("query-type") as "by-title" | "by-id"
 
-    let search = /**@type {string}*/(data.get("search"))
+    let search = data.get("search") as string
 
-    let shadowRoot = /**@type {ShadowRoot}*/(form.getRootNode())
+    let shadowRoot = form.getRootNode() as ShadowRoot
 
     let itemId = shadowRoot.host.getAttribute("data-item-id")
 
@@ -608,7 +509,7 @@ async function itemIdentification(form) {
 
     switch (queryType) {
         case "by-title":
-            let titleSearchContainer = /**@type {HTMLDialogElement}*/(shadowRoot.getElementById("identify-items"))
+            let titleSearchContainer = shadowRoot.getElementById("identify-items") as HTMLDialogElement
             finalItemId = await titleIdentification(provider, search, titleSearchContainer)
             break
         case "by-id":
@@ -626,44 +527,39 @@ async function itemIdentification(form) {
 
 viewAllElem.addEventListener("change", e => {
     clearItems()
-    if (/**@type {HTMLInputElement}*/(e.target)?.checked) {
+    if ((e.target as HTMLInputElement)?.checked) {
         selectItemList(globalsNewUi.results, mode)
     } else {
         resultStatsProxy.reset()
     }
 })
 
-/**
- * @typedef ClientSearchFilters
- * @type {object}
- * @property {string[]} filterRules
- * @property {string} newSearch
- * @property {string} sortBy
- * @property {boolean} children
- * @property {boolean} copies
- */
+type ClientSearchFilters = {
+    filterRules: string[]
+    newSearch: string
+    sortBy: string
+    children: boolean
+    copies: boolean
+}
 
 /**
- * @param {FormData} searchForm
- * @returns {ClientSearchFilters}
- *
  * @description pulls out relevant filters for the client
  * has the side effect of modifying search-query, removing any parts deemed filters for the client
  * eg: \[start:end\]
  */
-function parseClientsideSearchFiltering(searchForm) {
+function parseClientsideSearchFiltering(searchForm: FormData): ClientSearchFilters {
     // let start = 0
     // let end = -1
 
-    let search = /**@type {string}*/(searchForm.get("search-query"))
+    let search = searchForm.get("search-query") as string
     let filters;
     [search, ...filters] = search.split("->")
     filters = filters.map(v => v.trim())
 
-    let sortBy = /**@type {string}*/(searchForm.get("sort-by"))
+    let sortBy = searchForm.get("sort-by") as string
 
-    let children = /**@type {string}*/(searchForm.get("children"))
-    let copies = /**@type {string}*/(searchForm.get("copies"))
+    let children = searchForm.get("children") as string
+    let copies = searchForm.get("copies") as string
 
     return {
         filterRules: filters,
@@ -674,11 +570,7 @@ function parseClientsideSearchFiltering(searchForm) {
     }
 }
 
-/**
- * @param {InfoEntry[]} entries
- * @param {ClientSearchFilters} filters
- */
-function applyClientsideSearchFiltering(entries, filters) {
+function applyClientsideSearchFiltering(entries: InfoEntry[], filters: ClientSearchFilters) {
     if (!filters.children) {
         entries = entries.filter(v => v.ParentId === 0n)
     }
@@ -748,7 +640,7 @@ function applyClientsideSearchFiltering(entries, filters) {
 }
 
 async function loadSearch() {
-    let form = /**@type {HTMLFormElement}*/(document.getElementById("sidebar-form"))
+    let form = document.getElementById("sidebar-form") as HTMLFormElement
 
     let formData = new FormData(form)
 
@@ -770,11 +662,7 @@ async function loadSearch() {
     renderSidebar(entries)
 }
 
-/**
- * @param {number} rating
- * @param {number} maxRating
- */
-function normalizeRating(rating, maxRating) {
+function normalizeRating(rating: number, maxRating: number) {
     return rating / maxRating * 100
 }
 
@@ -787,10 +675,8 @@ async function refreshInfo() {
     ])
 }
 
-/**@param {KeyboardEvent} e*/
-function handleRichText(e) {
-    /**@type {Record<string, () => ([string, string[]] | [string, string[]][])>}*/
-    const actions = {
+function handleRichText(e: KeyboardEvent) {
+    const actions: Record<string, () => ([string, string[]] | [string, string[]][])> = {
         "b": () => ["bold", []],
         "i": () => ["italic", []],
         "h": () => ["hiliteColor", [prompt("highlight color (yellow)") || "yellow"]],
