@@ -51,6 +51,22 @@ type IdentifyResult = {
     Thumbnail: string
 }
 
+let formats: {[key: number]: string} = {}
+
+async function listFormats() {
+    if(Object.keys(formats).length > 0) return formats
+
+    const res = await fetch(`${apiPath}/type/format`)
+
+    if(res.status !== 200) {
+        return formats
+    }
+
+    const json = await res.json()
+    formats = json
+    return formats
+}
+
 function mkStrItemId(jsonl: string) {
     return jsonl
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
@@ -118,7 +134,7 @@ function typeToSymbol(type: string) {
     return type
 }
 
-function nameToFormat(name: string): number {
+async function nameToFormat(name: string): Promise<number> {
     const DIGI_MOD = 0x1000
     let val = 0
     name = name.toLowerCase()
@@ -126,60 +142,28 @@ function nameToFormat(name: string): number {
         name = name.replace("+digital", "")
         val |= DIGI_MOD
     }
-    const formats = {
-        "vhs": 0,
-        "cd": 1,
-        "dvd": 2,
-        "bluray": 3,
-        "4kBLURAY": 4,
-        "manga": 5,
-        "book": 6,
-        "digital": 7,
-        "boardgame": 8,
-        "steam": 9,
-        "ninSWITCH": 10,
-        "xboxONE": 11,
-        "xbox360": 12,
-        "other": 13,
-        "vinyl": 14,
-        "image": 15,
-        "unowned": 16
-    }
+
+    const formats = Object.fromEntries(Object.entries(await listFormats()).map(([k, v]) => [v, Number(k)]))
+
     val |= formats[name as keyof typeof formats]
     return val
 
 }
 
-function formatToName(format: number) {
+async function formatToName(format: number) {
     const DIGI_MOD = 0x1000
     let out = ""
     if ((format & DIGI_MOD) === DIGI_MOD) {
         format -= DIGI_MOD
         out = " +digital"
     }
-    const formats = [
-        "VHS",
-        "CD",
-        "DVD",
-        "BLURAY",
-        "4K BLURAY",
-        "MANGA",
-        "BOOK",
-        "DIGITAL",
-        "BOARDGAME",
-        "STEAM",
-        "NIN SWITCH",
-        "XBOX ONE",
-        "XBOX 360",
-        "OTHER",
-        "VINYL",
-        "IMAGE",
-        "UNOWNED"
-    ]
-    if (format >= formats.length) {
+
+    const formats = await listFormats()
+
+    if (format >= Object.keys(formats).length) {
         return `unknown${out}`
     }
-    return `${formats[format]}${out}`
+    return `${formats[format].toUpperCase()}${out}`
 }
 
 async function identify(title: string, provider: string) {

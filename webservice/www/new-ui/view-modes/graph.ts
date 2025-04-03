@@ -244,8 +244,7 @@ function organizeDataByExpr(entries) {
 async function organizeData(entries) {
     let groupBy = groupBySelect.value
 
-    /**@type {Record<string, (i: InfoEntry) => any>}*/
-    const groupings = {
+    const groupings: Record<string, (i: InfoEntry) => any> = {
         "Year": i => globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear,
         "Decade": i => {
             const year = String(globalsNewUi.metadataEntries[String(i.ItemId)].ReleaseYear)
@@ -265,7 +264,7 @@ async function organizeData(entries) {
             return `${century}00s`
         },
         "Type": i => i.Type,
-        "Format": i => formatToName(i.Format),
+        "Format": i => formats[i.Format] || "N/A",
         "Status": i => globalsNewUi.userEntries[String(i.ItemId)].Status,
         "View-count": i => globalsNewUi.userEntries[String(i.ItemId)].ViewCount,
         "Is-anime": i => (i.ArtStyle & 1) == 1,

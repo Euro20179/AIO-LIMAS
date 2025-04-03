@@ -267,8 +267,10 @@ function updateDisplayEntryContents(item, user, meta, events, el) {
 
 
     //format
-    let formatName = formatToName(item.Format)
-    displayEntryTitle?.setAttribute("data-format-name", formatName)
+    formatToName(item.Format).then(name => {
+        displayEntryTitle?.setAttribute("data-format-name", name)
+    })
+    
 
     //Title
     displayEntryTitle.innerText = meta.Title || item.En_Title
@@ -467,10 +469,13 @@ function renderDisplayItem(item, parent = displayItems) {
         })
         for (let child of relationships) {
             let meta = findMetadataById(child.ItemId)
-            let el
+            let el: HTMLElement
             if (meta?.Thumbnail) {
                 el = document.createElement("img")
-                el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${formatToName(child.Format)})`
+                formatToName(child.Format).then(name => {
+                    el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${name})`
+                })
+                //@ts-ignore
                 el.src = meta.Thumbnail
             } else {
                 el = document.createElement("button")
