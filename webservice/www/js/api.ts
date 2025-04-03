@@ -142,7 +142,8 @@ function nameToFormat(name: string): number {
         "xbox360": 12,
         "other": 13,
         "vinyl": 14,
-        "image": 15
+        "image": 15,
+        "unowned": 16
     }
     val |= formats[name as keyof typeof formats]
     return val
