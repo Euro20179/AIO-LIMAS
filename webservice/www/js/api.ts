@@ -29,6 +29,8 @@ type InfoEntry = {
     Type: string
     En_Title: string
     CopyOf: bigint
+
+    Tags: string[]
 }
 
 

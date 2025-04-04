@@ -223,7 +223,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     //tags
     const tagsRoot = el.querySelector(".tags") as HTMLDivElement
     tagsRoot.innerHTML = ""
-    for (let tag of item.Collection.split("\x1F")) {
+    for (let tag of item.Tags) {
         tag = tag.trim()
         if (!tag) continue
         const outer = document.createElement("div")
@@ -237,7 +237,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
                 .then(res => {
                     if (res.status !== 200) return ""
                     res.text().then(() => {
-                        item.Collection = item.Collection.split("\x1F").filter((t: string) => t != tag).join("\x1F") + "\x1F"
+                        item.Tags = item.Tags.filter((t: string) => t != tag)
                         changeDisplayItemData(item, user, meta, events, el.host as HTMLElement)
                     })
                 })
@@ -485,7 +485,8 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     newTag.onclick = function() {
         const name = prompt("Tag name (, seperated)")
         if (!name) return
-        item.Collection += name.replaceAll(",", "\x1F") + "\x1F"
+        let names = name.split(",")
+        item.Tags = item.Tags.concat(names)
         addEntryTags(item.ItemId, name.split(","))
             .then(res => {
                 if (res.status !== 200) return ""

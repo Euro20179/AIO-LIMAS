@@ -228,7 +228,7 @@ async function organizeData(entries: InfoEntry[]): Promise<[string[], InfoEntry[
     if (groupBy === "Tags") {
         data = {}
         for (let item of entries) {
-            for (let tag of item.Collection.split("\x1F")) {
+            for (let tag of item.Tags) {
                 if (data[tag]) {
                     data[tag].push(item)
                 } else {

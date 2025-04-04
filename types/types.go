@@ -270,6 +270,9 @@ type InfoEntry struct {
 	Type          MediaTypes
 	ArtStyle      ArtStyle
 	CopyOf        int64
+
+	//RUNTIME VALUES (not stored in database), see self.ReadEntry
+	Tags []string
 }
 
 func (self *InfoEntry) IsAnime() bool {
@@ -289,7 +292,7 @@ func (self InfoEntry) ToJson() ([]byte, error) {
 }
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
-	return rows.Scan(
+	err := rows.Scan(
 		&self.ItemId,
 		&self.En_Title,
 		&self.Native_Title,
@@ -302,11 +305,23 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.CopyOf,
 		&self.ArtStyle,
 	)
+	if err != nil {
+		return err
+	}
+
+	for _, name := range strings.Split(self.Collection, "\x1F") {
+		if name == "" {
+			continue
+		}
+		self.Tags = append(self.Tags, name)
+	}
+
+	return nil
 }
 
-//FIXME:
-//an event should also have a time-zone associated with it
-//in case say, someone where to add an event in UTC-8, but then did something in UTC-2, they'd have very wacky times
+// FIXME:
+// an event should also have a time-zone associated with it
+// in case say, someone where to add an event in UTC-8, but then did something in UTC-2, they'd have very wacky times
 type UserViewingEvent struct {
 	ItemId    int64
 	Event     string
