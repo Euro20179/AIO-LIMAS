@@ -1,9 +1,6 @@
-const galleryItems = /**@type {HTMLDivElement}*/(document.getElementById("gallery-items"))
+const galleryItems = document.getElementById("gallery-items") as HTMLDivElement
 
-/**
- * @param {InfoEntry} item
- */
-function renderGalleryItem(item, parent = galleryItems){
+function renderGalleryItem(item: InfoEntry, parent = galleryItems){
     let el = new Image()
     let meta = findMetadataById(item.ItemId)
     if(meta?.Thumbnail) {
@@ -15,10 +12,7 @@ function renderGalleryItem(item, parent = galleryItems){
     parent.appendChild(el)
 }
 
-/**
- * @param {InfoEntry} entry
- */
-function removeGalleryItem(entry) {
+function removeGalleryItem(entry: InfoEntry) {
     let el = galleryItems.querySelector(`[data-item-id="${entry.ItemId}"]`)
     el?.remove()
 }

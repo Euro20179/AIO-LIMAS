@@ -90,20 +90,13 @@ function updateExpressionOutput(item: InfoEntry) {
     return val
 }
 
-/**
- * @param {InfoEntry} item
- */
-function removecCalcItem(item) {
+function removecCalcItem(item: InfoEntry) {
     let el = calcItems.querySelector(`[data-item-id="${item.ItemId}"]`)
     el?.remove()
 }
 
 
-/**
-    * @param {InfoEntry} item
-    * @param {HTMLElement | DocumentFragment} [parent=calcItems]
-    */
-function renderCalcItem(item, parent = calcItems) {
+function renderCalcItem(item: InfoEntry, parent: HTMLElement | DocumentFragment = calcItems) {
     let el = document.createElement("calc-entry")
 
     let root = el.shadowRoot
@@ -114,10 +107,10 @@ function renderCalcItem(item, parent = calcItems) {
 
     let val = updateExpressionOutput(item)
 
-    let name = /**@type {HTMLElement}*/(root.querySelector('.name'))
+    let name = root.querySelector('.name') as HTMLElement
     name.innerText = item.En_Title
 
-    let img = /**@type {HTMLImageElement}*/(root.querySelector(".thumbnail"))
+    let img = root.querySelector(".thumbnail") as HTMLImageElement
     if (meta?.Thumbnail) {
         img.src = meta?.Thumbnail
     }

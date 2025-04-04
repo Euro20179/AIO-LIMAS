@@ -205,7 +205,7 @@ let resultStatsProxy = new Proxy({
         this.totalCost = 0
     }
 }, {
-    set(obj, prop, value) {
+    set(_obj, prop, value) {
         //@ts-ignore
         if (!Reflect.set(...arguments)) {
             return false
@@ -642,13 +642,13 @@ function applyClientsideSearchFiltering(entries: InfoEntry[], filters: ClientSea
                     break;
                 case "e": {
                     const fn = type.slice(1)
-                    entries.sort((a, b) => eval(fn))
+                    entries.sort(() => eval(fn))
                     break
                 }
             }
         } else if (filter.startsWith("filter")) {
             let expr = filter.slice("filter".length).trim()
-            entries = entries.filter((a) => eval(expr))
+            entries = entries.filter(() => eval(expr))
         }
     }
 
