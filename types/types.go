@@ -184,7 +184,14 @@ func StructNamesToDict(entity any) map[string]any {
 	val := reflect.ValueOf(entity)
 
 	for i := range val.NumField() {
-		name := val.Type().Field(i).Name
+		field := val.Type().Field(i)
+
+		println(field.Tag.Get("runtime"))
+		if field.Tag.Get("runtime") == "true" {
+			continue
+		}
+
+		name := field.Name
 
 		value := val.FieldByName(name).Interface()
 
@@ -272,7 +279,7 @@ type InfoEntry struct {
 	CopyOf        int64
 
 	//RUNTIME VALUES (not stored in database), see self.ReadEntry
-	Tags []string
+	Tags []string `runtime:"true"`
 }
 
 func (self *InfoEntry) IsAnime() bool {
