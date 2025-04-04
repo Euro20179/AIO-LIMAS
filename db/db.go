@@ -210,7 +210,8 @@ func InitDb(uid int64) error {
 			viewCount INTEGER,
 			userRating NUMERIC,
 			notes TEXT,
-			currentPosition TEXT
+			currentPosition TEXT,
+			extra TEXT
 		)
 	`)
 	if err != nil {

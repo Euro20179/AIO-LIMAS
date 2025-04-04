@@ -388,6 +388,7 @@ type UserViewingEntry struct {
 	UserRating      float64
 	Notes           string
 	CurrentPosition string
+	Extra string
 }
 
 func (self UserViewingEntry) Id() int64 {
@@ -406,6 +407,7 @@ func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
 		&self.UserRating,
 		&self.Notes,
 		&self.CurrentPosition,
+		&self.Extra,
 	)
 }
 
