@@ -1,10 +1,7 @@
-const calcItems = /**@type {HTMLDivElement}*/(document.getElementById("calc-items"))
-const expressionInput = /**@type {HTMLTextAreaElement}*/(document.getElementById("calc-expression"))
+const calcItems = document.getElementById("calc-items") as HTMLDivElement
+const expressionInput = document.getElementById("calc-expression") as HTMLTextAreaElement
 
-/**
- * @type {DisplayMode}
- */
-const modeCalc = {
+const modeCalc: DisplayMode = {
     add(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry)
         renderCalcItem(entry)
@@ -27,6 +24,45 @@ const modeCalc = {
         for (let item of entry) {
             removecCalcItem(item)
         }
+    },
+
+    *_getValidEntries() {
+        const selected = Object.groupBy(globalsNewUi.selectedEntries, item => String(item.ItemId))
+        let elems = calcItems.querySelectorAll(`[data-item-id]`)
+
+        for (let elem of elems) {
+            let val = Number(elem.getAttribute("data-expression-output"))
+            let id = elem.getAttribute("data-item-id")
+
+            if (!id || val <= 0 || !selected[id]) continue
+
+            yield selected[id][0]
+        }
+    },
+
+    putSelectedInCollection() {
+        const collectionName = prompt("Id of collection")
+        if (!collectionName) return
+
+        let waiting = []
+        for (let item of this._getValidEntries()) {
+            waiting.push(setParent(item.ItemId, BigInt(collectionName)))
+        }
+        Promise.all(waiting).then(res => {
+            for (let r of res) {
+                console.log(r.status)
+            }
+        })
+    },
+
+    addTagsToSelected() {
+        const tags = prompt("tags (, seperated)")
+        if (!tags) return
+
+        const tagsList = tags.split(",")
+        for (let item of this._getValidEntries()) {
+            addEntryTags(item.ItemId, tagsList)
+        }
     }
 }
 
@@ -38,16 +74,13 @@ expressionInput.onchange = function() {
     }
 }
 
-/**
- * @param {InfoEntry} item
- */
-function updateExpressionOutput(item) {
+function updateExpressionOutput(item: InfoEntry) {
     let expr = expressionInput.value
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
 
-    let all = {...item, ...meta, ...user}
+    let all = { ...item, ...meta, ...user }
     let symbols = makeSymbolsTableFromObj(all)
 
     let val = new Str(`${meta?.Description || ""}<br>${meta?.Rating || 0}`)
@@ -74,7 +107,7 @@ function renderCalcItem(item, parent = calcItems) {
     let el = document.createElement("calc-entry")
 
     let root = el.shadowRoot
-    if(!root) return
+    if (!root) return
 
 
     let meta = findMetadataById(item.ItemId)
@@ -101,7 +134,7 @@ function sortCalcDisplay() {
         return Number(exprB) - Number(exprA)
     })
     calcItems.innerHTML = ""
-    for(let elem of elements) {
+    for (let elem of elements) {
         calcItems.append(elem)
     }
 }

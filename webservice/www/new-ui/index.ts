@@ -12,6 +12,9 @@ type DisplayMode = {
     sub: (entry: InfoEntry, updateStats?: boolean) => any
     addList: (entry: InfoEntry[], updateStats?: boolean) => any
     subList: (entry: InfoEntry[], updateStats?: boolean) => any
+    putSelectedInCollection?: () => any
+    addTagsToSelected?: () => any
+    [key: string]: any
 }
 
 
@@ -111,31 +114,20 @@ function clearItems() {
     globalsNewUi.selectedEntries = []
 }
 
-function addSelectedToCollection() {
-    const selected = globalsNewUi.selectedEntries
-    const collectionName = prompt("Id of collection")
-    if (!collectionName) return
-
-    let waiting = []
-    for (let item of selected) {
-        waiting.push(setParent(item.ItemId, BigInt(collectionName)))
+function putSelectedToCollection() {
+    if(mode.putSelectedInCollection) {
+        mode.putSelectedInCollection()
+    } else {
+        alert("This mode does not support putting items into a collection")
     }
-    Promise.all(waiting).then(res => {
-        for (let r of res) {
-            console.log(r.status)
-        }
-    })
 }
 
 function addTagsToSelected() {
-    const tags = prompt("tags (, seperated)")
-    if (!tags) return
-
-    const tagsList = tags.split(",")
-    for (let item of globalsNewUi.selectedEntries) {
-        addEntryTags(item.ItemId, tagsList)
+    if(mode.addTagsToSelected) {
+        mode.addTagsToSelected()
+    } else {
+        alert("This mode does not support adding tags to selected items")
     }
-    //FIXME: tags do not update immediately
 }
 
 

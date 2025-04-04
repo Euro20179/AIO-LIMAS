@@ -20,33 +20,6 @@ function mkGenericTbl(root: HTMLElement, data: Record<any, any>) {
 
 const displayEntryIntersected: Set<string> = new Set()
 
-function addSelectedToCollection() {
-    const selected = globalsNewUi.selectedEntries
-    const collectionName = prompt("Id of collection")
-    if (!collectionName) return
-
-    let waiting = []
-    for (let item of selected) {
-        waiting.push(setParent(item.ItemId, BigInt(collectionName)))
-    }
-    Promise.all(waiting).then(res => {
-        for (let r of res) {
-            console.log(r.status)
-        }
-    })
-}
-
-function addTagsToSelected() {
-    const tags = prompt("tags (, seperated)")
-    if (!tags) return
-
-    const tagsList = tags.split(",")
-    for (let item of globalsNewUi.selectedEntries) {
-        addEntryTags(item.ItemId, tagsList)
-    }
-    //FIXME: tags do not update immediately
-}
-
 function onIntersection(entries: IntersectionObserverEntry[]) {
     for (let entry of entries) {
         const entryId = entry.target.getAttribute("data-item-id") || "NA"
@@ -146,6 +119,33 @@ const modeDisplayEntry: DisplayMode = {
         for (let item of entry) {
             removeDisplayItem(item)
         }
+    },
+
+    putSelectedInCollection() {
+        const selected = globalsNewUi.selectedEntries
+        const collectionName = prompt("Id of collection")
+        if (!collectionName) return
+
+        let waiting = []
+        for (let item of selected) {
+            waiting.push(setParent(item.ItemId, BigInt(collectionName)))
+        }
+        Promise.all(waiting).then(res => {
+            for (let r of res) {
+                console.log(r.status)
+            }
+        })
+    },
+
+    addTagsToSelected() {
+        const tags = prompt("tags (, seperated)")
+        if (!tags) return
+
+        const tagsList = tags.split(",")
+        for (let item of globalsNewUi.selectedEntries) {
+            addEntryTags(item.ItemId, tagsList)
+        }
+        //FIXME: tags do not update immediately
     }
 }
 

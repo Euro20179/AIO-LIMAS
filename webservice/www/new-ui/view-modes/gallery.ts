@@ -23,10 +23,7 @@ function removeGalleryItem(entry) {
     el?.remove()
 }
 
-/**
- * @type {DisplayMode}
- */
-const modeGallery = {
+const modeGallery: DisplayMode = {
     add(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry)
         renderGalleryItem(entry)
