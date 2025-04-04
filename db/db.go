@@ -285,6 +285,12 @@ func GetMetadataEntryById(uid int64, id int64) (db_types.MetadataEntry, error) {
 	return res, getById(uid, id, "metadata", &res)
 }
 
+func ensureUserJsonNotEmpty(user *db_types.UserViewingEntry) {
+	if user.Extra == "" {
+		user.Extra = "{}"
+	}
+}
+
 func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 	if metadata.MediaDependant == "" {
 		metadata.MediaDependant = "{}"
@@ -336,6 +342,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	userViewingEntry.ItemId = id
 
 	ensureMetadataJsonNotEmpty(metadataEntry)
+	ensureUserJsonNotEmpty(userViewingEntry)
 
 	entries := map[string]db_types.TableRepresentation{
 		"entryInfo":       *entryInfo,
@@ -415,6 +422,7 @@ func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int
 }
 
 func UpdateUserViewingEntry(uid int64, entry *db_types.UserViewingEntry) error {
+	ensureUserJsonNotEmpty(entry)
 	return updateTable(uid, *entry, "userViewingInfo")
 }
 
