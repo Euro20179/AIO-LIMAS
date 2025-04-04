@@ -342,5 +342,6 @@ progress[max]::-webkit-progress-bar {
 
     img {
         width: 10cqi;
+        cursor: pointer;
     }
 }
