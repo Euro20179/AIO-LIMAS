@@ -277,6 +277,11 @@
             #calc-items {
                 display: flex;
                 flex-wrap: wrap;
+
+                calc-entry {
+                    flex-grow: 1;
+                    width: 33cqi;
+                }
             }
         }
 

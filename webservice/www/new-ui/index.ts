@@ -33,6 +33,19 @@ let globalsNewUi: GlobalsNewUi = {
     selectedEntries: []
 }
 
+const viewAllElem = document.getElementById("view-all") as HTMLInputElement
+
+const displayItems = document.getElementById("entry-output") as HTMLElement
+
+const statsOutput = document.querySelector(".result-stats") as HTMLElement
+
+const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
+const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
+
+let idx = modeOutputIds.indexOf(location.hash.slice(1))
+
+let mode = modes[idx]
+
 function* findDescendants(itemId: bigint) {
     let entries = Object.values(globalsNewUi.entries)
     yield* entries.values()
@@ -69,18 +82,6 @@ function sumCollectionStats(collectionEntry: InfoEntry, itself: boolean = true, 
     return stats
 }
 
-const viewAllElem = document.getElementById("view-all") as HTMLInputElement
-
-const displayItems = document.getElementById("entry-output") as HTMLElement
-
-const statsOutput = document.querySelector(".result-stats") as HTMLElement
-
-const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
-const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
-
-let idx = modeOutputIds.indexOf(location.hash.slice(1))
-
-let mode = modes[idx]
 
 function selectItem(item: InfoEntry, mode: DisplayMode, updateStats: boolean = true) {
     globalsNewUi.selectedEntries.push(item)
@@ -109,6 +110,34 @@ function clearItems() {
     mode.subList(globalsNewUi.selectedEntries)
     globalsNewUi.selectedEntries = []
 }
+
+function addSelectedToCollection() {
+    const selected = globalsNewUi.selectedEntries
+    const collectionName = prompt("Id of collection")
+    if (!collectionName) return
+
+    let waiting = []
+    for (let item of selected) {
+        waiting.push(setParent(item.ItemId, BigInt(collectionName)))
+    }
+    Promise.all(waiting).then(res => {
+        for (let r of res) {
+            console.log(r.status)
+        }
+    })
+}
+
+function addTagsToSelected() {
+    const tags = prompt("tags (, seperated)")
+    if (!tags) return
+
+    const tagsList = tags.split(",")
+    for (let item of globalsNewUi.selectedEntries) {
+        addEntryTags(item.ItemId, tagsList)
+    }
+    //FIXME: tags do not update immediately
+}
+
 
 document.querySelector(".view-toggle")?.addEventListener("change", e => {
     mode.subList(globalsNewUi.selectedEntries)
