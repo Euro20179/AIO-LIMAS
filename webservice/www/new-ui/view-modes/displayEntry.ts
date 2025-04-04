@@ -219,6 +219,11 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     const captionEl = el.querySelector(".entry-progress figcaption") as HTMLElement
     const mediaInfoTbl = el.querySelector("figure .media-info") as HTMLTableElement
     const eventsTbl = el.querySelector(".user-actions") as HTMLTableElement
+    const customStyles = el.getElementById("custom-styles") as HTMLStyleElement
+
+    let userExtra = getUserExtra(user, "styles")
+    let styles = userExtra || ""
+    customStyles.innerText = styles
 
     //tags
     const tagsRoot = el.querySelector(".tags") as HTMLDivElement
@@ -442,7 +447,6 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     let events = findUserEventsById(item.ItemId)
     if (!user || !meta || !events) return
 
-
     parent.append(el)
 
     let root = el.shadowRoot
@@ -472,6 +476,15 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
             el.onclick = () => toggleItem(child)
         }
     }
+
+    let extra = getUserExtra(user, "styles")
+
+    let styleEditor = root.getElementById("style-editor") as HTMLTextAreaElement
+    styleEditor.value = extra || ""
+    styleEditor.addEventListener("change", e => {
+        const customStyles = root.getElementById("custom-styles") as HTMLStyleElement
+        customStyles.innerText = styleEditor.value
+    })
 
     let childEl = root.querySelector(".descendants div") as HTMLElement
     createRelationButtons(childEl, findDescendants(item.ItemId))
@@ -554,6 +567,11 @@ const displayEntryDelete = displayEntryAction(item => deleteEntry(item))
 const displayEntryRefresh = displayEntryAction((item, root) => overwriteEntryMetadata(root, item))
 const displayEntrySave = displayEntryAction((item, root) => saveItemChanges(root, item))
 const displayEntryClose = displayEntryAction(item => deselectItem(item))
+
+const displayEntryEditStyles = displayEntryAction((item, root) => {
+    const styleEditor = root.getElementById("style-editor") as HTMLTextAreaElement
+    styleEditor.hidden = !styleEditor.hidden
+})
 
 const displayEntryCopyTo = displayEntryAction(item => {
     let id = promptNumber("Copy user info to (item id)", "Not a number, mmust be item id number", BigInt)

@@ -5,6 +5,7 @@ type UserEntry = {
     UserRating: number
     Notes: string
     CurrentPosition: string
+    Extra: string
 }
 
 

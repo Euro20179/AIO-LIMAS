@@ -226,6 +226,10 @@
             @import "/new-ui/templates/display-entry.css";
         </style>
 
+        <style id="custom-styles">
+        </style>
+
+
         <dialog id="new-event-form" popover>
             <form action="javascript:void(0)" onsubmit="newEvent(this)">
                 <label for="name">Name: <input id="name" name="name" required></label>
@@ -274,6 +278,7 @@
                     title="copy user info to another item">➡</button>
                 <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
                 <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
+                <button class="edit-styles" onclick="displayEntryEditStyles(this)" title="edit item's stylesheet">🖌</button>
                 <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
             </div>
             <figure class="thumbnail-fig flex column">
@@ -329,6 +334,8 @@
                     <button id="new-event-button" popovertarget="new-event-form">New Event</button>
                 </div>
             </div>
+        <textarea id="style-editor" hidden>
+        </textarea>
             <div class="descriptors">
                 <section>
                     <h4 class="center">Description</h4>

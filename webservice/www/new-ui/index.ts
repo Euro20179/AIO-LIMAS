@@ -49,6 +49,18 @@ let idx = modeOutputIds.indexOf(location.hash.slice(1))
 
 let mode = modes[idx]
 
+function getUserExtra(user: UserEntry, prop: string) {
+    return JSON.parse(user.Extra).AIOWeb?.[prop] || null
+}
+
+function setUserExtra(user: UserEntry, prop: string, value: string) {
+    let extra = JSON.parse(user.Extra)
+    let AIOWeb = extra.AIOWeb || {}
+    AIOWeb[prop] = value
+    extra.AIOWeb = AIOWeb
+    user.Extra = JSON.stringify(extra)
+}
+
 function* findDescendants(itemId: bigint) {
     let entries = Object.values(globalsNewUi.entries)
     yield* entries.values()
@@ -315,6 +327,10 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
 
     let userEntry = findUserEntryById(item.ItemId)
     if (!userEntry) return
+
+    const customStylesElem = root.getElementById("style-editor") as HTMLTextAreaElement
+
+    setUserExtra(userEntry, "styles", customStylesElem.value)
 
     let notes = (root?.querySelector(".notes"))?.innerHTML
     if (notes === "<br>") {
