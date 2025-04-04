@@ -180,6 +180,10 @@ async function updateThumbnail(id: bigint, thumbnail: string) {
     return await fetch(`${apiPath}/metadata/mod-entry?id=${id}&thumbnail=${encodeURIComponent(thumbnail)}`)
 }
 
+async function setParent(id: bigint, parent: bigint) {
+    return await fetch(`${apiPath}/mod-entry?id=${id}&parent-id=${parent}`)
+}
+
 async function doQuery3(searchString: string) {
     const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent(searchString)}&uid=${uid}`).catch(console.error)
     if (!res) return []

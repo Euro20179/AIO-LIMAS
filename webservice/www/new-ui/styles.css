@@ -213,6 +213,20 @@
         }
     }
 
+    #selected-item-actions {
+        justify-content: space-evenly;
+        gap: 5ch;
+        margin: 5px 0;
+
+        display: flex;
+    }
+
+    :has(#graph-output:target, #gallery-output:target) {
+        #selected-item-actions {
+            display: none;
+        }
+    }
+
     #viewing-area {
         height: 100%;
         container-name: viewing-area;

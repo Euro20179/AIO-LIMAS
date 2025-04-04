@@ -136,7 +136,13 @@
             </nav>
             <section id="viewing-area" class="flex column overflow">
 
-                <div id="entry-output" class="overflow"> </div>
+                <nav id="selected-item-actions">
+                    <button onclick="addTagsToSelected()">Add tag(s) to selected</button>
+                    <button onclick="addSelectedToCollection()">Put selected in collection</button>
+                </nav>
+
+                <div id="entry-output" class="overflow">
+                </div>
 
                 <div id="calc-output" class="overflow">
                     <div class="flex row">

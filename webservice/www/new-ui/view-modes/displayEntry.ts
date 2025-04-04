@@ -1,4 +1,3 @@
-const displaying: HTMLElement[] = []
 let displayQueue: InfoEntry[] = []
 
 function mkGenericTbl(root: HTMLElement, data: Record<any, any>) {
@@ -20,6 +19,33 @@ function mkGenericTbl(root: HTMLElement, data: Record<any, any>) {
 }
 
 const displayEntryIntersected: Set<string> = new Set()
+
+function addSelectedToCollection() {
+    const selected = globalsNewUi.selectedEntries
+    const collectionName = prompt("Id of collection")
+    if (!collectionName) return
+
+    let waiting = []
+    for (let item of selected) {
+        waiting.push(setParent(item.ItemId, BigInt(collectionName)))
+    }
+    Promise.all(waiting).then(res => {
+        for (let r of res) {
+            console.log(r.status)
+        }
+    })
+}
+
+function addTagsToSelected() {
+    const tags = prompt("tags (, seperated)")
+    if (!tags) return
+
+    const tagsList = tags.split(",")
+    for (let item of globalsNewUi.selectedEntries) {
+        addEntryTags(item.ItemId, tagsList)
+    }
+    //FIXME: tags do not update immediately
+}
 
 function onIntersection(entries: IntersectionObserverEntry[]) {
     for (let entry of entries) {
@@ -152,7 +178,7 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
 
 
     let imgEl = shadowRoot.querySelector(".thumbnail") as HTMLImageElement
-    const fileUpload =  (shadowRoot.getElementById("thumbnail-file-upload")) as HTMLInputElement
+    const fileUpload = (shadowRoot.getElementById("thumbnail-file-upload")) as HTMLInputElement
 
     fileUpload.onchange = async function(_) {
         const reader = new FileReader()
@@ -209,7 +235,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
         del.onclick = function() {
             deleteEntryTags(item.ItemId, [tag])
                 .then(res => {
-                    if(res.status !== 200) return ""
+                    if (res.status !== 200) return ""
                     res.text().then(() => {
                         item.Collection = item.Collection.split("\x1F").filter((t: string) => t != tag).join("\x1F") + "\x1F"
                         changeDisplayItemData(item, user, meta, events, el.host as HTMLElement)
@@ -238,7 +264,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     formatToName(item.Format).then(name => {
         displayEntryTitle?.setAttribute("data-format-name", name)
     })
-    
+
 
     //Title
     displayEntryTitle.innerText = meta.Title || item.En_Title
@@ -326,8 +352,8 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
         return
     }
     //remove the <Media>- part from the key looks ugly
-    let modifiedKeys: {[k: string]: string} = {}
-    for(let key in mediaDeptData) {
+    let modifiedKeys: { [k: string]: string } = {}
+    for (let key in mediaDeptData) {
         const val = mediaDeptData[key]
         key = key.split("-").slice(1).join(" ")
         modifiedKeys[key] = val
@@ -409,8 +435,6 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
 function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragment = displayItems) {
     let el = document.createElement("display-entry")
 
-    displaying.push(el)
-
     observer.observe(el)
 
     let meta = findMetadataById(item.ItemId)
@@ -460,11 +484,11 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     const newTag = (root.getElementById("create-tag")) as HTMLButtonElement
     newTag.onclick = function() {
         const name = prompt("Tag name (, seperated)")
-        if(!name) return
+        if (!name) return
         item.Collection += name.replaceAll(",", "\x1F") + "\x1F"
         addEntryTags(item.ItemId, name.split(","))
             .then(res => {
-                if(res.status !== 200) return ""
+                if (res.status !== 200) return ""
                 res.text().then(() => changeDisplayItemData(item, user, meta, events, el))
             })
             .catch(console.error)
