@@ -111,7 +111,7 @@
                         <label><input type="checkbox" name="children" id="">children</label>
                         <label><input type="checkbox" name="copies" id="">copies</label>
                     </div>
-                    <input type="submit" value="sort'n'search">
+                    <button type="submit">sort'n'search</button>
                 </form>
                 <button popovertarget="new-entry" type="button" id="new-entry-button">➕︎</button>
                 <div class="result-stats">
@@ -136,8 +136,13 @@
             <section id="viewing-area" class="flex column overflow">
 
                 <nav id="selected-item-actions">
-                    <button onclick="addTagsToSelected()">Add tag(s) to selected</button>
-                    <button onclick="putSelectedToCollection()">Put selected in collection</button>
+                        <details class="dropdown">
+                            <summary>Bulk Actions</summary>
+                            <div>
+                                <button onclick="addTagsToSelected()">Add tag(s) to selected</button>
+                                <button onclick="putSelectedToCollection()">Put selected in collection</button>
+                            </div>
+                        </details>
                 </nav>
 
                 <div id="no-uid">

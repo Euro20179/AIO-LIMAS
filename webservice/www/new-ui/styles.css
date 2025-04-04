@@ -214,11 +214,24 @@
     }
 
     #selected-item-actions {
-        justify-content: space-evenly;
-        gap: 5ch;
-        margin: 5px 0;
+        justify-content: right;
 
         display: flex;
+
+        .dropdown {
+            background: var(--main);
+            div {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+            }
+        }
+        .dropdown summary::marker {
+            content: "➡"
+        }
+        .dropdown[open] summary::marker {
+            content: "⬇"
+        }
     }
 
     :has(#graph-output:target, #gallery-output:target) {

@@ -90,6 +90,10 @@
         cursor: pointer;
     }
 
+    button:hover {
+        background: oklch(from var(--secondary) calc(l * 1.3) c h);
+    }
+
     input[type="checkbox"] {
         appearance: none;
         border-style: solid;
