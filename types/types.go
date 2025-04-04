@@ -186,7 +186,6 @@ func StructNamesToDict(entity any) map[string]any {
 	for i := range val.NumField() {
 		field := val.Type().Field(i)
 
-		println(field.Tag.Get("runtime"))
 		if field.Tag.Get("runtime") == "true" {
 			continue
 		}

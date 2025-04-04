@@ -223,7 +223,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     //tags
     const tagsRoot = el.querySelector(".tags") as HTMLDivElement
     tagsRoot.innerHTML = ""
-    for (let tag of item.Tags) {
+    for (let tag of item.Tags || []) {
         tag = tag.trim()
         if (!tag) continue
         const outer = document.createElement("div")
