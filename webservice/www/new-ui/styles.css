@@ -232,6 +232,10 @@
         container-name: viewing-area;
         container-type: size;
 
+        #no-uid {
+            display: none;
+        }
+
 
         &:has(display-entry) h3 {
             display: none;
