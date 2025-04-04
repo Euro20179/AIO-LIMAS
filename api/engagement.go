@@ -58,7 +58,7 @@ func BeginMedia(ctx RequestContext) {
 
 	if !entry.CanBegin() {
 		w.WriteHeader(405)
-		fmt.Fprintf(w, "This media is already being viewed, or has not been planned, could not start\n")
+		fmt.Fprintf(w, "This media is already being viewed, could not start\n")
 		return
 	}
 

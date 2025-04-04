@@ -418,7 +418,7 @@ func (self *UserViewingEntry) IsViewing() bool {
 }
 
 func (self *UserViewingEntry) CanBegin() bool {
-	return self.Status == S_PLANNED || self.Status == S_FINISHED || self.Status == S_DROPPED
+	return self.Status == S_FINISHED || self.Status == S_DROPPED || self.Status == ""
 }
 
 func (self *UserViewingEntry) CanFinish() bool {
