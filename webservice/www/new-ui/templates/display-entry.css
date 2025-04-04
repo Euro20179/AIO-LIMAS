@@ -16,8 +16,6 @@ hr {
 
 :host(display-entry) {
 
-    color: var(--text-color);
-
     flex-grow: 1;
     /*-10px just incase*/
     min-width: calc(50cqw - var(--gap-size) - 10px);
@@ -54,6 +52,8 @@ hr {
         border-bottom: 1px solid hsl(from var(--secondary) h s 30%);
         border-right: none;
     }
+
+    color: var(--text-color);
 
     overflow: auto auto;
 }
