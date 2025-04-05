@@ -140,7 +140,7 @@ function clearItems() {
 }
 
 function putSelectedToCollection() {
-    if(mode.putSelectedInCollection) {
+    if (mode.putSelectedInCollection) {
         mode.putSelectedInCollection()
     } else {
         alert("This mode does not support putting items into a collection")
@@ -148,7 +148,7 @@ function putSelectedToCollection() {
 }
 
 function addTagsToSelected() {
-    if(mode.addTagsToSelected) {
+    if (mode.addTagsToSelected) {
         mode.addTagsToSelected()
     } else {
         alert("This mode does not support adding tags to selected items")
@@ -202,11 +202,14 @@ async function newEntry() {
         alert(text)
         return
     }
-    await refreshInfo()
+
+    let json = parseJsonL(mkStrItemId(text))
+    updateInfo({
+        entries: { [json.ItemId]: json },
+    })
 
     clearItems()
 
-    let json = parseJsonL(mkStrItemId(text))
     selectItem(json, mode, true)
     renderSidebarItem(json)
 }
@@ -266,19 +269,28 @@ function changeResultStatsWithItemList(items: InfoEntry[], multiplier: number = 
     }
 }
 
+function updateLibraryDropdown() {
+    for (let i in globalsNewUi.libraries) {
+        let item = globalsNewUi.libraries[i]
+        const opt = document.createElement("option")
+        opt.value = String(item["ItemId"])
+        opt.innerText = item["En_Title"]
+        librarySelector.append(opt)
+    }
+}
+
 async function loadLibraries() {
     const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent("type = 'Library'")}&uid=${uid}`).catch(console.error)
 
     librarySelector.innerHTML = '<option value="0">Library</option>'
 
-    if(!res) {
+    if (!res) {
         alert("Could not load libraries")
         return
     }
 
     let jsonL = await res.text()
-        console.log(jsonL)
-    if(!jsonL) {
+    if (!jsonL) {
         return
     }
 
@@ -287,11 +299,8 @@ async function loadLibraries() {
         .map(parseJsonL)
     ) {
         globalsNewUi.libraries[String(item["ItemId"])] = item
-        const opt = document.createElement("option")
-        opt.value = String(item["ItemId"])
-        opt.innerText = item["En_Title"]
-        librarySelector.append(opt)
     }
+    updateLibraryDropdown()
 }
 
 async function loadInfoEntries() {
@@ -333,7 +342,7 @@ function findInfoEntryById(id: bigint): InfoEntry | null {
     return globalsNewUi.entries[String(id)]
 }
 
-async function loadUserEntries(): Promise<Record<string, UserEntry>>  {
+async function loadUserEntries(): Promise<Record<string, UserEntry>> {
     let items = await loadList<UserEntry>("engagement/list-entries")
     let obj: Record<string, UserEntry> = {}
     for (let item of items) {
@@ -458,13 +467,15 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
         .catch(console.error)
 
     promises.push(metaSet)
-
-    Promise.all(promises).then(() => {
-        refreshInfo().then(() => {
-            refreshDisplayItem(item)
-        })
+    updateInfo({
+        entries: { [String(item.ItemId)]: item },
+        userEntries: { [String(item.ItemId)]: userEntry },
+        metadataEntries: { [String(item.ItemId)]: meta }
     })
 
+    Promise.all(promises).then(() => {
+        refreshDisplayItem(item)
+    })
 }
 
 function deleteEntry(item: InfoEntry) {
@@ -478,11 +489,9 @@ function deleteEntry(item: InfoEntry) {
             return
         }
         alert(`Deleted: ${item.En_Title} (${item.Native_Title} : ${item.ItemId})`)
-        refreshInfo()
-            .then(() => {
-                deselectItem(item)
-                removeSidebarItem(item)
-            })
+        updateInfo({ entries: { [String(item.ItemId)]: item } }, true)
+        deselectItem(item)
+        removeSidebarItem(item)
     })
 }
 
@@ -498,7 +507,7 @@ function overwriteEntryMetadata(_root: ShadowRoot, item: InfoEntry) {
             alert("Failed to get metadata")
             return
         }
-        refreshInfo()
+        loadMetadata()
             .then(() => {
                 refreshDisplayItem(item)
                 refreshSidebarItem(item)
@@ -595,7 +604,7 @@ async function itemIdentification(form: HTMLFormElement) {
             break
     }
     finalizeIdentify(finalItemId, provider, BigInt(itemId))
-        .then(refreshInfo)
+        .then(loadMetadata)
         .then(() => {
             let newItem = globalsNewUi.entries[itemId]
             refreshDisplayItem(newItem)
@@ -747,6 +756,77 @@ function normalizeRating(rating: number, maxRating: number) {
     return rating / maxRating * 100
 }
 
+function genericMetadata(itemId: bigint): MetadataEntry {
+    return {
+        ItemId: itemId,
+        Rating: 0,
+        RatingMax: 0,
+        Description: "",
+        ReleaseYear: 0,
+        Thumbnail: "",
+        MediaDependant: "",
+        Datapoints: "{}",
+        Title: "",
+        Native_Title: "",
+    }
+}
+
+function genericUserEntry(itemId: bigint): UserEntry {
+    return {
+        ItemId: itemId,
+        Status: "",
+        ViewCount: 0,
+        UserRating: 0,
+        Notes: "",
+        CurrentPosition: "",
+        Extra: "{}",
+    }
+}
+
+function updateInfo({
+    entries, metadataEntries, events, userEntries
+}: Partial<GlobalsNewUi>, del = false) {
+
+    if(del && events) {
+        let specific = events.map(v => `${v.ItemId}:${v.Timestamp || v.After}:${v.Event}`)
+        globalsNewUi.events = globalsNewUi.events.filter(v => !specific.includes(`${v.ItemId}:${v.Timestamp || v.After}:${v.Event}`))
+    } else if(events) {
+        globalsNewUi.events = globalsNewUi.events.concat(events)
+    }
+
+    let updatedLibraries = false
+
+    for (let entry in entries) {
+        let e = entries[entry]
+        if (e.Type === "Library") {
+            if (!del) {
+                globalsNewUi.libraries[entry] = e
+            } else {
+                delete globalsNewUi.libraries[entry]
+            }
+            updatedLibraries = true
+        }
+
+
+        if (!del) {
+            let metadata = metadataEntries?.[entry] || findMetadataById(e.ItemId) || genericMetadata(e.ItemId)
+            let user = userEntries?.[entry] || findUserEntryById(e.ItemId) || genericUserEntry(e.ItemId)
+
+            globalsNewUi.entries[entry] = e
+            globalsNewUi.metadataEntries[entry] = metadata
+            globalsNewUi.userEntries[entry] = user
+        } else {
+            delete globalsNewUi.entries[entry]
+            delete globalsNewUi.metadataEntries[entry]
+            delete globalsNewUi.userEntries[entry]
+        }
+    }
+
+    if (updatedLibraries) {
+        updateLibraryDropdown()
+    }
+}
+
 async function refreshInfo() {
     return Promise.all([
         loadLibraries(),
@@ -792,10 +872,11 @@ function handleRichText(e: KeyboardEvent) {
         }
         e.preventDefault()
     }
-
 }
 
 async function main() {
+    await refreshInfo()
+
     if (initialSearch) {
         let entries = await doQuery3(initialSearch)
 
@@ -803,15 +884,12 @@ async function main() {
 
         globalsNewUi.results = entries
 
-        await refreshInfo()
-
         if (entries.length === 0) {
             alert("No results")
             return
         }
         renderSidebar(entries)
     } else {
-        await refreshInfo()
         let tree = Object.values(globalsNewUi.entries).sort((a, b) => {
             let aUInfo = findUserEntryById(a.ItemId)
             let bUInfo = findUserEntryById(b.ItemId)

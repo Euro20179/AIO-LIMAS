@@ -40,10 +40,11 @@ function deleteEvent(el: HTMLElement, ts: number, after: number) {
     const itemId = getIdFromDisplayElement(el)
     apiDeleteEvent(itemId, ts, after)
         .then(res => res.text())
-        .then(() =>
+        .then(() => {
             refreshInfo().then(() =>
                 refreshDisplayItem(globalsNewUi.entries[String(itemId)])
             ).catch(alert)
+        }
         )
         .catch(alert)
 
@@ -71,11 +72,21 @@ function newEvent(form: HTMLFormElement) {
     const itemId = getIdFromDisplayElement(form)
     apiRegisterEvent(itemId, name.toString(), ts, afterts)
         .then(res => res.text())
-        .then(() => refreshInfo().then(() => {
+        .then(() => {
+            updateInfo({
+                events: [
+                    {
+                        Timestamp: ts,
+                        After: afterts,
+                        Event: name.toString(),
+                        ItemId: itemId,
+                        TimeZone: ""
+                    }
+                ]
+            })
             form.parentElement?.hidePopover()
             refreshDisplayItem(globalsNewUi.entries[String(itemId)])
-        }
-        ))
+        })
         .catch(alert)
     //TODO: should be a modal thing for date picking
 }
@@ -187,11 +198,26 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
         reader.readAsDataURL(blob)
         reader.onload = () => {
             if (!reader.result) return
-            updateThumbnail(item.ItemId, reader.result.toString())
+            let result = reader.result.toString()
+            updateThumbnail(item.ItemId, result)
                 .then(() => {
-                    refreshInfo().then(() => {
+                    let meta = findMetadataById(item.ItemId)
+                    if (!meta) {
+                        refreshInfo().then(() => {
+                            refreshDisplayItem(item)
+                        })
+                    } else {
+                        meta.Thumbnail = result
+                        updateInfo({
+                            entries: {
+                                [String(item.ItemId)]: item
+                            },
+                            metadataEntries: {
+                                [String(item.ItemId)]: meta
+                            }
+                        })
                         refreshDisplayItem(item)
-                    })
+                    }
                 })
         }
     }
@@ -278,8 +304,6 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     if (meta.Title && item.En_Title) {
         displayEntryTitle.title = item.En_Title
     }
-
-    console.log(meta)
 
     //Native title
     displayEntryNativeTitle.innerText = meta.Native_Title || item.Native_Title
@@ -591,9 +615,23 @@ const displayEntryViewCount = displayEntryAction(item => {
         .then(res => res.text())
         .then(alert)
         .then(() => {
-            refreshInfo().then(() => {
+            let user = findUserEntryById(item.ItemId)
+            if (!user) {
+                refreshInfo().then(() => {
+                    refreshDisplayItem(item)
+                })
+            } else {
+                user.ViewCount = Number(count)
+                updateInfo({
+                    entries: {
+                        [String(item.ItemId)]: item
+                    },
+                    userEntries: {
+                        [String(item.ItemId)]: user
+                    }
+                })
                 refreshDisplayItem(item)
-            })
+            }
         })
         .catch(console.error)
 })
@@ -621,7 +659,21 @@ const displayEntryRating = displayEntryAction(item => {
     }
 
     fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
-        .then(refreshInfo)
+        .then(() => {
+            let user = findUserEntryById(item.ItemId)
+            if(!user) {
+                return refreshInfo()
+            }
+            user.UserRating = Number(newRating)
+            updateInfo({
+                entries: {
+                    [String(item.ItemId)]: item
+                },
+                userEntries: {
+                    [String(item.ItemId)]: user
+                }
+            })
+        })
         .then(() => {
             let newItem = globalsNewUi.entries[String(item.ItemId)]
             refreshDisplayItem(newItem)
