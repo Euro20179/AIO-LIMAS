@@ -77,16 +77,16 @@ type ApiEndPoint struct {
 	UserIndependant bool
 }
 
-func (self *ApiEndPoint) GenerateDocHTML() string {
+func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 	return fmt.Sprintf(`
 		<div>
-			<h2>/%s</h2>
+			<h2>%s/%s</h2>
 				<h3>Description</h3>
 					<p>%s</p>
 				<h3>Returns</h3>
 					<p>%s</p>
 		</div>
-	`, self.EndPoint, self.Description, self.Returns)
+	`, root, self.EndPoint, self.Description, self.Returns)
 }
 
 
