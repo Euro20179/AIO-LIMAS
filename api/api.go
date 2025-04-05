@@ -70,12 +70,7 @@ func DeleteTags(ctx RequestContext) {
 }
 
 func DownloadDB(ctx RequestContext) {
-	dir := os.Getenv("AIO_DIR")
-	if dir == "" {
-		panic("$AIO_DIR should not be empty")
-	}
-
-	dbPath := fmt.Sprintf("%s/all.db", dir)
+	dbPath := fmt.Sprintf("%s/all.db", db.UserRoot(ctx.Uid))
 
 	http.ServeFile(ctx.W, ctx.Req, dbPath)
 }
