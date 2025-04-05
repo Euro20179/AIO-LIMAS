@@ -9,6 +9,11 @@ if(!uid) {
 
 const initialSearch = urlParams.get("q")
 
+const searchInput = document.querySelector("[name=\"search-query\"]") as HTMLInputElement
+if(searchInput && initialSearch) {
+    searchInput.value = decodeURIComponent(initialSearch)
+}
+
 function promptNumber(text: string, textFail: string, numberConverter: NumberConstructor | BigIntConstructor = Number) {
     let n = prompt(text)
     while (n !== null && n !== "" && isNaN(Number(n))) {
