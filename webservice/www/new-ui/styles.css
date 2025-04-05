@@ -357,6 +357,17 @@
             background: var(--main);
 
             padding: 5px;
+
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 80%;
+            justify-content: center;
+
+            @container body (width < 800px) {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                justify-content: space-around;
+            }
         }
 
         @container body (width < 800px) {

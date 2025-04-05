@@ -1,7 +1,5 @@
 const sidebarItems = document.querySelector(".sidebar--items") as HTMLElement
 
-const sidebarQueue: InfoEntry[] = []
-
 const sidebarIntersected: Set<string> = new Set()
 const sidebarObserver = new IntersectionObserver((entries) => {
     for (let entry of entries) {
