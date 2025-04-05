@@ -54,6 +54,24 @@
         height: 100%;
     }
 
+    #notifications {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+
+        .notification {
+            padding: 30px;
+            border-bottom: 1px solid var(--secondary);
+            white-space: pre;
+            background: var(--main);
+        }
+        .notification::before {
+            content: "Notification\a";
+        }
+    }
+
     #main-ui {
         flex-grow: 1;
 

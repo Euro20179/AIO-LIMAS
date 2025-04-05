@@ -14,6 +14,16 @@ if(searchInput && initialSearch) {
     searchInput.value = decodeURIComponent(initialSearch)
 }
 
+function alert(text: string) {
+    const notificationsArea = document.getElementById("notifications") as HTMLDivElement
+    const el = document.createElement("div")
+    el.classList.add("notification")
+    el.innerText = text
+    notificationsArea.append(el)
+    el.onclick = el.remove.bind(el)
+    setTimeout(el.remove.bind(el), 15000)
+}
+
 function promptNumber(text: string, textFail: string, numberConverter: NumberConstructor | BigIntConstructor = Number) {
     let n = prompt(text)
     while (n !== null && n !== "" && isNaN(Number(n))) {
