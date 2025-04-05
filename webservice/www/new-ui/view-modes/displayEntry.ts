@@ -1,5 +1,255 @@
 let displayQueue: InfoEntry[] = []
 
+function handleRichText(e: KeyboardEvent) {
+    const actions: Record<string, () => ([string, string[]] | [string, string[]][])> = {
+        "b": () => ["bold", []],
+        "i": () => ["italic", []],
+        "h": () => ["hiliteColor", [prompt("highlight color (yellow)") || "yellow"]],
+        "f": () => ["foreColor", [prompt("Foreground color (black)") || "black"]],
+        "t": () => ["fontName", [prompt("Font name (sans-serif)") || "sans-serif"]],
+        "T": () => ["fontSize", [prompt("Font size (12pt)") || "12pt"]],
+        "I": () => ["insertImage", [prompt("Image url (/favicon.ico)") || "/favicon.ico"]],
+        "e": () => [
+            ["enableObjectResizing", []],
+            ["enableAbsolutePositionEditor", []],
+            ["enableInlineTableEditing", []],
+        ],
+        "s": () => ["strikeThrough", []],
+        "u": () => ['underline', []],
+        "m": () => ["insertHTML", [getSelection()?.toString() || prompt("html (html)") || "html"]],
+        "f12": () => ["removeFormat", []]
+    }
+    if (!e.ctrlKey) return
+    let key = e.key
+    if (key in actions) {
+        let res = actions[key]()
+        if (typeof res[0] === "string") {
+            let [name, args] = res
+            //@ts-ignore
+            document.execCommand(name, false, ...args)
+        } else {
+            for (let [name, args] of res) {
+                //@ts-ignore
+                document.execCommand(name, false, ...args)
+            }
+        }
+        e.preventDefault()
+    }
+}
+
+
+async function itemIdentification(form: HTMLFormElement) {
+    form.parentElement?.hidePopover()
+    let data = new FormData(form)
+
+    let provider = data.get("provider") as string
+
+    let queryType = data.get("query-type") as "by-title" | "by-id"
+
+    let search = data.get("search") as string
+
+    let shadowRoot = form.getRootNode() as ShadowRoot
+
+    let itemId = shadowRoot.host.getAttribute("data-item-id")
+
+    if (!itemId) {
+        alert("Could not get item id")
+        return
+    }
+
+    let finalItemId = ""
+
+    switch (queryType) {
+        case "by-title":
+            let titleSearchContainer = shadowRoot.getElementById("identify-items") as HTMLDialogElement
+            finalItemId = await titleIdentification(provider, search, titleSearchContainer)
+            break
+        case "by-id":
+            finalItemId = search
+            break
+    }
+    finalizeIdentify(finalItemId, provider, BigInt(itemId))
+        .then(loadMetadata)
+        .then(() => {
+            let newItem = globalsNewUi.entries[itemId]
+            refreshDisplayItem(newItem)
+            refreshSidebarItem(newItem)
+        })
+}
+
+async function titleIdentification(provider: string, search: string, selectionElemOutput: HTMLElement): Promise<string> {
+    let res = await identify(search, provider)
+    let text = await res.text()
+    let [_, rest] = text.split("\x02")
+
+    let items: any[]
+    try {
+        items = rest.split("\n").filter(Boolean).map(v => JSON.parse(v))
+    }
+    catch (err) {
+        console.error("Could not parse json", rest.split('\n'))
+        return ""
+    }
+
+    while (selectionElemOutput.children.length) {
+        selectionElemOutput.firstChild?.remove()
+    }
+
+    selectionElemOutput.showPopover()
+
+    return await new Promise(RETURN => {
+        for (let result of items) {
+            let fig = document.createElement("figure")
+
+            let img = document.createElement("img")
+            img.src = result.Thumbnail
+            img.style.cursor = "pointer"
+            img.width = 100
+
+            img.addEventListener("click", _e => {
+                selectionElemOutput.hidePopover()
+                RETURN(result.ItemId)
+            })
+
+            let title = document.createElement("h3")
+            title.innerText = result.Title || result.Native_Title
+            title.title = result.Native_Title || result.Title
+
+            fig.append(title)
+            fig.append(img)
+            selectionElemOutput.append(fig)
+        }
+    })
+}
+
+
+function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
+    if (!confirm("Are you sure you want to save changes?")) {
+        return
+    }
+
+    const userEn_title = root.querySelector(".title") as HTMLHeadingElement
+
+    if (userEn_title) {
+        item.En_Title = userEn_title.innerText
+    }
+
+    let userEntry = findUserEntryById(item.ItemId)
+    if (!userEntry) return
+
+    const customStylesElem = root.getElementById("style-editor") as HTMLTextAreaElement
+
+    setUserExtra(userEntry, "styles", customStylesElem.value)
+
+    let notes = (root?.querySelector(".notes"))?.innerHTML
+    if (notes === "<br>") {
+        notes = ""
+    }
+    userEntry.Notes = notes || ""
+
+    let infoTable = root.querySelector("table.info-raw")
+    let metaTable = root.querySelector("table.meta-info-raw")
+    if (!infoTable || !metaTable) return
+
+    const updateWithTable: (table: Element, item: InfoEntry | MetadataEntry) => void = (table, item) => {
+        for (let row of table?.querySelectorAll("tr") || []) {
+            let nameChild = row.firstElementChild as HTMLElement
+            let valueChild = row.firstElementChild?.nextElementSibling as HTMLElement
+            let name = nameChild.innerText.trim()
+            let value = valueChild.innerText.trim()
+            if (!(name in item)) {
+                console.log(`${name} NOT IN ITEM`)
+                continue
+            } else if (name === "ItemId") {
+                console.log("Skipping ItemId")
+                continue
+            }
+            let ty = item[name as keyof typeof item].constructor
+            //@ts-ignore
+            item[name] = ty(value)
+        }
+    }
+
+    updateWithTable(infoTable, item)
+    let meta = findMetadataById(item.ItemId)
+    if (!meta) return
+    updateWithTable(metaTable, meta)
+
+
+    const infoStringified = mkIntItemId(
+        JSON.stringify(
+            item,
+            (_, v) => typeof v === 'bigint' ? String(v) : v
+        )
+    )
+
+    const metaStringified = mkIntItemId(
+        JSON.stringify(
+            meta, (_, v) => typeof v === 'bigint' ? String(v) : v
+        )
+    )
+
+    const userStringified = mkIntItemId(
+        JSON.stringify(
+            userEntry,
+            (_, v) => typeof v === "bigint" ? String(v) : v
+        )
+    )
+
+    let promises = []
+
+    let engagementSet = fetch(`${apiPath}/engagement/set-entry`, {
+        body: userStringified,
+        method: "POST"
+    })
+        .then(res => res.text())
+        .then(console.log)
+        .catch(console.error)
+
+    promises.push(engagementSet)
+
+    let entrySet = fetch(`${apiPath}/set-entry`, {
+        body: infoStringified,
+        method: "POST"
+    })
+        .then(res => res.text())
+        .then(console.log)
+        .catch(console.error)
+
+    promises.push(entrySet)
+
+    let metaSet = fetch(`${apiPath}/metadata/set-entry`, {
+        body: metaStringified,
+        method: "POST"
+    }).then(res => res.text())
+        .then(console.log)
+        .catch(console.error)
+
+    promises.push(metaSet)
+    updateInfo({
+        entries: { [String(item.ItemId)]: item },
+        userEntries: { [String(item.ItemId)]: userEntry },
+        metadataEntries: { [String(item.ItemId)]: meta }
+    })
+
+    Promise.all(promises).then(() => {
+        refreshDisplayItem(item)
+    })
+}
+
+function changeDisplayItemData(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: HTMLElement) {
+    const e = new CustomEvent("data-changed", {
+        detail: {
+            item,
+            user,
+            meta,
+            events,
+        }
+    })
+    el.dispatchEvent(e)
+    el.setAttribute("data-item-id", String(item.ItemId))
+}
+
 function mkGenericTbl(root: HTMLElement, data: Record<any, any>) {
     let html = `
                 <thead>
@@ -587,8 +837,8 @@ function displayEntryAction(func: (item: InfoEntry, root: ShadowRoot) => any) {
     }
 }
 
-const displayEntryDelete = displayEntryAction(item => deleteEntry(item))
-const displayEntryRefresh = displayEntryAction((item, root) => overwriteEntryMetadata(root, item))
+const displayEntryDelete = displayEntryAction(item => deleteEntryUI(item))
+const displayEntryRefresh = displayEntryAction((item, root) => overwriteEntryMetadataUI(root, item))
 const displayEntrySave = displayEntryAction((item, root) => saveItemChanges(root, item))
 const displayEntryClose = displayEntryAction(item => deselectItem(item))
 

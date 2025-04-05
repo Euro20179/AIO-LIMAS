@@ -9,6 +9,27 @@ type UserEntry = {
 }
 
 
+type UserStatus = "" |
+				 "Viewing" |
+				 "Finished" |
+				 "Dropped" |
+				 "Planned" |
+				 "ReViewing" |
+				 "Paused"
+
+type EntryType = "Show" |
+				 "Movie" |
+				 "MovieShort" |
+				 "Game" |
+				 "BoardGame" |
+				 "Song" |
+				 "Book" |
+				 "Manga" |
+				 "Collection" |
+				 "Picture" |
+				 "Meme" |
+				 "Library"
+
 type UserEvent = {
     ItemId: bigint
     Event: string
@@ -264,6 +285,45 @@ function sortEntries(entries: InfoEntry[], sortBy: string) {
     return entries
 }
 
+type NewEntryParams = {
+    timezone: string,
+    title: string,
+    type: EntryType,
+    format: number,
+    price?: number,
+    "is-digital"?: boolean,
+    "is-anime"?: boolean,
+    "art-style"?: number,
+    "libraryId"?: bigint,
+    "copyOf"?: bigint,
+    "parentId"?: bigint,
+    "native-title": string,
+    "tags": string,
+    "location": string,
+    "get-metadata": boolean,
+    "metadata-provider": string,
+    "user-rating": number,
+    "user-status": UserStatus,
+    "user-view-count": number,
+    "user-notes": string
+}
+
+async function newEntry(params: NewEntryParams) {
+    let qs = ""
+    for(let p in params) {
+        let v = params[p as keyof NewEntryParams]
+        if(typeof v === 'bigint') {
+            v = String(v)
+        } else if(typeof v !== 'undefined') {
+            v = encodeURIComponent(v)
+        } else {
+            continue
+        }
+        qs += `${p}=${v}`
+    }
+    return await fetch(`${apiPath}/add-entry${qs}`)
+}
+
 async function apiDeleteEvent(itemId: bigint, ts: number, after: number) {
     return await fetch(`${apiPath}/engagement/delete-event?id=${itemId}&after=${after}&timestamp=${ts}`)
 }
@@ -279,4 +339,12 @@ async function addEntryTags(itemId: bigint, tags: string[]) {
 
 async function deleteEntryTags(itemId: bigint, tags: string[]) {
     return await fetch(`${apiPath}/delete-tags?tags=${encodeURIComponent(tags.join("\x1F"))}&id=${itemId}`)
+}
+
+async function deleteEntry(itemId: bigint) {
+    return await fetch(`${apiPath}/delete-entry?id=${itemId}`)
+}
+
+async function overwriteMetadataEntry(itemId: bigint) {
+    return fetch(`${apiPath}/metadata/fetch?id=${itemId}`)
 }
