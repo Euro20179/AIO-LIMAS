@@ -61,6 +61,11 @@ async function newEntryUI() {
         if (value == "") continue
         validEntries[name] = value
     }
+
+    if(validEntries["libraryId"] && validEntries["libraryId"] == "0") {
+        delete validEntries["libraryId"]
+    }
+
     const queryString = "?" + Object.entries(validEntries).map(v => `${v[0]}=${encodeURIComponent(String(v[1]))}`).join("&") + `&art-style=${artStyle}`
 
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
