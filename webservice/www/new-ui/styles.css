@@ -59,7 +59,7 @@
 
         display: grid;
 
-        gap: 1em;
+        gap: 1cqi;
 
         @container body (width >=800px) {
             grid-template-areas:
