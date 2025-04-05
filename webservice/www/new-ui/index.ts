@@ -47,6 +47,7 @@ const displayItems = document.getElementById("entry-output") as HTMLElement
 const statsOutput = document.querySelector(".result-stats") as HTMLElement
 
 const librarySelector = document.getElementById("library-selector") as HTMLSelectElement
+const newEntryLibrarySelector = document.querySelector("[name=\"libraryId\"]") as HTMLSelectElement
 
 const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
 const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
@@ -277,6 +278,7 @@ function updateLibraryDropdown() {
         opt.innerText = item["En_Title"]
         librarySelector.append(opt)
     }
+    newEntryLibrarySelector.innerHTML = librarySelector.innerHTML
 }
 
 async function loadLibraries() {

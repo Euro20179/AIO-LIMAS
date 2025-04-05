@@ -64,6 +64,7 @@ var ( // `/` endpoints {{{
 			"is-digital":        api.MkQueryInfo(api.P_Bool, false),
 			"is-anime":          api.MkQueryInfo(api.P_Bool, false),
 			"art-style":         api.MkQueryInfo(api.P_ArtStyle, false),
+			"libraryId":         api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"parentId":          api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"copyOf":            api.MkQueryInfo(api.P_VerifyIdAndGetInfoEntry, false),
 			"native-title":      api.MkQueryInfo(api.P_True, false),
