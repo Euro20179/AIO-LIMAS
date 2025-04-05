@@ -17,13 +17,26 @@ import (
 
 func ListCollections(ctx RequestContext) {
 	w := ctx.W
-	collections, err := db.ListCollections(ctx.Uid)
+	collections, err := db.ListType(ctx.Uid, "en_title", db_types.TY_COLLECTION)
 	if err != nil {
 		util.WError(w, 500, "Could not get collections\n%s", err.Error())
 		return
 	}
 	w.WriteHeader(200)
 	for _, col := range collections {
+		fmt.Fprintf(w, "%s\n", col)
+	}
+}
+
+func ListLibraries(ctx RequestContext) {
+	w := ctx.W
+	libraries, err := db.ListType(ctx.Uid, "itemId", db_types.TY_LIBRARY)
+	if err != nil {
+		util.WError(w, 500, "Could not get collections\n%s", err.Error())
+		return
+	}
+	ctx.W.WriteHeader(200)
+	for _, col := range libraries {
 		fmt.Fprintf(w, "%s\n", col)
 	}
 }

@@ -163,6 +163,7 @@ const (
 	TY_COLLECTION  MediaTypes = "Collection"
 	TY_PICTURE     MediaTypes = "Picture"
 	TY_MEME        MediaTypes = "Meme"
+	TY_LIBRARY     MediaTypes = "Library"
 )
 
 func ListMediaTypes() []MediaTypes {
@@ -170,7 +171,7 @@ func ListMediaTypes() []MediaTypes {
 		TY_SHOW, TY_MOVIE, TY_GAME,
 		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
 		TY_COLLECTION, TY_MOVIE_SHORT,
-		TY_PICTURE, TY_MEME,
+		TY_PICTURE, TY_MEME, TY_LIBRARY,
 	}
 }
 
@@ -276,6 +277,7 @@ type InfoEntry struct {
 	Type          MediaTypes
 	ArtStyle      ArtStyle
 	CopyOf        int64
+	Library       int64
 
 	//RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
@@ -310,6 +312,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.ParentId,
 		&self.CopyOf,
 		&self.ArtStyle,
+		&self.Library,
 	)
 	if err != nil {
 		return err

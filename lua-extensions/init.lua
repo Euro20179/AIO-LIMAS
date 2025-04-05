@@ -20,7 +20,8 @@ function Expand_macro(macro)
         "Manga",
         "Collection",
         "Picture",
-        "Meme"
+        "Meme",
+        "Library"
     }
 
     local formats = {

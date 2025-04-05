@@ -155,7 +155,16 @@ var ( // `/` endpoints {{{
 		EndPoint:     "list-collections",
 		Handler:      api.ListCollections,
 		QueryParams:  api.QueryParams{},
-		Description:  "Lists all entries who's type is Collection",
+		Description:  "Lists en_title of all entries who's type is Collection",
+		Returns:      "Sep<string, '\\n'>",
+		GuestAllowed: true,
+	}
+
+	listLibraries = api.ApiEndPoint {
+		EndPoint:     "list-libraries",
+		Handler:      api.ListLibraries,
+		QueryParams:  api.QueryParams{},
+		Description:  "Lists ids of all entries who's type is Library",
 		Returns:      "Sep<string, '\\n'>",
 		GuestAllowed: true,
 	}
@@ -595,6 +604,7 @@ var (
 		stream,
 		deleteEntry,
 		listCollections,
+		listLibraries,
 		listCopies,
 		listDescendants,
 		totalCostOf,

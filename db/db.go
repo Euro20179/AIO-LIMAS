@@ -25,7 +25,7 @@ func UserRoot(uid int64) string {
 
 func OpenUserDb(uid int64) (*sql.DB, error) {
 	path := UserRoot(uid)
-	return sql.Open("sqlite3", path + "all.db")
+	return sql.Open("sqlite3", path+"all.db")
 }
 
 func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
@@ -178,7 +178,8 @@ func InitDb(uid int64) error {
 			 type TEXT,
 			 parentId INTEGER,
 			copyOf INTEGER,
-			artStyle INTEGER
+			artStyle INTEGER,
+			library INTEGER
 		)`)
 	if err != nil {
 		return err
@@ -704,7 +705,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func ListCollections(uid int64) ([]string, error) {
+func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	Db, err := OpenUserDb(uid)
 	if err != nil {
 		panic(err.Error())
@@ -712,7 +713,7 @@ func ListCollections(uid int64) ([]string, error) {
 	defer Db.Close()
 
 	var out []string
-	rows, err := Db.Query(`SELECT en_title FROM entryInfo WHERE type = 'Collection'`)
+	rows, err := Db.Query(`SELECT ? FROM entryInfo WHERE type = ?`, col, string(ty))
 	if err != nil {
 		return out, err
 	}
@@ -797,7 +798,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
 	var events *sql.Rows
-	//if an id is given
+	// if an id is given
 	if id > -1 {
 		events, err = Db.Query(`
 		SELECT * from userEventInfo
@@ -809,7 +810,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 					userEventInfo.after
 				ELSE timestamp
 			END`, id)
-	//otherweise the caller wants all events
+		// otherweise the caller wants all events
 	} else {
 		events, err = Db.Query(`
 		SELECT * from userEventInfo
@@ -960,7 +961,9 @@ func DelTags(uid int64, id int64, tags []string) error {
 	defer Db.Close()
 
 	for _, tag := range tags {
-		if tag == "" { continue }
+		if tag == "" {
+			continue
+		}
 
 		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '')", tag)
 		if err != nil {

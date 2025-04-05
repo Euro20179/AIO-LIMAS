@@ -25,6 +25,8 @@ type GlobalsNewUi = {
     events: UserEvent[]
     results: InfoEntry[]
     selectedEntries: InfoEntry[]
+    libraries: Record<string, InfoEntry>
+    viewingLibrary: bigint
 }
 
 let globalsNewUi: GlobalsNewUi = {
@@ -33,7 +35,9 @@ let globalsNewUi: GlobalsNewUi = {
     entries: {},
     results: [],
     events: [],
-    selectedEntries: []
+    selectedEntries: [],
+    libraries: {},
+    viewingLibrary: 0n,
 }
 
 const viewAllElem = document.getElementById("view-all") as HTMLInputElement
@@ -42,12 +46,21 @@ const displayItems = document.getElementById("entry-output") as HTMLElement
 
 const statsOutput = document.querySelector(".result-stats") as HTMLElement
 
+const librarySelector = document.getElementById("library-selector") as HTMLSelectElement
+
 const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
 const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
 
 let idx = modeOutputIds.indexOf(location.hash.slice(1))
 
 let mode = modes[idx]
+
+librarySelector.onchange = function() {
+    let val = librarySelector.value
+    globalsNewUi.viewingLibrary = BigInt(val)
+
+    loadSearch()
+}
 
 function getUserExtra(user: UserEntry, prop: string) {
     return JSON.parse(user.Extra).AIOWeb?.[prop] || null
@@ -250,6 +263,34 @@ function changeResultStatsWithItem(item: InfoEntry, multiplier: number = 1) {
 function changeResultStatsWithItemList(items: InfoEntry[], multiplier: number = 1) {
     for (let item of items) {
         changeResultStatsWithItem(item, multiplier)
+    }
+}
+
+async function loadLibraries() {
+    const res = await fetch(`${apiPath}/query-v3?search=${encodeURIComponent("type = 'Library'")}&uid=${uid}`).catch(console.error)
+
+    librarySelector.innerHTML = '<option value="0">Library</option>'
+
+    if(!res) {
+        alert("Could not load libraries")
+        return
+    }
+
+    let jsonL = await res.text()
+        console.log(jsonL)
+    if(!jsonL) {
+        return
+    }
+
+    for (let item of jsonL.trim().split("\n")
+        .map(mkStrItemId)
+        .map(parseJsonL)
+    ) {
+        globalsNewUi.libraries[String(item["ItemId"])] = item
+        const opt = document.createElement("option")
+        opt.value = String(item["ItemId"])
+        opt.innerText = item["En_Title"]
+        librarySelector.append(opt)
     }
 }
 
@@ -608,6 +649,9 @@ function parseClientsideSearchFiltering(searchForm: FormData): ClientSearchFilte
 }
 
 function applyClientsideSearchFiltering(entries: InfoEntry[], filters: ClientSearchFilters) {
+
+    entries = entries.filter(v => v.Library === globalsNewUi.viewingLibrary)
+
     if (!filters.children) {
         entries = entries.filter(v => v.ParentId === 0n)
     }
@@ -683,7 +727,7 @@ async function loadSearch() {
 
     let filters = parseClientsideSearchFiltering(formData)
 
-    let entries = await doQuery3(String(filters.newSearch))
+    let entries = await doQuery3(String(filters.newSearch) || "#")
 
     entries = applyClientsideSearchFiltering(entries, filters)
 
@@ -705,6 +749,7 @@ function normalizeRating(rating: number, maxRating: number) {
 
 async function refreshInfo() {
     return Promise.all([
+        loadLibraries(),
         loadInfoEntries(),
         loadMetadata(),
         loadUserEntries(),

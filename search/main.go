@@ -1,7 +1,6 @@
 package search
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -114,8 +113,13 @@ func Lex(search string) []Token {
 			if !escape && string(ch) == quote {
 				break
 			}
+
+			if ch == '\''{
+				final += "''"
+			}else {
+				final += string(ch)
+			}
 			escape = false
-			final += string(ch)
 		}
 
 		return final
@@ -233,7 +237,8 @@ func Lex(search string) []Token {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				ty = TT_NUMBER
 				val = parseNumber()
-			case '@': fallthrough
+			case '@':
+				fallthrough
 			case '#':
 				ty = TT_MACRO
 				// parseWord includes the first char, ignore it
@@ -311,11 +316,7 @@ type StringNode struct {
 }
 
 func (self StringNode) ToString() (string, error) {
-	newVal, err := json.Marshal(self.Value)
-	if err != nil {
-		return "", err
-	}
-	return string(newVal), nil
+	return "'" + self.Value + "'", nil
 }
 
 type NumberNode struct {

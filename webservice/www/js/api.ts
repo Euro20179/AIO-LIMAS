@@ -30,6 +30,7 @@ type InfoEntry = {
     Type: string
     En_Title: string
     CopyOf: bigint
+    Library: bigint
 
     Tags: string[]
 }
@@ -75,6 +76,7 @@ function mkStrItemId(jsonl: string) {
         .replace(/"ItemId":\s*(\d+),/, "\"ItemId\": \"$1\",")
         .replace(/"ParentId":\s*(\d+),/, "\"ParentId\": \"$1\",")
         .replace(/"CopyOf":\s*(\d+)(,)?/, "\"CopyOf\": \"$1\"$2")
+        .replace(/"Library":\s*(\d+)(,)?/, "\"Library\": \"$1\"$2")
 }
 
 function mkIntItemId(jsonl: string) {
@@ -82,10 +84,11 @@ function mkIntItemId(jsonl: string) {
         .replace(/"ItemId":"(\d+)",/, "\"ItemId\": $1,")
         .replace(/"ParentId":"(\d+)",/, "\"ParentId\": $1,")
         .replace(/"CopyOf":"(\d+)"(,)?/, "\"CopyOf\": $1$2")
+        .replace(/"Library":"(\d+)"(,)?/, "\"Library\": $1$2")
 }
 
 function parseJsonL(jsonl: string) {
-    const bigIntProperties = ["ItemId", "ParentId", "CopyOf"]
+    const bigIntProperties = ["ItemId", "ParentId", "CopyOf", "Library"]
     try {
         return JSON.parse(jsonl, (key, v) => bigIntProperties.includes(key) ? BigInt(v) : v)
     }
