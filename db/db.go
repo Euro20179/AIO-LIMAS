@@ -6,7 +6,6 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -579,32 +578,6 @@ const (
 	DATA_AND     DataChecker = iota
 )
 
-func Str2DataChecker(in string) DataChecker {
-	switch strings.ToUpper(in) {
-	case "GT":
-		return DATA_GT
-	case "LT":
-		return DATA_LT
-	case "LE":
-		return DATA_LE
-	case "GE":
-		return DATA_GE
-	case "EQ":
-		return DATA_EQ
-	case "NE":
-		return DATA_NE
-	case "LIKE":
-		return DATA_LIKE
-	case "IN":
-		return DATA_IN
-	case "NOTIN":
-		return DATA_NOTIN
-	case "NOTLIKE":
-		return DATA_NOTLIKE
-	}
-	return DATA_EQ
-}
-
 type LogicType int
 
 const (
@@ -620,53 +593,6 @@ type SearchData struct {
 }
 
 type SearchQuery []SearchData
-
-func colValToCorrectType(name string, value string) (any, error) {
-	u := func(val string) (uint64, error) {
-		n, err := strconv.ParseUint(val, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return n, nil
-	}
-
-	f := func(val string) (float64, error) {
-		n, err := strconv.ParseFloat(val, 64)
-		if err != nil {
-			return 0, err
-		}
-		return n, nil
-	}
-
-	switch name {
-	case "artStyle":
-		return u(value)
-	case "parentId":
-		return u(value)
-	case "itemId":
-		return u(value)
-	case "copyOf":
-		return u(value)
-	case "viewCount":
-		return u(value)
-	case "format":
-		return u(value)
-	case "purchasePrice":
-		return f(value)
-	case "generalRating":
-		return f(value)
-	case "userRating":
-		return f(value)
-	}
-
-	// if the user types a numeric value, assume they meant it to be of type float
-	converted, err := f(value)
-	if err == nil {
-		return converted, nil
-	}
-
-	return value, nil
-}
 
 func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 	Db, err := OpenUserDb(uid)
