@@ -120,4 +120,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"omdb":    OmdbIdIdentifier,
 	"sonarr": SonarrIdIdentifier,
 	"radarr": RadarrIdIdentifier,
+	"steam": SteamIdIdentifier,
 }

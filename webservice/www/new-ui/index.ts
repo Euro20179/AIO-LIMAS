@@ -579,7 +579,8 @@ async function remote2LocalThumbService() {
         let userNativeTitle = globalsNewUi.entries[item].Native_Title
 
         if (!thumbnail) continue
-        if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`)) continue
+        if (thumbnail.startsWith(`${apiPath}/resource/thumbnail`) || thumbnail.startsWith(`${apiPath}/resource/get-thumbnail`)) continue
+        console.log(thumbnail)
 
         //FIXME: this should work, but for some reason just doesn't
         if (thumbnail.startsWith("data:")) continue
@@ -590,7 +591,7 @@ async function remote2LocalThumbService() {
 
         console.log(`${userTitle || userNativeTitle || metadata.Title || metadata.Native_Title} Has a remote image url, downloading`)
 
-        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}&uid=${uid}`).then(res => {
+        fetch(`${apiPath}/resource/download-thumbnail?id=${metadata.ItemId}`).then(res => {
             if (res.status !== 200) return ""
             return res.text()
         }).then(hash => {

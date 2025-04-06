@@ -155,12 +155,9 @@ func DownloadThumbnail(ctx RequestContext) {
 		util.WError(w, 500, "Failed to download thumbnail from url\n%s", err.Error())
 		return
 	}
-	h := sha1.New()
-	h.Sum(out)
 
-	shaSum := h.Sum(nil)
-
-	sumHex := hex.EncodeToString(shaSum)
+	shaSum := sha1.Sum(out)
+	sumHex := hex.EncodeToString(shaSum[:])
 
 	thumbnailPath = fmt.Sprintf("%s/%c", thumbnailPath, sumHex[0])
 
