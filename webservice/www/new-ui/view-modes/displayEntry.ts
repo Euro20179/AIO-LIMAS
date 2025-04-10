@@ -566,7 +566,8 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     imgEl.alt = meta.Title || item.En_Title
     imgEl.src = meta.Thumbnail
 
-    let costCalculation: "self" | "children" | "self+children" = "self"
+    type CostCalculation = ("self" | "children" | "copies")[]
+    let costCalculation: CostCalculation = ["self", "children"]
 
     //Cost
     let costTotal = 0
@@ -574,9 +575,15 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
         costTotal += item.PurchasePrice
     }
     if(costCalculation.includes("children")) {
-        let children = globalsNewUi.results.filter(v => v.ParentId === item.ItemId)
+        let children = Object.values(globalsNewUi.entries).filter(v => v.ParentId === item.ItemId)
         for(let child of children) {
             costTotal += child.PurchasePrice
+        }
+    }
+    if(costCalculation.includes("copies")) {
+        let copies = Object.values(globalsNewUi.entries).filter(v => v.CopyOf === item.ItemId)
+        for(let copy of copies) {
+            costTotal += copy.PurchasePrice
         }
     }
     costEl.innerText = String(costTotal)

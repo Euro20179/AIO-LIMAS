@@ -1,12 +1,3 @@
-//TODO:
-//Add 3 checkboxes for what the stats of a collection should be
-//* itself
-//* children
-//* copies
-//eg: if itself + children is selected
-//the stats of the collection will be the stats of itself + stats of children
-//eg: the total cost
-
 type DisplayMode = {
     add: (entry: InfoEntry, updateStats?: boolean) => any
     sub: (entry: InfoEntry, updateStats?: boolean) => any
