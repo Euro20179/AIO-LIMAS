@@ -766,6 +766,14 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     let copyEl = root.querySelector(".copies div") as HTMLElement
     createRelationButtons(copyEl, findCopies(item.ItemId))
 
+    let newChildButton = root.getElementById("new-child") as HTMLButtonElement
+    newChildButton.addEventListener("click", e => {
+        const newEntryDialog = document.getElementById("new-entry") as HTMLDialogElement
+        const parentIdInput = newEntryDialog.querySelector(`[name="parentId"]`) as HTMLInputElement
+        parentIdInput.value = String(item.ItemId)
+        newEntryDialog.showPopover()
+    })
+
     hookActionButtons(root, item)
 
     const newTag = (root.getElementById("create-tag")) as HTMLButtonElement
