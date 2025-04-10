@@ -566,8 +566,20 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     imgEl.alt = meta.Title || item.En_Title
     imgEl.src = meta.Thumbnail
 
+    let costCalculation: "self" | "children" | "self+children" = "self"
+
     //Cost
-    costEl.innerText = `$${item.PurchasePrice}`
+    let costTotal = 0
+    if(costCalculation.includes("self")) {
+        costTotal += item.PurchasePrice
+    }
+    if(costCalculation.includes("children")) {
+        let children = globalsNewUi.results.filter(v => v.ParentId === item.ItemId)
+        for(let child of children) {
+            costTotal += child.PurchasePrice
+        }
+    }
+    costEl.innerText = String(costTotal)
 
     //Description
     descEl.innerHTML = meta.Description
@@ -919,7 +931,7 @@ const displayEntryRating = displayEntryAction(item => {
     fetch(`${apiPath}/engagement/mod-entry?id=${item.ItemId}&rating=${newRating}`)
         .then(() => {
             let user = findUserEntryById(item.ItemId)
-            if(!user) {
+            if (!user) {
                 return refreshInfo()
             }
             user.UserRating = Number(newRating)
