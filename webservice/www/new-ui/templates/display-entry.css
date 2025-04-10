@@ -103,6 +103,10 @@ table {
     }
 }
 
+#cost::before {
+    content: "$"
+}
+
 #new-event-button {
     align-self: center;
     width: 50cqi;
@@ -283,18 +287,18 @@ hgroup {
     display: none;
 }
 
+.view-count::before {
+    content: "Viewed: "
+}
+
+.view-count::after {
+    content: " times (" attr(data-time-spent, "Unknown") " hours)"
+}
+
 figure.entry-progress {
     justify-self: center;
     width: 25cqw;
     margin-top: 0;
-
-    .view-count::before {
-        content: "Viewed: "
-    }
-
-    .view-count::after {
-        content: " times (" attr(data-time-spent, "Unknown") " hours)"
-    }
 
     figcaption {
         line-height: 0;

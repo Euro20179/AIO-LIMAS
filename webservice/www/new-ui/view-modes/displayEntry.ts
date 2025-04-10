@@ -479,23 +479,51 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
     }
 }
 
+function updateCostDisplay(el: ShadowRoot, item: InfoEntry) {
+    const costEl = el.querySelector(".cost") as HTMLSpanElement
+
+    const includeSelf = (el.getElementById("include-self-in-cost") as HTMLInputElement).checked
+    const includeChildren = (el.getElementById("include-children-in-cost") as HTMLInputElement).checked
+    const includeCopies = (el.getElementById("include-copies-in-cost") as HTMLInputElement).checked
+
+    let costTotal = 0
+    if(includeSelf) {
+        costTotal += item.PurchasePrice
+    }
+    if(includeChildren) {
+        let children = Object.values(globalsNewUi.entries).filter(v => v.ParentId === item.ItemId)
+        for(let child of children) {
+            costTotal += child.PurchasePrice
+        }
+    }
+    if(includeCopies) {
+        let copies = Object.values(globalsNewUi.entries).filter(v => v.CopyOf === item.ItemId)
+        for(let copy of copies) {
+            costTotal += copy.PurchasePrice
+        }
+    }
+    costEl.innerText = String(costTotal)
+}
+
 function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: ShadowRoot) {
     const displayEntryTitle = el.querySelector(".title") as HTMLHeadingElement
     const displayEntryNativeTitle = el.querySelector(".official-native-title") as HTMLHeadingElement
     const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
-    const costEl = el.querySelector(".cost") as HTMLSpanElement
     const descEl = el.querySelector(".description") as HTMLParagraphElement
     const notesEl = el.querySelector(".notes") as HTMLParagraphElement
     const ratingEl = el.querySelector(".rating") as HTMLSpanElement
     const audienceRatingEl = el.querySelector(".audience-rating") as HTMLElement
     const infoRawTbl = el.querySelector(".info-raw") as HTMLTableElement
     const metaRawtbl = el.querySelector(".meta-info-raw") as HTMLTableElement
-    const viewCountEl = el.querySelector(".entry-progress .view-count") as HTMLSpanElement
+    const viewCountEl = el.getElementById("view-count") as HTMLSpanElement
     const progressEl = el.querySelector(".entry-progress progress") as HTMLProgressElement
     const captionEl = el.querySelector(".entry-progress figcaption") as HTMLElement
     const mediaInfoTbl = el.querySelector("figure .media-info") as HTMLTableElement
     const eventsTbl = el.querySelector(".user-actions") as HTMLTableElement
     const customStyles = el.getElementById("custom-styles") as HTMLStyleElement
+
+    //Cost
+    updateCostDisplay(el, item)
 
     let userExtra = getUserExtra(user, "styles")
     let styles = userExtra || ""
@@ -566,27 +594,6 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     imgEl.alt = meta.Title || item.En_Title
     imgEl.src = meta.Thumbnail
 
-    type CostCalculation = ("self" | "children" | "copies")[]
-    let costCalculation: CostCalculation = ["self", "children"]
-
-    //Cost
-    let costTotal = 0
-    if(costCalculation.includes("self")) {
-        costTotal += item.PurchasePrice
-    }
-    if(costCalculation.includes("children")) {
-        let children = Object.values(globalsNewUi.entries).filter(v => v.ParentId === item.ItemId)
-        for(let child of children) {
-            costTotal += child.PurchasePrice
-        }
-    }
-    if(costCalculation.includes("copies")) {
-        let copies = Object.values(globalsNewUi.entries).filter(v => v.CopyOf === item.ItemId)
-        for(let copy of copies) {
-            costTotal += copy.PurchasePrice
-        }
-    }
-    costEl.innerText = String(costTotal)
 
     //Description
     descEl.innerHTML = meta.Description
@@ -744,6 +751,17 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
 
     let root = el.shadowRoot
     if (!root) return
+
+    const includeSelf = (root.getElementById("include-self-in-cost") as HTMLInputElement)
+    const includeChildren = (root.getElementById("include-children-in-cost") as HTMLInputElement)
+    const includeCopies = (root.getElementById("include-copies-in-cost") as HTMLInputElement)
+
+    for(let input of [includeSelf, includeCopies, includeChildren]) {
+        input.onchange = function() {
+            updateCostDisplay(root, item)
+        }
+    }
+
 
     function createRelationButtons(elementParent: HTMLElement, relationGenerator: Generator<InfoEntry>) {
         let relationships = relationGenerator.toArray()

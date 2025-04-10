@@ -103,7 +103,7 @@ Basic user facing docs can be found at `/usage`
     - [x] ~user~ *decided against, as you can already edit everything anyway*
 - [x] calc mode
 - [x] proper search parser
-- [ ] ~collection stat calculation modifier~
+- [x] collection stat calculation modifier
 - [ ] requires
      - an id that should be viewed before this entry
      - eg: `starwars 2` requires `starwars 1`
