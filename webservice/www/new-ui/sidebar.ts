@@ -44,11 +44,11 @@ function removeSidebarItem(item: InfoEntry) {
 }
 
 function updateSidebarEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, el: ShadowRoot) {
-    const titleEl = el.querySelector(".title") as HTMLDivElement
+    const titleEl = el.querySelector(".title") as HTMLInputElement
     const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
 
     //Title
-    titleEl.innerText = item.En_Title || item.Native_Title
+    titleEl.value = item.En_Title
     titleEl.title = meta.Title
 
     //thumbnail source is updated in `on-screen-appear` event as to make sure it doesn't request 300 images at once
@@ -107,6 +107,14 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
                 sidebarEntryOpenMultiple(item, mode)
             }
         })
+    }
+
+    let title = elem.shadowRoot?.querySelector(".title") as HTMLInputElement
+    if(title) {
+        title.onchange = function() {
+            if(title.value)
+                updateInfoTitle(item.ItemId, title.value)
+        }
     }
 
     elem.addEventListener("on-screen-appear", function(e) {

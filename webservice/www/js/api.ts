@@ -348,3 +348,7 @@ async function deleteEntry(itemId: bigint) {
 async function overwriteMetadataEntry(itemId: bigint) {
     return fetch(`${apiPath}/metadata/fetch?id=${itemId}`)
 }
+
+async function updateInfoTitle(itemId: bigint, newTitle: string) {
+    return fetch(`${apiPath}/mod-entry?id=${itemId}&en-title=${newTitle}`)
+}

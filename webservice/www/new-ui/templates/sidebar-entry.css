@@ -49,21 +49,10 @@
         @media (width >= 800px) {
             display: grid;
             justify-items: center;
-
-            .title {
-                text-align: center;
-            }
         }
 
         @media (width < 800px) {
             display: grid;
-            .title {
-                display: none;
-            }
-
-            img {
-                justify-self: center;
-            }
         }
 
         gap: 0.4em;
@@ -73,12 +62,24 @@
 
         .title {
             font-size: 0.8em;
-            width: 100%;
+            width: 80%;
+
+            @media (width < 800px) {
+                display: none;
+            }
+
+            @media (width >= 800px) {
+                text-align: center;
+            }
         }
 
         img {
             cursor: pointer;
             height: 70cqi;
+
+            @media (width < 800px) {
+                justify-self: center;
+            }
         }
     }
 
