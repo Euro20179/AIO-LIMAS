@@ -64,6 +64,8 @@
             font-size: 0.8em;
             width: 80%;
 
+            border-style: none;
+
             @media (width < 800px) {
                 display: none;
             }
