@@ -270,6 +270,10 @@ button:has(~ .tag) {
     gap: 5cqi;
 }
 
+:is(#description, #notes) {
+    height: 50cqb;
+    overflow: auto auto;
+}
 
 hgroup {
     > * {
