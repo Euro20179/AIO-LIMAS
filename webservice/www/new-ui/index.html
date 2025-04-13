@@ -18,24 +18,27 @@
             <label>Price <input type="number" min="0" step="0.01" name="price"></label>
             <br>
             <div>
-                <select name="type" title="The type of media" required>
-                    <option value="">Type</option>
-                    <option value="Show">Show</option>
-                    <option value="Movie">Movie</option>
-                    <option value="MovieShort">Movie Short</option>
-                    <option value="Manga">Manga</option>
-                    <option value="Book">Book</option>
-                    <option value="Game">Game</option>
-                    <option value="Song">Song</option>
-                    <option value="BoardGame">BoardGame</option>
-                    <option value="Picture">Picture</option>
-                    <option value="Meme">Meme</option>
-                    <option value="Collection">Collection</option>
-                    <option value="Library">Library</option>
-                </select>
+                <div class="flex">
+                    <select name="type" title="The type of media" required>
+                        <option value="">Type</option>
+                        <option value="Show">Show</option>
+                        <option value="Movie">Movie</option>
+                        <option value="MovieShort">Movie Short</option>
+                        <option value="Manga">Manga</option>
+                        <option value="Book">Book</option>
+                        <option value="Game">Game</option>
+                        <option value="Song">Song</option>
+                        <option value="BoardGame">BoardGame</option>
+                        <option value="Picture">Picture</option>
+                        <option value="Meme">Meme</option>
+                        <option value="Collection">Collection</option>
+                        <option value="Library">Library</option>
+                    </select>
+                    <label for="fetch-metadata"><input id="fetch-metadata" type="checkbox" name="get-metadata"> Get metadata</label>
+                </div>
                 <details class="flex column" open>
                     <summary>
-                        art style
+                        Art style
                     </summary>
                     <label for="is-anime"><input type="checkbox" name="is-anime" id="is-anime">
                         Anime</label>
