@@ -76,7 +76,21 @@ type IdentifyResult = {
     Thumbnail: string
 }
 
+type Status = string
+
 let formats: {[key: number]: string} = {}
+
+function canBegin(status: Status) {
+    return status === "Finished" || status === "Dropped" || status === ""
+}
+
+function canPause(status: Status) {
+    return status === "Viewing" || status === "ReViewing"
+}
+
+function canResume(status: Status) {
+    return status === "Paused"
+}
 
 async function listFormats() {
     if(Object.keys(formats).length > 0) return formats

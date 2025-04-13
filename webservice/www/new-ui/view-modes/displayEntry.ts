@@ -411,8 +411,51 @@ const modeDisplayEntry: DisplayMode = {
 }
 
 function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
+
+    let multiActionButton = shadowRoot.querySelector('[data-action="Begin+Pause+Resume"]')
+
+    if (multiActionButton) {
+        multiActionButton.addEventListener("click", _ => {
+            let user = findUserEntryById(item.ItemId)
+            if (!user) return
+
+            let action = ""
+
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+            if (canBegin(user.Status)) {
+                action = "begin"
+            } else if (canResume(user.Status)) {
+                action = "resume"
+            } else if (canPause(user.Status)) {
+                action = "pause"
+            }
+
+            if (!action) {
+                alert("Cannot begin, resume, or pause")
+                return
+            }
+
+            if (!confirm(`Are you sure you want to ${action} this entry`)) {
+                return
+            }
+
+            fetch(`${apiPath}/engagement/${action?.toLowerCase()}-media?id=${user.ItemId}&timezone=${encodeURIComponent(tz)}`)
+                .then(res => res.text())
+                .then(text => {
+                    alert(text)
+                    return refreshInfo()
+                })
+                .then(() => refreshDisplayItem(item))
+        })
+    }
+
     for (let btn of shadowRoot.querySelectorAll("[data-action]") || []) {
         let action = btn.getAttribute("data-action")
+
+        //this action does multiple things
+        if (action?.includes("+")) continue
+
         btn.addEventListener("click", _ => {
             if (!confirm(`Are you sure you want to ${action} this entry`)) {
                 return
@@ -487,18 +530,18 @@ function updateCostDisplay(el: ShadowRoot, item: InfoEntry) {
     const includeCopies = (el.getElementById("include-copies-in-cost") as HTMLInputElement).checked
 
     let costTotal = 0
-    if(includeSelf) {
+    if (includeSelf) {
         costTotal += item.PurchasePrice
     }
-    if(includeChildren) {
+    if (includeChildren) {
         let children = Object.values(globalsNewUi.entries).filter(v => v.ParentId === item.ItemId)
-        for(let child of children) {
+        for (let child of children) {
             costTotal += child.PurchasePrice
         }
     }
-    if(includeCopies) {
+    if (includeCopies) {
         let copies = Object.values(globalsNewUi.entries).filter(v => v.CopyOf === item.ItemId)
-        for(let copy of copies) {
+        for (let copy of copies) {
             costTotal += copy.PurchasePrice
         }
     }
@@ -756,7 +799,7 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     const includeChildren = (root.getElementById("include-children-in-cost") as HTMLInputElement)
     const includeCopies = (root.getElementById("include-copies-in-cost") as HTMLInputElement)
 
-    for(let input of [includeSelf, includeCopies, includeChildren]) {
+    for (let input of [includeSelf, includeCopies, includeChildren]) {
         input.onchange = function() {
             updateCostDisplay(root, item)
         }
