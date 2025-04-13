@@ -3,6 +3,7 @@ package metadata
 import (
 	"fmt"
 
+	"aiolimas/settings"
 	"aiolimas/types"
 )
 
@@ -61,7 +62,12 @@ func GetMetadataById(id string, foruid int64, provider string) (db_types.Metadat
 	if !contains {
 		return db_types.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
 	}
-	return fn(id, foruid)
+
+	us, err := settings.GetUserSettigns(foruid)
+	if err != nil {
+		return db_types.MetadataEntry{}, err
+	}
+	return fn(id, us)
 }
 
 func ListMetadataProviders() []string {
@@ -111,7 +117,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 }
 
 type (
-	IdIdentifier     func(id string, foruid int64) (db_types.MetadataEntry, error)
+	IdIdentifier     func(id string, us settings.SettingsData) (db_types.MetadataEntry, error)
 	IdIdentifiersMap = map[string]IdIdentifier
 )
 

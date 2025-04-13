@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"aiolimas/settings"
 	"aiolimas/types"
 )
 
@@ -320,7 +321,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) 
 	return outMeta, nil
 }
 
-func AnilistById(id string, foruid int64) (db_types.MetadataEntry, error) {
+func AnilistById(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	var outMeta db_types.MetadataEntry
 	query := fmt.Sprintf(`
 		query ($id: Int) {

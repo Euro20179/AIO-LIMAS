@@ -58,7 +58,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	id := uint64(idPretense.(float64))
 
-	out, err = SonarrIdIdentifier(fmt.Sprintf("%d", id), info.Uid)
+	out, err = SonarrIdIdentifier(fmt.Sprintf("%d", id), us)
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -112,13 +112,9 @@ func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func SonarrIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
+func SonarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
-	us, err := settings.GetUserSettigns(foruid)
-	if err != nil{
-		return out, err
-	}
 	key := us.SonarrKey
 	url := us.SonarrURL
 

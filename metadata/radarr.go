@@ -56,7 +56,7 @@ func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	id := uint64(idPretense.(float64))
 
-	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id), info.Uid)
+	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id), us)
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -111,13 +111,9 @@ func RadarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func RadarrIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
+func RadarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
-	us, err := settings.GetUserSettigns(foruid)
-	if err != nil{
-		return out, err
-	}
 	url := us.RadarrURL
 	key := us.RadarrKey
 

@@ -3,12 +3,13 @@ package metadata
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-	"io"
 
+	"aiolimas/settings"
 	db_types "aiolimas/types"
 )
 
@@ -53,7 +54,7 @@ type IdAppData struct {
 	}
 }
 
-func SteamIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
+func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
 	i, err := strconv.ParseInt(id, 10, 64)
