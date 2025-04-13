@@ -31,7 +31,6 @@ function refreshSidebarItem(item: InfoEntry) {
         if (!user || !meta) return
         changeSidebarItemData(item, user, meta, el)
     } else {
-        sidebarObserver.unobserve(el)
         renderSidebarItem(item)
     }
 

@@ -73,7 +73,7 @@ async function newEntryUI() {
 
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-    let res = await fetch(`${apiPath}/add-entry${queryString}&timezone=${encodeURIComponent(tz)}`)
+    let res = await fetch(`${apiPath}/add-entry${queryString}&timezone=${encodeURIComponent(tz)}&get-metadata=true`)
     let text = await res.text()
     if (res.status !== 200) {
         alert(text)
@@ -81,8 +81,10 @@ async function newEntryUI() {
     }
 
     let json = parseJsonL(mkStrItemId(text))
-    updateInfo({
-        entries: { [json.ItemId]: json },
+    loadMetadata().then(() => {
+        updateInfo({
+            entries: { [json.ItemId]: json },
+        })
     })
 
     clearItems()
