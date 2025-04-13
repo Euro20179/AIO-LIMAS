@@ -77,16 +77,16 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	var respJson map[int64]IdAppData
 	json.Unmarshal(text, &respJson)
 
-	data := respJson[i]
+	mainData := respJson[i]
 
-	out.Title = data.Data.Name
-	out.Description = data.Data.DetailedDescription
+	out.Title = mainData.Data.Name
+	out.Description = mainData.Data.DetailedDescription
 	out.Provider = "steam"
 	out.ProviderID = id
 	out.Thumbnail = fmt.Sprintf("http://cdn.origin.steamstatic.com/steam/apps/%s/library_600x900_2x.jpg", url.PathEscape(id))
 
-	if !data.Data.ReleaseDate.ComingSoon {
-		dateInfo := data.Data.ReleaseDate.Date
+	if !mainData.Data.ReleaseDate.ComingSoon {
+		dateInfo := mainData.Data.ReleaseDate.Date
 		dmy := strings.Split(dateInfo, " ")
 		year := dmy[len(dmy) - 1]
 		yearI, err := strconv.ParseInt(year, 10, 64)
@@ -95,6 +95,23 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 		}
 		out.ReleaseYear = yearI
 	}
+
+	reviewsUrl := fmt.Sprintf("https://store.steampowered.com/appreviews/%s?json=1", url.QueryEscape(id))
+	res, err = http.Get(reviewsUrl)
+	if err != nil {
+		return out, err
+	}
+	text, err = io.ReadAll(res.Body)
+	if err != nil {
+		return out, err
+	}
+
+	var reviewsRespJson map[string]any
+	json.Unmarshal(text, &reviewsRespJson)
+	summary := reviewsRespJson["query_summary"].(map[string]any)
+	score := summary["review_score"].(float64)
+	out.Rating = score
+	out.RatingMax = 10
 
 	return out, nil
 }
