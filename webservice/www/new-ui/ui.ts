@@ -34,8 +34,11 @@ function overwriteEntryMetadataUI(_root: ShadowRoot, item: InfoEntry) {
         }
         loadMetadata()
             .then(() => {
-                refreshDisplayItem(item)
-                refreshSidebarItem(item)
+                updateInfo({
+                    entries: {
+                        [String(item.ItemId)]: item
+                    }
+                })
             })
     })
 }
