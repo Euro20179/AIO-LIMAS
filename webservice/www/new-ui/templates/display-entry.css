@@ -232,6 +232,10 @@ div:has(> .tags) {
     height: fit-content;
 }
 
+div:has(> #create-tag):not(:has(.tag)) #create-tag::after {
+    content: " tag";
+}
+
 .tags {
     flex-wrap: wrap;
     display: flex;
