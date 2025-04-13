@@ -34,6 +34,10 @@ function refreshSidebarItem(item: InfoEntry) {
         sidebarObserver.unobserve(el)
         renderSidebarItem(item)
     }
+
+    let meta = findMetadataById(item.ItemId)
+    if(meta)
+        updateSidebarThumbnail(item.ItemId, meta?.Thumbnail)
 }
 
 
