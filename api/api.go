@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	db "aiolimas/db"
 	meta "aiolimas/metadata"
@@ -275,7 +276,6 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Native_Title = nativeTitle
-	entryInfo.Collection = tags
 	entryInfo.Location = location
 	entryInfo.Format = db_types.Format(formatInt)
 	entryInfo.ParentId = parentId
@@ -317,9 +317,8 @@ func AddEntry(ctx RequestContext) {
 		metadata = newMeta
 	}
 
-
 	us, err := settings.GetUserSettigns(ctx.Uid)
-	if err != nil{
+	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
 	}
@@ -329,6 +328,14 @@ func AddEntry(ctx RequestContext) {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return
+	}
+
+	if tags != "" {
+		if err := db.AddTags(ctx.Uid, entryInfo.ItemId, strings.Split(tags, ",")); err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte("Error adding tags table\n" + err.Error()))
+			return
+		}
 	}
 
 	j, err := entryInfo.ToJson()
