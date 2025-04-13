@@ -221,7 +221,7 @@ div:has(> .tags) {
     gap: 3ch;
 }
 
-div:has(> .tag) {
+.tags > div {
     display: flex;
     flex-wrap: wrap;
 }
