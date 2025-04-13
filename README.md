@@ -63,7 +63,11 @@ A server and web ui will then be running on `localhost:8080`
 
 By default things are stored in `$AIO_DIR` which by default is `$XDG_DATA_HOME/aio-limas`
 
-For sonarr/radarr integration, create a file called settings.json and add the following:
+Each user has their own directory in the `/users` folder in `$AIO_DIR`. Their folder will be their user id.
+
+Each user gets their own `settings.json` file.
+
+For sonarr/radarr integration, the user needs to put this configuration in their `settings.json`
 ```json
 {
     "SonarrKey": "<YOUR SONARR API KEY>"
@@ -78,6 +82,10 @@ For sonarr/radarr integration, create a file called settings.json and add the fo
 Styles can always be overridden by your choice (eg userStyles.css in firefox).
 
 But i've also tried to make it easy to override colors. Please see `webservice/www/css/colors.css` for a list of variables that can be overridden.
+
+Each item in the ui can be styled by adding a "styles" key to the "Extra" row in the user info table.
+
+Style editing can also be done in the ui by clicking the paint brush, be sure to save when done.
 
 ### Docs
 Basic api documentation can be found at `/docs`
@@ -95,7 +103,6 @@ Basic user facing docs can be found at `/usage`
 - [x] image media type
     - [ ] when fetching metadata, use ai to generate a description of the image
 - [x] search by description
-- [x] disable ACCOUNT_NUMBER by default
 - [ ] documentation
     - [x] webservice
     - [ ] ui
@@ -119,6 +126,8 @@ Basic user facing docs can be found at `/usage`
     in the Show table there will be columns relevant to shows
     episode-length episodes, length, airing-status, etc...
     the primary key will be the ItemId
+
+- [ ] Settings api
 
 - [x] refactor `settings.json` instead of having that one global file:
     ~there should be a table in accounts.db called like `settigns` or something
