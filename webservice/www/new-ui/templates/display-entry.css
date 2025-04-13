@@ -334,6 +334,7 @@ progress[max]::-webkit-progress-bar {
     flex-wrap: wrap;
 }
 
+
 :is(.descendants, .copies) div {
     display: flex;
     flex-wrap: wrap;
@@ -347,5 +348,10 @@ progress[max]::-webkit-progress-bar {
     img {
         width: 10cqi;
         cursor: pointer;
+    }
+
+    :not(img) {
+        height: fit-content;
+        align-self: center;
     }
 }

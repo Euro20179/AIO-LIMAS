@@ -543,6 +543,31 @@ function updateCostDisplay(el: ShadowRoot, item: InfoEntry) {
     costEl.innerText = String(costTotal)
 }
 
+function createRelationButtons(elementParent: HTMLElement, relationGenerator: Generator<InfoEntry>) {
+    let relationships = relationGenerator.toArray()
+    let titles = relationships.map(i => i.En_Title)
+    relationships = relationships.sort((a, b) => {
+        return (sequenceNumberGrabber(a.En_Title, titles) || 0) - (sequenceNumberGrabber(b.En_Title, titles) || 0)
+    })
+    for (let child of relationships) {
+        let meta = findMetadataById(child.ItemId)
+        let el: HTMLElement
+        if (meta?.Thumbnail) {
+            el = document.createElement("img")
+            formatToName(child.Format).then(name => {
+                el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${name})`
+            })
+            //@ts-ignore
+            el.src = meta.Thumbnail
+        } else {
+            el = document.createElement("button")
+            el.innerText = child.En_Title
+        }
+        elementParent.append(el)
+        el.onclick = () => toggleItem(child)
+    }
+}
+
 function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: ShadowRoot) {
     const displayEntryTitle = el.querySelector(".title") as HTMLHeadingElement
     const displayEntryNativeTitle = el.querySelector(".official-native-title") as HTMLHeadingElement
@@ -721,6 +746,16 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
         progressEl.title = `${user.CurrentPosition}/${progressEl.max}`
     }
 
+    //relation elements
+    let childEl = el.getElementById("descendants") as HTMLElement
+    childEl.innerHTML = ""
+    createRelationButtons(childEl, findDescendants(item.ItemId))
+
+    let copyEl = el.getElementById("copies") as HTMLElement
+    copyEl.innerHTML = ""
+    createRelationButtons(copyEl, findCopies(item.ItemId))
+
+
     //Events
     if (events.length) {
         let html = `
@@ -801,31 +836,6 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
     }
 
 
-    function createRelationButtons(elementParent: HTMLElement, relationGenerator: Generator<InfoEntry>) {
-        let relationships = relationGenerator.toArray()
-        let titles = relationships.map(i => i.En_Title)
-        relationships = relationships.sort((a, b) => {
-            return (sequenceNumberGrabber(a.En_Title, titles) || 0) - (sequenceNumberGrabber(b.En_Title, titles) || 0)
-        })
-        for (let child of relationships) {
-            let meta = findMetadataById(child.ItemId)
-            let el: HTMLElement
-            if (meta?.Thumbnail) {
-                el = document.createElement("img")
-                formatToName(child.Format).then(name => {
-                    el.title = `${child.En_Title} (${typeToSymbol(child.Type)} on ${name})`
-                })
-                //@ts-ignore
-                el.src = meta.Thumbnail
-            } else {
-                el = document.createElement("button")
-                el.innerText = child.En_Title
-            }
-            elementParent.append(el)
-            el.onclick = () => toggleItem(child)
-        }
-    }
-
     let extra = getUserExtra(user, "styles")
 
     let styleEditor = root.getElementById("style-editor") as HTMLTextAreaElement
@@ -835,12 +845,6 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
         customStyles.innerText = styleEditor.value
     })
 
-    let childEl = root.querySelector(".descendants div") as HTMLElement
-    createRelationButtons(childEl, findDescendants(item.ItemId))
-
-    let copyEl = root.querySelector(".copies div") as HTMLElement
-    createRelationButtons(copyEl, findCopies(item.ItemId))
-
     let newChildButton = root.getElementById("new-child") as HTMLButtonElement
     newChildButton.addEventListener("click", e => {
         const newEntryDialog = document.getElementById("new-entry") as HTMLDialogElement
@@ -848,6 +852,23 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
         parentIdInput.value = String(item.ItemId)
         newEntryDialog.showPopover()
     })
+
+    const newChildByIdInput = root.getElementById("new-child-by-id") as HTMLInputElement
+
+    newChildByIdInput.onchange = function() {
+        let childId = BigInt(newChildByIdInput.value)
+        let info = findInfoEntryById(childId)
+        if (!info) return
+        info.ParentId = item.ItemId
+        setParent(childId, item.ItemId).then(() => {
+            updateInfo({
+                entries: {
+                    [String(item.ItemId)]: item,
+                    [newChildByIdInput.value]: info
+                }
+            })
+        })
+    }
 
     hookActionButtons(root, item)
 
