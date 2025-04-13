@@ -53,7 +53,7 @@ type IdAppData struct {
 	}
 }
 
-func SteamIdIdentifier(id string) (db_types.MetadataEntry, error) {
+func SteamIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
 	i, err := strconv.ParseInt(id, 10, 64)

@@ -317,7 +317,13 @@ func AddEntry(ctx RequestContext) {
 		metadata = newMeta
 	}
 
-	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := parsedParams.Get("timezone", us.DefaultTimeZone).(string)
 
 	if err := db.AddEntry(ctx.Uid, timezone, &entryInfo, &metadata, &userEntry); err != nil {
 		w.WriteHeader(500)

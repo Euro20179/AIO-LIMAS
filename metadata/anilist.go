@@ -320,7 +320,7 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) 
 	return outMeta, nil
 }
 
-func AnilistById(id string) (db_types.MetadataEntry, error) {
+func AnilistById(id string, foruid int64) (db_types.MetadataEntry, error) {
 	var outMeta db_types.MetadataEntry
 	query := fmt.Sprintf(`
 		query ($id: Int) {

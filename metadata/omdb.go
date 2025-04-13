@@ -207,7 +207,7 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func OmdbIdIdentifier(id string) (db_types.MetadataEntry, error) {
+func OmdbIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
 	key := os.Getenv("OMDB_KEY")

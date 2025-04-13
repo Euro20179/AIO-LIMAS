@@ -15,8 +15,17 @@ import (
 func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 
-	url := settings.Settings.RadarrURL
-	key := settings.Settings.RadarrKey
+	us, err := settings.GetUserSettigns(info.Uid)
+	if err != nil{
+		return out, err
+	}
+
+	url := us.RadarrURL
+	key := us.RadarrKey
+
+	if url == "" || key == ""{
+		return out, errors.New("radarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/movie/lookup"
 
@@ -47,7 +56,7 @@ func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	id := uint64(idPretense.(float64))
 
-	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id))
+	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id), info.Uid)
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -58,8 +67,17 @@ func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 }
 
 func RadarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
-	url := settings.Settings.RadarrURL
-	key := settings.Settings.RadarrKey
+	us, err := settings.GetUserSettigns(info.ForUid)
+	if err != nil{
+		return nil, err
+	}
+
+	url := us.RadarrURL
+	key := us.RadarrKey
+
+	if url == "" || key == ""{
+		return nil, errors.New("radarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/movie/lookup"
 
@@ -93,11 +111,19 @@ func RadarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func RadarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
+func RadarrIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
-	url := settings.Settings.RadarrURL
-	key := settings.Settings.RadarrKey
+	us, err := settings.GetUserSettigns(foruid)
+	if err != nil{
+		return out, err
+	}
+	url := us.RadarrURL
+	key := us.RadarrKey
+
+	if url == "" || key == ""{
+		return out, errors.New("radarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/movie/" + id
 

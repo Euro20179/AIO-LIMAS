@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"aiolimas/db"
+	"aiolimas/settings"
 )
 
 type AccountInfo struct {
@@ -86,6 +87,10 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 
 	if err := os.MkdirAll(usersDir, 0o700); err != nil {
 		return err
+	}
+
+	if err := settings.InitUserSettings(id); err != nil {
+		return err;
 	}
 
 	return db.InitDb(id)

@@ -188,7 +188,7 @@ func FinalizeIdentification(ctx RequestContext) {
 	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)
 
-	data, err := metadata.GetMetadataById(id, provider)
+	data, err := metadata.GetMetadataById(id, ctx.Uid, provider)
 	if err != nil {
 		util.WError(w, 500, "Could not get metadata\n%s", err.Error())
 		return

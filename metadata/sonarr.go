@@ -16,8 +16,16 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entry := info.Entry
 	var out db_types.MetadataEntry
 
-	url := settings.Settings.SonarrURL
-	key := settings.Settings.SonarrKey
+	us, err := settings.GetUserSettigns(info.Uid)
+	if err != nil{
+		return out, err
+	}
+	url := us.SonarrURL
+	key := us.SonarrKey
+
+	if url == "" || key == ""{
+		return out, errors.New("sonarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/series/lookup"
 
@@ -50,7 +58,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	id := uint64(idPretense.(float64))
 
-	out, err = SonarrIdIdentifier(fmt.Sprintf("%d", id))
+	out, err = SonarrIdIdentifier(fmt.Sprintf("%d", id), info.Uid)
 	if err != nil {
 		println(err.Error())
 		return out, err
@@ -61,8 +69,16 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 }
 
 func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
-	url := settings.Settings.SonarrURL
-	key := settings.Settings.SonarrKey
+	us, err := settings.GetUserSettigns(info.ForUid)
+	if err != nil{
+		return nil, err
+	}
+	url := us.SonarrURL
+	key := us.SonarrKey
+
+	if url == "" || key == ""{
+		return nil, errors.New("sonarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/series/lookup"
 
@@ -96,11 +112,19 @@ func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return outMeta, nil
 }
 
-func SonarrIdIdentifier(id string) (db_types.MetadataEntry, error) {
+func SonarrIdIdentifier(id string, foruid int64) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
-	key := settings.Settings.SonarrKey
-	url := settings.Settings.SonarrURL
+	us, err := settings.GetUserSettigns(foruid)
+	if err != nil{
+		return out, err
+	}
+	key := us.SonarrKey
+	url := us.SonarrURL
+
+	if url == "" || key == ""{
+		return out, errors.New("sonarr is not setup")
+	}
 
 	fullUrl := url + "api/v3/series/" + id
 

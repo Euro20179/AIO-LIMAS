@@ -2,6 +2,7 @@ package settings
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 )
@@ -19,32 +20,39 @@ type SettingsData struct {
 	DefaultTimeZone string
 }
 
-var Settings SettingsData
+func GetUserSettigns(uid int64) (SettingsData, error) {
+	settingsFile := os.Getenv("AIO_DIR") + fmt.Sprintf("/users/%d/settings.json", uid)
 
-func InitSettingsManager(aioDir string) {
-	settingsFile := aioDir + "/settings.json"
-
-	if file, err := os.Open(settingsFile); err == nil {
-		text, err := io.ReadAll(file)
-		if err != nil {
-			panic("Could not open settings file")
-		}
-
-		err = json.Unmarshal(text, &Settings)
-		if err != nil {
-			panic("Could not parse settings file")
-		}
-
-		return
+	file, err := os.Open(settingsFile)
+	if err != nil {
+		return SettingsData{}, nil
 	}
+	text, err := io.ReadAll(file)
+	if err != nil {
+		return SettingsData{}, err
+	}
+
+	var settings SettingsData
+
+	err = json.Unmarshal(text, &settings)
+	if err != nil {
+		return SettingsData{}, err
+	}
+
+	return settings, nil
+}
+
+func InitUserSettings(uid int64) error {
+	settingsFile := os.Getenv("AIO_DIR") + fmt.Sprintf("/users/%d/settings.json", uid)
 
 	file, err := os.OpenFile(settingsFile, os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		panic("Failed to create settings file")
+		return err
 	}
 
 	file.Write([]byte("{}"))
 	if err := file.Close(); err != nil {
-		panic("Failed to create settings file, writing {}")
+		return err
 	}
+	return nil
 }

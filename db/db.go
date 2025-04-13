@@ -390,7 +390,13 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	}
 
 	// This should happen after the added event, because well, it was added, this file is a luxury thing
-	err = WriteLocationFile(entryInfo)
+	us, err := settings.GetUserSettigns(uid)
+	if err != nil {
+		return err
+	}
+	if us.WriteIdFile {
+		err = WriteLocationFile(entryInfo, us.LocationAliases)
+	}
 	if err != nil {
 		fmt.Printf("Error updating location file: %s\n", err.Error())
 	}
@@ -499,36 +505,40 @@ func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 	return updateTable(uid, *entry, "metadata")
 }
 
-func WriteLocationFile(entry *db_types.InfoEntry) error {
-	if settings.Settings.WriteIdFile {
-		location := entry.Location
-		for k, v := range settings.Settings.LocationAliases {
-			location = strings.Replace(location, "${"+k+"}", v, 1)
-		}
+func WriteLocationFile(entry *db_types.InfoEntry, aliases map[string]string) error {
+	location := entry.Location
+	for k, v := range aliases {
+		location = strings.Replace(location, "${"+k+"}", v, 1)
+	}
 
-		var aioIdPath string
-		stat, err := os.Stat(location)
-		if err == nil && !stat.IsDir() {
-			dir := filepath.Dir(location)
-			aioIdPath = filepath.Join(dir, ".AIO-ID")
-		} else if err != nil {
-			return err
-		} else {
-			aioIdPath = filepath.Join(location, ".AIO-ID")
-		}
+	var aioIdPath string
+	stat, err := os.Stat(location)
+	if err == nil && !stat.IsDir() {
+		dir := filepath.Dir(location)
+		aioIdPath = filepath.Join(dir, ".AIO-ID")
+	} else if err != nil {
+		return err
+	} else {
+		aioIdPath = filepath.Join(location, ".AIO-ID")
+	}
 
-		err = os.WriteFile(aioIdPath, []byte(fmt.Sprintf("%d", entry.ItemId)), 0o644)
-		if err != nil {
-			return err
-		}
+	err = os.WriteFile(aioIdPath, []byte(fmt.Sprintf("%d", entry.ItemId)), 0o644)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
 func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
-	err := WriteLocationFile(entry)
+	us, err := settings.GetUserSettigns(uid)
 	if err != nil {
-		fmt.Printf("Error updating location file: %s\n", err.Error())
+		return err
+	}
+	if us.WriteIdFile {
+		err := WriteLocationFile(entry, us.LocationAliases)
+		if err != nil {
+			fmt.Printf("Error updating location file: %s\n", err.Error())
+		}
 	}
 
 	return updateTable(uid, *entry, "entryInfo")

@@ -54,7 +54,13 @@ func BeginMedia(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 
-	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanBegin() {
 		w.WriteHeader(405)
@@ -67,7 +73,7 @@ func BeginMedia(ctx RequestContext) {
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -81,7 +87,13 @@ func FinishMedia(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
 	entry := parsedParams["id"].(db_types.UserViewingEntry)
-	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := parsedParams.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanFinish() {
 		w.WriteHeader(405)
@@ -97,7 +109,7 @@ func FinishMedia(ctx RequestContext) {
 		return
 	}
 
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -111,7 +123,12 @@ func PlanMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanPlan() {
 		util.WError(w, 400, "%d can not be planned\n", entry.ItemId)
@@ -119,7 +136,7 @@ func PlanMedia(ctx RequestContext) {
 	}
 
 	db.Plan(ctx.Uid, timezone, &entry)
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -132,10 +149,15 @@ func DropMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	db.Drop(ctx.Uid, timezone, &entry)
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -148,7 +170,12 @@ func PauseMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanPause() {
 		util.WError(w, 400, "%d cannot be dropped\n", entry.ItemId)
@@ -157,7 +184,7 @@ func PauseMedia(ctx RequestContext) {
 
 	db.Pause(ctx.Uid, timezone, &entry)
 
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -170,7 +197,12 @@ func ResumeMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	timezone := pp.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanResume() {
 		util.WError(w, 400, "%d cannot be resumed\n", entry.ItemId)
@@ -178,7 +210,7 @@ func ResumeMedia(ctx RequestContext) {
 	}
 
 	db.Resume(ctx.Uid, timezone, &entry)
-	err := db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -328,9 +360,14 @@ func RegisterEvent(ctx RequestContext) {
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
 	name := parsedParams["name"].(string)
-	timezone := parsedParams.Get("timezone", settings.Settings.DefaultTimeZone).(string)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil{
+		util.WError(w, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := parsedParams.Get("timezone", us.DefaultTimeZone).(string)
 
-	err := db.RegisterUserEvent(ctx.Uid, db_types.UserViewingEvent{
+	err = db.RegisterUserEvent(ctx.Uid, db_types.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),

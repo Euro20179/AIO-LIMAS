@@ -10,7 +10,6 @@ import (
 	"aiolimas/accounts"
 	api "aiolimas/api"
 	lua_api "aiolimas/lua-api"
-	"aiolimas/settings"
 	"aiolimas/webservice"
 	"aiolimas/webservice/dynamic"
 )
@@ -91,8 +90,6 @@ func main() {
 	initConfig(aioPath)
 
 	accounts.InitAccountsDb(aioPath)
-
-	settings.InitSettingsManager(aioPath)
 
 	flag.Parse()
 

@@ -56,12 +56,12 @@ func Identify(identifySearch IdentifyMetadata, identifier string) ([]db_types.Me
 	return res, identifier, err
 }
 
-func GetMetadataById(id string, provider string) (db_types.MetadataEntry, error) {
+func GetMetadataById(id string, foruid int64, provider string) (db_types.MetadataEntry, error) {
 	fn, contains := IdIdentifiers[provider]
 	if !contains {
 		return db_types.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
 	}
-	return fn(id)
+	return fn(id, foruid)
 }
 
 func ListMetadataProviders() []string {
@@ -111,7 +111,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 }
 
 type (
-	IdIdentifier     func(id string) (db_types.MetadataEntry, error)
+	IdIdentifier     func(id string, foruid int64) (db_types.MetadataEntry, error)
 	IdIdentifiersMap = map[string]IdIdentifier
 )
 
