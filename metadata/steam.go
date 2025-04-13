@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 
 	"aiolimas/settings"
 	db_types "aiolimas/types"
+
+	"golang.org/x/net/html"
 )
 
 type IdAppData struct {
@@ -54,6 +57,51 @@ type IdAppData struct {
 	}
 }
 
+func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	var out db_types.MetadataEntry
+
+	baseUrl := "https://store.steampowered.com/search/suggest?term=%s&f=games&cc=US&use_search_spellcheck=1"
+
+	title := info.Entry.En_Title
+	if title == "" {
+		title = info.Entry.Native_Title
+	}
+
+	if title == "" {
+		println("[metadata/steam]: no search possible")
+		return out, errors.New("no search possible")
+	}
+
+	fullUrl := fmt.Sprintf(baseUrl, url.QueryEscape(title))
+
+	resp, err := http.Get(fullUrl)
+	if err != nil {
+		return out, err
+	}
+
+	tree, err := html.Parse(resp.Body)
+	if err != nil {
+		return out, err
+	}
+
+	us, err := settings.GetUserSettigns(info.Uid)
+	if err != nil {
+		return out, err
+	}
+
+	for n := range tree.FirstChild.Descendants() {
+		if n.Data == "a" {
+			for _, attr := range n.Attr {
+				if attr.Key == "data-ds-appid" {
+					return SteamIdIdentifier(attr.Val, us)
+				}
+			}
+		}
+	}
+
+	return out, errors.New("no results")
+}
+
 func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	out := db_types.MetadataEntry{}
 
@@ -88,9 +136,9 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	if !mainData.Data.ReleaseDate.ComingSoon {
 		dateInfo := mainData.Data.ReleaseDate.Date
 		dmy := strings.Split(dateInfo, " ")
-		year := dmy[len(dmy) - 1]
+		year := dmy[len(dmy)-1]
 		yearI, err := strconv.ParseInt(year, 10, 64)
-		if err != nil{
+		if err != nil {
 			return out, err
 		}
 		out.ReleaseYear = yearI

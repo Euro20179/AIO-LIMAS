@@ -30,7 +30,14 @@ func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	if entry.IsAnime(){
 		return AnilistShow(info)
 	}
+
+	if entry.Format == db_types.F_STEAM {
+		return SteamProvider(info)
+	}
+
 	switch entry.Type {
+	case db_types.TY_GAME:
+		return SteamProvider(info)
 	case db_types.TY_MANGA:
 		return AnilistManga(info)
 

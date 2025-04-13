@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/yuin/gopher-lua v1.1.1
+	golang.org/x/net v0.39.0
 )
 
 require (
