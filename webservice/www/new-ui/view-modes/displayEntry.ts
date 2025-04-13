@@ -747,14 +747,11 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     }
 
     //relation elements
-    let childEl = el.getElementById("descendants") as HTMLElement
-    childEl.innerHTML = ""
-    createRelationButtons(childEl, findDescendants(item.ItemId))
-
-    let copyEl = el.getElementById("copies") as HTMLElement
-    copyEl.innerHTML = ""
-    createRelationButtons(copyEl, findCopies(item.ItemId))
-
+    for(let relationship of [["descendants", findDescendants], ["copies", findCopies]] as const) {
+        let relationshipEl = el.getElementById(relationship[0]) as HTMLElement
+        relationshipEl.innerHTML = ""
+        createRelationButtons(relationshipEl, relationship[1](item.ItemId))
+    }
 
     //Events
     if (events.length) {
