@@ -227,7 +227,13 @@ div:has(> .tag) {
 }
 
 
+#create-tag {
+    align-self: center;
+    height: fit-content;
+}
+
 .tags {
+    flex-wrap: wrap;
     display: flex;
     gap: 2ch;
 }
@@ -254,8 +260,16 @@ button:has(~ .tag) {
 
 
 .descriptors {
-    display: block
+    display: grid;
+    @container (width > 800px) {
+        grid-template-columns: 1fr 1fr;
+    }
+    @container (width <= 800px) {
+        grid-template-rows: 1fr 1fr;
+    }
+    gap: 5cqi;
 }
+
 
 hgroup {
     > * {
@@ -269,7 +283,7 @@ hgroup {
     margin-bottom: 10px;
 }
 
-.title:not([data-format-name="UNOWNED"])[data-format-name]::after {
+:not([data-format-name="UNOWNED"])[data-format-name]::after {
     text-transform: lowercase;
     content: " (on " attr(data-format-name)")";
 }

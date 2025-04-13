@@ -355,14 +355,11 @@
             <div class="descriptors">
                 <section>
                     <h4 class="center">Description</h4>
-                    <p class="description"></p>
+                    <p class="description" id="description"></p>
                 </section>
                 <section>
                     <h4 class="center">Notes</h4>
-                    <p class="notes" contenteditable=""></p>
-                </section>
-                <section>
-                    <h4 class="center">Tags</h4>
+                    <p class="notes" contenteditable="" id="notes"></p>
                     <div>
                         <button id="create-tag">+</button>
                         <div class="tags"></div>
@@ -372,10 +369,10 @@
             <section class="descendants">
                 <h4>Children</h4>
                 <div>
-                    <button id="new-child">New</button>
-                    <input id="new-child-by-id" placeholder="By item id">
                     <div id="descendants">
                     </div>
+                    <button id="new-child">New</button>
+                    <input id="new-child-by-id" placeholder="By item id">
                 </div>
             </section>
             <section class="copies">
