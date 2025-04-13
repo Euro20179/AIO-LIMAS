@@ -12,6 +12,15 @@
     <h1>Usage</h1>
 
     <section>
+        <h3>The Webapp</h3>
+        <p>
+            I would like to keep this brief so:<br>
+            If you would like to know what a button does, hover over it.<br>
+            Any changes made in the tables on the sidebar can be saved by clicking the save button above the thumbnail<br>
+        </p>
+    </section>
+
+    <section>
         <h3>Configuration</h3>
         <p>
             By default, configuration is stored in <code>$AIO_DIR</code>, which by default is
@@ -61,7 +70,7 @@
         <h3>Searching</h3>
 
         <p>
-            A search query is much closer to an sql query with some extra features.
+            To make a search use a combination of <a href="#fields">fields</a> and <a href="#operators">operators</a>.
         </p>
         <p>
             A basic title search might look something like this <code>En_Title ~ "Some title"</code>
@@ -74,7 +83,7 @@
             An example macro would be <code>#Some\ Title</code> which expands to <code>En_Title ~ "Some title"</code>
         </p>
 
-        <h4>Fields</h4>
+        <h4 id="fields">Fields</h4>
         <p>
             There are many fields that can be used for searching.
         </p>
@@ -125,7 +134,7 @@
             <li>ProviderId (string): The id of the item according to the metadata provider</li>
         </ul>
 
-        <h4>Operators</h4>
+        <h4 id="operators">Operators</h4>
         <ul>
             <li>~: same as LIKE in sql</li>
             <li>=: exactly equal to</li>
