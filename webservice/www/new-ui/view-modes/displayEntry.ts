@@ -874,7 +874,7 @@ function renderDisplayItem(item: InfoEntry, parent: HTMLElement | DocumentFragme
         const name = prompt("Tag name (, seperated)")
         if (!name) return
         let names = name.split(",")
-        item.Tags = item.Tags.concat(names)
+        item.Tags = item.Tags?.concat(names) || names
         addEntryTags(item.ItemId, name.split(","))
             .then(res => {
                 if (res.status !== 200) return ""
