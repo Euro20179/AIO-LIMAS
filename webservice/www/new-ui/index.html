@@ -268,6 +268,18 @@
                 </select>
                 <input type="text" name="search" placeholder="search/id (id must be numeric)" required>
             </form>
+            <p>
+                A search can be made by title or by id.
+            </p>
+            <p>
+                the id is different depending on which provider is chosen.
+            </p>
+            <p>
+                the id that should be used is the id for that provider. For example, the id for steam should be the appid of the steam game you want.
+            </p>
+            <p>
+                the id MUST be an int, (I hope to fix this later), as a consequence the id for omdb is the imdb id with the tt prefix removed.
+            </p>
         </dialog>
 
         <dialog id="identify-items" popover>
