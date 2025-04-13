@@ -160,12 +160,12 @@ table {
 
 .header-subtitle {
     display: grid;
-    gap: 1ex;
+    align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 
     font-size: 0.85em;
 
     text-align: center;
-
 }
 
 .actions {
@@ -320,7 +320,7 @@ hgroup {
 figure.entry-progress {
     justify-self: center;
     width: 25cqw;
-    margin-top: 0;
+    margin: 0;
 
     figcaption {
         line-height: 0;
