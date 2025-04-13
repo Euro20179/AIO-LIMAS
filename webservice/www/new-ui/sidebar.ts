@@ -86,6 +86,13 @@ function sidebarEntryOpenOne(item: InfoEntry) {
     toggleItem(item)
 }
 
+function updateSidebarThumbnail(id: bigint, src: string) {
+    const elem = sidebarItems.querySelector(`[data-entry-id="${id}"]`)
+    if(!elem) return
+    let img = elem.shadowRoot?.querySelector("img") as HTMLImageElement
+    img.src = src
+}
+
 function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | DocumentFragment = sidebarItems) {
     let elem = document.createElement("sidebar-entry")
 
@@ -93,7 +100,7 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
 
     let meta = findMetadataById(item.ItemId)
     let user = findUserEntryById(item.ItemId)
-    if (!user || !meta) return
+    if (!user || !meta) return elem
 
     sidebarParent.append(elem)
 
@@ -133,6 +140,8 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
     })
 
     changeSidebarItemData(item, user, meta, elem)
+
+    return elem
 }
 
 function renderSidebar(entries: InfoEntry[]) {

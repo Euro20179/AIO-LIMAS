@@ -510,6 +510,7 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
                             }
                         })
                         refreshDisplayItem(item)
+                        updateSidebarThumbnail(item.ItemId, meta.Thumbnail)
                     }
                 })
         }

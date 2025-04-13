@@ -35,7 +35,9 @@ function overwriteEntryMetadataUI(_root: ShadowRoot, item: InfoEntry) {
         loadMetadata()
             .then(() => {
                 refreshDisplayItem(item)
-                refreshSidebarItem(item)
+                let thumb = findMetadataById(item.ItemId)?.Thumbnail
+                if(thumb)
+                    updateSidebarThumbnail(item.ItemId, thumb)
             })
     })
 }
