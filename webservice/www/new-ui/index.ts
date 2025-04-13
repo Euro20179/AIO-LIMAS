@@ -2,8 +2,6 @@ type ClientSearchFilters = {
     filterRules: string[]
     newSearch: string
     sortBy: string
-    children: boolean
-    copies: boolean
 }
 
 type GlobalsNewUi = {
@@ -220,28 +218,16 @@ function parseClientsideSearchFiltering(searchForm: FormData): ClientSearchFilte
 
     let sortBy = searchForm.get("sort-by") as string
 
-    let children = searchForm.get("children") as string
-    let copies = searchForm.get("copies") as string
-
     return {
         filterRules: filters,
         newSearch: search,
         sortBy,
-        children: children === "on",
-        copies: copies === "on"
     }
 }
 
 function applyClientsideSearchFiltering(entries: InfoEntry[], filters: ClientSearchFilters) {
 
     entries = entries.filter(v => v.Library === globalsNewUi.viewingLibrary)
-
-    if (!filters.children) {
-        entries = entries.filter(v => v.ParentId === 0n)
-    }
-    if (!filters.copies) {
-        entries = entries.filter(v => v.CopyOf === 0n)
-    }
 
     if (filters.sortBy !== "") {
         entries = sortEntries(entries, filters.sortBy)
@@ -293,6 +279,10 @@ function applyClientsideSearchFiltering(entries: InfoEntry[], filters: ClientSea
         } else if (filter.startsWith("filter")) {
             let expr = filter.slice("filter".length).trim()
             entries = entries.filter(() => eval(expr))
+        } else if (filter === "!child") {
+            entries = entries.filter(v => v.ParentId === 0n)
+        } else if (filter === "!copy") {
+            entries = entries.filter(v => v.CopyOf === 0n)
         }
     }
 
