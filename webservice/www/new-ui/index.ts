@@ -1,13 +1,10 @@
-type DisplayMode = {
-    add: (entry: InfoEntry, updateStats?: boolean) => any
-    sub: (entry: InfoEntry, updateStats?: boolean) => any
-    addList: (entry: InfoEntry[], updateStats?: boolean) => any
-    subList: (entry: InfoEntry[], updateStats?: boolean) => any
-    putSelectedInCollection?: () => any
-    addTagsToSelected?: () => any
-    [key: string]: any
+type ClientSearchFilters = {
+    filterRules: string[]
+    newSearch: string
+    sortBy: string
+    children: boolean
+    copies: boolean
 }
-
 
 type GlobalsNewUi = {
     userEntries: Record<string, UserEntry>
@@ -40,13 +37,6 @@ const statsOutput = document.querySelector(".result-stats") as HTMLElement
 const librarySelector = document.getElementById("library-selector") as HTMLSelectElement
 const newEntryLibrarySelector = document.querySelector("[name=\"libraryId\"]") as HTMLSelectElement
 
-const modes = [modeDisplayEntry, modeGraphView, modeCalc, modeGallery]
-const modeOutputIds = ["entry-output", "graph-output", "calc-output", "gallery-output"]
-
-let idx = modeOutputIds.indexOf(location.hash.slice(1))
-
-let mode = modes[idx]
-
 librarySelector.onchange = function() {
     let val = librarySelector.value
     globalsNewUi.viewingLibrary = BigInt(val)
@@ -77,92 +67,6 @@ function* findCopies(itemId: bigint) {
     yield* entries.values()
         .filter(v => v.CopyOf === itemId)
 }
-
-function sumCollectionStats(collectionEntry: InfoEntry, itself: boolean = true, children: boolean = true, copies: boolean = false) {
-    const stats = {
-        totalItems: 0,
-        cost: 0
-    }
-    if (itself) {
-        stats.totalItems++
-        stats.cost += collectionEntry.PurchasePrice
-    }
-    if (children) {
-        for (let child of findDescendants(collectionEntry.ItemId)) {
-            stats.totalItems++
-            stats.cost += child.PurchasePrice
-        }
-    }
-    if (copies) {
-        for (let copy of findCopies(collectionEntry.ItemId)) {
-            stats.totalItems++
-            stats.cost += copy.PurchasePrice
-        }
-    }
-    return stats
-}
-
-
-function selectItem(item: InfoEntry, mode: DisplayMode, updateStats: boolean = true) {
-    globalsNewUi.selectedEntries.push(item)
-    mode.add(item, updateStats)
-}
-
-function deselectItem(item: InfoEntry, updateStats: boolean = true) {
-    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.filter(a => a.ItemId !== item.ItemId)
-    mode.sub(item, updateStats)
-}
-
-function selectItemList(itemList: InfoEntry[], mode: DisplayMode, updateStats: boolean = true) {
-    globalsNewUi.selectedEntries = globalsNewUi.selectedEntries.concat(itemList)
-    mode.addList(itemList, updateStats)
-}
-
-function toggleItem(item: InfoEntry, updateStats: boolean = true) {
-    if (globalsNewUi.selectedEntries.find(a => a.ItemId === item.ItemId)) {
-        deselectItem(item, updateStats)
-    } else {
-        selectItem(item, mode, updateStats)
-    }
-}
-
-function clearItems() {
-    mode.subList(globalsNewUi.selectedEntries)
-    globalsNewUi.selectedEntries = []
-}
-
-function putSelectedToCollection() {
-    if (mode.putSelectedInCollection) {
-        mode.putSelectedInCollection()
-    } else {
-        alert("This mode does not support putting items into a collection")
-    }
-}
-
-function addTagsToSelected() {
-    if (mode.addTagsToSelected) {
-        mode.addTagsToSelected()
-    } else {
-        alert("This mode does not support adding tags to selected items")
-    }
-}
-
-
-document.querySelector(".view-toggle")?.addEventListener("change", e => {
-    mode.subList(globalsNewUi.selectedEntries)
-
-    let name = (e.target as HTMLSelectElement).value
-
-    let curModeIdx = modeOutputIds.indexOf(name)
-
-    mode = modes[curModeIdx]
-    location.hash = name
-
-    mode.addList(globalsNewUi.selectedEntries)
-
-})
-
-
 
 function resetResultStats() {
     for (let node of statsOutput.querySelectorAll(".stat") || []) {
@@ -301,23 +205,6 @@ async function loadMetadata(): Promise<Record<string, MetadataEntry>> {
     return globalsNewUi.metadataEntries = obj
 }
 
-
-viewAllElem.addEventListener("change", e => {
-    clearItems()
-    if ((e.target as HTMLInputElement)?.checked) {
-        selectItemList(globalsNewUi.results, mode)
-    } else {
-        resultStatsProxy.reset()
-    }
-})
-
-type ClientSearchFilters = {
-    filterRules: string[]
-    newSearch: string
-    sortBy: string
-    children: boolean
-    copies: boolean
-}
 
 /**
  * @description pulls out relevant filters for the client
