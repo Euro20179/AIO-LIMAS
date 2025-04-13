@@ -120,6 +120,21 @@
             An example would be <code>#r &gt; 78</code> which will expand to:
             <code>userRating &gt; 78</code>
         </p>
+
+        <h4>Client Filters</h4>
+        <p>
+            After a regular search, as many <code>-></code> can be used to apply client filters.
+            The basic client filters include:
+        </P>
+        <ul>
+            <li>head n: get the <code>n</code> top items</li>
+            <li>tail n: get the <code>n</code> bottom items</li>
+            <li>shuf: shuffle the items</li>
+            <li>sort b: sort by <code>b</code> which can be <code>a</code> for alphabetical or <code>e</code> for js eval</li>
+            <li>!child: to ensure the item is not a child</li>
+            <li>!copy: to ensure the item is not a copy</li>
+        </ul>
+        <p>If the filter begins and ends with a <code>/</code> a regex search will be performed</p>
     </section>
 </body>
 
