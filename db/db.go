@@ -901,7 +901,7 @@ func DelTags(uid int64, id int64, tags []string) error {
 			continue
 		}
 
-		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '')", tag)
+		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '') WHERE itemId = ?", tag, id)
 		if err != nil {
 			return err
 		}
