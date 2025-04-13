@@ -136,13 +136,8 @@
             <section id="viewing-area" class="flex column overflow">
 
                 <nav id="selected-item-actions">
-                        <details class="dropdown">
-                            <summary>Bulk Actions</summary>
-                            <div>
-                                <button onclick="addTagsToSelected()">Add tag(s) to selected</button>
-                                <button onclick="putSelectedToCollection()">Put selected in collection</button>
-                            </div>
-                        </details>
+                        <button onclick="addTagsToSelected()">Add tag(s) to selected</button>
+                        <button onclick="putSelectedToCollection()">Put selected in collection</button>
                 </nav>
 
                 <div id="no-uid">
@@ -279,15 +274,18 @@
             <div class="item-interactions">
                 <button class="close" onclick="displayEntryClose(this)"
                     title="remove item from inspection area">X</button>
-                <button class="save" onclick="displayEntrySave(this)" title="save any manual changes">💾︎</button>
                 <button class="copy-to" onclick="displayEntryCopyTo(this)"
                     title="copy user info to another item">➡</button>
-                <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
-                <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
                 <button class="edit-styles" onclick="displayEntryEditStyles(this)" title="edit item's stylesheet">🖌</button>
                 <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
             </div>
             <figure class="thumbnail-fig flex column">
+                <div class="grid" style="grid-auto-flow: column">
+                    <button class="save" onclick="displayEntrySave(this)" title="save any manual changes">💾︎</button>
+                        <span></span> <!--gap-->
+                    <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
+                    <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
+                </div>
                 <input type="file" hidden id="thumbnail-file-upload">
                 <img src="" alt="" class="thumbnail">
                 <table class="media-info"></table>

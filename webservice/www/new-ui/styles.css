@@ -232,7 +232,7 @@
     }
 
     #selected-item-actions {
-        justify-content: right;
+        justify-content: left;
 
         display: flex;
 
