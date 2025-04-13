@@ -8,26 +8,26 @@ import (
 )
 
 type IdIdentifyMetadata struct {
-	Id string;
-	Uid int64;
+	Id  string
+	Uid int64
 }
 
 type IdentifyMetadata struct {
-	Title string;
+	Title  string
 	ForUid int64
 }
 
 type GetMetadataInfo struct {
-	Entry *db_types.InfoEntry;
-	MetadataEntry *db_types.MetadataEntry;
-	Override string;
-	Uid int64
+	Entry         *db_types.InfoEntry
+	MetadataEntry *db_types.MetadataEntry
+	Override      string
+	Uid           int64
 }
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entry := info.Entry
-	if entry.IsAnime(){
+	if entry.IsAnime() {
 		return AnilistShow(info)
 	}
 
@@ -112,6 +112,7 @@ var Providers ProviderMap = ProviderMap{
 	"sonarr":        SonarrProvider,
 	"radarr":        RadarrProvider,
 	"image":         ImageProvider,
+	"steam":         SteamProvider,
 }
 
 type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.MetadataEntry, error)
@@ -119,8 +120,9 @@ type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.Metadat
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
 	"omdb":    OmdbIdentifier,
-	"sonarr": SonarrIdentifier,
-	"radarr": RadarrIdentifier,
+	"sonarr":  SonarrIdentifier,
+	"radarr":  RadarrIdentifier,
+	"steam":   SteamIdentifier,
 }
 
 type (
@@ -131,7 +133,7 @@ type (
 var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"anilist": AnilistById,
 	"omdb":    OmdbIdIdentifier,
-	"sonarr": SonarrIdIdentifier,
-	"radarr": RadarrIdIdentifier,
-	"steam": SteamIdIdentifier,
+	"sonarr":  SonarrIdIdentifier,
+	"radarr":  RadarrIdIdentifier,
+	"steam":   SteamIdIdentifier,
 }

@@ -57,10 +57,26 @@ type IdAppData struct {
 	}
 }
 
+func getSteamSearchTree(search string) (*html.Node, error){
+	baseUrl := "https://store.steampowered.com/search/suggest?term=%s&f=games&cc=US&use_search_spellcheck=1"
+
+	fullUrl := fmt.Sprintf(baseUrl, url.QueryEscape(search))
+
+	resp, err := http.Get(fullUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	tree, err := html.Parse(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return tree, nil
+}
+
 func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
-
-	baseUrl := "https://store.steampowered.com/search/suggest?term=%s&f=games&cc=US&use_search_spellcheck=1"
 
 	title := info.Entry.En_Title
 	if title == "" {
@@ -72,17 +88,7 @@ func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 		return out, errors.New("no search possible")
 	}
 
-	fullUrl := fmt.Sprintf(baseUrl, url.QueryEscape(title))
-
-	resp, err := http.Get(fullUrl)
-	if err != nil {
-		return out, err
-	}
-
-	tree, err := html.Parse(resp.Body)
-	if err != nil {
-		return out, err
-	}
+	tree, err := getSteamSearchTree(title)
 
 	us, err := settings.GetUserSettigns(info.Uid)
 	if err != nil {
@@ -98,8 +104,68 @@ func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 			}
 		}
 	}
+	out.Provider = "steam"
 
 	return out, errors.New("no results")
+}
+
+func SteamIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	out := []db_types.MetadataEntry{}
+
+	title := info.Title
+
+	if title == "" {
+		println("[metadata/steam]: no search possible")
+		return out, errors.New("no search possible")
+	}
+
+	tree, err := getSteamSearchTree(title)
+	if err != nil {
+		return out, err
+	}
+
+	var cur db_types.MetadataEntry
+
+	nextIsName := false
+	for n := range tree.FirstChild.Descendants() {
+		if n.Data == "a" {
+			if cur.ProviderID != ""{
+				out = append(out, cur)
+			}
+
+			cur = db_types.MetadataEntry{}
+			cur.Provider = "steam"
+
+			for _, attr := range n.Attr {
+				if attr.Key == "data-ds-appid" {
+					i, err := strconv.ParseInt(attr.Val, 10, 64)
+					if err != nil {
+						break
+					}
+					cur.ItemId = i
+					cur.ProviderID = attr.Val
+				}
+			}
+		} else if n.Data == "img" {
+			for _, attr := range n.Attr {
+				if attr.Key == "src" {
+					cur.Thumbnail = attr.Val
+				}
+			}
+		} else if n.Data == "div" {
+			for _, attr := range n.Attr {
+				if attr.Val == "match_name" {
+					nextIsName = true
+					break
+				}
+			}
+		} else if nextIsName {
+			cur.Title = n.Data
+			nextIsName = false
+		}
+	}
+
+	return out, nil
 }
 
 func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {

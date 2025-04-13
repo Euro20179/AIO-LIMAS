@@ -98,6 +98,7 @@ async function titleIdentification(provider: string, search: string, selectionEl
 
     return await new Promise(RETURN => {
         for (let result of items) {
+            console.log(result)
             let fig = document.createElement("figure")
 
             let img = document.createElement("img")
