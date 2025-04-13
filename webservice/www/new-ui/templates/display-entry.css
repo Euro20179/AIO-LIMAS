@@ -271,7 +271,7 @@ button:has(~ .tag) {
 }
 
 :is(#description, #notes) {
-    height: 50cqb;
+    max-height: 50cqb;
     overflow: auto auto;
 }
 
