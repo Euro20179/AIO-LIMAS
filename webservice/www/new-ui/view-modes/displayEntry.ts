@@ -72,8 +72,7 @@ async function itemIdentification(form: HTMLFormElement) {
         .then(loadMetadata)
         .then(() => {
             let newItem = globalsNewUi.entries[itemId]
-            refreshDisplayItem(newItem)
-            refreshSidebarItem(newItem)
+            updateInfo({ entries: { [String(itemId)]: newItem } })
         })
 }
 
@@ -1018,11 +1017,11 @@ function deleteEvent(el: HTMLElement, ts: number, after: number) {
     const itemId = getIdFromDisplayElement(el)
     apiDeleteEvent(itemId, ts, after)
         .then(res => res.text())
-        .then(() => {
-            refreshInfo().then(() =>
-                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
-            ).catch(alert)
-        }
+        .then(() =>
+            loadUserEvents()
+                .then(() => updateInfo({
+                    entries: { [String(itemId)]: globalsNewUi.entries[String(itemId)] }
+                }))
         )
         .catch(alert)
 
