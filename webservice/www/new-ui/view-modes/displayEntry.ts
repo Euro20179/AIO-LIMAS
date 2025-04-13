@@ -164,7 +164,8 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
                 console.log("Skipping ItemId")
                 continue
             }
-            let ty = item[name as keyof typeof item].constructor
+            let ty = item[name as keyof typeof item]?.constructor
+            if(!ty) continue
             //@ts-ignore
             item[name] = ty(value)
         }
