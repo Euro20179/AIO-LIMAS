@@ -24,20 +24,10 @@
                 flex-direction: column;
                 width: 100%;
 
-                iframe {
-                    border: none;
-                    width: 100%;
-                    height: 80vh;
-
-                    border-bottom: 10px solid var(--red);
-                    user-select: none;
-                }
-
                 a {
                     font-size: 1.2em;
                     color: var(--link-color);
                     width: 100%;
-                    text-align: center;
                     cursor: pointer;
                     text-transform: capitalize;
                 }
@@ -52,12 +42,17 @@
 </head>
 
 <body>
-    <hgroup class="center">
-        <h1>AIO LIMAS</h1>
-        <a href="/create-account.html"><button style="padding: 5px">Create account</button></a>
-    </hgroup>
+    <h2 class="">Welcome</h2>
+    <a href="/create-account.html" class=" block"><button style="padding: 5px">Create account</button></a>
 
-    <h2 class="center">Users</h2>
+    <p>
+            Welcome to the AIO LIMAS, basic usage information can be found <a href="/usage">here</a>
+    </p>
+    <p>
+            The server comes with two UIs. A <a href="/lite">simple one</a> that is HTML and view only, and a <a href="/new-ui">full webapp</a>.
+    </p>
+
+    <h2 class="">Users</h2>
 
     <div id="users-output">
     </div>
