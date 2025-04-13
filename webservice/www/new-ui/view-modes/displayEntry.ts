@@ -231,10 +231,6 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
         userEntries: { [String(item.ItemId)]: userEntry },
         metadataEntries: { [String(item.ItemId)]: meta }
     })
-
-    Promise.all(promises).then(() => {
-        refreshDisplayItem(item)
-    })
 }
 
 function changeDisplayItemData(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: HTMLElement) {
@@ -283,23 +279,6 @@ function onIntersection(entries: IntersectionObserverEntry[]) {
     }
 }
 
-function deleteEvent(el: HTMLElement, ts: number, after: number) {
-    if (!confirm("Are you sure you would like to delete this event")) {
-        return
-    }
-    const itemId = getIdFromDisplayElement(el)
-    apiDeleteEvent(itemId, ts, after)
-        .then(res => res.text())
-        .then(() => {
-            refreshInfo().then(() =>
-                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
-            ).catch(alert)
-        }
-        )
-        .catch(alert)
-
-}
-
 function newEvent(form: HTMLFormElement) {
     const data = new FormData(form)
     const name = data.get("name")
@@ -335,7 +314,6 @@ function newEvent(form: HTMLFormElement) {
                 ]
             })
             form.parentElement?.hidePopover()
-            refreshDisplayItem(globalsNewUi.entries[String(itemId)])
         })
         .catch(alert)
     //TODO: should be a modal thing for date picking
@@ -356,6 +334,13 @@ const modeDisplayEntry: DisplayMode = {
     sub(entry, updateStats = true) {
         updateStats && changeResultStatsWithItem(entry, -1)
         removeDisplayItem(entry)
+    },
+
+    refresh(id) {
+        let info = findInfoEntryById(id)
+        if (!info) return
+
+        refreshDisplayItem(info)
     },
 
     addList(entry, updateStats = true) {
@@ -444,9 +429,15 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
                 .then(res => res.text())
                 .then(text => {
                     alert(text)
-                    return refreshInfo()
+
+                    loadUserEvents().then(() =>
+                        updateInfo({
+                            entries: {
+                                [String(item.ItemId)]: item
+                            },
+                        })
+                    )
                 })
-                .then(() => refreshDisplayItem(item))
         })
     }
 
@@ -474,9 +465,14 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
                 .then(res => res.text())
                 .then(text => {
                     alert(text)
-                    return refreshInfo()
+                    loadUserEvents().then(() =>
+                        updateInfo({
+                            entries: {
+                                [String(item.ItemId)]: item
+                            }
+                        })
+                    )
                 })
-                .then(() => refreshDisplayItem(item))
         })
     }
 
@@ -498,6 +494,7 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
                     if (!meta) {
                         refreshInfo().then(() => {
                             refreshDisplayItem(item)
+                            refreshSidebarItem(item)
                         })
                     } else {
                         meta.Thumbnail = result
@@ -509,8 +506,6 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
                                 [String(item.ItemId)]: meta
                             }
                         })
-                        refreshDisplayItem(item)
-                        refreshSidebarItem(item)
                     }
                 })
         }
@@ -969,7 +964,6 @@ const displayEntryViewCount = displayEntryAction(item => {
                         [String(item.ItemId)]: user
                     }
                 })
-                refreshDisplayItem(item)
             }
         })
         .catch(console.error)
@@ -1013,10 +1007,23 @@ const displayEntryRating = displayEntryAction(item => {
                 }
             })
         })
-        .then(() => {
-            let newItem = globalsNewUi.entries[String(item.ItemId)]
-            refreshDisplayItem(newItem)
-        })
         .catch(console.error)
     apiRegisterEvent(item.ItemId, `rating-change - ${user?.UserRating} -> ${newRating}`, Date.now(), 0).catch(console.error)
 })
+
+function deleteEvent(el: HTMLElement, ts: number, after: number) {
+    if (!confirm("Are you sure you would like to delete this event")) {
+        return
+    }
+    const itemId = getIdFromDisplayElement(el)
+    apiDeleteEvent(itemId, ts, after)
+        .then(res => res.text())
+        .then(() => {
+            refreshInfo().then(() =>
+                refreshDisplayItem(globalsNewUi.entries[String(itemId)])
+            ).catch(alert)
+        }
+        )
+        .catch(alert)
+
+}

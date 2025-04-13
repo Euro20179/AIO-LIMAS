@@ -1,8 +1,10 @@
+
 type DisplayMode = {
     add: (entry: InfoEntry, updateStats?: boolean) => any
     sub: (entry: InfoEntry, updateStats?: boolean) => any
     addList: (entry: InfoEntry[], updateStats?: boolean) => any
     subList: (entry: InfoEntry[], updateStats?: boolean) => any
+    refresh?: (id: bigint) => any
     putSelectedInCollection?: () => any
     addTagsToSelected?: () => any
     [key: string]: any
@@ -72,6 +74,7 @@ document.querySelector(".view-toggle")?.addEventListener("change", e => {
     mode.addList(globalsNewUi.selectedEntries)
 })
 
+const viewAllElem = document.getElementById("view-all") as HTMLInputElement
 viewAllElem.addEventListener("change", e => {
     clearItems()
     if ((e.target as HTMLInputElement)?.checked) {

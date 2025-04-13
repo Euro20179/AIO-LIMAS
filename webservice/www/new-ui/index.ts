@@ -28,8 +28,6 @@ let globalsNewUi: GlobalsNewUi = {
     viewingLibrary: 0n,
 }
 
-const viewAllElem = document.getElementById("view-all") as HTMLInputElement
-
 const displayItems = document.getElementById("entry-output") as HTMLElement
 
 const statsOutput = document.querySelector(".result-stats") as HTMLElement
@@ -360,6 +358,9 @@ function genericUserEntry(itemId: bigint): UserEntry {
     }
 }
 
+/**
+ * @description Updates information in the global information table, also refreshes the mode's dispaly info, and the sidebar info
+ */
 function updateInfo({
     entries, metadataEntries, events, userEntries
 }: Partial<GlobalsNewUi>, del = false) {
@@ -392,6 +393,10 @@ function updateInfo({
             globalsNewUi.entries[entry] = e
             globalsNewUi.metadataEntries[entry] = metadata
             globalsNewUi.userEntries[entry] = user
+
+            refreshSidebarItem(e)
+            if(mode.refresh)
+                mode.refresh(e.ItemId)
         } else {
             delete globalsNewUi.entries[entry]
             delete globalsNewUi.metadataEntries[entry]
