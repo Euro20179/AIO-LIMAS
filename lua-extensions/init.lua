@@ -83,7 +83,17 @@ local prefixMacros = {
     ["tag:"] = function(macro)
         local tag = string.sub(macro, 5)
         return "Collection LIKE ('%' || char(31) || '" .. tag .. "' || char(31) || '%')", ""
-    end
+    end,
+
+    ["md:"] = function(macro)
+        local name = string.sub(macro, 4)
+        return string.format("json_extract(mediaDependant, '$.%s')", name), ""
+    end,
+
+    ["mdi:"] = function(macro)
+        local name = string.sub(macro, 5)
+        return string.format("CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
+    end,
 }
 
 ---@param macro string
