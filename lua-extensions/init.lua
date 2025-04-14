@@ -87,12 +87,12 @@ local prefixMacros = {
 
     ["md:"] = function(macro)
         local name = string.sub(macro, 4)
-        return string.format("json_extract(mediaDependant, '$.%s')", name), ""
+        return string.format("mediaDependant != '' and json_extract(mediaDependant, '$.%s')", name), ""
     end,
 
     ["mdi:"] = function(macro)
         local name = string.sub(macro, 5)
-        return string.format("CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
+        return string.format("mediaDependant != '' and CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
     end,
 }
 
