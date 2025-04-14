@@ -27,7 +27,11 @@ func Fullsetup(state *lua.LState) {
 
 	title := state.NewFunction(func(s *lua.LState) int {
 		str := s.ToString(1)
-		s.Push(lua.LString(strings.ToTitle(string(str[0])) + str[1:]))
+		if len(str) == 0 {
+			s.Push(lua.LString(""))
+		} else {
+			s.Push(lua.LString(strings.ToTitle(string(str[0])) + str[1:]))
+		}
 		return 1
 	})
 	state.SetField(aioTble, "title", title)

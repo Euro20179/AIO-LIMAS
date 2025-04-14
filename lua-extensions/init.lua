@@ -94,7 +94,8 @@ function Expand_macro(macro)
     elseif macro == "s:v" then
         return comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""), ""
     elseif aio.hasprefix(macro, "s:") then
-        return comp("status", '"' .. aio.title(string.sub(macro, 3)) .. '"'), ""
+        local text = aio.title(string.sub(macro, 3))
+        return comp("status", '"' .. text .. '"'), ""
     elseif aio.hasprefix(macro, "t:") then
         return comp("type", '"' .. aio.title(string.sub(macro, 3)) .. '"'), ""
     elseif aio.hasprefix(macro, "a:") then
