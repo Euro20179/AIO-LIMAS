@@ -81,7 +81,7 @@ type Status = string
 let formats: {[key: number]: string} = {}
 
 function canBegin(status: Status) {
-    return status === "Finished" || status === "Dropped" || status === ""
+    return status === "Finished" || status === "Dropped" || status === "Planned" || status === ""
 }
 
 function canPause(status: Status) {
