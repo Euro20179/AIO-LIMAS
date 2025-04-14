@@ -6,4 +6,5 @@
 ---@field title fun(s: string): string [ Uppercases the first letter of the string ]
 ---@field listen fun(event: string, onevent: fun(...: any[]): any) [ Registers an event listener ]
 ---@field bor fun(n1: number, n2: number): number [ bitwise or 2 numbers ]
+---@field split fun(s: string, sep: string): table<string>
 _G.aio = {}

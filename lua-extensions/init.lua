@@ -99,12 +99,23 @@ function Expand_macro(macro)
     elseif aio.hasprefix(macro, "t:") then
         return comp("type", '"' .. aio.title(string.sub(macro, 3)) .. '"'), ""
     elseif aio.hasprefix(macro, "a:") then
-        local titledArg = aio.title(string.sub(macro, 3))
-        local as_int = asName2I[titledArg]
-        if as_int == nil then
-            return "", "Invalid art style: " .. titledArg
+        local itemList = string.sub(macro, 3)
+        local items = aio.split(itemList, "+")
+        local query = ""
+        for _, item in ipairs(items) do
+            local titledArg = aio.title(item)
+            local as_int = asName2I[titledArg]
+            if as_int == nil then
+                return "", "Invalid art style: " .. titledArg
+            end
+            if query ~= "" then
+                query = query .. string.format("and (artStyle & %d == %d)", as_int, as_int)
+            else
+                --extra ( because i want to encase the whole thing with ()
+                query = string.format("( (artStyle & %d == %d)", as_int, as_int)
+            end
         end
-        return string.format("(artStyle & %d == %d)", as_int, as_int), ""
+        return query .. ")", ""
     elseif aio.hasprefix(macro, "tag:") then
         local tag = string.sub(macro, 5)
         return "Collection LIKE ('%' || char(31) || '" .. tag .. "' || char(31) || '%')", ""

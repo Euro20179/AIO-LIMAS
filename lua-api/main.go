@@ -36,6 +36,19 @@ func Fullsetup(state *lua.LState) {
 	})
 	state.SetField(aioTble, "title", title)
 
+	split := state.NewFunction(func(s *lua.LState) int {
+		str := s.ToString(1)
+		sep := s.ToString(2)
+		tbl := lua.LTable{}
+		for _, item := range strings.Split(str, sep) {
+			tbl.Append(lua.LString(item))
+		}
+
+		s.Push(&tbl)
+		return 1
+	})
+	state.SetField(aioTble, "split", split)
+
 	bor := state.NewFunction(func(s *lua.LState) int {
 		n1 := s.ToInt64(1)
 		n2 := s.ToInt64(2)
