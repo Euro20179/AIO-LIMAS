@@ -96,6 +96,24 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 	return db.InitDb(id)
 }
 
+func DeleteAccount(aioPath string, uid int64) error {
+	accountsDbPath := AccountsDbPath(aioPath)
+
+	conn, err := sql.Open("sqlite3", accountsDbPath)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec("DELETE FROM accounts WHERE rowid = ?", uid)
+	if err != nil {
+		return err
+	}
+
+	usersDir := fmt.Sprintf("%s/users/%d", aioPath, uid)
+	return os.RemoveAll(usersDir)
+}
+
 func CreateAccount(username string, rawPassword string) error {
 	if strings.Contains(username, ":") {
 		return errors.New("username may not contain ':'")
@@ -108,6 +126,7 @@ func CreateAccount(username string, rawPassword string) error {
 
 	return InitializeAccount(aioPath, username, hash)
 }
+
 
 func CkLogin(username string, rawPassword string) (string, error) {
 	h := sha256.New()

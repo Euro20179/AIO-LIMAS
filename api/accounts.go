@@ -21,6 +21,18 @@ func CreateAccount(ctx RequestContext) {
 	success(w)
 }
 
+func DeleteAccount(ctx RequestContext) {
+	uid := ctx.Uid
+
+	aioPath := os.Getenv("AIO_DIR")
+	err := accounts.DeleteAccount(aioPath, uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to delete account: %s", err.Error())
+		return
+	}
+	success(ctx.W)
+}
+
 func Logout(ctx RequestContext) {
 	ctx.W.Header().Add("Clear-Site-Data", "\"*\"")
 	ctx.W.WriteHeader(200)

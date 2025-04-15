@@ -58,6 +58,7 @@ type Method string
 const (
 	GET  Method = "GET"
 	POST Method = "POST"
+	DELETE Method = "DELETE"
 )
 
 type ApiEndPoint struct {
@@ -162,9 +163,9 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if newUid != uidStr && uidStr != "" {
-			w.WriteHeader(400)
-			w.Write([]byte("You are attempting to perform a privileged action for user id: %d, while logged into your account"))
-			return
+			//mismatch between requested uid, and the account that the user is logged into
+			//this is important because the user is trying to perform a priveledged action for UID while not logged into that UID
+			authorized = false
 		}
 
 		uidStr = newUid

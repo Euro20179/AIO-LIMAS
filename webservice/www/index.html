@@ -64,6 +64,17 @@
             window.location = `/new-ui/?uid=${uid}`
         }
 
+        function deleteaccount(uid) {
+            fetch(`/account/delete?uid=${uid}`, { method: "DELETE" }).then(res => {
+                if(res.status !== 200) {
+                    return "Failed to delete account"
+                }
+                return res.text()
+            }).then(text => {
+                alert(text)
+            })
+        }
+
         fetch("/account/list")
             .then(res => res.text())
             .then(users => {
@@ -72,7 +83,7 @@
                     if (!user) return
 
                     const [id, name] = user.split(":")
-                    const html = `<div><a href="/new-ui?uid=${id}">${name}</a></div>`
+                    const html = `<div style="display: flex; gap: 2ch; flex-direction: row; justify-content: left;"><a href="/new-ui?uid=${id}">${name}</a> <button onclick="deleteaccount(${id})">delete</button></div>`
                     usersOutput.innerHTML += html
                 })
             })

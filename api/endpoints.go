@@ -1,6 +1,8 @@
 package api
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 	// if the user sets this var, make all endpoints behind authorization
@@ -489,6 +491,13 @@ var AccountEndPoints = []ApiEndPoint{
 		Description:     "List all users",
 		UserIndependant: true,
 		GuestAllowed:    true,
+	},
+
+	{
+		EndPoint: "delete",
+		Method: DELETE,
+		Description: "Delete an account",
+		Handler: DeleteAccount,
 	},
 } // }}}
 
