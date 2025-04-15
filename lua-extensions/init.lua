@@ -129,6 +129,7 @@ function Expand_macro(macro)
         t = "en_title",
         T = "title",
         d = "description",
+        ["s:v"] = comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""),
     }
 
     for _, item in ipairs(mediaTypes) do
@@ -144,8 +145,6 @@ function Expand_macro(macro)
 
     if basicMacros[macro] ~= nil then
         return basicMacros[macro], ""
-    elseif macro == "s:v" then
-        return comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""), ""
     elseif prefixMacros[prefix] ~= nil then
         return prefixMacros[prefix](macro)
     else
