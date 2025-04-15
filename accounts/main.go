@@ -118,6 +118,11 @@ func CreateAccount(username string, rawPassword string) error {
 	if strings.Contains(username, ":") {
 		return errors.New("username may not contain ':'")
 	}
+
+	if username == "" {
+		return errors.New("username cannot be blank")
+	}
+
 	h := sha256.New()
 	h.Write([]byte(rawPassword))
 	hash := hex.EncodeToString(h.Sum(nil))

@@ -300,9 +300,9 @@ when using finalize-identify`,
 	},
 } // }}}
 
-var ( // `/engagement` endpoints {{{
-	engagementEndpointList = []ApiEndPoint{
-	 ApiEndPoint{
+// `/engagement` endpoints {{{
+var engagementEndpointList = []ApiEndPoint{
+	{
 		EndPoint: "finish-media",
 		Handler:  FinishMedia,
 		QueryParams: QueryParams{
@@ -313,7 +313,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Finishes a media, and registers a Finish event",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "copy",
 		Handler:  CopyUserViewingEntry,
 		QueryParams: QueryParams{
@@ -323,7 +323,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Moves all user entry data, and events from one entry entry to another",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "get-events",
 		Handler:  GetEventsOf,
 		QueryParams: QueryParams{
@@ -333,7 +333,7 @@ var ( // `/engagement` endpoints {{{
 		Returns:      "JSONL<EventEntry>",
 		GuestAllowed: true,
 	},
-	 ApiEndPoint{
+	{
 		EndPoint: "delete-event",
 		Handler:  DeleteEvent,
 		QueryParams: QueryParams{
@@ -344,7 +344,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Deletes an event from an entry",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "register-event",
 		Handler:  RegisterEvent,
 		QueryParams: QueryParams{
@@ -357,7 +357,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Registers an event for an entry",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint:     "list-events",
 		Handler:      ListEvents,
 		QueryParams:  QueryParams{},
@@ -366,7 +366,7 @@ var ( // `/engagement` endpoints {{{
 		GuestAllowed: true,
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "mod-entry",
 		Handler:  ModUserEntry,
 		QueryParams: QueryParams{
@@ -380,7 +380,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Modifies datapoints of a user entry",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint:    "set-entry",
 		Handler:     SetUserEntry,
 		Method:      "POST",
@@ -388,7 +388,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Updates the user entry with the post body<br>Post body must be updated user entry",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint:     "list-entries",
 		Handler:      UserEntries,
 		Description:  "Lists all user entries",
@@ -396,7 +396,7 @@ var ( // `/engagement` endpoints {{{
 		GuestAllowed: true,
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "get-entry",
 		Handler:  GetUserEntry,
 		QueryParams: QueryParams{
@@ -407,7 +407,7 @@ var ( // `/engagement` endpoints {{{
 		GuestAllowed: true,
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "drop-media",
 		Handler:  DropMedia,
 		QueryParams: QueryParams{
@@ -417,7 +417,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Drops a media, and registers a Drop event",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "resume-media",
 		Handler:  ResumeMedia,
 		QueryParams: QueryParams{
@@ -427,7 +427,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Resumes a media and registers a ReViewing event",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "pause-media",
 		Handler:  PauseMedia,
 		QueryParams: QueryParams{
@@ -437,7 +437,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Pauses a media and registers a Pause event",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "plan-media",
 		Handler:  PlanMedia,
 		QueryParams: QueryParams{
@@ -447,7 +447,7 @@ var ( // `/engagement` endpoints {{{
 		Description: "Plans a media and registers a Plan event",
 	},
 
-	 ApiEndPoint{
+	{
 		EndPoint: "begin-media",
 		Handler:  BeginMedia,
 		QueryParams: QueryParams{
@@ -456,18 +456,14 @@ var ( // `/engagement` endpoints {{{
 		},
 		Description: "Begins a media and registers a Begin event",
 	},
-	}
-) //}}}
+} //}}}
 
 // `/account` endpoints {{{
 var AccountEndPoints = []ApiEndPoint{
 	{
 		EndPoint: "create",
 		Handler:  CreateAccount,
-		QueryParams: QueryParams{
-			"username": MkQueryInfo(P_NotEmpty, true),
-			"password": MkQueryInfo(P_NotEmpty, true),
-		},
+		Method:   POST,
 		Description:     "Creates an account",
 		UserIndependant: true,
 		GuestAllowed:    true,
@@ -494,10 +490,10 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "delete",
-		Method: DELETE,
+		EndPoint:    "delete",
+		Method:      DELETE,
 		Description: "Delete an account",
-		Handler: DeleteAccount,
+		Handler:     DeleteAccount,
 	},
 } // }}}
 
@@ -572,12 +568,12 @@ var MainDocs = ApiEndPoint{
 	UserIndependant: true,
 } // }}}
 
-var Endpoints = map[string][]ApiEndPoint {
-	"": mainEndpointList,
-	"/metadata": metadataEndpointList,
+var Endpoints = map[string][]ApiEndPoint{
+	"":            mainEndpointList,
+	"/metadata":   metadataEndpointList,
 	"/engagement": engagementEndpointList,
-	"/type": typeEndpoints,
-	"/resource": resourceEndpointList,
+	"/type":       typeEndpoints,
+	"/resource":   resourceEndpointList,
 }
 
 func DocHTML(ctx RequestContext) {

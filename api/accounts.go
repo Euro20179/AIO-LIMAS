@@ -2,23 +2,44 @@ package api
 
 import (
 	"fmt"
+	"io"
+	"net/url"
 	"os"
 
-	"aiolimas/util"
 	"aiolimas/accounts"
+	"aiolimas/util"
 )
 
 func CreateAccount(ctx RequestContext) {
-	pp := ctx.PP
-	w := ctx.W
-	err := accounts.CreateAccount(pp["username"].(string), pp["password"].(string))
+	data, err := io.ReadAll(ctx.Req.Body)
 	if err != nil {
-		fmt.Printf("/account/create %s", err.Error())
-		util.WError(w, 500, "Failed to create account: %s", err.Error())
+		util.WError(ctx.W, 500, "Could not read parameters: %s", err.Error())
 		return
 	}
 
-	success(w)
+	values, err := url.ParseQuery(string(data))
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not read parameters: %s", err.Error())
+		return
+	}
+
+	username := values.Get("username")
+	password := values.Get("password")
+
+
+	if username == "" || password == "" {
+		util.WError(ctx.W, 400, "Username and password cannot be blank")
+		return
+	}
+
+	err = accounts.CreateAccount(username, password)
+	if err != nil {
+		fmt.Printf("/account/create %s", err.Error())
+		util.WError(ctx.W, 500, "Failed to create account: %s", err.Error())
+		return
+	}
+
+	success(ctx.W)
 }
 
 func DeleteAccount(ctx RequestContext) {
