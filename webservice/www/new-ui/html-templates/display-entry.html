@@ -1,0 +1,170 @@
+
+<style>
+    @import "/new-ui/templates/display-entry.css";
+</style>
+
+<style id="custom-styles">
+</style>
+
+
+<dialog id="new-event-form" popover>
+    <form action="javascript:void(0)" onsubmit="newEvent(this)">
+        <label for="name">Name: <input id="name" name="name" required></label>
+        <p>
+            Please only fill out one of the time slots.<br>
+            If you know the exact day (exact time is unimportant, put 0:0 if unsure) fill out the first one,<br>
+            otherwise fill out the second one if you know the event happend after a certain time
+        </p>
+        <label for="timestamp">
+            Exact: <input id="timestamp" name="timestamp" type="datetime-local">
+        </label>
+        <br>
+        <label for="after-timestamp">
+            After: <input type="datetime-local" name="after" id="after-timestamp">
+        </label>
+        <br>
+        <button>Add</button>
+    </form>
+    <br>
+    <button popovertarget="new-event-form">Close</button>
+</dialog>
+
+<dialog id="item-identification-form" popover>
+    <form onsubmit="itemIdentification(this)" action="javascript:void(0)">
+        <select name="provider" required>
+            <option value="anilist">Anilist</option>
+            <option value="omdb">open movie database (omdb)</option>
+            <option value="sonarr">sonarr</option>
+            <option value="radarr">radarr</option>
+            <option value="steam">steam</option>
+        </select>
+        <select name="query-type" required>
+            <option value="by-title">By title</option>
+            <option value="by-id">By id</option>
+        </select>
+        <input type="text" name="search" placeholder="search/id (id must be numeric)" required>
+    </form>
+    <p>
+        A search can be made by title or by id.
+    </p>
+    <p>
+        the id is different depending on which provider is chosen.
+    </p>
+    <p>
+        the id that should be used is the id for that provider. For example, the id for steam should be the appid of the steam game you want.
+    </p>
+    <p>
+        the id MUST be an int, (I hope to fix this later), as a consequence the id for omdb is the imdb id with the tt prefix removed.
+    </p>
+</dialog>
+
+<dialog id="identify-items" popover>
+</dialog>
+
+<div class="root" id="root">
+    <div class="item-interactions" id="item-interactions">
+        <button class="close" onclick="displayEntryClose(this)"
+            title="remove item from inspection area">X</button>
+        <button class="copy-to" onclick="displayEntryCopyTo(this)"
+            title="copy user info to another item">➡</button>
+        <button class="edit-styles" onclick="displayEntryEditStyles(this)" title="edit item's stylesheet">🖌</button>
+        <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
+    </div>
+    <figure class="thumbnail-fig flex column" id="thumbnail-fig">
+        <div class="grid" style="grid-auto-flow: column">
+            <button class="save" onclick="displayEntrySave(this)" title="save any manual changes">💾︎</button>
+                <span></span> <!--gap-->
+            <button class="identify" title="identify item" popovertarget="item-identification-form">ℹ</button>
+            <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
+        </div>
+        <input type="file" hidden id="thumbnail-file-upload">
+        <img src="" alt="" class="thumbnail" id="thumbnail">
+        <table class="media-info" id="media-info"></table>
+        <hr>
+        <details>
+            <summary>Raw Info</summary>
+            <table class="info-raw" id="info-raw"></table>
+        </details>
+        <details>
+            <summary>Raw meta info</summary>
+            <table class="meta-info-raw" id="meta-info-raw"></table>
+        </details>
+    </figure>
+    <hgroup>
+        <h2 class="title center" id="main-title"></h2>
+        <div class="flex column wrap j-center" style="gap: 2ch" >
+            <h3 class="center official-native-title" id="official-native-title"></h3>
+        </div>
+    </hgroup>
+    <div class="header-subtitle" id="header-subtitle">
+        <div>
+            <span>Include in cost</span>
+            <div id="cost-calculation-modifiers" class="flex row j-center">
+                <label for="include-self-in-cost"><input type="checkbox" id="include-self-in-cost" checked> Self</label>
+                <label for="include-children-in-cost"><input type="checkbox" id="include-children-in-cost"> Children</label>
+                <label for="include-copies-in-cost"><input type="checkbox" id="include-copies-in-cost"> Copies</label>
+            </div>
+            <span class="cost" id="cost"></span>
+        </div>
+        <div style="justify-content: center; gap: 1ch; font-size: 1.1em;" class="flex">
+            <span class="rating" id="user-rating"  onclick="displayEntryRating(this)" title="your rating">??</span>
+            <span>(<span class="audience-rating" id="audience-rating" title="audience rating">??</span>)</span>
+        </div>
+        <figure class="entry-progress">
+            <div class="viewing">
+                <span id="view-count" class="view-count" onclick="displayEntryViewCount(this)"></span>
+                <progress onclick="displayEntryProgress(this)" id="entry-progressbar" class="entry-progress" min="0"
+                    value="0"></progress>
+                <figcaption id="entry-progressbar-position-label"></figcaption>
+            </div>
+        </figure>
+    </div>
+    <div>
+        <div class="actions flex wrap" id="actions">
+            <div class="flex">
+                <button data-action="Plan" class="action" title="plan">🗓</button>
+                <button data-action="Begin+Pause+Resume" class="action" title="begin/pause/resume">⏯</button>
+            </div>
+            <div class="flex">
+                <button data-action="Finish" class="action" title="finish">🏁</button>
+                <button data-action="Drop" class="action" title="drop">⏹</button>
+            </div>
+        </div>
+        <div class="tables flex column" id="event-table-area">
+            <table class="user-actions" id="user-actions"></table>
+            <button id="new-event-button" popovertarget="new-event-form">New Event</button>
+        </div>
+    </div>
+<textarea id="style-editor" hidden>
+</textarea>
+    <div class="descriptors">
+        <section>
+            <h4 class="center">Description</h4>
+            <p class="description" id="description"></p>
+        </section>
+        <section>
+            <h4 class="center">Notes</h4>
+            <p class="notes" id="notes" contenteditable="" id="notes"></p>
+            <div>
+                <button id="create-tag">+</button>
+                <div class="tags" id="tags"></div>
+            </div>
+        </section>
+    </div>
+    <section class="descendants" id="descendants-section">
+        <h4>Children</h4>
+        <div>
+            <div id="descendants">
+            </div>
+            <div class="flex" style="gap: 1ch">
+                <button id="new-child" title="Create new item as a child of this">New</button>
+                <input id="new-child-by-id" placeholder="By item id">
+            </div>
+        </div>
+    </section>
+    <section class="copies" id="copies-section">
+        <h4>Copies</h4>
+        <div id="copies">
+        </div>
+    </section>
+</div>

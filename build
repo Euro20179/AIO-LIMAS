@@ -11,5 +11,25 @@ done
     esbuildOpts=--sourcemap
 }
 
+#esbuild/typescript stuff
 esbuild $(find . -regex '.*\.ts$') --minify --outdir=webservice/www $esbuildOpts
+
+#compile html into one BIG html
+idx="./webservice/www/new-ui/index.html"
+#copy the initial template file to the final output
+cp "./webservice/www/new-ui/index-template.html" "$idx"
+#for each template
+for file in ./webservice/www/new-ui/html-templates/*.html; do
+    name="${file##*/}"
+    name="${name%.html}"
+    #create a template html tag and put it into the final output html file
+    cat <<EOTEMPLATE >> "$idx"
+<template id="${name}">
+$(cat "$file")
+</template>
+
+EOTEMPLATE
+done
+
+#main go program
 ${GO:-go} build .
