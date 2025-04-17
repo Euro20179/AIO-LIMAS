@@ -7,7 +7,10 @@ import (
 func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 	// if the user sets this var, make all endpoints behind authorization
 	for _, endPoint := range endPoints {
-		http.HandleFunc(root+"/"+endPoint.EndPoint, endPoint.Listener)
+		http.HandleFunc(root+"/"+endPoint.EndPoint, func( w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			endPoint.Listener(w, r)
+		})
 	}
 }
 

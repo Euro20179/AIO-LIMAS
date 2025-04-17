@@ -14,7 +14,7 @@ done
 #esbuild/typescript stuff
 esbuild $(find . -regex '.*\.ts$') --minify --outdir=webservice/www $esbuildOpts
 
-#compile html into one BIG html
+#compile html into one BIG html to avoid having to have all of this in one massive file while working on it. It gets really annoying lol
 idx="./webservice/www/new-ui/index.html"
 #copy the initial template file to the final output
 cp "./webservice/www/new-ui/index-template.html" "$idx"
