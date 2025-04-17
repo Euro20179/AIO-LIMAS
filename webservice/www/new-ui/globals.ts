@@ -3,10 +3,6 @@ const apiPath = "/api/v1"
 const urlParams = new URLSearchParams(document.location.search)
 const uid = urlParams.get("uid")
 
-if(!uid) {
-    (document.getElementById("no-uid") as HTMLDivElement).style.display = "block"
-}
-
 const initialSearch = urlParams.get("q")
 
 const searchInput = document.querySelector("[name=\"search-query\"]") as HTMLInputElement

@@ -98,7 +98,7 @@
 
     <div id="main" class="flex column">
         <div id="main-ui" class="overflow">
-            <div id="form-area">
+            <div id="search-area">
                 <div class="flex row">
                 </div>
                 <form action="javascript:loadSearch()" id="sidebar-form">
@@ -128,7 +128,7 @@
                 </div>
             </div>
             <nav class="sidebar overflow" id="sidebar">
-                <div class="sidebar--navigation">
+                <div class="sidebar--navigation" id="sidebar-navigation">
                     <label class="center block" style="width: 100%; align-content: center;"><input type="checkbox" name="view-all" id="view-all">View all</label>
                     <select id="library-selector">
                     </select>
@@ -143,9 +143,9 @@
                         <button onclick="putSelectedToCollection()">Put selected in collection</button>
                 </nav>
 
-                <div id="no-uid">
-                    <h3>No User Id</h3>
-                    Please specify a user id in the url, to do so easily, select a user from the <a href="/">home page</a>
+                <div id="no-items">
+                    <h3>No Items</h3>
+                    This user has no items, this means you are new here or are viewing an invalid user
                 </div>
 
                 <div id="entry-output" class="overflow">

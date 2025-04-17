@@ -2,6 +2,25 @@
 
 @layer general, utility, components;
 
+@layer general {
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+
+        container: body / inline-size;
+    }
+
+    form {
+        flex-grow: 1;
+        display: flex;
+
+        flex-wrap: wrap;
+
+        grid-area: searching;
+    }
+}
+
 @layer utility {
     .grid-row {
         display: grid;
@@ -15,15 +34,7 @@
 
 @layer components {
 
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-
-        container: body / inline-size;
-    }
-
-    :is(#entry-output, #graph-output, #calc-output, #gallery-output) {
+    #entry-output, #graph-output, #calc-output, #gallery-output {
         &:target {
             display: inherit;
         }
@@ -67,6 +78,7 @@
             white-space: pre;
             background: var(--main);
         }
+
         .notification::before {
             content: "Notification\a";
         }
@@ -100,7 +112,7 @@
         }
     }
 
-    dialog:has(#new-item-form) h3 {
+    #new-entry h3 {
         text-align: center;
     }
 
@@ -111,8 +123,23 @@
         margin: 0 20%;
     }
 
+    #new-entry-button {
+        @container (width < 70ch) {
+            justify-self: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        @container (width >= 70ch) {
+            justify-self: end;
+        }
 
-    #form-area {
+        grid-area: new;
+
+        width: 50px;
+        aspect-ratio: 1 / 1;
+    }
+
+    #search-area {
         grid-area: form;
 
         text-wrap: nowrap;
@@ -123,33 +150,14 @@
         grid-template-columns: min-content 2fr 1fr;
         width: 100%;
 
+        border-bottom: 2px solid var(--secondary);
+
         @container (width < 115ch) {
             grid-template-areas:
                 "new searching searching"
                 "stats stats stats";
-
-            .result-stats {
-                justify-self: center;
-            }
         }
 
-        border-bottom: 2px solid var(--secondary);
-
-        #new-entry-button {
-            @container (width < 70ch) {
-                justify-self: center;
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            @container (width >= 70ch) {
-                justify-self: end;
-            }
-
-            grid-area: new;
-
-            width: 50px;
-            aspect-ratio: 1 / 1;
-        }
 
         :not([multiple]) {
             vertical-align: top;
@@ -166,62 +174,6 @@
             flex-grow: 0.3;
         }
 
-        dialog {
-            --btn-size: max(20px, 3cqi);
-
-            select[multiple] {
-                height: 50cqb;
-            }
-
-            .grid {
-                display: grid;
-                grid-template-areas: "main close-button";
-                grid-template-columns: calc(100% - var(--btn-size)) var(--btn-size);
-            }
-
-            button.close {
-                grid-area: close-button;
-                width: var(--btn-size);
-                aspect-ratio: 1 / 1;
-                margin: 0;
-            }
-        }
-
-        form {
-            flex-grow: 1;
-            display: flex;
-
-            flex-wrap: wrap;
-
-            grid-area: searching;
-        }
-
-        .result-stats {
-            display: flex;
-            gap: 10px;
-            justify-content: end;
-
-            grid-area: stats;
-
-            *:not(:last-child) {
-                padding-right: 10px;
-                border-right: 1px dashed white;
-            }
-            * {
-                align-content: center;
-            }
-        }
-
-        .result-stats::before {
-            content: "Stats";
-            border-right: 1px dashed white;
-            border-left: 1px dashed white;
-            text-align: center;
-
-            padding: 0 10px;
-            align-content: center;
-        }
-
         [data-stat-name="totalCost"]::before {
             content: "$"
         }
@@ -231,25 +183,39 @@
         }
     }
 
-    #selected-item-actions {
-        justify-content: left;
+    #result-stats {
+        @container (width < 115ch) {
+                justify-self: center;
+        }
 
         display: flex;
+        gap: 10px;
+        justify-content: end;
 
-        .dropdown {
-            background: var(--main);
-            div {
-                display: flex;
-                flex-direction: column;
-                position: fixed;
-            }
+        grid-area: stats;
+
+        *:not(:last-child) {
+            padding-right: 10px;
+            border-right: 1px dashed white;
         }
-        .dropdown summary::marker {
-            content: "➡"
+        * {
+            align-content: center;
         }
-        .dropdown[open] summary::marker {
-            content: "⬇"
-        }
+    }
+
+    #result-stats::before {
+        content: "Stats";
+        border-right: 1px dashed white;
+        border-left: 1px dashed white;
+        text-align: center;
+
+        padding: 0 10px;
+        align-content: center;
+    }
+
+    #selected-item-actions {
+        justify-content: left;
+        display: flex;
     }
 
     :has(#graph-output:target, #gallery-output:target) {
@@ -263,12 +229,7 @@
         container-name: viewing-area;
         container-type: size;
 
-        #no-uid {
-            display: none;
-        }
-
-
-        &:has(display-entry) h3 {
+        &:has(display-entry) #no-items {
             display: none;
         }
 
@@ -284,51 +245,51 @@
         @container body (width >=800px) {
             grid-area: main;
         }
+    }
 
+    #calc-output:target {
+        width: 100%;
+        height: 100%;
 
-        #graph-output {
-            width: 100%;
-            height: 100%;
+        display: grid;
+        grid-template-areas:
+            "input"
+            "output";
+        grid-template-rows: min-content 1fr;
 
-            border: 2px solid hsl(from var(--secondary) h s 30%);
+        #calc-items {
+            display: flex;
+            flex-wrap: wrap;
 
-            form {
-                position: sticky;
-                top: 0;
-                float: right;
+            calc-entry {
+                flex-grow: 1;
+                width: 33cqi;
             }
         }
+    }
 
-        #calc-output:target {
-            width: 100%;
-            height: 100%;
 
-            display: grid;
-            grid-template-areas:
-                "input"
-                "output";
-            grid-template-rows: min-content 1fr;
+    #graph-output {
+        width: 100%;
+        height: 100%;
 
-            #calc-items {
-                display: flex;
-                flex-wrap: wrap;
+        border: 2px solid hsl(from var(--secondary) h s 30%);
 
-                calc-entry {
-                    flex-grow: 1;
-                    width: 33cqi;
-                }
-            }
+        form {
+            position: sticky;
+            top: 0;
+            float: right;
         }
+    }
 
-        #graph-output:target>div {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            width: 100%;
-            height: 100%;
+    #graph-output:target>div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        height: 100%;
 
-            div {
-                width: 90%;
-            }
+        div {
+            width: 90%;
         }
     }
 
@@ -361,32 +322,12 @@
 
     }
 
-    .sidebar {
+    #sidebar {
         grid-area: sidebar;
         height: 100%;
         width: clamp(100px, 20cqi, 200px);
 
         container: sidebar / inline-size;
-
-        .sidebar--navigation {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background: var(--main);
-
-            padding: 5px;
-
-            display: grid;
-            grid-template-rows: 1fr 1fr;
-            grid-template-columns: 80%;
-            justify-content: center;
-
-            @container body (width < 800px) {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                justify-content: space-around;
-            }
-        }
 
         @container body (width < 800px) {
             &>div:first-child {
@@ -398,7 +339,27 @@
         }
     }
 
-    .sidebar--items {
+    #sidebar-navigation {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--main);
+
+        padding: 5px;
+
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 80%;
+        justify-content: center;
+
+        @container body (width < 800px) {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            justify-content: space-around;
+        }
+    }
+
+    #sidebar-items {
         display: flex;
         width: clamp(200px, 35vw, 35vw);
         flex-direction: column;
