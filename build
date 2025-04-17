@@ -1,4 +1,15 @@
 #!/bin/sh
 
-esbuild $(find . -regex '.*\.ts$') --minify --outdir=webservice/www
+devmode=0
+while getopts "d" OPT; do
+    case "$OPT" in 
+        d) devmode=1;;
+    esac
+done
+
+[ "$devmode" = 1 ] && {
+    esbuildOpts=--sourcemap
+}
+
+esbuild $(find . -regex '.*\.ts$') --minify --outdir=webservice/www $esbuildOpts
 ${GO:-go} build .
