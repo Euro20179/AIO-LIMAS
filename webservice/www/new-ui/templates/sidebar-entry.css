@@ -12,6 +12,8 @@
 }
 
 :host(sidebar-entry) {
+    height: 100%;
+
     @media (width >=800px) {
         border-top: 1px solid white;
         border-bottom: 1px solid white;
@@ -22,13 +24,11 @@
         border-right: 1px solid white;
     }
 
-    height: 100%;
-
     [data-type-icon]::before {
         content: attr(data-type-icon) " "
     }
 
-    .root {
+    [part="root"] {
         container-type: inline-size;
 
         height: 20cqb;
@@ -45,7 +45,27 @@
         }
     }
 
+    #sidebar-title {
+        font-size: 0.8em;
+        width: 80%;
+
+        border-style: none;
+
+        @media (width < 800px) {
+            display: none;
+        }
+
+        @media (width >= 800px) {
+            text-align: center;
+        }
+    }
+
     figure {
+        gap: 0.4em;
+        margin: 0;
+
+        contain: inline-size;
+
         @media (width >= 800px) {
             display: grid;
             justify-items: center;
@@ -54,45 +74,14 @@
         @media (width < 800px) {
             display: grid;
         }
-
-        gap: 0.4em;
-        margin: 0;
-
-        contain: inline-size;
-
-        .title {
-            font-size: 0.8em;
-            width: 80%;
-
-            border-style: none;
-
-            @media (width < 800px) {
-                display: none;
-            }
-
-            @media (width >= 800px) {
-                text-align: center;
-            }
-        }
-
-        img {
-            cursor: pointer;
-            height: 70cqi;
-
-            @media (width < 800px) {
-                justify-self: center;
-            }
-        }
     }
 
-    .header {
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: auto max-content;
-    }
+    #sidebar-thumbnail {
+        cursor: pointer;
+        height: 70cqi;
 
-    .status {
-        margin: 0;
-        padding: 0;
+        @media (width < 800px) {
+            justify-self: center;
+        }
     }
 }
