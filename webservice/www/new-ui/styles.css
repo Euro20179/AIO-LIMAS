@@ -290,6 +290,11 @@
             position: sticky;
             top: 0;
             float: right;
+            align-content: start;
+
+            > * {
+                height: fit-content;
+            }
         }
     }
 
