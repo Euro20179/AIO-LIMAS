@@ -115,7 +115,7 @@
                     <button type="submit">sort'n'search</button>
                 </form>
                 <button popovertarget="new-entry" type="button" id="new-entry-button">➕︎</button>
-                <div class="result-stats">
+                <div class="result-stats" id="result-stats">
                     <entries-statistic data-stat-name="results" class="stat"></entries-statistic>
                     <entries-statistic data-stat-name="totalCost" class="stat"></entries-statistic>
                     <entries-statistic data-stat-name="count" data-value="" class="stat"></entries-statistic>
@@ -127,13 +127,13 @@
                     </select>
                 </div>
             </div>
-            <nav class="sidebar overflow">
+            <nav class="sidebar overflow" id="sidebar">
                 <div class="sidebar--navigation">
                     <label class="center block" style="width: 100%; align-content: center;"><input type="checkbox" name="view-all" id="view-all">View all</label>
                     <select id="library-selector">
                     </select>
                 </div>
-                <div class="sidebar--items">
+                <div class="sidebar--items" id="sidebar-items">
                 </div>
             </nav>
             <section id="viewing-area" class="flex column overflow">
@@ -302,22 +302,22 @@
                     <button class="refresh" onclick="displayEntryRefresh(this)" title="refresh metadata">🗘</button>
                 </div>
                 <input type="file" hidden id="thumbnail-file-upload">
-                <img src="" alt="" class="thumbnail">
-                <table class="media-info"></table>
+                <img src="" alt="" class="thumbnail" id="thumbnail">
+                <table class="media-info" id="media-info"></table>
                 <hr>
                 <details>
                     <summary>Raw Info</summary>
-                    <table class="info-raw"></table>
+                    <table class="info-raw" id="info-raw"></table>
                 </details>
                 <details>
                     <summary>Raw meta info</summary>
-                    <table class="meta-info-raw"></table>
+                    <table class="meta-info-raw" id="meta-info-raw"></table>
                 </details>
             </figure>
             <hgroup>
-                <h2 class="title center"></h2>
+                <h2 class="title center" id="main-title"></h2>
                 <div class="flex column wrap j-center" style="gap: 2ch" >
-                    <h3 class="center official-native-title"></h3>
+                    <h3 class="center official-native-title" id="official-native-title"></h3>
                 </div>
             </hgroup>
             <div class="header-subtitle">
@@ -331,15 +331,15 @@
                     <span class="cost" id="cost"></span>
                 </div>
                 <div style="justify-content: center; gap: 1ch; font-size: 1.1em;" class="flex">
-                    <span class="rating"  onclick="displayEntryRating(this)" title="your rating">??</span>
-                    <span>(<span class="audience-rating" title="audience rating">??</span>)</span>
+                    <span class="rating" id="user-rating"  onclick="displayEntryRating(this)" title="your rating">??</span>
+                    <span>(<span class="audience-rating" id="audience-rating" title="audience rating">??</span>)</span>
                 </div>
                 <figure class="entry-progress">
                     <div class="viewing">
                         <span id="view-count" class="view-count" onclick="displayEntryViewCount(this)"></span>
-                        <progress onclick="displayEntryProgress(this)" class="entry-progress" min="0"
+                        <progress onclick="displayEntryProgress(this)" id="entry-progressbar" class="entry-progress" min="0"
                             value="0"></progress>
-                        <figcaption></figcaption>
+                        <figcaption id="entry-progressbar-position-label"></figcaption>
                     </div>
                 </figure>
             </div>
@@ -355,7 +355,7 @@
                     </div>
                 </div>
                 <div class="tables flex column">
-                    <table class="user-actions"></table>
+                    <table class="user-actions" id="user-actions"></table>
                     <button id="new-event-button" popovertarget="new-event-form">New Event</button>
                 </div>
             </div>
@@ -368,10 +368,10 @@
                 </section>
                 <section>
                     <h4 class="center">Notes</h4>
-                    <p class="notes" contenteditable="" id="notes"></p>
+                    <p class="notes" id="notes" contenteditable="" id="notes"></p>
                     <div>
                         <button id="create-tag">+</button>
-                        <div class="tags"></div>
+                        <div class="tags" id="tags"></div>
                     </div>
                 </section>
             </div>
@@ -401,8 +401,8 @@
         </style>
         <div class="root" part="root">
             <figure>
-                <img loading="lazy" part="thumbnail" class="thumbnail">
-                <input class="title">
+                <img loading="lazy" part="thumbnail" id="sidebar-thumbnail" class="thumbnail">
+                <input class="title" id="sidebar-title">
             </figure>
         </div>
     </template>
@@ -413,9 +413,9 @@
         </style>
 
         <div class="root">
-            <h3 class="name"></h3>
-            <img class="thumbnail">
-            <div class="expression-output"></div>
+            <h3 class="name" id="name"></h3>
+            <img class="thumbnail" id="calc-thumbnail">
+            <div class="expression-output" id="expression-output"></div>
         </div>
     </template>
 

@@ -28,7 +28,7 @@ let globalsNewUi: GlobalsNewUi = {
 
 const displayItems = document.getElementById("entry-output") as HTMLElement
 
-const statsOutput = document.querySelector(".result-stats") as HTMLElement
+const statsOutput = document.getElementById("result-stats") as HTMLElement
 
 const librarySelector = document.getElementById("library-selector") as HTMLSelectElement
 const newEntryLibrarySelector = document.querySelector("[name=\"libraryId\"]") as HTMLSelectElement

@@ -61,7 +61,7 @@ function addTagsToSelected() {
     }
 }
 
-document.querySelector(".view-toggle")?.addEventListener("change", e => {
+document.getElementById("view-toggle")?.addEventListener("change", e => {
     mode.subList(globalsNewUi.selectedEntries)
 
     let name = (e.target as HTMLSelectElement).value

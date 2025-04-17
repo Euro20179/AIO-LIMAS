@@ -107,10 +107,10 @@ function renderCalcItem(item: InfoEntry, parent: HTMLElement | DocumentFragment 
 
     let val = updateExpressionOutput(item)
 
-    let name = root.querySelector('.name') as HTMLElement
+    let name = root.getElementById('name') as HTMLElement
     name.innerText = item.En_Title
 
-    let img = root.querySelector(".thumbnail") as HTMLImageElement
+    let img = root.getElementById("calc-thumbnail") as HTMLImageElement
     if (meta?.Thumbnail) {
         img.src = meta?.Thumbnail
     }

@@ -101,7 +101,7 @@ customElements.define("calc-entry", class extends HTMLElement {
     attributeChangedCallback(name, ov, nv) {
         if (name !== "data-expression-output") return
 
-        let el = this.root.querySelector(".expression-output")
+        let el = this.root.getElementById("expression-output")
         if (!el) return
         el.innerHTML = nv
     }

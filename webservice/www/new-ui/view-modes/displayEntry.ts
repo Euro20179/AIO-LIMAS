@@ -128,7 +128,7 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
         return
     }
 
-    const userEn_title = root.querySelector(".title") as HTMLHeadingElement
+    const userEn_title = root.getElementById("main-title") as HTMLHeadingElement
 
     if (userEn_title) {
         item.En_Title = userEn_title.innerText
@@ -141,14 +141,14 @@ function saveItemChanges(root: ShadowRoot, item: InfoEntry) {
 
     setUserExtra(userEntry, "styles", customStylesElem.value)
 
-    let notes = (root?.querySelector(".notes"))?.innerHTML
+    let notes = (root?.getElementById("notes"))?.innerHTML
     if (notes === "<br>") {
         notes = ""
     }
     userEntry.Notes = notes || ""
 
-    let infoTable = root.querySelector("table.info-raw")
-    let metaTable = root.querySelector("table.meta-info-raw")
+    let infoTable = root.getElementById("info-raw")
+    let metaTable = root.getElementById("meta-info-raw")
     if (!infoTable || !metaTable) return
 
     const updateWithTable: (table: Element, item: InfoEntry | MetadataEntry) => void = (table, item) => {
@@ -321,7 +321,7 @@ function newEvent(form: HTMLFormElement) {
 }
 
 const observer = new IntersectionObserver(onIntersection, {
-    root: document.querySelector("#entry-output"),
+    root: document.getElementById("entry-output"),
     rootMargin: "0px",
     threshold: 0.1
 })
@@ -478,7 +478,7 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
     }
 
 
-    let imgEl = shadowRoot.querySelector(".thumbnail") as HTMLImageElement
+    let imgEl = shadowRoot.getElementById("thumbnail") as HTMLImageElement
     const fileUpload = (shadowRoot.getElementById("thumbnail-file-upload")) as HTMLInputElement
 
     fileUpload.onchange = async function(_) {
@@ -520,7 +520,7 @@ function hookActionButtons(shadowRoot: ShadowRoot, item: InfoEntry) {
 }
 
 function updateCostDisplay(el: ShadowRoot, item: InfoEntry) {
-    const costEl = el.querySelector(".cost") as HTMLSpanElement
+    const costEl = el.getElementById("cost") as HTMLSpanElement
 
     const includeSelf = (el.getElementById("include-self-in-cost") as HTMLInputElement).checked
     const includeChildren = (el.getElementById("include-children-in-cost") as HTMLInputElement).checked
@@ -571,20 +571,20 @@ function createRelationButtons(elementParent: HTMLElement, relationGenerator: Ge
 }
 
 function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, events: UserEvent[], el: ShadowRoot) {
-    const displayEntryTitle = el.querySelector(".title") as HTMLHeadingElement
-    const displayEntryNativeTitle = el.querySelector(".official-native-title") as HTMLHeadingElement
-    const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
-    const descEl = el.querySelector(".description") as HTMLParagraphElement
-    const notesEl = el.querySelector(".notes") as HTMLParagraphElement
-    const ratingEl = el.querySelector(".rating") as HTMLSpanElement
-    const audienceRatingEl = el.querySelector(".audience-rating") as HTMLElement
-    const infoRawTbl = el.querySelector(".info-raw") as HTMLTableElement
-    const metaRawtbl = el.querySelector(".meta-info-raw") as HTMLTableElement
+    const displayEntryTitle = el.getElementById("main-title") as HTMLHeadingElement
+    const displayEntryNativeTitle = el.getElementById("official-native-title") as HTMLHeadingElement
+    const imgEl = el.getElementById("thumbnail") as HTMLImageElement
+    const descEl = el.getElementById("description") as HTMLParagraphElement
+    const notesEl = el.getElementById("notes") as HTMLParagraphElement
+    const ratingEl = el.getElementById("user-rating") as HTMLSpanElement
+    const audienceRatingEl = el.getElementById("audience-rating") as HTMLElement
+    const infoRawTbl = el.getElementById("info-raw") as HTMLTableElement
+    const metaRawtbl = el.getElementById("meta-info-raw") as HTMLTableElement
     const viewCountEl = el.getElementById("view-count") as HTMLSpanElement
-    const progressEl = el.querySelector(".entry-progress progress") as HTMLProgressElement
-    const captionEl = el.querySelector(".entry-progress figcaption") as HTMLElement
-    const mediaInfoTbl = el.querySelector("figure .media-info") as HTMLTableElement
-    const eventsTbl = el.querySelector(".user-actions") as HTMLTableElement
+    const progressEl = el.getElementById("entry-progressbar") as HTMLProgressElement
+    const captionEl = el.getElementById("entry-progressbar-position-label") as HTMLElement
+    const mediaInfoTbl = el.getElementById("media-info") as HTMLTableElement
+    const eventsTbl = el.getElementById("user-actions") as HTMLTableElement
     const customStyles = el.getElementById("custom-styles") as HTMLStyleElement
 
     //Cost
@@ -595,7 +595,7 @@ function updateDisplayEntryContents(item: InfoEntry, user: UserEntry, meta: Meta
     customStyles.innerText = styles
 
     //tags
-    const tagsRoot = el.querySelector(".tags") as HTMLDivElement
+    const tagsRoot = el.getElementById("tags") as HTMLDivElement
     tagsRoot.innerHTML = ""
     for (let tag of item.Tags || []) {
         tag = tag.trim()
@@ -989,7 +989,7 @@ const displayEntryViewCount = displayEntryAction(item => {
 })
 
 const displayEntryProgress = displayEntryAction(async (item, root) => {
-    let progress = root.querySelector(".entry-progress progress") as HTMLProgressElement
+    let progress = root.getElementById("entry-progressbar") as HTMLProgressElement
 
     let newEp = promptNumber("Current position:", "Not a number, current position")
     if (!newEp) return

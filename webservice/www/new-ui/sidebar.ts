@@ -1,4 +1,4 @@
-const sidebarItems = document.querySelector(".sidebar--items") as HTMLElement
+const sidebarItems = document.getElementById("sidebar-items") as HTMLElement
 
 const sidebarIntersected: Set<string> = new Set()
 const sidebarObserver = new IntersectionObserver((entries) => {
@@ -8,7 +8,7 @@ const sidebarObserver = new IntersectionObserver((entries) => {
         }
     }
 }, {
-    root: document.querySelector("nav.sidebar"),
+    root: document.getElementById("sidebar"),
     rootMargin: "0px",
     threshold: 0.1
 })
@@ -47,8 +47,8 @@ function removeSidebarItem(item: InfoEntry) {
 }
 
 function updateSidebarEntryContents(item: InfoEntry, user: UserEntry, meta: MetadataEntry, el: ShadowRoot) {
-    const titleEl = el.querySelector(".title") as HTMLInputElement
-    const imgEl = el.querySelector(".thumbnail") as HTMLImageElement
+    const titleEl = el.getElementById("sidebar-title") as HTMLInputElement
+    const imgEl = el.getElementById("sidebar-thumbnail") as HTMLImageElement
 
     //Title
     titleEl.value = item.En_Title
@@ -119,7 +119,7 @@ function renderSidebarItem(item: InfoEntry, sidebarParent: HTMLElement | Documen
         })
     }
 
-    let title = elem.shadowRoot?.querySelector(".title") as HTMLInputElement
+    let title = elem.shadowRoot?.getElementById("sidebar-title") as HTMLInputElement
     if(title) {
         title.onchange = function() {
             if(title.value)
