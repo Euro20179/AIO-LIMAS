@@ -34,6 +34,10 @@
 
 @layer components {
 
+    #error-output {
+        display: none;
+    }
+
     #entry-output, #graph-output, #calc-output, #gallery-output {
         &:target {
             display: inherit;
@@ -229,8 +233,15 @@
         container-name: viewing-area;
         container-type: size;
 
-        &:has(display-entry) #no-items {
-            display: none;
+        &:not(:has(display-entry)) {
+            #error-output {
+                display: unset;
+            }
+
+            #error::after {
+                /*default error*/
+                content: attr(data-error, "No items selected");
+            }
         }
 
         &:not(:has(display-entry)) {

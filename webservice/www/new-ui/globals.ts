@@ -3,11 +3,20 @@ const apiPath = "/api/v1"
 const urlParams = new URLSearchParams(document.location.search)
 const uid = urlParams.get("uid")
 
+if(!uid) {
+    setError("No user id selected")
+}
+
 const initialSearch = urlParams.get("q")
 
 const searchInput = document.querySelector("[name=\"search-query\"]") as HTMLInputElement
 if(searchInput && initialSearch) {
     searchInput.value = decodeURIComponent(initialSearch)
+}
+
+function setError(text: string) {
+    const errorOut = document.getElementById("error")
+    errorOut?.setAttribute("data-error", text)
 }
 
 function alert(text: string) {

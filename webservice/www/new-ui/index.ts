@@ -311,7 +311,8 @@ async function loadSearch() {
 
     clearItems()
     if (entries.length === 0) {
-        alert("No results")
+        setError("No results")
+        clearSidebar()
         return
     }
     renderSidebar(entries)

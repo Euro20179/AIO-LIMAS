@@ -143,9 +143,8 @@
                         <button onclick="putSelectedToCollection()">Put selected in collection</button>
                 </nav>
 
-                <div id="no-items">
-                    <h3>No Items</h3>
-                    This user has no items, this means you are new here or are viewing an invalid user
+                <div id="error-output">
+                        <p id="error"></p>
                 </div>
 
                 <div id="entry-output" class="overflow">
@@ -285,8 +284,8 @@
         <dialog id="identify-items" popover>
         </dialog>
 
-        <div class="root">
-            <div class="item-interactions">
+        <div class="root" id="root">
+            <div class="item-interactions" id="item-interactions">
                 <button class="close" onclick="displayEntryClose(this)"
                     title="remove item from inspection area">X</button>
                 <button class="copy-to" onclick="displayEntryCopyTo(this)"
@@ -294,7 +293,7 @@
                 <button class="edit-styles" onclick="displayEntryEditStyles(this)" title="edit item's stylesheet">🖌</button>
                 <button class="delete" onclick="displayEntryDelete(this)" title="permanently delete item">🗑</button>
             </div>
-            <figure class="thumbnail-fig flex column">
+            <figure class="thumbnail-fig flex column" id="thumbnail-fig">
                 <div class="grid" style="grid-auto-flow: column">
                     <button class="save" onclick="displayEntrySave(this)" title="save any manual changes">💾︎</button>
                         <span></span> <!--gap-->
@@ -320,7 +319,7 @@
                     <h3 class="center official-native-title" id="official-native-title"></h3>
                 </div>
             </hgroup>
-            <div class="header-subtitle">
+            <div class="header-subtitle" id="header-subtitle">
                 <div>
                     <span>Include in cost</span>
                     <div id="cost-calculation-modifiers" class="flex row j-center">
@@ -344,7 +343,7 @@
                 </figure>
             </div>
             <div>
-                <div class="actions flex wrap">
+                <div class="actions flex wrap" id="actions">
                     <div class="flex">
                         <button data-action="Plan" class="action" title="plan">🗓</button>
                         <button data-action="Begin+Pause+Resume" class="action" title="begin/pause/resume">⏯</button>
@@ -354,7 +353,7 @@
                         <button data-action="Drop" class="action" title="drop">⏹</button>
                     </div>
                 </div>
-                <div class="tables flex column">
+                <div class="tables flex column" id="event-table-area">
                     <table class="user-actions" id="user-actions"></table>
                     <button id="new-event-button" popovertarget="new-event-form">New Event</button>
                 </div>
@@ -375,7 +374,7 @@
                     </div>
                 </section>
             </div>
-            <section class="descendants">
+            <section class="descendants" id="descendants-section">
                 <h4>Children</h4>
                 <div>
                     <div id="descendants">
@@ -386,7 +385,7 @@
                     </div>
                 </div>
             </section>
-            <section class="copies">
+            <section class="copies" id="copies-section">
                 <h4>Copies</h4>
                 <div id="copies">
                 </div>
