@@ -33,6 +33,27 @@
         aspect-ratio: 1 / 1;
         width: 35px;
     }
+
+    .tag {
+        background-color: var(--secondary);
+        border: 1px solid var(--input-border-color);
+        border-radius: var(--border-roundness);
+        padding: 0 3px;
+
+        vertical-align: middle;
+
+        text-wrap: nowrap;
+    }
+
+    .tag::before {
+        content: "🏷︎ ";
+        line-height: 0;
+    }
+
+    .delete {
+        color: var(--red);
+        border-color: var(--red);
+    }
 }
 
 @layer components {
@@ -62,6 +83,16 @@
     #item-interactions {
         display: grid;
         grid-auto-flow: row;
+
+        float: left;
+        gap: 20px;
+
+        margin: 0.4em 0 0 0.4em;
+
+        button {
+            aspect-ratio: 1 / 1;
+            height: 35px;
+        }
     }
 
     #root {
@@ -190,80 +221,49 @@
         }
     }
 
-
-    div:has(> .close) {
-        float: left;
-        gap: 20px;
-
-        margin: 0.4em 0 0 0.4em;
-
-        button {
-            aspect-ratio: 1 / 1;
-            height: 35px;
-        }
-    }
-
-    .delete {
-        color: var(--red);
-        border-color: var(--red);
-    }
-
-    .notes:empty::before {
+    #notes:empty::before {
         content: "Edit me!";
         opacity: 50%;
     }
 
-    section:has(.tags) {
-        display: flex;
-        flex-direction: column;
-    }
-
-    div:has(> .tags) {
-        display: flex;
-        gap: 3ch;
-    }
-
-    .tags > div {
-        display: flex;
+    #tags {
         flex-wrap: wrap;
-    }
+        display: flex;
+        gap: 2ch;
 
+        /*the section containing the tags (which includes a header and notes)*/
+        section:has(&) {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /*div containing the tags which includes the new tag button*/
+        div:has(> &) {
+            display: flex;
+            gap: 3ch;
+        }
+
+        /*each div in #tags contains a delete button and the tag itself*/
+        & > div {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    }
 
     #create-tag {
         align-self: center;
         height: fit-content;
-    }
 
-    div:has(> #create-tag):not(:has(.tag)) #create-tag::after {
-        content: " tag";
-    }
-
-    .tags {
-        flex-wrap: wrap;
-        display: flex;
-        gap: 2ch;
-    }
-
-    .tag {
-        background-color: var(--secondary);
-        border: 1px solid var(--input-border-color);
-        border-radius: var(--border-roundness);
-        padding: 0 3px;
-
-        vertical-align: middle;
-
-        text-wrap: nowrap;
-    }
-
-    .tag::before {
-        content: "🏷︎ ";
-        line-height: 0;
+        /*the parent that has self, but does not have an element with class=tag*/
+        /*if that matches, add " tag" after #create-tag's text to show that the + mean + tag*/
+        :has(> &):not(:has(.tag)) #create-tag::after {
+            content: " tag";
+        }
     }
 
     button:has(~ .tag) {
         vertical-align:  middle;
     }
-
 
     .descriptors {
         display: grid;
@@ -286,25 +286,25 @@
             text-wrap: balance;
         }
 
-        .title {
-            margin: 0;
-        }
-
         margin-bottom: 10px;
     }
 
-    :not([data-format-name="UNOWNED"])[data-format-name]::after {
-        text-transform: lowercase;
-        content: " (on " attr(data-format-name)")";
-    }
+    #main-title {
+        margin: 0;
 
-    #main-title[data-format-name="UNOWNED"]::after {
-        text-transform: lowercase;
-        content: " (unowned)";
-    }
+        &:not([data-format-name="UNOWNED"])[data-format-name]::after {
+            text-transform: lowercase;
+            content: " (on " attr(data-format-name)")";
+        }
 
-    #main-title::before {
-        content: attr(data-type-icon) " ";
+        &[data-format-name="UNOWNED"]::after  {
+            text-transform: lowercase;
+            content: " (unowned)";
+        }
+
+        &::before {
+            content: attr(data-type-icon) " ";
+        }
     }
 
     :host(display-entry:not([data-user-status="Viewing"])) #entry-progressbar-position-label {
