@@ -14,6 +14,7 @@ func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 				mthd = "GET"
 			}
 			w.Header().Set("Access-Control-Allow-Methods", mthd)
+			w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 			endPoint.Listener(w, r)
 		})
 	}
