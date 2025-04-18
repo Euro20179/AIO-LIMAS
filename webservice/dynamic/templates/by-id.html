@@ -1,6 +1,19 @@
 <head>
-    <link rel="stylesheet" href="/css/general.css">
-    <link rel="stylesheet" href="/lite/css/by-item-id.css">
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table :is(td, th) {
+            border: 1px dotted;
+        }
+
+        .boxed {
+            border: 1px dashed;
+            padding: 0.2em;
+            text-align: center;
+        }
+    </style>
 
     <link rel="icon" href="{{.Meta.Thumbnail}}">
 </head>
@@ -21,8 +34,8 @@
         </hgroup>
 
         <figure style="margin: 0; float: right">
-            <h3 class="boxed" style="margin-bottom: 0">{{.View.Status}}{{ if .View.UserRating }} - <span name="UserRating">{{ .View.UserRating }}</span>{{end}}</h3>
-            <img width="200px" src="{{.Meta.Thumbnail}}" style=" width: 200px;">
+            <h3 class="boxed" style="margin-bottom: 0"><span name="Status">{{.View.Status}}</span>{{ if .View.UserRating }} - <span name="UserRating">{{ .View.UserRating }}</span>{{end}}</h3>
+            <img name="Thumbnail" width="200px" src="{{.Meta.Thumbnail}}" style=" width: 200px;">
             <p class="boxed" style="margin-top: 0">General - <span name="Rating">{{ .Meta.Rating }}</span> / <span name="RatingMax">{{ .Meta.RatingMax }}</span></p>
         </figure>
 
