@@ -165,68 +165,13 @@ func InitDb(uid int64) error {
 	defer conn.Close()
 
 	sqlite3.Version()
-	// parent is for somethign like a season of a show
-	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS entryInfo (
-			 itemId INTEGER,
-			 en_title TEXT,
-			 native_title TEXT,
-			 format INTEGER,
-			 location TEXT,
-			 purchasePrice NUMERIC,
-			 collection TEXT,
-			 type TEXT,
-			 parentId INTEGER,
-			copyOf INTEGER,
-			artStyle INTEGER,
-			library INTEGER
-		)`)
-	if err != nil {
-		return err
-	}
-	_, err = conn.Exec(`
-		CREATE TABLE IF NOT EXISTS metadata (
-			itemId INTEGER,
-			rating NUMERIC,
-			description TEXT,
-			releaseYear INTEGER,
-			thumbnail TEXT,
-			mediaDependant TEXT,
-			dataPoints TEXT,
-			title TEXT,
-			native_title TEXT,
-			ratingMax NUMERIC,
-			provider TEXT,
-			providerID TEXT
-		)
-`)
+
+	schema, err := os.ReadFile("./db/schema/schema.sql")
 	if err != nil {
 		return err
 	}
 
-	_, err = conn.Exec(`
-		CREATE TABLE IF NOT EXISTS userViewingInfo (
-			itemId INTEGER,
-			status TEXT,
-			viewCount INTEGER,
-			userRating NUMERIC,
-			notes TEXT,
-			currentPosition TEXT,
-			extra TEXT
-		)
-	`)
-	if err != nil {
-		return err
-	}
-
-	_, err = conn.Exec(`
-		CREATE TABLE IF NOT EXISTS userEventInfo (
-			itemId INTEGER,
-			timestamp INTEGER,
-			after INTEGER,
-			event TEXT,
-			timezone TEXT
-		)
-	`)
+	_, err = conn.Exec(string(schema))
 	if err != nil {
 		return err
 	}
