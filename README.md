@@ -10,6 +10,8 @@ The most notable of which is how search works.
 ![entries](./readme-assets/entries.png)
 ![graph](./readme-assets/graph.png)
 
+these screenshots are from my [web frontend](https://github.com/euro20179/aio-web)
+
 ### The Point
 
 I made this program because i had a system for managing which shows/movies i had watched/planned,
