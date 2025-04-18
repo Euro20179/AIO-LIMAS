@@ -58,7 +58,9 @@ cd aio-limas
 ./aiolimas
 ```
 
-A server and web ui will then be running on `localhost:8080`
+A server will then be running on `localhost:8080`
+
+I highly recommend using [the web ui](https://github.com/euro20179/aio-web) to get a ui, however you can make your own (docs are very incomplete)
 
 
 ### Configuration
