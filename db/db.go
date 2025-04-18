@@ -389,11 +389,11 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		return err
 	}
 
-	// This should happen after the added event, because well, it was added, this file is a luxury thing
 	us, err := settings.GetUserSettigns(uid)
 	if err != nil {
 		return err
 	}
+	// This should happen after the added event, because well, it was added, this file is a luxury thing
 	if us.WriteIdFile {
 		err = WriteLocationFile(entryInfo, us.LocationAliases)
 	}

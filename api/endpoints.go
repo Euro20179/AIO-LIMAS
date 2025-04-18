@@ -9,6 +9,11 @@ func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 	for _, endPoint := range endPoints {
 		http.HandleFunc(root+"/"+endPoint.EndPoint, func( w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
+			mthd := string(endPoint.Method)
+			if mthd == "" {
+				mthd = "GET"
+			}
+			w.Header().Set("Access-Control-Allow-Methods", mthd)
 			endPoint.Listener(w, r)
 		})
 	}

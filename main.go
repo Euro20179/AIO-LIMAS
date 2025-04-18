@@ -10,7 +10,6 @@ import (
 	"aiolimas/accounts"
 	api "aiolimas/api"
 	lua_api "aiolimas/lua-api"
-	"aiolimas/webservice"
 	"aiolimas/webservice/dynamic"
 )
 
@@ -51,7 +50,7 @@ func startServer() {
 	http.HandleFunc("/docs", api.MainDocs.Listener)
 
 	http.HandleFunc("/html/", dynamic.HtmlEndpoint)
-	http.HandleFunc("/", webservice.Root)
+	// http.HandleFunc("/", webservice.Root)
 
 	port := os.Getenv("AIO_PORT")
 	if port == "" {

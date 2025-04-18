@@ -138,7 +138,13 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		method = "GET"
 	}
 
-	if req.Method != string(method) {
+	//"preflight" request
+	if req.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
+
+	if req.Method != string(method){
 		w.WriteHeader(405)
 		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, method)
 		return
