@@ -79,16 +79,50 @@ type ApiEndPoint struct {
 	UserIndependant bool
 }
 
+func pParser2Name(name string) string{
+	return name[2:]
+}
+func parser2Type(pName string) string {
+	if pName[0] == 'P' {
+		return pParser2Name(pName)
+	}
+	if strings.Contains(pName, "P_TList") {
+		return "List[Unknown]"
+	}
+	return ""
+}
+
 func (self *ApiEndPoint) GenerateDocHTML(root string) string {
+	queryList := "<ul>"
+	for k, v := range self.QueryParams {
+		cls := "not-required"
+		if v.Required {
+			cls = "required"
+		}
+		fnName := runtime.FuncForPC(reflect.ValueOf(v.Parser).Pointer()).Name()
+		fnName = parser2Type(fnName[len("aiolimas/api."):])
+		queryList += fmt.Sprintf("<li class=\"%s\"><b>%s</b>: %s, </li>", cls, k, fnName)
+	}
+	queryList += "</ul>"
+
+	authorized := "true"
+	if self.GuestAllowed {
+		authorized = "false"
+	}
+
 	return fmt.Sprintf(`
 		<div>
 			<h2>%s/%s</h2>
+				<h3>Authorized?</h3>
+				%s
+				<h3>Query Parameters</h3>
+				%s
 				<h3>Description</h3>
 					<p>%s</p>
 				<h3>Returns</h3>
 					<p>%s</p>
 		</div>
-	`, root, self.EndPoint, self.Description, self.Returns)
+	`, root, self.EndPoint, authorized, queryList, self.Description, self.Returns)
 }
 
 

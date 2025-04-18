@@ -1,13 +1,14 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 )
 
 func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 	// if the user sets this var, make all endpoints behind authorization
 	for _, endPoint := range endPoints {
-		http.HandleFunc(root+"/"+endPoint.EndPoint, func( w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc(root+"/"+endPoint.EndPoint, func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			mthd := string(endPoint.Method)
 			if mthd == "" {
@@ -30,7 +31,7 @@ var mainEndpointList = []ApiEndPoint{
 
 	{
 		Handler:     AddTags,
-		Description: "Adds tag(s) to an entry",
+		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		EndPoint:    "add-tags",
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
@@ -42,7 +43,7 @@ var mainEndpointList = []ApiEndPoint{
 
 	{
 		Handler:     DeleteTags,
-		Description: "Delets tag(s) from an entry",
+		Description: "Delets tag(s) from an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		EndPoint:    "delete-tags",
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
@@ -470,9 +471,9 @@ var engagementEndpointList = []ApiEndPoint{
 // `/account` endpoints {{{
 var AccountEndPoints = []ApiEndPoint{
 	{
-		EndPoint: "create",
-		Handler:  CreateAccount,
-		Method:   POST,
+		EndPoint:        "create",
+		Handler:         CreateAccount,
+		Method:          POST,
 		Description:     "Creates an account",
 		UserIndependant: true,
 		GuestAllowed:    true,
@@ -585,15 +586,31 @@ var Endpoints = map[string][]ApiEndPoint{
 	"/resource":   resourceEndpointList,
 }
 
+// this way the html at least wont change until a server restart
+var htmlCache []byte
+
 func DocHTML(ctx RequestContext) {
 	w := ctx.W
 
-	html := ""
-	for root, list := range Endpoints {
-		for _, endP := range list {
-			html += endP.GenerateDocHTML(root)
+	if len(htmlCache) == 0 {
+		html := "<style>.required::after { content: \"(required) \"; font-weight: bold; }</style>"
+		tableOfContents := "<p>Table of contents</p><ul>"
+		docsHTML := ""
+		for root, list := range Endpoints {
+			if root != "" {
+				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", root, root)
+				docsHTML += fmt.Sprintf("<HR><h1 id=\"%s\">%s</h1>", root, root)
+			} else {
+				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", "/", "/")
+				docsHTML += fmt.Sprintf("<HR><h1 id=\"%s\">%s</h1>", "/", "/")
+			}
+			for _, endP := range list {
+				docsHTML += endP.GenerateDocHTML(root)
+			}
 		}
+		html += tableOfContents + "</ul>" + docsHTML
+		htmlCache = []byte(html)
 	}
 	w.WriteHeader(200)
-	w.Write([]byte(html))
+	w.Write(htmlCache)
 }
