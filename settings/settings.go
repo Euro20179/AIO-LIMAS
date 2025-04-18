@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 type SettingsData struct {
@@ -40,6 +41,13 @@ func GetUserSettigns(uid int64) (SettingsData, error) {
 	}
 
 	return settings, nil
+}
+
+func ExpandPathWithLocationAliases(aliases map[string]string, path string) string{
+	for k, v := range aliases {
+		path = strings.Replace(path, "${"+k+"}", v, 1)
+	}
+	return path
 }
 
 func InitUserSettings(uid int64) error {

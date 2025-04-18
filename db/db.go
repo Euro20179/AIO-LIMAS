@@ -436,10 +436,7 @@ func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 }
 
 func WriteLocationFile(entry *db_types.InfoEntry, aliases map[string]string) error {
-	location := entry.Location
-	for k, v := range aliases {
-		location = strings.Replace(location, "${"+k+"}", v, 1)
-	}
+	location := settings.ExpandPathWithLocationAliases(aliases, entry.Location)
 
 	var aioIdPath string
 	stat, err := os.Stat(location)

@@ -415,9 +415,13 @@ func Stream(ctx RequestContext) {
 		subFile = ""
 	}
 
-	newLocation := os.ExpandEnv(entry.Location)
+	us, err := settings.GetUserSettigns(ctx.Uid)
+	if err != nil {
+		logging.ELog(err)
+		return
+	}
 
-	fullPath := newLocation
+	fullPath := settings.ExpandPathWithLocationAliases(us.LocationAliases, entry.Location)
 
 	if subFile != "" {
 		fullPath += "/" + subFile
