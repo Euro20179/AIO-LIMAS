@@ -27,16 +27,31 @@ func OpenUserDb(uid int64) (*sql.DB, error) {
 	return sql.Open("sqlite3", path+"all.db")
 }
 
-func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
-	out := map[int64]db_types.EntryTree{}
-
+func QueryUserDb(uid int64, query string, args ...any) (*sql.Rows, error) {
 	Db, err := OpenUserDb(uid)
 	if err != nil {
-		return out, err
+		return nil, err
 	}
 	defer Db.Close()
 
-	allRows, err := Db.Query(`SELECT * FROM entryInfo`)
+	return Db.Query(query, args...)
+}
+
+func ExecUserDb(uid int64, query string, args ...any) error {
+	Db, err := OpenUserDb(uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	_, err = Db.Exec(query, args...)
+	return err
+}
+
+func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
+	out := map[int64]db_types.EntryTree{}
+
+	allRows, err := QueryUserDb(uid, `SELECT * FROM entryInfo`)
 	if err != nil {
 		return out, err
 	}
@@ -246,13 +261,7 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	items, err := Db.Query("SELECT * FROM metadata")
+	items, err := QueryUserDb(uid, "SELECT * FROM metadata")
 	if err != nil {
 		return nil, err
 	}
@@ -350,17 +359,10 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 }
 
 func RegisterUserEvent(uid int64, event db_types.UserViewingEvent) error {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	_, err = Db.Exec(`
+	return ExecUserDb(uid, `
 		INSERT INTO userEventInfo (itemId, timestamp, event, after, timezone)
 		VALUES (?, ?, ?, ?, ?)
 	`, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
-	return err
 }
 
 func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int64) error {
@@ -394,30 +396,15 @@ func MoveUserEventEntries(uid int64, eventList []db_types.UserViewingEvent, newI
 }
 
 func ClearUserEventEntries(uid int64, id int64) error {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	_, err = Db.Exec(`
+	ExecUserDb(uid, `
 		DELETE FROM userEventInfo
 		WHERE itemId = ?
 	`, id)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
 
 func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string) error {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	updateStr := `UPDATE ` + tblName + ` SET `
 
 	data := db_types.StructNamesToDict(tblRepr)
@@ -437,12 +424,7 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	updateStr = updateStr[:len(updateStr)-1]
 	updateStr += "\nWHERE itemId = ?"
 
-	_, err = Db.Exec(updateStr, updateArgs...)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ExecUserDb(uid, updateStr, updateArgs...)
 }
 
 func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
@@ -550,12 +532,6 @@ type SearchData struct {
 type SearchQuery []SearchData
 
 func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var out []db_types.InfoEntry
 
 	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
@@ -566,7 +542,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 	}
 	fmt.Fprintf(os.Stderr, "Got query %s\n", safeQuery)
 
-	rows, err := Db.Query(fmt.Sprintf(query, safeQuery))
+	rows, err := QueryUserDb(uid, fmt.Sprintf(query, safeQuery))
 	if err != nil {
 		return out, err
 	}
@@ -587,14 +563,8 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 }
 
 func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var out []string
-	rows, err := Db.Query(`SELECT ? FROM entryInfo WHERE type = ?`, col, string(ty))
+	rows, err := QueryUserDb(uid, `SELECT ? FROM entryInfo WHERE type = ?`, col, string(ty))
 	if err != nil {
 		return out, err
 	}
@@ -610,14 +580,8 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 }
 
 func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var out []db_types.InfoEntry
-	rows, err := Db.Query("SELECT * FROM entryInfo WHERE copyOf = ?", id)
+	rows, err := QueryUserDb(uid, "SELECT * FROM entryInfo WHERE copyOf = ?", id)
 	if err != nil {
 		return out, err
 	}
@@ -639,14 +603,8 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 }
 
 func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var out []db_types.InfoEntry
-	rows, err := Db.Query("SELECT * FROM entryInfo where parentId = ?", id)
+	rows, err := QueryUserDb(uid, "SELECT * FROM entryInfo where parentId = ?", id)
 	if err != nil {
 		return out, err
 	}
@@ -654,34 +612,22 @@ func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 }
 
 func DeleteEvent(uid int64, id int64, timestamp int64, after int64) error {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	_, err = Db.Exec(`
+	return ExecUserDb(uid, `
 		DELETE FROM userEventInfo
 		WHERE 
 			itemId == ? and timestamp == ? and after == ?
 	`, id, timestamp, after)
-	return err
 }
 
 // /if id is -1, it lists all events
 func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var out []db_types.UserViewingEvent
 
 	var events *sql.Rows
+	var err error
 	// if an id is given
 	if id > -1 {
-		events, err = Db.Query(`
+		events, err = QueryUserDb(uid, `
 		SELECT * from userEventInfo
 		WHERE
 			itemId == ?
@@ -693,7 +639,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 			END`, id)
 		// otherweise the caller wants all events
 	} else {
-		events, err = Db.Query(`
+		events, err = QueryUserDb(uid, `
 		SELECT * from userEventInfo
 		ORDER BY
 			CASE timestamp
@@ -706,13 +652,11 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 		return out, err
 	}
 
-	defer events.Close()
-
 	for events.Next() {
 		var event db_types.UserViewingEvent
 		err := event.ReadEntry(events)
 		if err != nil {
-			println(err.Error())
+			println("[db/GetEvents]:", err.Error())
 			continue
 		}
 		out = append(out, event)
@@ -722,13 +666,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 
 // /sort must be valid sql
 func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	items, err := Db.Query(fmt.Sprintf(`
+	items, err := QueryUserDb(uid, fmt.Sprintf(`
 		SELECT entryInfo.*
 		FROM
 			entryInfo JOIN userViewingInfo
@@ -754,15 +692,9 @@ func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 }
 
 func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	var row db_types.UserViewingEntry
 
-	items, err := Db.Query("SELECT * FROM userViewingInfo WHERE itemId = ?;", itemId)
+	items, err := QueryUserDb(uid, "SELECT * FROM userViewingInfo WHERE itemId = ?;", itemId)
 	if err != nil {
 		return row, err
 	}
@@ -772,13 +704,7 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 }
 
 func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	items, err := Db.Query("SELECT * FROM userViewingInfo")
+	items, err := QueryUserDb(uid, "SELECT * FROM userViewingInfo")
 	if err != nil {
 		return nil, err
 	}
@@ -823,15 +749,8 @@ func GetDescendants(uid int64, id int64) ([]db_types.InfoEntry, error) {
 }
 
 func AddTags(uid int64, id int64, tags []string) error {
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	tagsString := strings.Join(tags, "\x1F\x1F")
-	_, err = Db.Exec("UPDATE entryInfo SET collection = (collection || char(31) || ? || char(31)) WHERE itemId = ?", tagsString, id)
-	return err
+	return ExecUserDb(uid, "UPDATE entryInfo SET collection = (collection || char(31) || ? || char(31)) WHERE itemId = ?", tagsString, id)
 }
 
 func DelTags(uid int64, id int64, tags []string) error {
