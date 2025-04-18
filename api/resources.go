@@ -14,6 +14,7 @@ import (
 
 	"aiolimas/types"
 	"aiolimas/util"
+	"aiolimas/logging"
 )
 
 type gzipResponseWriter struct {
@@ -163,7 +164,7 @@ func DownloadThumbnail(ctx RequestContext) {
 
 	if err := os.MkdirAll(thumbnailPath, 0o700); err != nil {
 		util.WError(w, 500, "Failed to create thumbnail dir")
-		println(err.Error())
+		logging.ELog(err)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"aiolimas/logging"
 	db_types "aiolimas/types"
 	"net/http"
 )
@@ -8,7 +9,7 @@ func writeSQLRowResults[T db_types.TableRepresentation](w http.ResponseWriter, r
 	for _, row := range results {
 		j, err := row.ToJson()
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(j)

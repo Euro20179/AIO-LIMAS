@@ -8,6 +8,7 @@ import (
 	"aiolimas/metadata"
 	"aiolimas/types"
 	"aiolimas/util"
+	"aiolimas/logging"
 )
 
 func FetchMetadataForEntry(ctx RequestContext) {
@@ -143,7 +144,7 @@ func ListMetadata(ctx RequestContext) {
 	for _, item := range items {
 		j, err := item.ToJson()
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(j)
@@ -173,7 +174,7 @@ func IdentifyWithSearch(ctx RequestContext) {
 	for _, entry := range infoList {
 		text, err := json.Marshal(entry)
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(text)

@@ -13,6 +13,7 @@ import (
 
 	"aiolimas/settings"
 	"aiolimas/types"
+	"aiolimas/logging"
 )
 
 type OMDBResponse struct {
@@ -101,7 +102,7 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	if err == nil {
 		out.ReleaseYear = n
 	} else {
-		println(err.Error())
+		logging.ELog(err)
 	}
 
 	return out, nil
@@ -192,7 +193,7 @@ func OmdbIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 		imdbId := entry.ImdbID[2:]
 		imdbIdInt, err := strconv.ParseInt(imdbId, 10, 64)
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		cur.ItemId = imdbIdInt

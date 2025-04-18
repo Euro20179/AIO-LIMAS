@@ -9,6 +9,7 @@ import (
 
 	"aiolimas/settings"
 	db_types "aiolimas/types"
+	"aiolimas/logging"
 
 )
 
@@ -41,7 +42,7 @@ func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	all, err := Lookup(query, fullUrl, key)
 
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 
@@ -58,7 +59,7 @@ func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	out, err = RadarrIdIdentifier(fmt.Sprintf("%d", id), us)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 	out.ItemId = info.Entry.ItemId
@@ -86,7 +87,7 @@ func RadarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	all, err := Lookup(query, fullUrl, key)
 
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return nil, err
 	}
 
@@ -126,14 +127,14 @@ func RadarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataE
 	client := http.Client {}
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 
 	req.Header.Set("X-Api-Key", key)
 	res, err := client.Do(req)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 
@@ -141,13 +142,13 @@ func RadarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataE
 
 	text, err := io.ReadAll(res.Body)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 
 	err = json.Unmarshal(text, &data)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 
@@ -171,7 +172,7 @@ func RadarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataE
 	mdMarshal, err := json.Marshal(mediaDependant)
 
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return out, err
 	}
 

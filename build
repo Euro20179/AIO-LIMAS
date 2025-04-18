@@ -1,4 +1,17 @@
 #!/bin/sh
 
+log_level=${1:-ERROR}
+
+case "$log_level" in
+    ERROR|WARN|INFO) : ;;
+    *)
+        printf "Invalid log level: %s\nMust be one of: ERROR, WARN, INFO" "$log_level"
+        exit 1 ;;
+esac
+
+logging_go="./logging/main.go"
+
+sed -i "s/var LOGLEVEL = L_.*/var LOGLEVEL = L_$log_level/" "$logging_go"
+
 #main go program
 ${GO:-go} build .

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	db "aiolimas/db"
+	"aiolimas/logging"
 	meta "aiolimas/metadata"
 	"aiolimas/settings"
 	"aiolimas/types"
@@ -364,7 +365,7 @@ func ListEntries(ctx RequestContext) {
 	for _, row := range entries {
 		j, err := row.ToJson()
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(j)
@@ -440,7 +441,7 @@ func Stream(ctx RequestContext) {
 			w.Write([]byte(data))
 		}
 	} else if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		w.WriteHeader(500)
 		w.Write([]byte("ERROR"))
 	} else {
@@ -454,6 +455,7 @@ func DeleteEntry(ctx RequestContext) {
 	entry := pp["id"].(db_types.InfoEntry)
 	err := db.Delete(ctx.Uid, entry.ItemId)
 	if err != nil {
+		logging.ELog(err)
 		util.WError(w, 500, "Could not delete entry\n%s", err.Error())
 		return
 	}

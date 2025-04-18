@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	log "aiolimas/logging"
 	"aiolimas/search"
 	"aiolimas/settings"
 
@@ -30,6 +31,7 @@ func OpenUserDb(uid int64) (*sql.DB, error) {
 func QueryUserDb(uid int64, query string, args ...any) (*sql.Rows, error) {
 	Db, err := OpenUserDb(uid)
 	if err != nil {
+		log.ELog(err)
 		return nil, err
 	}
 	defer Db.Close()
@@ -53,6 +55,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 	allRows, err := QueryUserDb(uid, `SELECT * FROM entryInfo`)
 	if err != nil {
+		log.ELog(err)
 		return out, err
 	}
 
@@ -61,24 +64,24 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 		err := cur.EntryInfo.ReadEntry(allRows)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 		cur.UserInfo, err = GetUserViewEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 
 		cur.MetaInfo, err = GetMetadataEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 
 		children, err := GetChildren(uid, cur.EntryInfo.ItemId)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 
@@ -88,7 +91,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 		copies, err := GetCopiesOf(uid, cur.EntryInfo.ItemId)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 
@@ -272,7 +275,7 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 		var row db_types.MetadataEntry
 		err := row.ReadEntry(items)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 		out = append(out, row)
@@ -538,6 +541,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 
 	safeQuery, err := search.Search2String(searchQuery)
 	if err != nil {
+		log.ELog(err)
 		return out, err
 	}
 	fmt.Fprintf(os.Stderr, "Got query %s\n", safeQuery)
@@ -553,7 +557,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 		var row db_types.InfoEntry
 		err = row.ReadEntry(rows)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 		out = append(out, row)
@@ -656,7 +660,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 		var event db_types.UserViewingEvent
 		err := event.ReadEntry(events)
 		if err != nil {
-			println("[db/GetEvents]:", err.Error())
+			log.ELog(err)
 			continue
 		}
 		out = append(out, event)
@@ -683,7 +687,7 @@ func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 		var row db_types.InfoEntry
 		err = row.ReadEntry(items)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 		out = append(out, row)
@@ -714,7 +718,7 @@ func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
 		var row db_types.UserViewingEntry
 		err := row.ReadEntry(items)
 		if err != nil {
-			println(err.Error())
+			log.ELog(err)
 			continue
 		}
 		out = append(out, row)

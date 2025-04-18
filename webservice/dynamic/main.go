@@ -13,6 +13,7 @@ import (
 	"aiolimas/db"
 	db_types "aiolimas/types"
 	"aiolimas/util"
+	"aiolimas/logging"
 )
 
 func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
@@ -41,12 +42,12 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 		"./webservice/dynamic/templates/search-results-table-row.html",
 	)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 	}
 
 	err = tmpl.ExecuteTemplate(w, "search-results", results)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 	}
 }
 
@@ -60,28 +61,28 @@ func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) 
 	info, err := db.GetInfoEntryById(uid, i)
 	if err != nil {
 		util.WError(w, 404, "Item not found")
-		println(err.Error())
+		logging.ELog(err)
 		return
 	}
 
 	meta, err := db.GetMetadataEntryById(uid, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item metadata")
-		println(err.Error())
+		logging.ELog(err)
 		return
 	}
 
 	view, err := db.GetUserViewEntryById(uid, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item viewing info")
-		println(err.Error())
+		logging.ELog(err)
 		return
 	}
 
 	events, err := db.GetEvents(uid, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item events")
-		println(err.Error())
+		logging.ELog(err)
 		return
 	}
 

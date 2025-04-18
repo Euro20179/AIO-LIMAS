@@ -11,6 +11,7 @@ import (
 	db "aiolimas/db"
 	"aiolimas/settings"
 	"aiolimas/types"
+	"aiolimas/logging"
 )
 
 func CopyUserViewingEntry(ctx RequestContext) {
@@ -262,7 +263,7 @@ func SetUserEntry(ctx RequestContext) {
 func outputUserEntry(item db_types.UserViewingEntry, w http.ResponseWriter) error{
 	j, err := item.ToJson()
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return err
 	}
 	w.Write(j)
@@ -307,7 +308,7 @@ func ListEvents(ctx RequestContext) {
 	for _, event := range events {
 		j, err := event.ToJson()
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(j)
@@ -331,7 +332,7 @@ func GetEventsOf(ctx RequestContext) {
 	for _, e := range events {
 		j, err := e.ToJson()
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			continue
 		}
 		w.Write(j)

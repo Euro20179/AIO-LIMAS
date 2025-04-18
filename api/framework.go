@@ -18,6 +18,7 @@ import (
 	"aiolimas/db"
 	"aiolimas/metadata"
 	"aiolimas/types"
+	"aiolimas/logging"
 )
 
 type (
@@ -99,7 +100,7 @@ func ckAuthorizationHeader(text string) (string, error) {
 		info, err := base64.StdEncoding.DecodeString(b64)
 		if err != nil {
 			estring = "You're bad at encoding base64 😀\n"
-			println(err.Error())
+			logging.ELog(err)
 			goto unauthorized
 		}
 		username, password, found := strings.Cut(string(info), ":")
@@ -111,7 +112,7 @@ func ckAuthorizationHeader(text string) (string, error) {
 		uid, err := accounts.CkLogin(username, password)
 
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			return "", err
 		}
 

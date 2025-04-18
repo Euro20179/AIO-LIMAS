@@ -10,6 +10,7 @@ import (
 
 	"aiolimas/settings"
 	"aiolimas/types"
+	"aiolimas/logging"
 )
 
 type AnilistStatus string
@@ -303,13 +304,13 @@ func AnilistIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) 
 		if entry.Type == "MANGA" {
 			cur, err = applyManga(entry)
 			if err != nil {
-				println(err.Error())
+				logging.ELog(err)
 				continue
 			}
 		} else {
 			cur, err = applyShow(entry)
 			if err != nil {
-				println(err.Error())
+				logging.ELog(err)
 				continue
 			}
 		}
@@ -357,13 +358,13 @@ func AnilistById(id string, us settings.SettingsData) (db_types.MetadataEntry, e
 	if ty == "Manga" {
 		outMeta, err = applyManga(out)
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			return outMeta, err
 		}
 	} else {
 		outMeta, err = applyShow(out)
 		if err != nil {
-			println(err.Error())
+			logging.ELog(err)
 			return outMeta, err
 		}
 	}

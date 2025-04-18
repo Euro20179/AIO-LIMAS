@@ -9,6 +9,7 @@ import (
 
 	"aiolimas/accounts"
 	api "aiolimas/api"
+	"aiolimas/logging"
 	lua_api "aiolimas/lua-api"
 	"aiolimas/webservice/dynamic"
 )
@@ -40,8 +41,9 @@ type EndPointMap map[string]func(http.ResponseWriter, *http.Request)
 func startServer() {
 	const apiRoot = "/api/v1"
 
+	logging.Info("using root: %s", apiRoot)
 	for k, v := range api.Endpoints {
-		println(apiRoot + k)
+		logging.Info("creating endpoints: %s", k)
 		api.MakeEndPointsFromList(apiRoot + k, v)
 	}
 
@@ -56,6 +58,8 @@ func startServer() {
 	if port == "" {
 		port = "8080"
 	}
+
+	logging.Info("starting server on port %s", port)
 
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }

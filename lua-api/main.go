@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	db_types "aiolimas/types"
+	"aiolimas/logging"
 
 	"github.com/yuin/gopher-lua"
 )
@@ -96,7 +97,7 @@ func InitGlobalLuaInstance(fromFile string) (*lua.LState, error) {
 
 	err := l.DoFile(fromFile)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return l, err
 	}
 

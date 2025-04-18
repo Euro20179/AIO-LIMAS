@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"aiolimas/logging"
 )
 
 /*
@@ -19,14 +21,14 @@ func Lookup(query string, apiPath string, key string) ([]map[string]interface{},
 
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return nil, err
 	}
 
 	req.Header.Set("X-Api-Key", key)
 	res, err := client.Do(req)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return nil, err
 	}
 
@@ -34,13 +36,13 @@ func Lookup(query string, apiPath string, key string) ([]map[string]interface{},
 
 	text, err := io.ReadAll(res.Body)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return nil, err
 	}
 
 	err = json.Unmarshal(text, &all)
 	if err != nil {
-		println(err.Error())
+		logging.ELog(err)
 		return nil, err
 	}
 
