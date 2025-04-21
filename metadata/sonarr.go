@@ -35,7 +35,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 		query = entry.Native_Title
 	}
 	if query == "" {
-		println("No search possible")
+		logging.Info("no search possible")
 		return out, errors.New("no search possible")
 	}
 

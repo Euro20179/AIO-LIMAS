@@ -53,7 +53,6 @@ func Fullsetup(state *lua.LState) {
 	bor := state.NewFunction(func(s *lua.LState) int {
 		n1 := s.ToInt64(1)
 		n2 := s.ToInt64(2)
-		println(n1, n2)
 		s.Push(lua.LNumber(n1 | n2))
 		return 1
 	})

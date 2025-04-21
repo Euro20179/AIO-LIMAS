@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	db_types "aiolimas/types"
 
@@ -84,7 +85,7 @@ func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	}
 
 	if title == "" {
-		println("[metadata/steam]: no search possible")
+		logging.Info("no search possible")
 		return out, errors.New("no search possible")
 	}
 
@@ -115,7 +116,7 @@ func SteamIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	title := info.Title
 
 	if title == "" {
-		println("[metadata/steam]: no search possible")
+		logging.Info("no search possible")
 		return out, errors.New("no search possible")
 	}
 
