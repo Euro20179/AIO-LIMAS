@@ -13,7 +13,8 @@ There are a couple of assumptions the client needs to make.
     ```
     each tag has exactly one ASCII Unit on either side of it.
 2. The Notes section part of userViewingInfo can be in any format, the web client supports HTML and phpbb like syntax.
-    A client MUST implement phpbb like syntax for the following tags
+    A client MAY choose to display notes, and if notes are displayed:
+    the client MUST implement phpbb like syntax for the following tags:
     `[b]bold[/b]`, `[i]italic[/i]`, `[spoiler]spoiler[/spoiler]`
 3. The UserRating can be anything the user desires, it could be a scale of 1-10, it could be a non-linear scale, it's up to the user.
     However the client may enforce a certain rating scale,
