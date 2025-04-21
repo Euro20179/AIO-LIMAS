@@ -17,6 +17,7 @@ There are a couple of assumptions the client needs to make.
     the client MUST implement phpbb like syntax for the following tags:
     * `[b]bold[/b]`
 	* `[i]italic[/i]`
+    * `[u]underline[/u]`
 	* `[spoiler]spoiler[/spoiler]`
     * `[item=&lt;id&gt;]preview text[/item]` (should link to an item with that id, client can handle this however it wants)
     * `[hl]text[/hl]` should highlight the text in a client-defined way
