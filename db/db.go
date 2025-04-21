@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"aiolimas/logging"
 	log "aiolimas/logging"
 	"aiolimas/search"
 	"aiolimas/settings"
@@ -541,7 +542,8 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 		log.ELog(err)
 		return out, err
 	}
-	fmt.Fprintf(os.Stderr, "Got query %s\n", safeQuery)
+
+	logging.Info("got query %s", safeQuery)
 
 	rows, err := QueryUserDb(uid, fmt.Sprintf(query, safeQuery))
 	if err != nil {
