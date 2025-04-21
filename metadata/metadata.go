@@ -59,7 +59,7 @@ func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 func Identify(identifySearch IdentifyMetadata, identifier string) ([]db_types.MetadataEntry, string, error) {
 	fn, contains := IdentifyProviders[identifier]
 	if !contains {
-		return []db_types.MetadataEntry{}, "", fmt.Errorf("Invalid provider %s", identifier)
+		return []db_types.MetadataEntry{}, "", fmt.Errorf("invalid provider %s", identifier)
 	}
 
 	res, err := fn(identifySearch)
@@ -69,7 +69,7 @@ func Identify(identifySearch IdentifyMetadata, identifier string) ([]db_types.Me
 func GetMetadataById(id string, foruid int64, provider string) (db_types.MetadataEntry, error) {
 	fn, contains := IdIdentifiers[provider]
 	if !contains {
-		return db_types.MetadataEntry{}, fmt.Errorf("Invalid provider: %s", provider)
+		return db_types.MetadataEntry{}, fmt.Errorf("invalid provider: %s", provider)
 	}
 
 	us, err := settings.GetUserSettigns(foruid)

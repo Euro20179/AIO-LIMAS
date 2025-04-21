@@ -114,7 +114,7 @@ func OMDBProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	key := os.Getenv("OMDB_KEY")
 	if key == "" {
-		return out, errors.New("No api key")
+		return out, errors.New("no api key")
 	}
 
 	search := entry.En_Title
@@ -122,7 +122,7 @@ func OMDBProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 		search = entry.Native_Title
 	}
 	if search == "" {
-		return out, errors.New("No search possible")
+		return out, errors.New("no search possible")
 	}
 
 	url := fmt.Sprintf(

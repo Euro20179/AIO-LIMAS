@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"aiolimas/logging"
 	log "aiolimas/logging"
 	"aiolimas/search"
 	"aiolimas/settings"
@@ -216,7 +215,7 @@ func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string
 
 	hasEntry := rows.Next()
 	if !hasEntry {
-		return fmt.Errorf("Could not find id %d", id)
+		return fmt.Errorf("could not find id %d", id)
 	}
 
 	newEntry, err := (*out).ReadEntryCopy(rows)
@@ -450,7 +449,7 @@ func WriteLocationFile(entry *db_types.InfoEntry, aliases map[string]string) err
 		aioIdPath = filepath.Join(location, ".AIO-ID")
 	}
 
-	err = os.WriteFile(aioIdPath, []byte(fmt.Sprintf("%d", entry.ItemId)), 0o644)
+	err = os.WriteFile(aioIdPath, fmt.Appendf(nil, "%d", entry.ItemId), 0o644)
 	if err != nil {
 		return err
 	}
@@ -543,7 +542,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 		return out, err
 	}
 
-	logging.Info("got query %s", safeQuery)
+	log.Info("got query %s", safeQuery)
 
 	rows, err := QueryUserDb(uid, fmt.Sprintf(query, safeQuery))
 	if err != nil {

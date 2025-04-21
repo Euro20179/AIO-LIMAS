@@ -89,7 +89,7 @@ func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 		return out, errors.New("no search possible")
 	}
 
-	tree, err := getSteamSearchTree(title)
+	tree, _ := getSteamSearchTree(title)
 
 	us, err := settings.GetUserSettigns(info.Uid)
 	if err != nil {
