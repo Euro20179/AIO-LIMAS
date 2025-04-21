@@ -96,6 +96,11 @@ Basic api documentation can be found at `/docs`
 
 Basic user facing docs can be found at `/usage`
 
+
+### Clients
+
+[implementing a client](./CLIENTS.md)
+
 ### TODO
 
 - [x] enable/disable children/copies
