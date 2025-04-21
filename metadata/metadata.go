@@ -41,6 +41,8 @@ func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	case db_types.TY_MANGA:
 		return AnilistManga(info)
 
+	case db_types.TY_DOCUMENTARY:
+		fallthrough
 	case db_types.TY_SHOW:
 		fallthrough
 	case db_types.TY_MOVIE:

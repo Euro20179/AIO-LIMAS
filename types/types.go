@@ -153,6 +153,8 @@ type MediaTypes string
 
 const (
 	TY_SHOW        MediaTypes = "Show"
+	TY_EPISODE     MediaTypes = "Episode"
+	TY_DOCUMENTARY MediaTypes = "Documentary"
 	TY_MOVIE       MediaTypes = "Movie"
 	TY_MOVIE_SHORT MediaTypes = "MovieShort"
 	TY_GAME        MediaTypes = "Game"
