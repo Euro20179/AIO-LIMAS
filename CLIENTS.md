@@ -17,6 +17,6 @@ There are a couple of assumptions the client needs to make.
     `[b]bold[/b]`, `[i]italic[/i]`, `[spoiler]spoiler[/spoiler]`
 3. The UserRating can be anything the user desires, it could be a scale of 1-10, it could be a non-linear scale, it's up to the user.
     However the client may enforce a certain rating scale,
-    The web client enforces my rating scale, of a non-linear scale where 8 is average
+    The web client enforces my rating scale, of a non-linear scale where 80 is average
 
 Besides these assumptions, the client can do whatever it wants.
