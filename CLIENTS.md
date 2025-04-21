@@ -22,6 +22,7 @@ There are a couple of assumptions the client needs to make.
     * `[item=&lt;id&gt;]preview text[/item]` (should link to an item with that id, client can handle this however it wants)
     * `[hl]text[/hl]` should highlight the text in a client-defined way
     In addition a new line must be rendered as a new line (no whitespace collapsing), starting and ending whitespace in the note itself, and within tags may be removed.
+    Any invalid tags should be rendered as plain text, eg `[invalid]text[/invalid]` -> `text`.
 3. The UserRating can be anything the user desires, it could be a scale of 1-10, it could be a non-linear scale, it's up to the user.
     However the client may enforce a certain rating scale,
     The web client enforces my rating scale, of a non-linear scale where 80 is average
