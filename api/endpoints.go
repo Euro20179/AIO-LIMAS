@@ -301,6 +301,16 @@ when using finalize-identify`,
 	},
 
 	{
+		EndPoint: "set-thumbnail",
+		Handler: SetThumbnail,
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		},
+		Description: "Set the thumbnail for a metadata entry",
+		Method: POST,
+	},
+
+	{
 		EndPoint:     "list-entries",
 		Handler:      ListMetadata,
 		QueryParams:  QueryParams{},

@@ -108,6 +108,18 @@ func SetMetadataEntry(ctx RequestContext) {
 	w.Write(outJson)
 }
 
+func SetThumbnail(ctx RequestContext) {
+	body, err := io.ReadAll(ctx.Req.Body)
+	if err != nil{
+		util.WError(ctx.W, 500, "Could not read request body\n%s", err.Error())
+	}
+
+	entry := ctx.PP["id"].(db_types.MetadataEntry)
+	entry.Thumbnail = string(body)
+	db.UpdateMetadataEntry(ctx.Uid, &entry)
+	success(ctx.W)
+}
+
 func ModMetadataEntry(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
