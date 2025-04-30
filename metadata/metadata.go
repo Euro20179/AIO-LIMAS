@@ -80,6 +80,15 @@ func GetMetadataById(id string, foruid int64, provider string) (db_types.Metadat
 	return fn(id, us)
 }
 
+func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.MetadataEntry) string {
+	if info.Format & db_types.F_STEAM == db_types.F_STEAM {
+		return "steam"
+	}
+
+	//fallback
+	return "steam"
+}
+
 func GetLocation(metadata *db_types.MetadataEntry, foruid int64, provider string) (string, error) {
 	fn, contains := LocationFinders[provider]
 	if !contains {

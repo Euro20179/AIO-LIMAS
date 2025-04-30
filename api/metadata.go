@@ -13,7 +13,13 @@ import (
 
 func FetchLocation(ctx RequestContext) {
 	m := ctx.PP["id"].(db_types.MetadataEntry)
-	provider := ctx.PP["provider"].(string)
+	provider := ctx.PP.Get("provider", "").(string)
+
+	if provider == "" {
+		info, _ := db.GetInfoEntryById(ctx.Uid, m.ItemId)
+		provider = metadata.DetermineBestLocationProvider(&info, &m)
+	}
+
 	location, err := metadata.GetLocation(&m, ctx.Uid, provider)
 	if err != nil {
 		util.WError(ctx.W, 500, "could not get location: %s", err)
@@ -28,7 +34,8 @@ func FetchLocation(ctx RequestContext) {
 		util.WError(ctx.W, 500, "failed to update entry location: %s", err)
 		return
 	}
-	success(ctx.W)
+	ctx.W.WriteHeader(200)
+	ctx.W.Write([]byte(location))
 }
 
 func FetchMetadataForEntry(ctx RequestContext) {

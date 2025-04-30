@@ -65,6 +65,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 		return out, err
 	}
 	out.ItemId = info.Entry.ItemId
+
 	info.Entry.Location = data["path"].(string)
 	return out, err
 }
@@ -162,6 +163,8 @@ func SonarrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataE
 	ratings := data["ratings"].(map[string]interface{})
 	out.Rating = ratings["value"].(float64)
 	out.RatingMax = 10
+	out.Provider = "sonarr"
+	out.ProviderID = id
 
 	seasonsArray := data["seasons"].([]interface{})
 
