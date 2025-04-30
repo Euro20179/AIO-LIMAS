@@ -379,6 +379,13 @@ func P_ArtStyle(uid int64, in string) (any, error) {
 	return uint(val), nil
 }
 
+func P_LocationProvider(uid int64, in string) (any, error) {
+	if metadata.IsValidLocationProvider(in) {
+		return in, nil
+	}
+	return in, fmt.Errorf("Invalid location provider: '%s'", in)
+}
+
 func P_MetaProvider(uid int64, in string) (any, error) {
 	if metadata.IsValidProvider(in) {
 		return in, nil

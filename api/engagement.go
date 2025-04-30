@@ -55,7 +55,7 @@ func BeginMedia(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
 
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -89,7 +89,7 @@ func FinishMedia(ctx RequestContext) {
 	w := ctx.W
 	entry := parsedParams["id"].(db_types.UserViewingEntry)
 
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -124,7 +124,7 @@ func PlanMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -150,7 +150,7 @@ func DropMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -171,7 +171,7 @@ func PauseMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -198,7 +198,7 @@ func ResumeMedia(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -361,7 +361,7 @@ func RegisterEvent(ctx RequestContext) {
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
 	name := parsedParams["name"].(string)
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return

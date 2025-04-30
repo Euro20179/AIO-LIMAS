@@ -346,7 +346,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		return err
 	}
 
-	us, err := settings.GetUserSettigns(uid)
+	us, err := settings.GetUserSettings(uid)
 	if err != nil {
 		return err
 	}
@@ -457,7 +457,7 @@ func WriteLocationFile(entry *db_types.InfoEntry, aliases map[string]string) err
 }
 
 func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
-	us, err := settings.GetUserSettigns(uid)
+	us, err := settings.GetUserSettings(uid)
 	if err != nil {
 		return err
 	}

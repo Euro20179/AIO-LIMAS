@@ -21,7 +21,7 @@ type SettingsData struct {
 	DefaultTimeZone string
 }
 
-func GetUserSettigns(uid int64) (SettingsData, error) {
+func GetUserSettings(uid int64) (SettingsData, error) {
 	settingsFile := os.Getenv("AIO_DIR") + fmt.Sprintf("/users/%d/settings.json", uid)
 
 	file, err := os.Open(settingsFile)

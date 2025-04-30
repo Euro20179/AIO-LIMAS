@@ -5,11 +5,31 @@ import (
 	"io"
 
 	"aiolimas/db"
+	"aiolimas/logging"
 	"aiolimas/metadata"
 	"aiolimas/types"
 	"aiolimas/util"
-	"aiolimas/logging"
 )
+
+func FetchLocation(ctx RequestContext) {
+	m := ctx.PP["id"].(db_types.MetadataEntry)
+	provider := ctx.PP["provider"].(string)
+	location, err := metadata.GetLocation(&m, ctx.Uid, provider)
+	if err != nil {
+		util.WError(ctx.W, 500, "could not get location: %s", err)
+		return
+	}
+
+	entry, _ := db.GetInfoEntryById(ctx.Uid, m.ItemId)
+	entry.Location = location
+
+	err = db.UpdateInfoEntry(ctx.Uid, &entry)
+	if err != nil {
+		util.WError(ctx.W, 500, "failed to update entry location: %s", err)
+		return
+	}
+	success(ctx.W)
+}
 
 func FetchMetadataForEntry(ctx RequestContext) {
 	pp := ctx.PP

@@ -91,7 +91,7 @@ func SteamProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 
 	tree, _ := getSteamSearchTree(title)
 
-	us, err := settings.GetUserSettigns(info.Uid)
+	us, err := settings.GetUserSettings(info.Uid)
 	if err != nil {
 		return out, err
 	}
@@ -229,4 +229,12 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	out.RatingMax = 10
 
 	return out, nil
+}
+
+func SteamLocationFinder(_ *settings.SettingsData, meta *db_types.MetadataEntry) (string, error) {
+	if meta.ProviderID != "" {
+		return fmt.Sprintf("steam://rungameid/%s", meta.ProviderID), nil
+	}
+
+	return "", errors.New("please set the metadata ProviderID before setting the location")
 }

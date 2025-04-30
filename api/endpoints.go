@@ -229,6 +229,15 @@ var mainEndpointList = []ApiEndPoint{
 // `/metadata` endpoints {{{
 var metadataEndpointList = []ApiEndPoint{
 	{
+		EndPoint: "fetch-location",
+		Handler: FetchLocation,
+		QueryParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+			"provider": MkQueryInfo(P_LocationProvider, true),
+		},
+		Description: "Fetch the location of an entry based on the metadata and other info",
+	},
+	{
 		EndPoint: "identify",
 		Handler:  IdentifyWithSearch,
 		QueryParams: QueryParams{

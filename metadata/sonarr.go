@@ -17,7 +17,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entry := info.Entry
 	var out db_types.MetadataEntry
 
-	us, err := settings.GetUserSettigns(info.Uid)
+	us, err := settings.GetUserSettings(info.Uid)
 	if err != nil{
 		return out, err
 	}
@@ -70,7 +70,7 @@ func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 }
 
 func SonarrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
-	us, err := settings.GetUserSettigns(info.ForUid)
+	us, err := settings.GetUserSettings(info.ForUid)
 	if err != nil{
 		return nil, err
 	}

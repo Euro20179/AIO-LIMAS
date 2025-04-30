@@ -318,7 +318,7 @@ func AddEntry(ctx RequestContext) {
 		metadata = newMeta
 	}
 
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil {
 		util.WError(w, 500, "Could not update entry\n%s", err.Error())
 		return
@@ -415,7 +415,7 @@ func Stream(ctx RequestContext) {
 		subFile = ""
 	}
 
-	us, err := settings.GetUserSettigns(ctx.Uid)
+	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil {
 		logging.ELog(err)
 		return

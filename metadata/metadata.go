@@ -3,6 +3,7 @@ package metadata
 import (
 	"fmt"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	"aiolimas/types"
 )
@@ -72,11 +73,27 @@ func GetMetadataById(id string, foruid int64, provider string) (db_types.Metadat
 		return db_types.MetadataEntry{}, fmt.Errorf("invalid provider: %s", provider)
 	}
 
-	us, err := settings.GetUserSettigns(foruid)
+	us, err := settings.GetUserSettings(foruid)
 	if err != nil {
 		return db_types.MetadataEntry{}, err
 	}
 	return fn(id, us)
+}
+
+func GetLocation(metadata *db_types.MetadataEntry, foruid int64, provider string) (string, error) {
+	fn, contains := LocationFinders[provider]
+	if !contains {
+		return "", fmt.Errorf("invalid provider: %s", provider)
+	}
+
+	us, err := settings.GetUserSettings(foruid)
+	if err != nil {
+		return "", err
+	}
+
+	logging.Info(fmt.Sprintf("location lookup using provider: %s", provider))
+
+	return fn(&us, metadata)
 }
 
 func ListMetadataProviders() []string {
@@ -85,6 +102,11 @@ func ListMetadataProviders() []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func IsValidLocationProvider(name string) bool {
+	_, contains := LocationFinders[name]
+	return contains
 }
 
 func IsValidProvider(name string) bool {
@@ -100,6 +122,14 @@ func IsValidIdentifier(name string) bool {
 func IsValidIdIdentifier(name string) bool {
 	_, contains := IdIdentifiers[name]
 	return contains
+}
+
+//parameters: userSettings item_metadata
+type LocationFunc func(*settings.SettingsData, *db_types.MetadataEntry) (string, error)
+
+type LocationMap map[string]LocationFunc
+var LocationFinders LocationMap = LocationMap{
+	"steam": SteamLocationFinder,
 }
 
 type ProviderFunc func(*GetMetadataInfo) (db_types.MetadataEntry, error)
