@@ -278,6 +278,7 @@ when using finalize-identify`,
 			"id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 			"provider": MkQueryInfo(P_NotEmpty, false),
 		},
+		Returns: "MetadataEntry",
 		Description: `Fetch the metadata for an entry based on the type<br>
 	and using EntryInfo.En_Title as the title search<br>
 	if provider is not given, it is automatically chosen based on type`,

@@ -82,7 +82,14 @@ func FetchMetadataForEntry(ctx RequestContext) {
 		return
 	}
 
-	success(w)
+	data, err := newMeta.ToJson()
+	if err != nil {
+		util.WError(ctx.W, 500, "could not serialize new metadata (new metadata saved): %s", err)
+		return
+	}
+
+	w.WriteHeader(200)
+	w.Write(data)
 }
 
 func RetrieveMetadataForEntry(ctx RequestContext) {
