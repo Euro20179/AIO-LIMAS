@@ -20,6 +20,11 @@ func FetchLocation(ctx RequestContext) {
 		provider = metadata.DetermineBestLocationProvider(&info, &m)
 	}
 
+	if provider == "" {
+		util.WError(ctx.W, 400, "could not determine a good location provider")
+		return
+	}
+
 	location, err := metadata.GetLocation(&m, ctx.Uid, provider)
 	if err != nil {
 		util.WError(ctx.W, 500, "could not get location: %s", err)

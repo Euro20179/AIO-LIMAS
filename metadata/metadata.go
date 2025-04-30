@@ -89,8 +89,8 @@ func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.
 		return "sonarr"
 	}
 
-	//fallback
-	return "steam"
+	//could not determine
+	return ""
 }
 
 func GetLocation(metadata *db_types.MetadataEntry, foruid int64, provider string) (string, error) {
