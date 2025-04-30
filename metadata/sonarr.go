@@ -6,12 +6,36 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	db_types "aiolimas/types"
-	"aiolimas/logging"
-
 )
+
+func SonarrGetLocation(us *settings.SettingsData, meta *db_types.MetadataEntry) (string, error) {
+	url := us.SonarrURL
+	key := us.SonarrKey
+
+	if url == "" || key == ""{
+		return "", errors.New("sonarr is not setup")
+	}
+
+	id := meta.ProviderID
+
+	if id == "" {
+		return "", errors.New("ProviderID is not set")
+	}
+
+	fId, _ := strconv.ParseFloat(id, 64)
+	path, err := LookupPathById(fId, url, key)
+
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
+}
 
 func SonarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entry := info.Entry

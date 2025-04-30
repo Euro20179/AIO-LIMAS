@@ -85,6 +85,10 @@ func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.
 		return "steam"
 	}
 
+	if metadata.Provider == "sonarr" {
+		return "sonarr"
+	}
+
 	//fallback
 	return "steam"
 }
@@ -139,6 +143,7 @@ type LocationFunc func(*settings.SettingsData, *db_types.MetadataEntry) (string,
 type LocationMap map[string]LocationFunc
 var LocationFinders LocationMap = LocationMap{
 	"steam": SteamLocationFinder,
+	"sonarr": SonarrGetLocation,
 }
 
 type ProviderFunc func(*GetMetadataInfo) (db_types.MetadataEntry, error)

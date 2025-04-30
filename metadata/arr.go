@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,10 +15,8 @@ import (
 	for now that is sonarr, and radarr
 */
 
-func Lookup(query string, apiPath string, key string) ([]map[string]interface{}, error){
+func _request(fullUrl string, key string) ([]byte, error) {
 	client := http.Client {}
-
-	fullUrl := apiPath + "?term=" + url.QueryEscape(query)
 
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
@@ -32,9 +31,46 @@ func Lookup(query string, apiPath string, key string) ([]map[string]interface{},
 		return nil, err
 	}
 
+	text, err := io.ReadAll(res.Body)
+	if err != nil {
+		logging.ELog(err)
+		return nil, err
+	}
+
+	return text, nil
+}
+
+func LookupPathById(id float64, apiPath string, key string) (string, error) {
+	fullUrl := apiPath + "api/v3/series"
+
+	text, err := _request(fullUrl, key)
+	if err != nil {
+		logging.ELog(err)
+		return "", err
+	}
+
+	var all []map[string]interface{}
+	err = json.Unmarshal(text, &all)
+	if err != nil {
+		logging.ELog(err)
+		return "", err
+	}
+
+	for _, item := range all {
+		curId := item["id"].(float64)
+		if curId == id {
+			return item["path"].(string), nil
+		}
+	}
+	return "", errors.New("could not find item")
+}
+
+func Lookup(query string, apiPath string, key string) ([]map[string]interface{}, error){
+	fullUrl := apiPath + "?term=" + url.QueryEscape(query)
+
 	var all []map[string]interface{}
 
-	text, err := io.ReadAll(res.Body)
+	text, err := _request(fullUrl, key)
 	if err != nil {
 		logging.ELog(err)
 		return nil, err
