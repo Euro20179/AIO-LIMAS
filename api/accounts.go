@@ -78,6 +78,18 @@ func Login(ctx RequestContext) {
 	success(w)
 }
 
+func Username2Id(ctx RequestContext) {
+	name := ctx.PP["username"].(string)
+	aioPath := os.Getenv("AIO_DIR")
+	id, err := accounts.Username2Id(aioPath, name)
+	if err != nil {
+		util.WError(ctx.W, 500, "could not find user id: %s", err)
+		return
+	}
+	ctx.W.WriteHeader(200)
+	fmt.Fprintf(ctx.W, "%d", id)
+}
+
 func ListUsers(ctx RequestContext) {
 	w := ctx.W
 	aioPath := os.Getenv("AIO_DIR")

@@ -14,12 +14,35 @@ import (
 )
 
 type AccountInfo struct {
-	Id int64
+	Id       int64
 	Username string
 }
 
 func AccountsDbPath(aioPath string) string {
 	return fmt.Sprintf("%s/accounts.db", aioPath)
+}
+
+func Username2Id(aioPath string, username string) (uint64, error) {
+	dbPath := AccountsDbPath(aioPath)
+	conn, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer conn.Close()
+
+	res, err := conn.Query("SELECT rowid FROM accounts WHERE username = ?", username)
+
+	if err != nil {
+		return 0, err
+	}
+
+	var out uint64 = 0
+	res.Next()
+	err = res.Scan(&out)
+	if err != nil {
+		println(err.Error())
+	}
+	return out, nil
 }
 
 func ListUsers(aioPath string) ([]AccountInfo, error) {
@@ -90,7 +113,7 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 	}
 
 	if err := settings.InitUserSettings(id); err != nil {
-		return err;
+		return err
 	}
 
 	return db.InitDb(id)
@@ -132,7 +155,6 @@ func CreateAccount(username string, rawPassword string) error {
 	return InitializeAccount(aioPath, username, hash)
 }
 
-
 func CkLogin(username string, rawPassword string) (string, error) {
 	h := sha256.New()
 	h.Write([]byte(rawPassword))
@@ -159,7 +181,7 @@ func CkLogin(username string, rawPassword string) (string, error) {
 			return "", err
 		}
 
-		if(password == hash) {
+		if password == hash {
 			return uid, nil
 		} else {
 			return "", errors.New("invalid password")

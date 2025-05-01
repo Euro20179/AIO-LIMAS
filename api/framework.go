@@ -31,6 +31,8 @@ type QueryParamInfo struct {
 	Required bool
 }
 
+//TODO:
+//AIO_PATH should be a thing here so each seperate endpoint doesn't need to figure it out itself
 type RequestContext struct {
 	Uid        int64
 	Req        *http.Request

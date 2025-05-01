@@ -500,6 +500,17 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "username2id",
+		Handler: Username2Id,
+		Description: "get a user's id from username",
+		QueryParams: QueryParams {
+			"username": MkQueryInfo(P_NotEmpty, true),
+		},
+		UserIndependant: true,
+		GuestAllowed: true,
+	},
+
+	{
 		EndPoint: "login",
 		Handler:  Login,
 		QueryParams: QueryParams{
