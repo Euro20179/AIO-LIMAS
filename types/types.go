@@ -166,6 +166,7 @@ const (
 	TY_PICTURE     MediaTypes = "Picture"
 	TY_MEME        MediaTypes = "Meme"
 	TY_LIBRARY     MediaTypes = "Library"
+	TY_VIDEO       MediaTypes = "Video"
 )
 
 func ListMediaTypes() []MediaTypes {
@@ -174,7 +175,7 @@ func ListMediaTypes() []MediaTypes {
 		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
 		TY_COLLECTION, TY_MOVIE_SHORT,
 		TY_PICTURE, TY_MEME, TY_LIBRARY,
-		TY_DOCUMENTARY, TY_EPISODE,
+		TY_DOCUMENTARY, TY_EPISODE, TY_VIDEO,
 	}
 }
 
@@ -282,7 +283,7 @@ type InfoEntry struct {
 	CopyOf        int64
 	Library       int64
 
-	//RUNTIME VALUES (not stored in database), see self.ReadEntry
+	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
 }
 
@@ -394,7 +395,7 @@ type UserViewingEntry struct {
 	UserRating      float64
 	Notes           string
 	CurrentPosition string
-	Extra string
+	Extra           string
 }
 
 func (self UserViewingEntry) Id() int64 {
