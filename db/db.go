@@ -15,6 +15,8 @@ import (
 
 	"aiolimas/types"
 
+	"aiolimas/util"
+
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -23,28 +25,59 @@ func UserRoot(uid int64) string {
 	return fmt.Sprintf("%s/users/%d/", aioPath, uid)
 }
 
-func OpenUserDb(uid int64) (*sql.DB, error) {
+type UserOpenDBInfo struct {
+	CancelTO util.CancelSignal
+	DB     *sql.DB
+}
+
+var openDbs map[int64]UserOpenDBInfo = make(map[int64]UserOpenDBInfo)
+
+func GetUserDB(uid int64) (*sql.DB, error) {
+
+	handleClosing := func(a ...any) any{
+		db := a[0].(*sql.DB)
+		db.Close()
+		delete(openDbs, uid)
+		return 0
+	}
+
+	//if alr open
+	if db, ok := openDbs[uid]; ok {
+		//cancel the previous settimeout
+		//put in a go func, otherwise it has the potential to crash if channel is alr closed by another thread
+		go func() { db.CancelTO <- true }()
+		//create a new settimeout to close it
+		db.CancelTO = util.SetTimeout(time.Second*60, handleClosing, db.DB)
+		return db.DB, nil
+	}
+
 	path := UserRoot(uid)
-	return sql.Open("sqlite3", path+"all.db")
+	db, err := sql.Open("sqlite3", path+"all.db")
+
+	openDbs[uid] = UserOpenDBInfo{
+		DB: db,
+		//in 60 seconds close db, with ability to cancel
+		CancelTO: util.SetTimeout(time.Second*60, handleClosing, db),
+	}
+
+	return db, err
 }
 
 func QueryUserDb(uid int64, query string, args ...any) (*sql.Rows, error) {
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		log.ELog(err)
 		return nil, err
 	}
-	defer Db.Close()
 
 	return Db.Query(query, args...)
 }
 
 func ExecUserDb(uid int64, query string, args ...any) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer Db.Close()
 
 	_, err = Db.Exec(query, args...)
 	return err
@@ -176,11 +209,10 @@ func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 }
 
 func InitDb(uid int64) error {
-	conn, err := OpenUserDb(uid)
+	conn, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer conn.Close()
 
 	sqlite3.Version()
 
@@ -200,11 +232,10 @@ func InitDb(uid int64) error {
 func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string, out *T) error {
 	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
 
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer Db.Close()
 
 	rows, err := Db.Query(query, id)
 	if err != nil {
@@ -288,11 +319,10 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := rand.Int64()
 
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer Db.Close()
 
 	entryInfo.ItemId = id
 	metadataEntry.ItemId = id
@@ -472,11 +502,10 @@ func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
 }
 
 func Delete(uid int64, id int64) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer Db.Close()
 
 	transact, err := Db.Begin()
 	if err != nil {
@@ -756,11 +785,10 @@ func AddTags(uid int64, id int64, tags []string) error {
 }
 
 func DelTags(uid int64, id int64, tags []string) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := GetUserDB(uid)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer Db.Close()
 
 	for _, tag := range tags {
 		if tag == "" {
