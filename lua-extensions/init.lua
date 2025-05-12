@@ -112,7 +112,8 @@ function Expand_macro(macro)
         "Collection",
         "Picture",
         "Meme",
-        "Library"
+        "Library",
+        "Video"
     }
 
     local statuses = {
