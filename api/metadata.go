@@ -14,6 +14,12 @@ import (
 func FetchLocation(ctx RequestContext) {
 	m := ctx.PP["id"].(db_types.MetadataEntry)
 	provider := ctx.PP.Get("provider", "").(string)
+	providerIDOverride := ctx.PP.Get("provider-id", "").(string)
+
+	providerID := m.ProviderID
+	if providerIDOverride != "" {
+		providerID = providerIDOverride
+	}
 
 	if provider == "" {
 		info, _ := db.GetInfoEntryById(ctx.Uid, m.ItemId)
@@ -25,7 +31,7 @@ func FetchLocation(ctx RequestContext) {
 		return
 	}
 
-	location, err := metadata.GetLocation(&m, ctx.Uid, provider)
+	location, err := metadata.GetLocation(providerID, ctx.Uid, provider)
 	if err != nil {
 		util.WError(ctx.W, 500, "could not get location: %s", err)
 		return
@@ -149,7 +155,7 @@ func SetMetadataEntry(ctx RequestContext) {
 
 func SetThumbnail(ctx RequestContext) {
 	body, err := io.ReadAll(ctx.Req.Body)
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Could not read request body\n%s", err.Error())
 	}
 
@@ -210,7 +216,7 @@ func IdentifyWithSearch(ctx RequestContext) {
 
 	title := parsedParsms["title"].(string)
 	search := metadata.IdentifyMetadata{
-		Title: title,
+		Title:  title,
 		ForUid: ctx.Uid,
 	}
 
@@ -236,7 +242,7 @@ func IdentifyWithSearch(ctx RequestContext) {
 func FinalizeIdentification(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
-	itemToApplyTo := parsedParams["apply-to"].(db_types.MetadataEntry)
+	itemToApplyTo := parsedParams.Get("apply-to", db_types.MetadataEntry{ItemId: 0, Title: "DOES NOT EXIST"}).(db_types.MetadataEntry)
 	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)
 
@@ -246,10 +252,18 @@ func FinalizeIdentification(ctx RequestContext) {
 		return
 	}
 
-	data.ItemId = itemToApplyTo.ItemId
-	err = db.UpdateMetadataEntry(ctx.Uid, &data)
-	if err != nil {
-		util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
-		return
+	if itemToApplyTo.ItemId != 0 {
+		data.ItemId = itemToApplyTo.ItemId
+		err = db.UpdateMetadataEntry(ctx.Uid, &data)
+		if err != nil {
+			util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
+			return
+		}
+	} else {
+		j, err := data.ToJson()
+		if err != nil {
+			util.WError(w, 500, "Failed to serialize metadata\n%s", err.Error());
+		}
+		w.Write(j)
 	}
 }

@@ -93,7 +93,7 @@ func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.
 	return ""
 }
 
-func GetLocation(metadata *db_types.MetadataEntry, foruid int64, provider string) (string, error) {
+func GetLocation(providerID string, foruid int64, provider string) (string, error) {
 	fn, contains := LocationFinders[provider]
 	if !contains {
 		return "", fmt.Errorf("invalid provider: %s", provider)
@@ -106,7 +106,7 @@ func GetLocation(metadata *db_types.MetadataEntry, foruid int64, provider string
 
 	logging.Info(fmt.Sprintf("location lookup using provider: %s", provider))
 
-	return fn(&us, metadata)
+	return fn(&us, providerID)
 }
 
 func ListMetadataProviders() []string {
@@ -138,7 +138,7 @@ func IsValidIdIdentifier(name string) bool {
 }
 
 //parameters: userSettings item_metadata
-type LocationFunc func(*settings.SettingsData, *db_types.MetadataEntry) (string, error)
+type LocationFunc func(*settings.SettingsData, string) (string, error)
 
 type LocationMap map[string]LocationFunc
 var LocationFinders LocationMap = LocationMap{

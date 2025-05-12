@@ -234,6 +234,7 @@ var metadataEndpointList = []ApiEndPoint{
 		QueryParams: QueryParams {
 			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
 			"provider": MkQueryInfo(P_LocationProvider, false),
+			"provider-id": MkQueryInfo(P_NotEmpty, false),
 		},
 		Description: "Fetch the location of an entry based on the metadata and other info",
 	},
@@ -256,7 +257,7 @@ when using finalize-identify`,
 		QueryParams: QueryParams{
 			"identified-id": MkQueryInfo(P_NotEmpty, true),
 			"provider":      MkQueryInfo(P_IdIdentifier, true),
-			"apply-to":      MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+			"apply-to":      MkQueryInfo(P_VerifyIdAndGetMetaEntry, false),
 		},
 		Description: "Apply an identified id from /identify, to an entry using a provider",
 		Returns:     "none",

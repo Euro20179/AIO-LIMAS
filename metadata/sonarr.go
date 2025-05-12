@@ -13,7 +13,7 @@ import (
 	db_types "aiolimas/types"
 )
 
-func SonarrGetLocation(us *settings.SettingsData, meta *db_types.MetadataEntry) (string, error) {
+func SonarrGetLocation(us *settings.SettingsData, providerID string) (string, error) {
 	url := us.SonarrURL
 	key := us.SonarrKey
 
@@ -21,7 +21,7 @@ func SonarrGetLocation(us *settings.SettingsData, meta *db_types.MetadataEntry) 
 		return "", errors.New("sonarr is not setup")
 	}
 
-	id := meta.ProviderID
+	id := providerID
 
 	if id == "" {
 		return "", errors.New("ProviderID is not set")

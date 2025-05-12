@@ -231,9 +231,9 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	return out, nil
 }
 
-func SteamLocationFinder(_ *settings.SettingsData, meta *db_types.MetadataEntry) (string, error) {
-	if meta.ProviderID != "" {
-		return fmt.Sprintf("steam://rungameid/%s", meta.ProviderID), nil
+func SteamLocationFinder(_ *settings.SettingsData, providerID string) (string, error) {
+	if providerID != "" {
+		return fmt.Sprintf("steam://rungameid/%s", providerID), nil
 	}
 
 	return "", errors.New("please set the metadata ProviderID before setting the location")
