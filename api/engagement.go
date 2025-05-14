@@ -60,13 +60,13 @@ func WaitMedia(ctx RequestContext) {
 
 	timezone := ctx.PP.Get("timezone", us.DefaultTimeZone).(string)
 
-	if !entry.CanBegin() {
+	if !entry.CanWait() {
 		ctx.W.WriteHeader(405)
 		fmt.Fprintf(ctx.W, "This media is not being viewed, could not set status to waiting\n")
 		return
 	}
 
-	if err := db.Begin(ctx.Uid, timezone, &entry); err != nil {
+	if err := db.Wait(ctx.Uid, timezone, &entry); err != nil {
 		util.WError(ctx.W, 500, "Could not begin show\n%s", err.Error())
 		return
 	}
