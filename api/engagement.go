@@ -49,6 +49,38 @@ func CopyUserViewingEntry(ctx RequestContext) {
 	success(w)
 }
 
+func WaitMedia(ctx RequestContext) {
+	entry := ctx.PP["id"].(db_types.UserViewingEntry)
+
+	us, err := settings.GetUserSettings(ctx.Uid)
+	if err != nil{
+		util.WError(ctx.W, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	timezone := ctx.PP.Get("timezone", us.DefaultTimeZone).(string)
+
+	if !entry.CanBegin() {
+		ctx.W.WriteHeader(405)
+		fmt.Fprintf(ctx.W, "This media is not being viewed, could not set status to waiting\n")
+		return
+	}
+
+	if err := db.Begin(ctx.Uid, timezone, &entry); err != nil {
+		util.WError(ctx.W, 500, "Could not begin show\n%s", err.Error())
+		return
+	}
+
+	err = db.UpdateUserViewingEntry(ctx.Uid, &entry)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	fmt.Fprintf(ctx.W, "%d waited\n", entry.ItemId)
+}
+
 // engagement endpoints
 func BeginMedia(ctx RequestContext) {
 	pp := ctx.PP

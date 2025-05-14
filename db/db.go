@@ -105,16 +105,26 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 	return out, nil
 }
 
+func Wait(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
+	err := RegisterBasicUserEvent(uid, timezone, "Waiting", entry.ItemId)
+	if err != nil {
+		return err
+	}
+
+	entry.Status = db_types.S_WAITING
+	return nil
+}
+
 func Begin(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 	err := RegisterBasicUserEvent(uid, timezone, "Viewing", entry.ItemId)
 	if err != nil {
 		return err
 	}
 
-	if entry.Status != db_types.S_FINISHED {
-		entry.Status = db_types.S_VIEWING
-	} else {
+	if entry.Status == db_types.S_FINISHED {
 		entry.Status = db_types.S_REVIEWING
+	} else {
+		entry.Status = db_types.S_VIEWING
 	}
 
 	return nil
@@ -149,7 +159,11 @@ func Resume(uid int64, timezone string, entry *db_types.UserViewingEntry) error 
 		return err
 	}
 
-	entry.Status = db_types.S_REVIEWING
+	if entry.ViewCount == 0 {
+		entry.Status = db_types.S_VIEWING
+	} else {
+		entry.Status = db_types.S_REVIEWING
+	}
 	return nil
 }
 

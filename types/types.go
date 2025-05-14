@@ -53,6 +53,7 @@ const (
 	S_PAUSED    Status = "Paused"    // if the user stopes viewing, but does plan to continue
 	S_PLANNED   Status = "Planned"   // plans to view or review at some point
 	S_REVIEWING Status = "ReViewing" // the user has already finished or dropped, but is viewing again
+	S_WAITING   Status = "Waiting" //if the user is waiting for a new season or something
 	// or if the user has unpaused
 )
 
@@ -439,7 +440,7 @@ func (self *UserViewingEntry) CanPlan() bool {
 }
 
 func (self *UserViewingEntry) CanDrop() bool {
-	return self.IsViewing()
+	return self.IsViewing() || self.Status == S_WAITING
 }
 
 func (self *UserViewingEntry) CanPause() bool {
@@ -447,7 +448,11 @@ func (self *UserViewingEntry) CanPause() bool {
 }
 
 func (self *UserViewingEntry) CanResume() bool {
-	return self.Status == S_PAUSED
+	return self.Status == S_PAUSED || self.Status == S_WAITING
+}
+
+func (self *UserViewingEntry) CanWait() bool {
+	return self.Status == S_VIEWING || self.Status == S_REVIEWING
 }
 
 type EntryTree struct {

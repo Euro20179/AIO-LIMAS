@@ -485,7 +485,16 @@ var engagementEndpointList = []ApiEndPoint{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
 			"timezone": MkQueryInfo(P_NotEmpty, false),
 		},
-		Description: "Begins a media and registers a Begin event",
+		Description: "Begins a media and registers a Viewing event",
+	},
+	{
+		EndPoint: "wait-media",
+		Handler: WaitMedia,
+		QueryParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+			"timezone": MkQueryInfo(P_NotEmpty, false),
+		},
+		Description: "Sets the status to waiting, and registers a Waiting event",
 	},
 } //}}}
 
