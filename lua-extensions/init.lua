@@ -122,7 +122,8 @@ function Expand_macro(macro)
         "Dropped",
         "Paused",
         "Planned",
-        "ReViewing"
+        "ReViewing",
+        "Waiting"
     }
 
     local basicMacros = {

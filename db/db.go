@@ -154,7 +154,7 @@ func Plan(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 }
 
 func Resume(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(uid, timezone, "ReViewing", entry.ItemId)
+	err := RegisterBasicUserEvent(uid, timezone, "Resuming", entry.ItemId)
 	if err != nil {
 		return err
 	}
