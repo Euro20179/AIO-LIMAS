@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS entryInfo (
+    uid INTEGER,
     itemId INTEGER,
     en_title TEXT,
     native_title TEXT,
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS entryInfo (
 );
 
 CREATE TABLE IF NOT EXISTS metadata (
+    uid INTEGER,
     itemId INTEGER,
     rating NUMERIC,
     description TEXT,
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS metadata (
 );
 
 CREATE TABLE IF NOT EXISTS userViewingInfo (
+        uid INTEGER,
         itemId INTEGER,
         status TEXT,
         viewCount INTEGER,
@@ -39,6 +42,7 @@ CREATE TABLE IF NOT EXISTS userViewingInfo (
 );
 
 CREATE TABLE IF NOT EXISTS userEventInfo (
+    uid INTEGER,
     itemId INTEGER,
     timestamp INTEGER,
     after INTEGER,

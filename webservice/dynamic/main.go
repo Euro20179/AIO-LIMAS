@@ -23,7 +23,7 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 		query = "#"
 	}
 
-	results, err := db.Search3(uid, query)
+	results, err := db.Search3(query)
 	if err != nil {
 		util.WError(w, 500, "Could not complete search: %s", err.Error())
 		return

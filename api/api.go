@@ -72,7 +72,7 @@ func DeleteTags(ctx RequestContext) {
 }
 
 func DownloadDB(ctx RequestContext) {
-	dbPath := fmt.Sprintf("%s/all.db", db.UserRoot(ctx.Uid))
+	dbPath := fmt.Sprintf("%s/all.db", db.DbRoot())
 
 	http.ServeFile(ctx.W, ctx.Req, dbPath)
 }
@@ -274,6 +274,7 @@ func AddEntry(ctx RequestContext) {
 	}
 
 	var entryInfo db_types.InfoEntry
+	entryInfo.ItemId = 0
 	entryInfo.En_Title = title
 	entryInfo.PurchasePrice = priceNum
 	entryInfo.Native_Title = nativeTitle
@@ -379,7 +380,11 @@ func QueryEntries3(ctx RequestContext) {
 	w := ctx.W
 	search := pp["search"].(string)
 
-	results, err := db.Search3(ctx.Uid, search)
+	if ctx.Uid != 0{
+		search += fmt.Sprintf(" & {entryInfo.uid = %d}", ctx.Uid)
+	}
+
+	results, err := db.Search3(search)
 	if err != nil {
 		util.WError(w, 500, "Could not complete search\n%s", err.Error())
 		return

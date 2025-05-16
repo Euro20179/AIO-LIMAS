@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 
-	"aiolimas/db"
 	"aiolimas/settings"
 )
 
@@ -116,7 +115,7 @@ func InitializeAccount(aioPath string, username string, hashedPassword string) e
 		return err
 	}
 
-	return db.InitDb(id)
+	return nil
 }
 
 func DeleteAccount(aioPath string, uid int64) error {

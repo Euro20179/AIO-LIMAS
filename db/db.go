@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"aiolimas/logging"
 	log "aiolimas/logging"
 	"aiolimas/search"
 	"aiolimas/settings"
@@ -18,18 +19,184 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-func UserRoot(uid int64) string {
+func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
-	return fmt.Sprintf("%s/users/%d/", aioPath, uid)
+	return fmt.Sprintf("%s/", aioPath)
 }
 
-func OpenUserDb(uid int64) (*sql.DB, error) {
-	path := UserRoot(uid)
+func OpenUserDb() (*sql.DB, error) {
+	path := DbRoot()
+
 	return sql.Open("sqlite3", path+"all.db")
 }
 
-func QueryUserDb(uid int64, query string, args ...any) (*sql.Rows, error) {
-	Db, err := OpenUserDb(uid)
+func MergeUserDB(uid int64, dbPath string) error {
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	infoRows, err := db.Query("SELECT * from entryInfo ORDER BY itemId")
+	if err != nil {
+		return err
+	}
+
+	metaRows, err := db.Query("SELECT * from metadata ORDER BY itemId")
+	if err != nil {
+		return err
+	}
+
+	eventRows, err := db.Query("SELECT * from userEventInfo ORDER BY itemId")
+	if err != nil {
+		return err
+	}
+
+	userRows, err := db.Query("SELECT * FROM userViewingInfo ORDER BY itemId")
+	if err != nil {
+		return err
+	}
+
+	for infoRows.Next() && metaRows.Next() && userRows.Next() {
+		var curInfo struct {
+			Uid           int64
+			ItemId        int64
+			En_Title      string // doesn't have to be english, more like, the user's preferred language
+			Native_Title  string
+			Format        db_types.Format
+			Location      string
+			PurchasePrice float64
+			Collection    string
+			ParentId      int64
+			Type          db_types.MediaTypes
+			ArtStyle      db_types.ArtStyle
+			CopyOf        int64
+			Library       int64
+
+			// RUNTIME VALUES (not stored in database), see self.ReadEntry
+			Tags []string `runtime:"true"`
+		}
+		curInfo.Uid = uid
+		err := infoRows.Scan(
+			&curInfo.ItemId,
+			&curInfo.En_Title,
+			&curInfo.Native_Title,
+			&curInfo.Format,
+			&curInfo.Location,
+			&curInfo.PurchasePrice,
+			&curInfo.Collection,
+			&curInfo.Type,
+			&curInfo.ParentId,
+			&curInfo.CopyOf,
+			&curInfo.ArtStyle,
+			&curInfo.Library,
+		)
+		if err != nil {
+			return err
+		}
+
+		var curMeta struct {
+			Uid    int64
+			ItemId int64
+			Rating float64
+			// different sources will do ratings differently,
+			// let them set the max rating
+			RatingMax      float64
+			Description    string
+			ReleaseYear    int64
+			Thumbnail      string
+			MediaDependant string // see docs/types.md
+			Datapoints     string // JSON {string: string} as a string
+			Title          string // this is different from infoentry in that it's automatically generated
+			Native_Title   string // same with this
+			Provider       string // the provider that generated the metadata
+			ProviderID     string // the id that the provider used
+		}
+		curMeta.Uid = uid
+		err = metaRows.Scan(
+			&curMeta.ItemId,
+			&curMeta.Rating,
+			&curMeta.Description,
+			&curMeta.ReleaseYear,
+			&curMeta.Thumbnail,
+			&curMeta.MediaDependant,
+			&curMeta.Datapoints,
+			&curMeta.Title,
+			&curMeta.Native_Title,
+			&curMeta.RatingMax,
+			&curMeta.Provider,
+			&curMeta.ProviderID,
+		)
+		if err != nil {
+			return err
+		}
+
+		var curUser struct {
+			Uid             int64
+			ItemId          int64
+			Status          db_types.Status
+			ViewCount       int64
+			UserRating      float64
+			Notes           string
+			CurrentPosition string
+			Extra           string
+		}
+		curUser.Uid = uid
+		err = userRows.Scan(
+			&curUser.ItemId,
+			&curUser.Status,
+			&curUser.ViewCount,
+			&curUser.UserRating,
+			&curUser.Notes,
+			&curUser.CurrentPosition,
+			&curUser.Extra,
+		)
+		if err != nil {
+			return err
+		}
+
+		i := db_types.InfoEntry(curInfo)
+		m := db_types.MetadataEntry(curMeta)
+		u := db_types.UserViewingEntry(curUser)
+
+		err = AddEntry(uid, "", &i, &m, &u)
+		if err != nil {
+			return err
+		}
+	}
+
+	for eventRows.Next() {
+		var curEvent struct {
+			Uid       int64
+			ItemId    int64
+			Event     string
+			TimeZone  string
+			Timestamp uint64
+			After     uint64 // this is also a timestamp, for when the exact timestamp is unknown
+			// this is to ensure that order can be determined
+		}
+		curEvent.Uid = uid
+		err = eventRows.Scan(
+			&curEvent.ItemId,
+			&curEvent.Timestamp,
+			&curEvent.After,
+			&curEvent.Event,
+			&curEvent.TimeZone,
+		)
+		if err != nil {
+			return err
+		}
+		err = RegisterUserEvent(uid, curEvent)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func QueryDB(query string, args ...any) (*sql.Rows, error) {
+	Db, err := OpenUserDb()
 	if err != nil {
 		log.ELog(err)
 		return nil, err
@@ -40,7 +207,7 @@ func QueryUserDb(uid int64, query string, args ...any) (*sql.Rows, error) {
 }
 
 func ExecUserDb(uid int64, query string, args ...any) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -53,7 +220,7 @@ func ExecUserDb(uid int64, query string, args ...any) error {
 func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
 
-	allRows, err := QueryUserDb(uid, `SELECT * FROM entryInfo`)
+	allRows, err := QueryDB(`SELECT * FROM entryInfo WHERE entryInfo.uid = ?`, uid)
 	if err != nil {
 		log.ELog(err)
 		return out, err
@@ -189,8 +356,8 @@ func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 	return nil
 }
 
-func InitDb(uid int64) error {
-	conn, err := OpenUserDb(uid)
+func InitDb() error {
+	conn, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -205,6 +372,7 @@ func InitDb(uid int64) error {
 
 	_, err = conn.Exec(string(schema))
 	if err != nil {
+		logging.ELog(err)
 		return err
 	}
 
@@ -212,15 +380,9 @@ func InitDb(uid int64) error {
 }
 
 func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string, out *T) error {
-	query := "SELECT * FROM " + tblName + " WHERE itemId = ?;"
+	query := "SELECT * FROM " + tblName + " WHERE itemId = ? and " + tblName + ".uid = ?;"
 
-	Db, err := OpenUserDb(uid)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	rows, err := Db.Query(query, id)
+	rows, err := QueryDB(query, id, uid)
 	if err != nil {
 		return err
 	}
@@ -278,7 +440,7 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
-	items, err := QueryUserDb(uid, "SELECT * FROM metadata")
+	items, err := QueryDB("SELECT * FROM metadata WHERE metadata.uid = ?", uid)
 	if err != nil {
 		return nil, err
 	}
@@ -299,17 +461,25 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 
 // TODO: remove timezone parameter from this function, maybe combine it witih userViewingEntry since that also keeps track of the timezone
 // **WILL ASSIGN THE ENTRYINFO.ID**
+// if timezone is empty, it will not add an Added event
+// if entryInfo has an id, that id will be used
 func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
-	id := rand.Int64()
+	id := entryInfo.ItemId
+	if id == 0 {
+		id = rand.Int64()
+	}
 
-	Db, err := OpenUserDb(uid)
+	Db, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
 	}
 	defer Db.Close()
 
+	entryInfo.Uid = uid
 	entryInfo.ItemId = id
+	metadataEntry.Uid = uid
 	metadataEntry.ItemId = id
+	userViewingEntry.Uid = uid
 	userViewingEntry.ItemId = id
 
 	ensureMetadataJsonNotEmpty(metadataEntry)
@@ -332,17 +502,23 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 			entryArgs = append(entryArgs, v)
 			questionMarks += "?,"
 		}
-		// cut off trailing comma
-		entryQ = entryQ[:len(entryQ)-1] + ")"
 
-		entryQ += "VALUES(" + questionMarks[:len(questionMarks)-1] + ")"
+		// add uid last
+		entryArgs = append(entryArgs, uid)
+		entryQ += "uid"
+		questionMarks += "?"
+
+		// add final paren
+		entryQ = entryQ + ")"
+
+		entryQ += "VALUES(" + questionMarks + ")"
 		_, err := Db.Exec(entryQ, entryArgs...)
 		if err != nil {
 			return err
 		}
 	}
 
-	if userViewingEntry.Status != db_types.Status("") {
+	if userViewingEntry.Status != db_types.Status("") && timezone != "" {
 		err := RegisterUserEvent(uid, db_types.UserViewingEvent{
 			ItemId:    userViewingEntry.ItemId,
 			Timestamp: uint64(time.Now().UnixMilli()),
@@ -355,9 +531,11 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		}
 	}
 
-	err = RegisterBasicUserEvent(uid, timezone, "Added", metadataEntry.ItemId)
-	if err != nil {
-		return err
+	if timezone != "" {
+		err = RegisterBasicUserEvent(uid, timezone, "Added", metadataEntry.ItemId)
+		if err != nil {
+			return err
+		}
 	}
 
 	us, err := settings.GetUserSettings(uid)
@@ -377,9 +555,9 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 func RegisterUserEvent(uid int64, event db_types.UserViewingEvent) error {
 	return ExecUserDb(uid, `
-		INSERT INTO userEventInfo (itemId, timestamp, event, after, timezone)
-		VALUES (?, ?, ?, ?, ?)
-	`, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
+		INSERT INTO userEventInfo (uid, itemId, timestamp, event, after, timezone)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, uid, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
 }
 
 func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int64) error {
@@ -415,8 +593,8 @@ func MoveUserEventEntries(uid int64, eventList []db_types.UserViewingEvent, newI
 func ClearUserEventEntries(uid int64, id int64) error {
 	ExecUserDb(uid, `
 		DELETE FROM userEventInfo
-		WHERE itemId = ?
-	`, id)
+		WHERE itemId = ? and uid = ?
+	`, id, uid)
 
 	return nil
 }
@@ -426,7 +604,7 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 
 	data := db_types.StructNamesToDict(tblRepr)
 
-	var updateArgs []any
+	updateArgs := []any{uid}
 
 	for k, v := range data {
 		updateArgs = append(updateArgs, v)
@@ -439,7 +617,7 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 
 	// remove final trailing comma
 	updateStr = updateStr[:len(updateStr)-1]
-	updateStr += "\nWHERE itemId = ?"
+	updateStr += "\nWHERE " + tblName + ".uid = ? and itemId = ?"
 
 	return ExecUserDb(uid, updateStr, updateArgs...)
 }
@@ -486,7 +664,7 @@ func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
 }
 
 func Delete(uid int64, id int64) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -504,10 +682,10 @@ func Delete(uid int64, id int64) error {
 		os.Remove(thumbPath)
 	}
 
-	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ?`, id)
-	transact.Exec(`DELETE FROM metadata WHERE itemId = ?`, id)
-	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ?`, id)
-	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ?`, id)
+	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ? and entryInfo.uid = ?`, id, uid)
+	transact.Exec(`DELETE FROM metadata WHERE itemId = ? and metadata.uid = ?`, id, uid)
+	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?`, id, uid)
+	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ? and userEventInfo.uid = ?`, id, uid)
 
 	return transact.Commit()
 }
@@ -545,7 +723,7 @@ type SearchData struct {
 
 type SearchQuery []SearchData
 
-func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
+func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
 	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
@@ -558,7 +736,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 
 	log.Info("got query %s", safeQuery)
 
-	rows, err := QueryUserDb(uid, fmt.Sprintf(query, safeQuery))
+	rows, err := QueryDB(fmt.Sprintf(query, safeQuery))
 	if err != nil {
 		return out, err
 	}
@@ -580,7 +758,7 @@ func Search3(uid int64, searchQuery string) ([]db_types.InfoEntry, error) {
 
 func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	var out []string
-	rows, err := QueryUserDb(uid, `SELECT ? FROM entryInfo WHERE type = ?`, col, string(ty))
+	rows, err := QueryDB(`SELECT ? FROM entryInfo WHERE type = ? and entryInfo.uid = ?`, col, string(ty), uid)
 	if err != nil {
 		return out, err
 	}
@@ -597,7 +775,7 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 
 func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	rows, err := QueryUserDb(uid, "SELECT * FROM entryInfo WHERE copyOf = ?", id)
+	rows, err := QueryDB("SELECT * FROM entryInfo WHERE copyOf = ? and entryInfo.uid = ?", id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -620,7 +798,7 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 
 func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	rows, err := QueryUserDb(uid, "SELECT * FROM entryInfo where parentId = ?", id)
+	rows, err := QueryDB("SELECT * FROM entryInfo where parentId = ? and entryInfo.uid = ?", id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -631,11 +809,11 @@ func DeleteEvent(uid int64, id int64, timestamp int64, after int64) error {
 	return ExecUserDb(uid, `
 		DELETE FROM userEventInfo
 		WHERE 
-			itemId == ? and timestamp == ? and after == ?
-	`, id, timestamp, after)
+			itemId == ? and timestamp == ? and after == ? and userEventInfo.uid = ?
+	`, id, timestamp, after, uid)
 }
 
-// /if id is -1, it lists all events
+// if id is -1, it lists all events
 func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
@@ -643,26 +821,28 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var err error
 	// if an id is given
 	if id > -1 {
-		events, err = QueryUserDb(uid, `
+		events, err = QueryDB(`
 		SELECT * from userEventInfo
 		WHERE
-			itemId == ?
+			itemId == ? and userEventInfo.uid = ?
 		ORDER BY
 			CASE timestamp
 				WHEN 0 THEN
 					userEventInfo.after
 				ELSE timestamp
-			END`, id)
+			END`, id, uid)
 		// otherweise the caller wants all events
 	} else {
-		events, err = QueryUserDb(uid, `
+		events, err = QueryDB(`
 		SELECT * from userEventInfo
+		WHERE
+			userEventInfo.uid = ?
 		ORDER BY
 			CASE timestamp
 				WHEN 0 THEN
 					userEventInfo.after
 				ELSE timestamp
-			END`, id)
+			END`, uid)
 	}
 	if err != nil {
 		return out, err
@@ -682,13 +862,15 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 
 // /sort must be valid sql
 func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
-	items, err := QueryUserDb(uid, fmt.Sprintf(`
+	items, err := QueryDB(fmt.Sprintf(`
 		SELECT entryInfo.*
 		FROM
 			entryInfo JOIN userViewingInfo
 		ON
 			entryInfo.itemId = userViewingInfo.itemId
-		ORDER BY %s`, sort))
+		WHERE
+			entryInfo.uid = ?
+		ORDER BY %s`, sort), uid)
 	if err != nil {
 		return nil, err
 	}
@@ -710,7 +892,7 @@ func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 	var row db_types.UserViewingEntry
 
-	items, err := QueryUserDb(uid, "SELECT * FROM userViewingInfo WHERE itemId = ?;", itemId)
+	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?;", itemId, uid)
 	if err != nil {
 		return row, err
 	}
@@ -720,7 +902,7 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 }
 
 func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
-	items, err := QueryUserDb(uid, "SELECT * FROM userViewingInfo")
+	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE userViewingInfo.uid = ?", uid)
 	if err != nil {
 		return nil, err
 	}
@@ -766,11 +948,11 @@ func GetDescendants(uid int64, id int64) ([]db_types.InfoEntry, error) {
 
 func AddTags(uid int64, id int64, tags []string) error {
 	tagsString := strings.Join(tags, "\x1F\x1F")
-	return ExecUserDb(uid, "UPDATE entryInfo SET collection = (collection || char(31) || ? || char(31)) WHERE itemId = ?", tagsString, id)
+	return ExecUserDb(uid, "UPDATE entryInfo SET collection = (collection || char(31) || ? || char(31)) WHERE itemId = ? and entryInfo.uid = ?", tagsString, id, uid)
 }
 
 func DelTags(uid int64, id int64, tags []string) error {
-	Db, err := OpenUserDb(uid)
+	Db, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -781,7 +963,7 @@ func DelTags(uid int64, id int64, tags []string) error {
 			continue
 		}
 
-		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '') WHERE itemId = ?", tag, id)
+		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '') WHERE itemId = ? and entryInfo.uid = ?", tag, id, uid)
 		if err != nil {
 			return err
 		}

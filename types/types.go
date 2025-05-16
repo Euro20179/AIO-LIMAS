@@ -53,7 +53,7 @@ const (
 	S_PAUSED    Status = "Paused"    // if the user stopes viewing, but does plan to continue
 	S_PLANNED   Status = "Planned"   // plans to view or review at some point
 	S_REVIEWING Status = "ReViewing" // the user has already finished or dropped, but is viewing again
-	S_WAITING   Status = "Waiting" //if the user is waiting for a new season or something
+	S_WAITING   Status = "Waiting"   // if the user is waiting for a new season or something
 	// or if the user has unpaused
 )
 
@@ -221,6 +221,7 @@ type TableRepresentation interface {
 
 // names here MUST match names in the metadta sqlite table
 type MetadataEntry struct {
+	Uid    int64
 	ItemId int64
 	Rating float64
 	// different sources will do ratings differently,
@@ -247,6 +248,7 @@ func (self MetadataEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, er
 
 func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 	return rows.Scan(
+		&self.Uid,
 		&self.ItemId,
 		&self.Rating,
 		&self.Description,
@@ -271,6 +273,7 @@ func (self MetadataEntry) ToJson() ([]byte, error) {
 }
 
 type InfoEntry struct {
+	Uid           int64
 	ItemId        int64
 	En_Title      string // doesn't have to be english, more like, the user's preferred language
 	Native_Title  string
@@ -306,6 +309,7 @@ func (self InfoEntry) ToJson() ([]byte, error) {
 
 func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 	err := rows.Scan(
+		&self.Uid,
 		&self.ItemId,
 		&self.En_Title,
 		&self.Native_Title,
@@ -337,6 +341,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 // an event should also have a time-zone associated with it
 // in case say, someone where to add an event in UTC-8, but then did something in UTC-2, they'd have very wacky times
 type UserViewingEvent struct {
+	Uid       int64
 	ItemId    int64
 	Event     string
 	TimeZone  string
@@ -355,6 +360,7 @@ func (self UserViewingEvent) ReadEntryCopy(rows *sql.Rows) (TableRepresentation,
 
 func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 	return rows.Scan(
+		&self.Uid,
 		&self.ItemId,
 		&self.Timestamp,
 		&self.After,
@@ -390,6 +396,7 @@ func (self *UserViewingEvent) ToHumanTime() string {
 }
 
 type UserViewingEntry struct {
+	Uid             int64
 	ItemId          int64
 	Status          Status
 	ViewCount       int64
@@ -409,6 +416,7 @@ func (self UserViewingEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation,
 
 func (self *UserViewingEntry) ReadEntry(row *sql.Rows) error {
 	return row.Scan(
+		&self.Uid,
 		&self.ItemId,
 		&self.Status,
 		&self.ViewCount,
