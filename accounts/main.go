@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"aiolimas/db"
 	"aiolimas/settings"
 )
 
@@ -131,6 +132,8 @@ func DeleteAccount(aioPath string, uid int64) error {
 	if err != nil {
 		return err
 	}
+
+	db.DeleteByUID(uid)
 
 	usersDir := fmt.Sprintf("%s/users/%d", aioPath, uid)
 	return os.RemoveAll(usersDir)

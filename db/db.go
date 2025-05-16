@@ -706,6 +706,26 @@ func Delete(uid int64, id int64) error {
 	return transact.Commit()
 }
 
+func DeleteByUID(uid int64) error {
+	Db, err := OpenUserDb()
+	if err != nil {
+		panic(err.Error())
+	}
+	defer Db.Close()
+
+	transact, err := Db.Begin()
+	if err != nil {
+		return err
+	}
+
+	transact.Exec(`DELETE FROM entryInfo WHERE entryInfo.uid = ?`, uid)
+	transact.Exec(`DELETE FROM metadata WHERE metadata.uid = ?`, uid)
+	transact.Exec(`DELETE FROM userViewingInfo WHERE userViewingInfo.uid = ?`, uid)
+	transact.Exec(`DELETE FROM userEventInfo WHERE userEventInfo.uid = ?`, uid)
+
+	return transact.Commit()
+}
+
 type DataChecker int
 
 const (
