@@ -762,7 +762,7 @@ type SearchQuery []SearchData
 func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
-	query := "SELECT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId WHERE %s"
+	query := "SELECT DISTINCT entryInfo.* FROM entryInfo JOIN userViewingInfo ON entryInfo.itemId == userViewingInfo.itemId JOIN metadata ON entryInfo.itemId == metadata.itemId JOIN userEventInfo ON entryInfo.itemId = userEventInfo.itemId WHERE %s"
 
 	safeQuery, err := search.Search2String(searchQuery)
 	if err != nil {
