@@ -618,7 +618,7 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 
 	data := db_types.StructNamesToDict(tblRepr)
 
-	updateArgs := []any{uid}
+	updateArgs := []any{}
 
 	for k, v := range data {
 		updateArgs = append(updateArgs, v)
@@ -626,6 +626,8 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 		updateStr += k + "= ?,"
 	}
 
+	//append the user id
+	updateArgs = append(updateArgs, uid)
 	// needs itemid for checking which item to update
 	updateArgs = append(updateArgs, tblRepr.Id())
 
