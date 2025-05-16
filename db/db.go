@@ -846,11 +846,14 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
 	whereClause := []string{}
+	whereItems := []any{}
 	if id > -1 {
 		whereClause = append(whereClause, "itemId == ?")
+		whereItems = append(whereItems, id)
 	}
 	if uid != 0 {
 		whereClause = append(whereClause, "userEventInfo.uid = ?")
+		whereItems = append(whereItems, uid)
 	}
 
 	whereText := ""
@@ -869,7 +872,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 			WHEN 0 THEN
 				userEventInfo.after
 			ELSE timestamp
-		END`, whereText), id, uid)
+		END`, whereText), whereItems...)
 	if err != nil {
 		return out, err
 	}
