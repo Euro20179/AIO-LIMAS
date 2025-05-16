@@ -261,11 +261,12 @@ func FinalizeIdentification(ctx RequestContext) {
 			util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
 			return
 		}
-	} else {
-		j, err := data.ToJson()
-		if err != nil {
-			util.WError(w, 500, "Failed to serialize metadata\n%s", err.Error());
-		}
-		w.Write(j)
 	}
+
+	j, err := data.ToJson()
+	if err != nil {
+		util.WError(w, 500, "Failed to serialize metadata\n%s", err.Error());
+		return
+	}
+	w.Write(j)
 }
