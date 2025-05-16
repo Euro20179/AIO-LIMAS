@@ -77,6 +77,7 @@ func FetchMetadataForEntry(ctx RequestContext) {
 		return
 	}
 	newMeta.ItemId = mainEntry.ItemId
+	newMeta.Uid = mainEntry.Uid
 	err = db.UpdateMetadataEntry(ctx.Uid, &newMeta)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
@@ -254,6 +255,7 @@ func FinalizeIdentification(ctx RequestContext) {
 
 	if itemToApplyTo.ItemId != 0 {
 		data.ItemId = itemToApplyTo.ItemId
+		data.Uid = itemToApplyTo.Uid
 		err = db.UpdateMetadataEntry(ctx.Uid, &data)
 		if err != nil {
 			util.WError(w, 500, "Failed to update metadata\n%s", err.Error())
