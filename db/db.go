@@ -220,7 +220,12 @@ func ExecUserDb(uid int64, query string, args ...any) error {
 func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
 
-	allRows, err := QueryDB(`SELECT * FROM entryInfo WHERE entryInfo.uid = ?`, uid)
+	whereClause := ""
+	if uid != 0 {
+		whereClause  = "WHERE entryInfo.uid = ?"
+	}
+
+	allRows, err := QueryDB(`SELECT * FROM entryInfo `, whereClause, uid)
 	if err != nil {
 		log.ELog(err)
 		return out, err
@@ -440,14 +445,23 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
-	items, err := QueryDB("SELECT * FROM metadata WHERE metadata.uid = ?", uid)
+	var items *sql.Rows
+	var err error
+	qs := "SELECT * FROM metadata WHERE metadata.uid = ?"
+	if uid == 0 {
+		qs = "SELECT * FROM metadata"
+	}
+
+	items, err = QueryDB(qs, uid)
 	if err != nil {
 		return nil, err
 	}
 
 	var out []db_types.MetadataEntry
 
+	i := 0
 	for items.Next() {
+		i++
 		var row db_types.MetadataEntry
 		err := row.ReadEntry(items)
 		if err != nil {
@@ -758,7 +772,11 @@ func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 
 func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	var out []string
-	rows, err := QueryDB(`SELECT ? FROM entryInfo WHERE type = ? and entryInfo.uid = ?`, col, string(ty), uid)
+	whereClause := "WHERE type = ?"
+	if uid != 0 {
+		whereClause += " and entryInfo.uid = ?"
+	}
+	rows, err := QueryDB(`SELECT ? FROM entryInfo ` + whereClause, col, string(ty), uid)
 	if err != nil {
 		return out, err
 	}
@@ -775,7 +793,11 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 
 func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	rows, err := QueryDB("SELECT * FROM entryInfo WHERE copyOf = ? and entryInfo.uid = ?", id, uid)
+	whereClause := "copyOf = ?"
+	if uid != 0 {
+		whereClause += " and entryInfo.uid = ?"
+	}
+	rows, err := QueryDB("SELECT * FROM entryInfo WHERE " + whereClause, id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -798,7 +820,11 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 
 func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	rows, err := QueryDB("SELECT * FROM entryInfo where parentId = ? and entryInfo.uid = ?", id, uid)
+	whereClause := "parentId = ?"
+	if uid != 0 {
+		whereClause += " and entryInfo.uid = ?"
+	}
+	rows, err := QueryDB("SELECT * FROM entryInfo where " + whereClause, id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -817,33 +843,31 @@ func DeleteEvent(uid int64, id int64, timestamp int64, after int64) error {
 func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
+	whereClause := []string{}
+	if id > -1 {
+		whereClause = append(whereClause, "itemId == ?")
+	}
+	if uid != 0 {
+		whereClause = append(whereClause, "userEventInfo.uid = ?")
+	}
+
+	whereText := ""
+	if len(whereClause) != 0 {
+		whereText = "WHERE "  + strings.Join(whereClause, " and ")
+	}
+
+
 	var events *sql.Rows
 	var err error
-	// if an id is given
-	if id > -1 {
-		events, err = QueryDB(`
-		SELECT * from userEventInfo
-		WHERE
-			itemId == ? and userEventInfo.uid = ?
-		ORDER BY
-			CASE timestamp
-				WHEN 0 THEN
-					userEventInfo.after
-				ELSE timestamp
-			END`, id, uid)
-		// otherweise the caller wants all events
-	} else {
-		events, err = QueryDB(`
-		SELECT * from userEventInfo
-		WHERE
-			userEventInfo.uid = ?
-		ORDER BY
-			CASE timestamp
-				WHEN 0 THEN
-					userEventInfo.after
-				ELSE timestamp
-			END`, uid)
-	}
+	events, err = QueryDB(fmt.Sprintf(`
+	SELECT * from userEventInfo
+	%s
+	ORDER BY
+		CASE timestamp
+			WHEN 0 THEN
+				userEventInfo.after
+			ELSE timestamp
+		END`, whereText), id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -862,15 +886,20 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 
 // /sort must be valid sql
 func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
-	items, err := QueryDB(fmt.Sprintf(`
+	whereClause := ""
+	if uid != 0 {
+		whereClause = "WHERE entryInfo.uid = ?"
+	}
+	qs := fmt.Sprintf(`
 		SELECT entryInfo.*
 		FROM
 			entryInfo JOIN userViewingInfo
 		ON
 			entryInfo.itemId = userViewingInfo.itemId
-		WHERE
-			entryInfo.uid = ?
-		ORDER BY %s`, sort), uid)
+		%s
+		ORDER BY %s`, whereClause, sort)
+
+	items, err := QueryDB(qs, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -902,7 +931,11 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 }
 
 func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
-	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE userViewingInfo.uid = ?", uid)
+	qs := "SELECT * FROM userViewingInfo WHERE userViewingInfo.uid = ?"
+	if uid == 0 {
+		qs = "SELECT * FROM userViewingInfo"
+	}
+	items, err := QueryDB(qs, uid)
 	if err != nil {
 		return nil, err
 	}
