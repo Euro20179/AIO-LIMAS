@@ -1,18 +1,17 @@
 package lua_api
 
 import (
+	"os"
 	"strconv"
 	"strings"
 
-	db_types "aiolimas/types"
+	"aiolimas/accounts"
 	"aiolimas/logging"
+	db_types "aiolimas/types"
+	globals "aiolimas/util"
 
 	"github.com/yuin/gopher-lua"
 )
-
-var GlobalLuaInstance *lua.LState
-
-var LuaEventRegistry = map[string][]*lua.LFunction{}
 
 func Fullsetup(state *lua.LState) {
 	aioTble := state.NewTable()
@@ -64,11 +63,29 @@ func Fullsetup(state *lua.LState) {
 		eventName := s.ToString(1)
 		onEvent := s.ToFunction(2)
 
-		LuaEventRegistry[eventName] = append(LuaEventRegistry[eventName], onEvent)
+		globals.LuaEventRegistry[eventName] = append(globals.LuaEventRegistry[eventName], onEvent)
 		return 0
 	})
 	state.SetField(aioTble, "listen", listen)
 	//}}}
+
+	// api funcs {{{
+	accID := state.NewFunction(func(s *lua.LState) int {
+		username := s.ToString(1)
+
+		id, err := accounts.Username2Id(os.Getenv("AIO_PATH"), username)
+
+		if err != nil {
+			logging.ELog(err)
+			s.Push(lua.LNumber(1))
+			return 1
+		}
+
+		s.Push(lua.LNumber(id))
+		return 1
+	})
+	state.SetField(aioTble, "username2id", accID)
+	// }}}
 
 	// types{{{
 	artStylesTble := state.NewTable()
@@ -80,11 +97,12 @@ func Fullsetup(state *lua.LState) {
 	state.SetField(aioTble, "artStyles", artStylesTble)
 	// }}}
 
+
 	state.SetGlobal("aio", aioTble)
 }
 
 func ReloadLuaInstance(fromFile string) (*lua.LState, error) {
-	LuaEventRegistry = map[string][]*lua.LFunction{}
+	globals.LuaEventRegistry = map[string][]*lua.LFunction{}
 
 	return InitGlobalLuaInstance(fromFile)
 }

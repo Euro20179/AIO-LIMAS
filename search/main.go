@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"aiolimas/lua-api"
+	globals "aiolimas/util"
 
 	"github.com/yuin/gopher-lua"
 )
@@ -284,14 +284,14 @@ type MacroNode struct {
 }
 
 func (self MacroNode) ToString() (string, error) {
-	onExpand, exists := lua_api.LuaEventRegistry["MacroExpand"]
+	onExpand, exists := globals.LuaEventRegistry["MacroExpand"]
 	if !exists {
 		return "", errors.New("Could not expand macro")
 	}
 
 	curMacro := self.Value
 
-	state := lua_api.GlobalLuaInstance
+	state := globals.GlobalLuaInstance
 
 	for _, expansion := range onExpand {
 		state.Push(expansion)

@@ -151,6 +151,15 @@ local prefixMacros = {
         local name = string.sub(macro, 5)
         return string.format("mediaDependant != '' and CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
     end,
+
+    ["user:"] = function(macro)
+        local name = string.sub(macro, 6)
+        local id = aio.username2id(name)
+        if id == 0 then
+            return "false", ""
+        end
+        return string.format("entryInfo.uid = %d", id), ""
+    end
 }
 
 ---@param macro string
@@ -212,6 +221,7 @@ function Expand_macro(macro)
         return basicMacros[macro], ""
     elseif prefixMacros[prefix] ~= nil then
         return prefixMacros[prefix](macro)
+
     elseif string.sub(macro, 0, 4) == "date" then
         local beginOrEnd = "start"
         if string.sub(macro, 5, 5) == ">" then
