@@ -192,7 +192,7 @@ function Expand_macro(macro)
         d = "description",
         ts = "timestamp",
         ["s:v"] = comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""),
-        ep = "CAST(json_extract(mediadependant, CONCAT('$.%s-episodes', type)) as DECIMAL)",
+        ep = "CAST(json_extract(mediadependant, format('$.%s-episodes', type)) as DECIMAL)",
         len = "CAST(json_extract(mediadependant, format('$.%s-length', type)) as DECIMAL)",
         epd = "CAST(json_extract(mediadependant, format('$.%s-episode-duration', type)) as DECIMAL)"
     }
