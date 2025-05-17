@@ -194,6 +194,7 @@ function Expand_macro(macro)
         t = "en_title",
         T = "title",
         d = "description",
+        ts = "timestamp",
         ["s:v"] = comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""),
     }
 
