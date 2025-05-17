@@ -2,6 +2,65 @@ local function comp(left, right)
     return left .. " == " .. right
 end
 
+local function parseDateParams(paramString, startOrEnd)
+    local month = 1
+    if startOrEnd == "start" then
+        month = 1
+    else
+        month = 12
+    end
+
+    --default required fields, set to 2025, 1, 1
+    local time = {
+        year = 2025,
+        month = month,
+        day = 1,
+        hour = 0,
+        minute = 0,
+        second = 0,
+    }
+
+    local curKey = ""
+    local curVal = ""
+    ---@type "key" | "val"
+    local parsing = "key"
+    for i = 1, #paramString do
+        local ch = paramString:sub(i, i)
+        if ch == ":" then
+            parsing = "val"
+            goto continue
+        elseif ch == "/" then
+            parsing = "key"
+            local full = ({
+                y = "year",
+                m = "month",
+                d = "day",
+                H = "hour",
+                M = "minute",
+                S = "second"
+            })[curKey] or "year"
+            time[full] = tonumber(curVal)
+            print(curKey, curVal)
+            curKey = ""
+            curVal = ""
+            goto continue
+        end
+
+        if parsing == "key" then
+            curKey = curKey .. ch
+        else
+            curVal = curVal .. ch
+        end
+        ::continue::
+    end
+
+    local ok, t = pcall(os.time, time)
+    if not ok then
+        return "false"
+    end
+    return tostring(t * 1000)
+end
+
 local formats = {
     VHS          = 0,
     CD           = 1,
@@ -40,7 +99,6 @@ local prefixMacros = {
     end,
 
     ["a:"] = function(macro)
-
         local itemList = string.sub(macro, 3)
         local items = aio.split(itemList, "+")
         local query = ""
@@ -94,6 +152,9 @@ local prefixMacros = {
         local name = string.sub(macro, 5)
         return string.format("mediaDependant != '' and CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
     end,
+
+    ["date("] = function(macro)
+    end
 }
 
 ---@param macro string
@@ -151,6 +212,19 @@ function Expand_macro(macro)
         return basicMacros[macro], ""
     elseif prefixMacros[prefix] ~= nil then
         return prefixMacros[prefix](macro)
+    elseif string.sub(macro, 0, 4) == "date" then
+        local beginOrEnd = "start"
+        if string.sub(macro, 5, 5) == ">" then
+            beginOrEnd = "end"
+        end
+
+
+        local time = string.sub(macro, 6)
+        if time == "" then
+            return "false", ""
+        end
+
+        return parseDateParams(time, beginOrEnd), ""
     else
         return string.format("(en_title LIKE '%%%s%%')", string.sub(macro, 1)), ""
     end
