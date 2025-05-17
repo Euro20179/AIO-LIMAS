@@ -38,9 +38,8 @@ local function parseDateParams(paramString, startOrEnd)
                 H = "hour",
                 M = "minute",
                 S = "second"
-            })[curKey] or "year"
+            })[curKey] or ((time[curKey] ~= nil) and curKey) or "year"
             time[full] = tonumber(curVal)
-            print(curKey, curVal)
             curKey = ""
             curVal = ""
             goto continue
@@ -152,9 +151,6 @@ local prefixMacros = {
         local name = string.sub(macro, 5)
         return string.format("mediaDependant != '' and CAST(json_extract(mediaDependant, '$.%s') as decimal)", name), ""
     end,
-
-    ["date("] = function(macro)
-    end
 }
 
 ---@param macro string
@@ -196,6 +192,9 @@ function Expand_macro(macro)
         d = "description",
         ts = "timestamp",
         ["s:v"] = comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""),
+        ep = "CAST(json_extract(mediadependant, CONCAT('$.%s-episodes', type)) as DECIMAL)",
+        len = "CAST(json_extract(mediadependant, format('$.%s-length', type)) as DECIMAL)",
+        epd = "CAST(json_extract(mediadependant, format('$.%s-episode-duration', type)) as DECIMAL)"
     }
 
     for _, item in ipairs(mediaTypes) do
