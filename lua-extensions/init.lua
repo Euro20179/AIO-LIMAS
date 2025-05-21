@@ -134,7 +134,7 @@ local prefixMacros = {
         end
 
         --return any matching format OR the digitally modified version
-        return comp("Format", formats[reqFmt]) .. " or " .. comp("Format", aio.bor(formats[reqFmt], F_MOD_DIGITAL)), ""
+        return "(" .. comp("Format", formats[reqFmt]) .. " or " .. comp("Format", aio.bor(formats[reqFmt], F_MOD_DIGITAL)) .. ")", ""
     end,
 
     ["tag:"] = function(macro)
