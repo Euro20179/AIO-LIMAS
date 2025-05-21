@@ -200,6 +200,7 @@ function Expand_macro(macro)
         T = "title",
         d = "description",
         ts = "timestamp",
+        y = "releaseyear",
         ["s:v"] = comp("status", "\"Viewing\"") .. " or " .. comp("status", "\"ReViewing\""),
         ep = "CAST(json_extract(mediadependant, format('$.%s-episodes', type)) as DECIMAL)",
         len = "CAST(json_extract(mediadependant, format('$.%s-length', type)) as DECIMAL)",
