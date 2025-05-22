@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 
 	"aiolimas/accounts"
 	api "aiolimas/api"
@@ -98,24 +97,6 @@ func main() {
 	db.InitDb()
 
 	accounts.InitAccountsDb(aioPath)
-
-	users, _ := os.ReadDir(fmt.Sprintf("%s/users/", aioPath))
-	for _, userDir := range users{
-		path := fmt.Sprintf("%s/users/%s", aioPath, userDir.Name())
-		if _, err := os.Stat(path + "/all.db"); err == nil {
-			uid, err := strconv.ParseInt(userDir.Name(), 10, 64)
-			if err != nil {
-				logging.ELog(err)
-				continue
-			}
-			err = db.MergeUserDB(uid, path + "/all.db")
-			if err != nil {
-				logging.ELog(err)
-			}
-
-			os.Remove(path + "/all.db")
-		}
-	}
 
 	flag.Parse()
 
