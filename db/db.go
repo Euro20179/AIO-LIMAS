@@ -19,6 +19,8 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
+const DB_VERSION = 1
+
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
 	return fmt.Sprintf("%s/", aioPath)
@@ -30,6 +32,54 @@ func OpenUserDb() (*sql.DB, error) {
 	return sql.Open("sqlite3", path+"all.db")
 }
 
+func CkDBVersion() error {
+	DB, err := OpenUserDb()
+	if err != nil {
+		return err
+	}
+
+	defer DB.Close()
+
+	DB.Exec("CREATE TABLE IF NOT EXISTS DBInfo (version INTEGER DEFAULT 0)")
+
+	v, err := DB.Query("SELECT version FROM DBInfo")
+	if err != nil {
+		return err
+	}
+
+	var version int64 = 0
+
+	if !v.Next() {
+		logging.Info("COULD NOT DETERMINE DB VERSION, USING VERSION 0")
+		var cont int64
+		print("type 1 if you are SURE that this is correct: ")
+		fmt.Scanln(&cont)
+		if cont != 1 {
+			panic("Could not determine db veresion")
+		}
+	} else {
+		err = v.Scan(&version)
+		if err != nil {
+			return err
+		}
+	}
+
+	for i := version; i < DB_VERSION; i++ {
+		schema, err := os.ReadFile(fmt.Sprintf("./db/schema/v%d-%d.sql", i, i+1))
+		if err != nil {
+			return err
+		}
+
+		println("Upgrading from", i, "to", i+1)
+
+		_, err = DB.Exec(string(schema))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func QueryDB(query string, args ...any) (*sql.Rows, error) {
 	Db, err := OpenUserDb()
@@ -58,7 +108,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 	whereClause := ""
 	if uid != 0 {
-		whereClause  = "WHERE entryInfo.uid = ?"
+		whereClause = "WHERE entryInfo.uid = ?"
 	}
 
 	allRows, err := QueryDB(`SELECT * FROM entryInfo `, whereClause, uid)
@@ -198,6 +248,10 @@ func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 }
 
 func InitDb() error {
+	err := CkDBVersion()
+	if err != nil {
+		panic(err.Error())
+	}
 	conn, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
@@ -462,7 +516,7 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 		updateStr += k + "= ?,"
 	}
 
-	//append the user id
+	// append the user id
 	updateArgs = append(updateArgs, uid)
 	// needs itemid for checking which item to update
 	updateArgs = append(updateArgs, tblRepr.Id())
@@ -642,7 +696,7 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	if uid != 0 {
 		whereClause += " and entryInfo.uid = ?"
 	}
-	rows, err := QueryDB(`SELECT ? FROM entryInfo ` + whereClause, col, string(ty), uid)
+	rows, err := QueryDB(`SELECT ? FROM entryInfo `+whereClause, col, string(ty), uid)
 	if err != nil {
 		return out, err
 	}
@@ -663,7 +717,7 @@ func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	if uid != 0 {
 		whereClause += " and entryInfo.uid = ?"
 	}
-	rows, err := QueryDB("SELECT * FROM entryInfo WHERE " + whereClause, id, uid)
+	rows, err := QueryDB("SELECT * FROM entryInfo WHERE "+whereClause, id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -690,7 +744,7 @@ func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	if uid != 0 {
 		whereClause += " and entryInfo.uid = ?"
 	}
-	rows, err := QueryDB("SELECT * FROM entryInfo where " + whereClause, id, uid)
+	rows, err := QueryDB("SELECT * FROM entryInfo where "+whereClause, id, uid)
 	if err != nil {
 		return out, err
 	}
@@ -722,9 +776,8 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 
 	whereText := ""
 	if len(whereClause) != 0 {
-		whereText = "WHERE "  + strings.Join(whereClause, " and ")
+		whereText = "WHERE " + strings.Join(whereClause, " and ")
 	}
-
 
 	var events *sql.Rows
 	var err error

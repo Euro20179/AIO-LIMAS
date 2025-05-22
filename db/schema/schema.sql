@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS userViewingInfo (
         userRating NUMERIC,
         notes TEXT,
         currentPosition TEXT,
-        extra TEXT
+        extra TEXT,
+        minutes NUMERIC
 );
 
 CREATE TABLE IF NOT EXISTS userEventInfo (
