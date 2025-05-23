@@ -54,7 +54,9 @@ func startServer() {
 	http.HandleFunc("/docs", api.MainDocs.Listener)
 
 	http.HandleFunc("/html/", dynamic.HtmlEndpoint)
-	// http.HandleFunc("/", webservice.Root)
+	http.HandleFunc("/", func (w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, "./webservice/www" + req.URL.Path)
+	})
 
 	port := os.Getenv("AIO_PORT")
 	if port == "" {
