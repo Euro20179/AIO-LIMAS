@@ -275,7 +275,10 @@ func InitDb() error {
 }
 
 func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string, out *T) error {
-	query := "SELECT * FROM " + tblName + " WHERE itemId = ? and " + tblName + ".uid = ?;"
+	query := "SELECT * FROM " + tblName + " WHERE itemId = ?"
+	if uid != 0 {
+		query += " and " + tblName + ".uid = ?;"
+	}
 
 	rows, err := QueryDB(query, id, uid)
 	if err != nil {

@@ -168,7 +168,6 @@ func HtmlEndpoint(w http.ResponseWriter, req *http.Request) {
 		uid := pp.Get("uid")
 		id, err := strconv.ParseInt(uid, 10, 64)
 		if err != nil {
-			util.WError(w, 400, "Invalid user id")
 			return 0
 		}
 
@@ -180,17 +179,11 @@ func HtmlEndpoint(w http.ResponseWriter, req *http.Request) {
 	switch pathArguments[1] {
 	case "search":
 		id := getuid()
-		if id == 0 {
-			return
-		}
 		handleSearchPath(w, req, id)
 	case "users":
 		handleUsersPath(w, req)
 	case "by-id":
 		uid := getuid()
-		if uid == 0 {
-			return
-		}
 		if len(pathArguments) < 3 || pathArguments[2] == "" {
 			handleSearchPath(w, req, uid)
 		} else {
