@@ -175,6 +175,8 @@ func HtmlEndpoint(w http.ResponseWriter, req *http.Request) {
 		return id
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	switch pathArguments[1] {
 	case "search":
 		id := getuid()
