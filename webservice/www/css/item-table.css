@@ -1,0 +1,14 @@
+@import "/css/colors.css";
+
+#info-table {
+    border-collapse: collapse;
+}
+
+#info-table :is(td, th){
+    border: 1px solid;
+}
+
+#info-table a{
+    color: var(--link-color);
+}
+
