@@ -371,6 +371,7 @@ var engagementEndpointList = []ApiEndPoint{
 			"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 			"timestamp": MkQueryInfo(P_Int64, true),
 			"after":     MkQueryInfo(P_Int64, true),
+			"before": MkQueryInfo(P_Int64, true),
 		},
 		Description: "Deletes an event from an entry",
 	},

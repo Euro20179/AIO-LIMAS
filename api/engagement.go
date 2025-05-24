@@ -378,7 +378,8 @@ func DeleteEvent(ctx RequestContext) {
 	id := parsedParams["id"].(db_types.InfoEntry)
 	timestamp := parsedParams["timestamp"].(int64)
 	after := parsedParams["after"].(int64)
-	err := db.DeleteEvent(ctx.Uid, id.ItemId, timestamp, after)
+	before := parsedParams["before"].(int64)
+	err := db.DeleteEvent(ctx.Uid, id.ItemId, timestamp, after, before)
 	if err != nil{
 		util.WError(w, 500, "Could not delete event\n%s", err.Error())
 		return

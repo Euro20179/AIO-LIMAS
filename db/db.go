@@ -756,12 +756,12 @@ func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	return mkRows(rows)
 }
 
-func DeleteEvent(uid int64, id int64, timestamp int64, after int64) error {
+func DeleteEvent(uid int64, id int64, timestamp int64, after int64, before int64) error {
 	return ExecUserDb(uid, `
 		DELETE FROM userEventInfo
 		WHERE 
-			itemId == ? and timestamp == ? and after == ? and userEventInfo.uid = ?
-	`, id, timestamp, after, uid)
+			itemId == ? and timestamp == ? and after == ? and beforeTS == ? and userEventInfo.uid = ?
+	`, id, timestamp, after, before, uid)
 }
 
 // if id is -1, it lists all events
