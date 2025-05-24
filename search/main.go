@@ -54,7 +54,11 @@ type Token struct {
 	Value string
 }
 
-func Lex(search string) []Token {
+func runeAt(text []rune, pos int) rune {
+	return text[pos]
+}
+
+func Lex(search []rune) []Token {
 	i := -1
 
 	next := func() bool {
@@ -69,9 +73,9 @@ func Lex(search string) []Token {
 	parseNumber := func() string {
 		hasDot := false
 
-		final := string(search[i])
+		final := string(runeAt(search, i))
 		for next() {
-			ch := search[i]
+			ch := runeAt(search, i)
 			if ch == '.' && !hasDot {
 				hasDot = true
 				final += string(ch)
@@ -90,7 +94,7 @@ func Lex(search string) []Token {
 
 		final := ""
 		if quote == "" {
-			final = string(search[i])
+			final = string(runeAt(search, i))
 		}
 
 		escape := false
@@ -129,7 +133,7 @@ func Lex(search string) []Token {
 		final := ""
 		braceCount := 1
 		for next() {
-			ch := search[i]
+			ch := runeAt(search, i)
 			switch ch {
 			case '{':
 				braceCount++
@@ -149,7 +153,7 @@ func Lex(search string) []Token {
 	lexSearch := func() []Token {
 		var tokens []Token
 		for next() {
-			ch := search[i]
+			ch := runeAt(search, i)
 
 			var ty TT
 			var val string
@@ -198,7 +202,7 @@ func Lex(search string) []Token {
 				ty = TT_AND
 				val = string(ch)
 			case '=':
-				if len(search) > 1 && search[i+1] == '=' {
+				if len(search) > 1 && runeAt(search, i + 1) == '=' {
 					next()
 					ty = TT_EQ
 					val = "=="
@@ -207,7 +211,7 @@ func Lex(search string) []Token {
 					val = "="
 				}
 			case '>':
-				if len(search) > 1 && search[i+1] == '=' {
+				if len(search) > 1 && runeAt(search, i + 1) == '=' {
 					next()
 					ty = TT_GE
 					val = ">="
@@ -216,7 +220,7 @@ func Lex(search string) []Token {
 					val = ">"
 				}
 			case '<':
-				if len(search) > 1 && search[i+1] == '=' {
+				if len(search) > 1 && runeAt(search, i + 1) == '=' {
 					next()
 					ty = TT_LE
 					val = "<="
@@ -596,6 +600,6 @@ func Parse(tokens []Token) (string, error) {
 }
 
 func Search2String(search string) (string, error) {
-	tokens := Lex(search)
+	tokens := Lex([]rune(search))
 	return Parse(tokens)
 }

@@ -1,7 +1,9 @@
 package api
 
 import (
+	"aiolimas/util"
 	"fmt"
+	"text/template"
 	"net/http"
 )
 
@@ -209,9 +211,9 @@ var mainEndpointList = []ApiEndPoint{
 		QueryParams: QueryParams{
 			"search": MkQueryInfo(P_NotEmpty, true),
 		},
-		Returns:      "InfoEntry[]",
-		Description:  "search query similar to how sql where query works",
-		GuestAllowed: true,
+		Returns:         "InfoEntry[]",
+		Description:     "search query similar to how sql where query works",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	},
 
@@ -231,10 +233,10 @@ var mainEndpointList = []ApiEndPoint{
 var metadataEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "fetch-location",
-		Handler: FetchLocation,
-		QueryParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
-			"provider": MkQueryInfo(P_LocationProvider, false),
+		Handler:  FetchLocation,
+		QueryParams: QueryParams{
+			"id":          MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+			"provider":    MkQueryInfo(P_LocationProvider, false),
 			"provider-id": MkQueryInfo(P_NotEmpty, false),
 		},
 		Description: "Fetch the location of an entry based on the metadata and other info",
@@ -314,12 +316,12 @@ when using finalize-identify`,
 
 	{
 		EndPoint: "set-thumbnail",
-		Handler: SetThumbnail,
+		Handler:  SetThumbnail,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
 		},
 		Description: "Set the thumbnail for a metadata entry",
-		Method: POST,
+		Method:      POST,
 	},
 
 	{
@@ -372,7 +374,7 @@ var engagementEndpointList = []ApiEndPoint{
 			"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 			"timestamp": MkQueryInfo(P_Int64, true),
 			"after":     MkQueryInfo(P_Int64, true),
-			"before": MkQueryInfo(P_Int64, true),
+			"before":    MkQueryInfo(P_Int64, true),
 		},
 		Description: "Deletes an event from an entry",
 	},
@@ -492,9 +494,9 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 	{
 		EndPoint: "wait-media",
-		Handler: WaitMedia,
-		QueryParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+		Handler:  WaitMedia,
+		QueryParams: QueryParams{
+			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
 			"timezone": MkQueryInfo(P_NotEmpty, false),
 		},
 		Description: "Sets the status to waiting, and registers a Waiting event",
@@ -513,14 +515,14 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "username2id",
-		Handler: Username2Id,
+		EndPoint:    "username2id",
+		Handler:     Username2Id,
 		Description: "get a user's id from username",
-		QueryParams: QueryParams {
+		QueryParams: QueryParams{
 			"username": MkQueryInfo(P_NotEmpty, true),
 		},
 		UserIndependant: true,
-		GuestAllowed: true,
+		GuestAllowed:    true,
 	},
 
 	{
@@ -643,10 +645,10 @@ func DocHTML(ctx RequestContext) {
 		for root, list := range Endpoints {
 			if root != "" {
 				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", root, root)
-				docsHTML += fmt.Sprintf("<HR><h1 id=\"%s\">%s</h1>", root, root)
+				docsHTML += fmt.Sprintf("<HR><h3 id=\"%s\">%s</h3>", root, root)
 			} else {
 				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", "/", "/")
-				docsHTML += fmt.Sprintf("<HR><h1 id=\"%s\">%s</h1>", "/", "/")
+				docsHTML += fmt.Sprintf("<HR><h3 id=\"%s\">%s</h3>", "/", "/")
 			}
 			for _, endP := range list {
 				docsHTML += endP.GenerateDocHTML(root)
@@ -655,6 +657,18 @@ func DocHTML(ctx RequestContext) {
 		html += tableOfContents + "</ul>" + docsHTML
 		htmlCache = []byte(html)
 	}
+
+	//use text template in order to have html not be escaped
+	tmpl, err := template.ParseFiles("./docs/docs.html")
+
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not render docs %s", err)
+		return
+	}
+
 	w.WriteHeader(200)
-	w.Write(htmlCache)
+
+	tmpl.Execute(ctx.W, struct {
+		Endpoints string
+	}{Endpoints: string(htmlCache)})
 }
