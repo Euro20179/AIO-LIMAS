@@ -1,0 +1,296 @@
+<head>
+    <link rel="stylesheet" href="/css/general.css">
+    <style>
+        p {
+            width: min(80%, 1000px);
+        }
+
+        section {
+            border-bottom: 1px solid grey;
+        }
+    </style>
+</head>
+<h1>Documentation</h1>
+
+<section>
+    <h3 id="searching">Searching</h3>
+
+    <p>
+        To make a search use a combination of <a href="#fields">fields</a> and <a href="#operators">operators</a>.
+    </p>
+    <p>
+        A basic title search might look something like this <code>En_Title ~ "Some title"</code>.
+        However, for obvious reasons this sucks, hence <a href="#builtin-macros"
+            style="text-decoration: underline; cursor: pointer;"><b>macros</b></a>.
+        A macro starts with a <code>#</code> or <code>@</code> and gets sent to a lua script that expands it out to a
+        proper query.
+        An example macro would be <code>#Some\ Title</code> which expands to <code>En_Title ~ "Some title"</code>
+    </p>
+    <h4 id="operators">Operators</h4>
+    <ul>
+        <li>~: same as LIKE in sql</li>
+        <li>=: exactly equal to</li>
+        <li>&lt;: less than</li>
+        <li>&lt;=: less than or equal</li>
+        <li>&gt;: greater than</li>
+        <li>&gt;=: greater than or equal</li>
+        <li>&amp;: same as AND in sql</li>
+        <li>.: same as &amp;</li>
+        <li>|: same as OR in sql</li>
+        <li>?: same as |</li>
+    </ul>
+
+
+    <h4 id="builtin-macros">Builtin Macros</h4>
+    <p>
+        I do plan to add support for lua extensions in <code>$AIO_DIR</code> but for now these are the builtin
+        macros
+    </p>
+    <ul>
+        <li>r: userRating</li>
+        <li>R: rating</li>
+        <li>t: item type</li>
+        <li>T: title (metadata provided)</li>
+        <li>d: description</li>
+        <li>ts: timestamp</li>
+        <li>y: releaseYear</li>
+        <li>ep: <code>CAST(json_extract(mediaDependant, format('1.%s-episodes', type)) as DECIMAL)</code>, simply: gets the episode count (if item has it)</li>
+        <li>len: <code>CAST(json_extract(mediaDependant, format('1.%s-length', type)) as DECIMAL)</code>, simply: gets the total length (if item has it)</li>
+        <li>epd: <code>CAST(json_extract(mediaDependant, format('1.%s-length', type)) as DECIMAL)</code>, simply: gets the episode duration (if item has it)</li>
+    </ul>
+    <p>
+        The <b>s:</b> macro indicates a status, eg: <code>#s:v</code> expands to <code>Status = "Viewing"</code>
+    </p>
+    <p>
+        The <b>tag:</b> macro searches for a tag. eg: <code>#tag:ghibli</code>, this is equivelent to
+        <code>Collection ~ '%\x1Fghibli\x1F%'</code><br>
+        The reason the equivelent is so horrible is because it's an <code>\x1F</code> deliminated list of tags
+    </p>
+    <p>
+        The <b>t:</b> macro searches for a type, eg: <code>#t:Show</code>
+    </p>
+    <p>
+        The <b>a:</b> macro checks if an item has an art style, eg: <code>#a:Cartoon</code> or <code>#a:Anime</code>
+    </p>
+    <p>
+        The <b>f:</b> macro checks if an item matches a format. By default, this will also match items with the format with or without the digital modifier.
+        In order to change this behavior add <code>-d</code> at the end to match the format WITHOUT the digital modifier.
+        <code>+d</code> can be used to match the format WITH the digital modifier.
+    </p>
+    <p>
+        The <b>md:</b> and <b>mdi:</b> macros help query against a mediaDependant json value.<br>
+        <code>md:</code> counts it as a string, while <code>mdi:</code> counts it as an integer.
+    </p>
+    <p>
+        The <b>user:</b> macro check if the item belongs to a specific username, eg: <code>#user:Amazing\ username</code>
+    </p>
+    <p>
+        The <b>#</b> macro searches the string against all titles, <code>En_Title</code>, meta and info <code>Native_Title</code>, and <code>Title</code>
+    </p>
+    <p>
+        If a macro is a type, eg <code>#Show</code> or <code>#Movie</code> it will expand to <code>type =
+            "Show"</code>etc, ...
+    </p>
+    <p>
+        If a macro is a status, eg: <code>#planned</code> it will expand to eg: <code>status = "Planned"</code>
+    </p>
+    <p>
+        Lastly, if a macro fails to expand, it expands to <code>En_Title ~ "macro_text"</code>
+    </p>
+    <p>
+        An example would be <code>#r &gt; 78</code> which will expand to:
+        <code>userRating &gt; 78</code>
+    </p>
+</section>
+
+<section>
+    <h3 id="fields">Fields</h3>
+    <p>
+        This section describes the layout of different tables.
+        Keep in mind that every field is optional and the default will be a sensible default value for it's type.
+    </p>
+    <p>
+        The <code>En_Title</code> and <code>Type</code> fields of Info, and <code>event</code> of Event are the only
+        required fields across all tables.
+    </p>
+    <h4>
+        Info fields
+    </h4>
+    <ul>
+        <li>ItemId</li>
+        <li>En_Title (string): The user specified name for the item</li>
+        <li>Native_Title (string): The user specified native name for the item</li>
+        <li>Format (int): The format the entry is stored on, also see: <a href="#format-list">format list</a>, and
+            the #f macro</li>
+        <li>Location (string): Location (on disk) of the entry</li>
+        <li>PurchasePrice (float): The price the user bought the entry for</li>
+        <li>Collection (string): <del>An \x1F seperated list of tags</del> <ins>use the #tag macro instead</ins>
+        </li>
+        <li>ParentId (int): 0 or the entry's parent</li>
+        <li>Type (string): The type of the entry, also see: <a href="#type-list">type list</a></li>
+        <li>ArtStyle (int): A bitfield of the entry's different art styles, also see: <a href="#art-styles">art
+                styles</a></li>
+        <li>CopyOf (int): 0 or the entry that this item is a copy of</li>
+        <li>Library (int): 0 or the library that the entry is appart of</li>
+    </ul>
+    <h4>
+        User fields
+    </h4>
+    <ul>
+        <li>ItemId</li>
+        <li>Status (string): the user's status, also see: <a href="#status-list">statuses</a></li>
+        <li>ViewCount (int): the amount of times the entry has been viewed</li>
+        <li>UserRating (int): the user's rating</li>
+        <li>Notes (string): any notes the user has on the entry</li>
+        <li>CurrentPosition (string): a description of the position of the user within an entry</li>
+        <li>Extra (string): a json object containing extra information about the entry</li>
+        <li>Minutes (int): the number of minutes the user has spent viewing the entry</li>
+    </ul>
+    <h4>
+        Metadata fields
+    </h4>
+    <ul>
+        <li>ItemId</li>
+        <li>Rating (float): the general rating</li>
+        <li>RatingMax (float): the maximum possible rating depending on the metadata provider</li>
+        <li>Description (string): description of the entry</li>
+        <li>ReleaseYear (int): release year of the entry</li>
+        <li>Thumbnail (string): url to a thumbnail</li>
+        <li>MediaDependant (string): a json object containing miscellanious information about an entry that depends
+            on the type of media </li>
+        <li>Datapoints (string): a json object containing miscellanious information (unused)</li>
+        <li>Title (string): Title of the entry</li>
+        <li>Native_Title (string): Official native title</li>
+        <li>Provider (string): The metadata provider</li>
+        <li>ProviderId (string): The id of the item according to the metadata provider</li>
+    </ul>
+    <h4>
+        Event fields
+    </h4>
+    <ul>
+        <li>ItemId</li>
+        <li>Event (string): the event name</li>
+        <li>After (int): the earliest possible timestamp the event happened</li>
+        <li>BeforeTS (int): the latest possible timestamp the event happened</li>
+        <li>Timestamp (int): the timestamp the event happened</li>
+    </ul>
+</section>
+
+<section id="field-information">
+    <h3>Field Info</h3>
+    <h4 id="format-list">Format List</h4>
+    <ul>
+        <li>0: VHS</li>
+        <li>1: CD</li>
+        <li>2: DVD</li>
+        <li>3: BLU RAY</li>
+        <li>4: 4k BLU RAY</li>
+        <li>5: MANGA</li>
+        <li>6: BOOK</li>
+        <li>7: DIGITAL</li>
+        <li>8: BOARDGAME</li>
+        <li>9: STEAM</li>
+        <li>10: NIN_SWITCH</li>
+        <li>11: XBOXONE</li>
+        <li>12: XBOX360</li>
+        <li>13: OTHER</li>
+        <li>14: VINYL</li>
+        <li>15: IMAGE</li>
+        <li>16: UNOWNED</li>
+        <li>4096: DIGITAL MODIFIER, can be bitwise anded to any of the above to say that it is a digital version of
+            that format</li>
+    </ul>
+
+    <h4 id="type-list">Type List</h4>
+    <ul>
+        <li>Show</li>
+        <li>Movie</li>
+        <li>MovieShort</li>
+        <li>Game</li>
+        <li>BoardGame</li>
+        <li>Song</li>
+        <li>Book</li>
+        <li>Manga</li>
+        <li>Collection</li>
+        <li>Picture</li>
+        <li>Meme</li>
+        <li>Library</li>
+        <li>Video</li>
+    </ul>
+
+    <h4 id="art-styles">Art Styles</h4>
+    <p>
+        Art styles are an integer so that they can be bitwise anded together to get a mix of art styles
+    </p>
+    <ul>
+        <li>1: ANIME</li>
+        <li>2: CARTOON</li>
+        <li>4: HANDRAWN</li>
+        <li>8: DIGITAL</li>
+        <li>16: CGI</li>
+        <li>32: LIVE_ACTION</li>
+    </ul>
+
+    <h4 id="status-list">Statuses</h4>
+    <ul>
+        <li>EMPTY STATUS ("")</li>
+        <li>Viewing</li>
+        <li>Finished</li>
+        <li>Dropped</li>
+        <li>Paused</li>
+        <li>Planned</li>
+        <li>ReViewing</li>
+        <li>Waiting</li>
+    </ul>
+</section>
+
+
+<section>
+    <h3>Configuration</h3>
+    <p>
+        By default, configuration is stored in <code>$AIO_DIR</code>, which by default is
+        <code>$XDG_DATA_HOME/aio-limas</code>.
+    </p>
+    <p>
+        Configuration is done <b>per user</b> within the <code>settings.json</code> file stored in
+        <code>$AIO_DIR/users/[user-id]</code>.
+    </p>
+    Configuration schema:
+    <script type="application/json" style="display: block; white-space: pre; font-family: monospace;">
+{
+    SonarrURL: string,
+    SonarrKey: string,
+    RadarrURL: string,
+
+    WriteIdFile: bool,
+
+    LocationAliases: map[string] string,
+
+    DefaultTimeZone: string
+}
+        </script>
+    <h4>SonarrURL</h4>
+    The url to a sonarr instance, eg: <code>http://192.168.0.1:8989</code>
+    <h4>SonarrKey</h4>
+    API key for the sonarr instance
+    <h4>RadarrURL</h4>
+    The url to a radarr instance, eg: <code>http://192.168.0.1:7878</code>
+    <h4>RadarrKey</h4>
+    API key for the radarr instance
+
+    <h4>WriteIdFile</h4>
+    If true, when an entry is updated, it will attempt to write the id of that entry in a file called
+    <code>.AIO-ID</code> in the provided <code>Location</code> of that entry.<br>
+    Also see <a href="#LocationAliases">location aliases</a>
+
+    <h4 id="LocationAliases">LocationAliases</h4>
+    Essentially, variables that are used for <code>Location</code>.<br>
+    For example, if i set <code>{"LocationAliases": {"ANIME": "/path/to/anime/folder"}}</code><br>
+    aio limas will understand that a location of <code>${ANIME}/erased</code> is actually
+    <code>/path/to/anime/folder/erased</code>.
+</section>
+
+<hr>
+
+<h3>Endpoints</h3>
+{{ .Endpoints }}
