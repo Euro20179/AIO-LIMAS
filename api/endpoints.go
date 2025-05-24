@@ -384,6 +384,7 @@ var engagementEndpointList = []ApiEndPoint{
 			"timestamp": MkQueryInfo(P_Int64, false),
 			"after":     MkQueryInfo(P_Int64, false),
 			"timezone":  MkQueryInfo(P_NotEmpty, false),
+			"before":    MkQueryInfo(P_Int64, false),
 		},
 		Description: "Registers an event for an entry",
 	},

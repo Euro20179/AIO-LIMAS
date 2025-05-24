@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS userEventInfo (
     itemId INTEGER,
     timestamp INTEGER,
     after INTEGER,
+    beforeTS INTEGER,
     event TEXT,
     timezone TEXT
 );

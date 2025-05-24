@@ -346,6 +346,7 @@ type UserViewingEvent struct {
 	Event     string
 	TimeZone  string
 	Timestamp uint64
+	Before    uint64
 	After     uint64 // this is also a timestamp, for when the exact timestamp is unknown
 	// this is to ensure that order can be determined
 }
@@ -366,6 +367,7 @@ func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 		&self.After,
 		&self.Event,
 		&self.TimeZone,
+		&self.Before,
 	)
 }
 

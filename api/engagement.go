@@ -392,6 +392,7 @@ func RegisterEvent(ctx RequestContext) {
 	id := parsedParams["id"].(db_types.InfoEntry)
 	ts := parsedParams.Get("timestamp", time.Now().UnixMilli()).(int64)
 	after := parsedParams.Get("after", 0).(int64)
+	before := parsedParams.Get("before", 0).(int64)
 	name := parsedParams["name"].(string)
 	us, err := settings.GetUserSettings(ctx.Uid)
 	if err != nil{
@@ -406,6 +407,7 @@ func RegisterEvent(ctx RequestContext) {
 		After: uint64(after),
 		Event: name,
 		TimeZone: timezone,
+		Before: uint64(before),
 	})
 	if err != nil{
 		util.WError(w, 500, "Could not register event\n%s", err.Error())

@@ -19,7 +19,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -63,6 +63,8 @@ func CkDBVersion() error {
 			return err
 		}
 	}
+
+	v.Close()
 
 	for i := version; i < DB_VERSION; i++ {
 		schema, err := os.ReadFile(fmt.Sprintf("./db/schema/v%d-%d.sql", i, i+1))
@@ -462,9 +464,9 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 func RegisterUserEvent(uid int64, event db_types.UserViewingEvent) error {
 	return ExecUserDb(uid, `
-		INSERT INTO userEventInfo (uid, itemId, timestamp, event, after, timezone)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, uid, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone)
+		INSERT INTO userEventInfo (uid, itemId, timestamp, event, after, timezone, beforeTS)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, uid, event.ItemId, event.Timestamp, event.Event, event.After, event.TimeZone, event.Before)
 }
 
 func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int64) error {

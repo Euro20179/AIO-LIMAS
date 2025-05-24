@@ -36,6 +36,8 @@ func Username2Id(aioPath string, username string) (uint64, error) {
 		return 0, err
 	}
 
+	defer res.Close()
+
 	var out uint64 = 0
 	res.Next()
 	err = res.Scan(&out)
@@ -57,6 +59,7 @@ func ListUsers(aioPath string) ([]AccountInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Close()
 
 	var out []AccountInfo
 	for res.Next() {
