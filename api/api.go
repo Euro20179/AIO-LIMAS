@@ -380,7 +380,8 @@ func QueryEntries3(ctx RequestContext) {
 	w := ctx.W
 	search := pp["search"].(string)
 
-	if ctx.Uid != 0{
+	//can be -1 if user does not provide uid
+	if ctx.Uid > 0{
 		search += fmt.Sprintf(" & {entryInfo.uid = %d}", ctx.Uid)
 	}
 

@@ -231,7 +231,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(400)
 		fmt.Fprintf(w, "Missing parameter: 'uid'")
 		return
-	} else if !self.UserIndependant {
+	} else if uidStr != "" {
 		var err error
 		uidInt, err = strconv.ParseInt(uidStr, 10, 64)
 		if err != nil {

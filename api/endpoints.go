@@ -212,6 +212,7 @@ var mainEndpointList = []ApiEndPoint{
 		Returns:      "InfoEntry[]",
 		Description:  "search query similar to how sql where query works",
 		GuestAllowed: true,
+		UserIndependant: true,
 	},
 
 	{
