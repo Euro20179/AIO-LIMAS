@@ -223,12 +223,21 @@ function Expand_macro(macro)
     elseif prefixMacros[prefix] ~= nil then
         return prefixMacros[prefix](macro)
 
+    elseif string.sub(macro, 0, 3) == "ev-" then
+        local time = string.sub(macro, 4) .. "/"
+        local d = parseDateParams(time, "start")
+        return string.format("((%s > timestamp AND timestamp > 0) OR (%s > beforeTS AND beforeTS > 0))", d, d), ""
+
+    elseif string.sub(macro, 0, 3) == "ev+" then
+        local time = string.sub(macro, 4) .. "/"
+        local d = parseDateParams(time, "end")
+        return string.format("((%s < timestamp AND timestamp > 0) OR (%s < after AND after > 0))", d, d), ""
+
     elseif string.sub(macro, 0, 4) == "date" then
         local beginOrEnd = "start"
-        if string.sub(macro, 5, 5) == ">" then
+        if string.sub(macro, 5, 5) == "+" then
             beginOrEnd = "end"
         end
-
 
         local time = string.sub(macro, 6)
         if time == "" then
