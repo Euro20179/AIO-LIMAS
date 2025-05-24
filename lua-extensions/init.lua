@@ -227,13 +227,13 @@ function Expand_macro(macro)
         local time = string.sub(macro, 4) .. "/"
         local d = parseDateParams(time, "start")
         --if the timestamp is less than date, OR if beforeTS is less than date, OR if date is between after and beforets
-        return string.format("((%s > timestamp AND timestamp > 0) OR (%s > beforeTS AND beforeTS > 0) OR (%s < after AND %s > beforeTS AND after != 0 AND beforeTS != 0))", d, d, d, d), ""
+        return string.format("((%s > timestamp AND timestamp > 0) OR (%s > beforeTS AND beforeTS > 0) OR (%s > after AND after > 0))", d, d, d, d), ""
 
     elseif string.sub(macro, 0, 3) == "ev+" then
         local time = string.sub(macro, 4) .. "/"
         local d = parseDateParams(time, "end")
         --if the timestamp is less than date, OR if beforeTS is less than date, OR if date is between after and beforets
-        return string.format("((%s < timestamp AND timestamp > 0) OR (%s < after AND after > 0) OR (%s < after AND %s > beforeTS AND after != 0 AND beforeTS != 0))", d, d, d, d), ""
+        return string.format("((%s < timestamp AND timestamp > 0) OR (%s < after AND after > 0) OR (%s < beforeTS AND beforeTS != 0))", d, d, d, d), ""
 
     elseif string.sub(macro, 0, 4) == "date" then
         local beginOrEnd = "start"
