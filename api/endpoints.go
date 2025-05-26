@@ -224,8 +224,21 @@ var mainEndpointList = []ApiEndPoint{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 		},
 		Description:  "Gets the userEntry, metadataEntry, and infoEntry for an entry",
-		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry",
+		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry\\nEvents",
 		GuestAllowed: true,
+	},
+	
+	{
+
+		EndPoint: "get-all-for-entries",
+		Handler:  GetAllForEntries,
+		QueryParams: QueryParams{
+			"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
+		},
+		Description:  "Gets the userEntry, metadataEntry, and infoEntry for a , separated list of entries",
+		Returns:      "Same as get-all-for-entry, each item is separated by \\n\\n",
+		GuestAllowed: true,
+		UserIndependant: true,
 	},
 } // }}}
 

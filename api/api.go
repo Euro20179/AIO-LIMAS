@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	db "aiolimas/db"
@@ -77,25 +78,20 @@ func DownloadDB(ctx RequestContext) {
 	http.ServeFile(ctx.W, ctx.Req, dbPath)
 }
 
-func GetAllForEntry(ctx RequestContext) {
-	parsedParams := ctx.PP
-	w := ctx.W
-
-	info := parsedParams["id"].(db_types.InfoEntry)
-
-	events, err := db.GetEvents(ctx.Uid, info.ItemId)
+func _getAllForEntry(w http.ResponseWriter, uid int64, info db_types.InfoEntry) {
+	events, err := db.GetEvents(uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get events\n%s", err.Error())
 		return
 	}
 
-	user, err := db.GetUserViewEntryById(ctx.Uid, info.ItemId)
+	user, err := db.GetUserViewEntryById(uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get user info\n%s", err.Error())
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(ctx.Uid, info.ItemId)
+	meta, err := db.GetMetadataEntryById(uid, info.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get metadata info\n%s", err.Error())
 		return
@@ -119,8 +115,6 @@ func GetAllForEntry(ctx RequestContext) {
 		return
 	}
 
-	w.WriteHeader(200)
-
 	w.Write(uj)
 	w.Write([]byte("\n"))
 
@@ -131,6 +125,41 @@ func GetAllForEntry(ctx RequestContext) {
 	w.Write([]byte("\n"))
 
 	writeSQLRowResults(w, events)
+}
+
+func GetAllForEntry(ctx RequestContext) {
+	parsedParams := ctx.PP
+	w := ctx.W
+
+	info := parsedParams["id"].(db_types.InfoEntry)
+	w.WriteHeader(200)
+	_getAllForEntry(ctx.W, ctx.Uid, info)
+}
+
+func GetAllForEntries(ctx RequestContext) {
+	ids := ctx.PP["ids"].([]string)
+
+	if ctx.Uid == -1 {
+		ctx.Uid = 0
+	}
+
+	for _, id := range ids {
+		n, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			util.WError(ctx.W, 400, "Invalid id: '%s'", id)
+			break
+		}
+
+		i, err := db.GetInfoEntryById(ctx.Uid, n)
+		if err != nil {
+			util.WError(ctx.W, 500, "An error occured while accessing id: '%s': %s", id, err)
+			break
+		}
+
+		ctx.W.WriteHeader(200)
+		_getAllForEntry(ctx.W, ctx.Uid, i)
+		ctx.W.Write([]byte("\n"))
+	}
 }
 
 func SetEntry(ctx RequestContext) {
@@ -380,8 +409,8 @@ func QueryEntries3(ctx RequestContext) {
 	w := ctx.W
 	search := pp["search"].(string)
 
-	//can be -1 if user does not provide uid
-	if ctx.Uid > 0{
+	// can be -1 if user does not provide uid
+	if ctx.Uid > 0 {
 		search += fmt.Sprintf(" & {entryInfo.uid = %d}", ctx.Uid)
 	}
 
