@@ -654,7 +654,7 @@ type SearchData struct {
 
 type SearchQuery []SearchData
 
-func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
+func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
 	query := `SELECT DISTINCT entryInfo.*
@@ -673,9 +673,21 @@ func Search3(searchQuery string) ([]db_types.InfoEntry, error) {
 		return out, err
 	}
 
-	log.Info("got query %s", safeQuery)
+	fullQuery := fmt.Sprintf(query, safeQuery)
 
-	rows, err := QueryDB(fmt.Sprintf(query, safeQuery))
+	if orderby != ""{
+		//TODO: make an option to toggle DESC
+		safeOrderBy, err := search.Search2String(fmt.Sprintf("{ORDER BY %s DESC}", orderby))
+		if err != nil {
+			log.ELog(err)
+			return out, err
+		}
+		fullQuery += safeOrderBy
+	}
+
+	log.Info("got query %s", fullQuery)
+
+	rows, err := QueryDB(fullQuery)
 	if err != nil {
 		return out, err
 	}

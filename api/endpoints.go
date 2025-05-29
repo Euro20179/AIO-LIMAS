@@ -210,6 +210,7 @@ var mainEndpointList = []ApiEndPoint{
 		Handler:  QueryEntries3,
 		QueryParams: QueryParams{
 			"search": MkQueryInfo(P_NotEmpty, true),
+			"order-by": MkQueryInfo(P_NotEmpty, false),
 		},
 		Returns:         "InfoEntry[]",
 		Description:     "search query similar to how sql where query works",

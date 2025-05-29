@@ -414,7 +414,7 @@ func QueryEntries3(ctx RequestContext) {
 		search += fmt.Sprintf(" & {entryInfo.uid = %d}", ctx.Uid)
 	}
 
-	results, err := db.Search3(search)
+	results, err := db.Search3(search, pp.Get("order-by", "").(string))
 	if err != nil {
 		util.WError(w, 500, "Could not complete search\n%s", err.Error())
 		return
