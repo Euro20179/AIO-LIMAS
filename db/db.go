@@ -683,9 +683,10 @@ func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 			return out, err
 		}
 		fullQuery += safeOrderBy
+		log.Info("god order by %s", safeOrderBy)
 	}
 
-	log.Info("got query %s", fullQuery)
+	log.Info("got query %s", safeQuery)
 
 	rows, err := QueryDB(fullQuery)
 	if err != nil {
