@@ -343,7 +343,7 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 	var items *sql.Rows
 	var err error
 	qs := "SELECT * FROM metadata WHERE metadata.uid = ?"
-	if uid == 0 {
+	if uid < 1 {
 		qs = "SELECT * FROM metadata"
 	}
 
@@ -859,7 +859,7 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 
 func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
 	qs := "SELECT * FROM userViewingInfo WHERE userViewingInfo.uid = ?"
-	if uid == 0 {
+	if uid < 1 {
 		qs = "SELECT * FROM userViewingInfo"
 	}
 	items, err := QueryDB(qs, uid)
