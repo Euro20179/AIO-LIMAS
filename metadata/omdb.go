@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,10 +12,15 @@ import (
 	"strconv"
 	"strings"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	"aiolimas/types"
-	"aiolimas/logging"
 )
+
+type OMDBError struct {
+	Response string
+	Error    string
+}
 
 type OMDBResponse struct {
 	Title    string
@@ -53,6 +59,9 @@ type OMDBSearchItem struct {
 }
 
 func titleCase(st string) string {
+	if st == "" {
+		return st
+	}
 	return string(strings.ToTitle(st)[0]) + string(st[1:])
 }
 
@@ -67,9 +76,9 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	} else {
 		length := strings.Split(result.Runtime, " ")[0]
 
-		mediaDep[titleCase(result.Type) + "-director"] = result.Director
-		mediaDep[titleCase(result.Type) + "-length"] = length
-		mediaDep[titleCase(result.Type) + "-imdbid"] = result.ImdbID
+		mediaDep[titleCase(result.Type)+"-director"] = result.Director
+		mediaDep[titleCase(result.Type)+"-length"] = length
+		mediaDep[titleCase(result.Type)+"-imdbid"] = result.ImdbID
 	}
 
 	if result.ImdbRating != "N/A" {
@@ -141,6 +150,12 @@ func OMDBProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return out, err
+	}
+
+	if bytes.Contains(body, []byte("\"Response\":\"False\"")) {
+		var omdbErr OMDBError
+		json.Unmarshal(body, &omdbErr)
+		return out, errors.New(omdbErr.Error)
 	}
 
 	jData := new(OMDBResponse)
@@ -223,7 +238,7 @@ func OmdbIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEnt
 	url := fmt.Sprintf(
 		"https://www.omdbapi.com/?apikey=%s&i=%s",
 		key,
-		url.QueryEscape("tt" + id),
+		url.QueryEscape("tt"+id),
 	)
 
 	res, err := http.Get(url)
