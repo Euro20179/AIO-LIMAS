@@ -552,6 +552,13 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "authorized",
+		Handler: AuthCk,
+		Description: "Checks if the Authorization header is valid",
+		UserIndependant: true,
+	},
+
+	{
 		EndPoint:        "list",
 		Handler:         ListUsers,
 		Description:     "List all users",

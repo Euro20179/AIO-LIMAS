@@ -105,3 +105,9 @@ func ListUsers(ctx RequestContext) {
 		fmt.Fprintf(w, "%d:%s\n", user.Id, user.Username)
 	}
 }
+
+//this endpoint requires the user to be logged in, therefore once we reach here
+//the user IS logged in
+func AuthCk(ctx RequestContext) {
+	success(ctx.W)
+}
