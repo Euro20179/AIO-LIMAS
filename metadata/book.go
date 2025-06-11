@@ -16,7 +16,7 @@ import (
 func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	var out []db_types.MetadataEntry
 	enc := url.QueryEscape(info.Title)
-	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s", enc)
+	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s&langRestrict=en", enc)
 	res, err := http.Get(url)
 	if err != nil {
 		return out, err
@@ -111,7 +111,7 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	var out db_types.MetadataEntry
 
 	enc := url.QueryEscape(info.Entry.En_Title)
-	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s", enc)
+	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s&langRestrict=en", enc)
 	res, err := http.Get(url)
 	if err != nil {
 		return out, err
