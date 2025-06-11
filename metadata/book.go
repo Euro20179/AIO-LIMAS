@@ -58,8 +58,11 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 		cur.Provider = "googlebooks"
 		title := volInfo["title"].(string)
 		cur.Title = title
-		thumbs := volInfo["imageLinks"].(map[string]any)
-		cur.Thumbnail = thumbs["thumbnail"].(string)
+		images, ok := volInfo["imageLinks"]
+		if ok {
+			thumbs := images.(map[string]any)
+			cur.Thumbnail = thumbs["thumbnail"].(string)
+		}
 		out = append(out, cur)
 	}
 	return out, nil
