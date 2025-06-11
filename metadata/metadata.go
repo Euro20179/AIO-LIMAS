@@ -39,9 +39,15 @@ func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	switch entry.Type {
 	case db_types.TY_GAME:
 		return SteamProvider(info)
+
 	case db_types.TY_MANGA:
 		return AnilistManga(info)
 
+	case db_types.TY_BOOK:
+		return GoogleBooksProvider(info)
+
+	case db_types.TY_MOVIE_SHORT:
+		fallthrough
 	case db_types.TY_DOCUMENTARY:
 		fallthrough
 	case db_types.TY_SHOW:
@@ -81,7 +87,7 @@ func GetMetadataById(id string, foruid int64, provider string) (db_types.Metadat
 }
 
 func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.MetadataEntry) string {
-	if info.Format & db_types.F_STEAM == db_types.F_STEAM {
+	if info.Format&db_types.F_STEAM == db_types.F_STEAM {
 		return "steam"
 	}
 
@@ -89,7 +95,7 @@ func DetermineBestLocationProvider(info *db_types.InfoEntry, metadata *db_types.
 		return "sonarr"
 	}
 
-	//could not determine
+	// could not determine
 	return ""
 }
 
@@ -137,12 +143,13 @@ func IsValidIdIdentifier(name string) bool {
 	return contains
 }
 
-//parameters: userSettings item_metadata
+// parameters: userSettings item_metadata
 type LocationFunc func(*settings.SettingsData, string) (string, error)
 
 type LocationMap map[string]LocationFunc
+
 var LocationFinders LocationMap = LocationMap{
-	"steam": SteamLocationFinder,
+	"steam":  SteamLocationFinder,
 	"sonarr": SonarrGetLocation,
 }
 
@@ -150,6 +157,7 @@ type ProviderFunc func(*GetMetadataInfo) (db_types.MetadataEntry, error)
 
 type ProviderMap map[string]ProviderFunc
 
+// uses an entry's heuristics to find the correct metadata
 var Providers ProviderMap = ProviderMap{
 	"anilist":       AnlistProvider,
 	"anilist-manga": AnilistManga,
@@ -159,16 +167,19 @@ var Providers ProviderMap = ProviderMap{
 	"radarr":        RadarrProvider,
 	"image":         ImageProvider,
 	"steam":         SteamProvider,
+	"googlebooks":   GoogleBooksProvider,
 }
 
 type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.MetadataEntry, error)
 
+// uses a search query
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"anilist": AnilistIdentifier,
 	"omdb":    OmdbIdentifier,
 	"sonarr":  SonarrIdentifier,
 	"radarr":  RadarrIdentifier,
 	"steam":   SteamIdentifier,
+	"googlebooks": GoogleBooksIdentifier,
 }
 
 type (
@@ -176,10 +187,18 @@ type (
 	IdIdentifiersMap = map[string]IdIdentifier
 )
 
+// does an id lookup
 var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
+	// anilist id
 	"anilist": AnilistById,
-	"omdb":    OmdbIdIdentifier,
-	"sonarr":  SonarrIdIdentifier,
-	"radarr":  RadarrIdIdentifier,
-	"steam":   SteamIdIdentifier,
+	// imdb id (without the tt)
+	"omdb": OmdbIdIdentifier,
+	// sonarr id
+	"sonarr": SonarrIdIdentifier,
+	// radarr id
+	"radarr": RadarrIdIdentifier,
+	// steam id
+	"steam": SteamIdIdentifier,
+	// isbn
+	"openlibrary": OpenLibraryIdIdentifier,
 }
