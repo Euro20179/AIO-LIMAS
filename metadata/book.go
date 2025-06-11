@@ -67,6 +67,7 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 
 func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
+	id = strings.ReplaceAll(id, "-", "")
 	url := fmt.Sprintf("https://openlibrary.org/api/books?bibkeys=ISBN:%s&format=json&jscmd=data", id)
 
 	res, err := http.Get(url)
@@ -176,6 +177,7 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 }
 
 func GoogleBooksIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	id = strings.ReplaceAll(id, "-", "")
 	q := fmt.Sprintf("isbn:%s", id)
 	i := GetMetadataInfo{
 		Entry: &db_types.InfoEntry{En_Title: q},
