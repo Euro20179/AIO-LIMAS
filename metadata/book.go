@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -130,7 +131,11 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 		return out, err
 	}
 
-	items := jdata["items"].([]any)
+	itemsCHK, ok := jdata["items"]
+	if !ok {
+		return out, errors.New("no results")
+	}
+	items := itemsCHK.([]any)
 
 	item := items[0].(map[string]any)
 	volInfo := item["volumeInfo"].(map[string]any)
@@ -146,9 +151,11 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 
 	pubDate := volInfo["publishedDate"].(string)
 	yearSegmentEnd := strings.Index(pubDate, "-")
-	yearStr := pubDate[0:yearSegmentEnd]
-	year, _ := strconv.ParseInt(yearStr, 10, 64)
-	out.ReleaseYear = year
+	if yearSegmentEnd != -1 {
+		yearStr := pubDate[0:yearSegmentEnd]
+		year, _ := strconv.ParseInt(yearStr, 10, 64)
+		out.ReleaseYear = year
+	}
 
 	thumbs := volInfo["imageLinks"].(map[string]any)
 	out.Thumbnail = thumbs["thumbnail"].(string)
