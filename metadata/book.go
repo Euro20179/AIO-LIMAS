@@ -41,7 +41,11 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 		var cur db_types.MetadataEntry
 		item := i.(map[string]any)
 		volInfo := item["volumeInfo"].(map[string]any)
-		identifiers := volInfo["industryIdentifiers"].([]any)
+		industryIdents, ok := volInfo["industryIdentifiers"]
+		if !ok {
+			continue
+		}
+		identifiers := industryIdents.([]any)
 		ident := identifiers[0].(map[string]any)
 		isbn := ident["identifier"].(string)
 		isbnInt, err := strconv.ParseInt(isbn, 10, 64)
@@ -135,7 +139,10 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	isbn := ident["identifier"].(string)
 	out.ProviderID = isbn
 	out.Provider = "googlebooks"
-	out.Description = volInfo["description"].(string)
+	desc, ok := volInfo["description"]
+	if ok {
+		out.Description = desc.(string)
+	}
 
 	pubDate := volInfo["publishedDate"].(string)
 	yearSegmentEnd := strings.Index(pubDate, "-")
