@@ -164,15 +164,18 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	thumbs := volInfo["imageLinks"].(map[string]any)
 	out.Thumbnail = thumbs["thumbnail"].(string)
 
-	categories := volInfo["categories"].([]any)
-	genreStr := []string{}
-	for _, cat := range categories {
-		genreStr = append(genreStr, cat.(string))
+	md := map[string]string{}
+
+	categories, ok := volInfo["categories"]
+	if ok {
+		genreStr := []string{}
+		for _, cat := range categories.([]any) {
+			genreStr = append(genreStr, cat.(string))
+		}
+		md["Book-genre"] = strings.Join(genreStr, ", ")
 	}
 
-	md := map[string]string{}
 	md["Book-page-count"] = fmt.Sprintf("%.0f", volInfo["pageCount"].(float64))
-	md["Book-genre"] = strings.Join(genreStr, ", ")
 	d, _ := json.Marshal(md)
 	out.MediaDependant = string(d)
 
