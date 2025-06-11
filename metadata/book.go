@@ -167,3 +167,11 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 
 	return out, nil
 }
+
+func GoogleBooksIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	q := fmt.Sprintf("isbn:%s", id)
+	i := GetMetadataInfo{
+		Entry: &db_types.InfoEntry{En_Title: q},
+	}
+	return GoogleBooksProvider(&i)
+}

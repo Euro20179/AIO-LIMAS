@@ -201,4 +201,6 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"steam": SteamIdIdentifier,
 	// isbn
 	"openlibrary": OpenLibraryIdIdentifier,
+	// isbn
+	"googlebooks": GoogleBooksIdIdentifier,
 }

@@ -345,6 +345,7 @@ func AddEntry(ctx RequestContext) {
 		}
 
 		newMeta.ItemId = entryInfo.ItemId
+		newMeta.Uid = ctx.Uid
 		metadata = newMeta
 	}
 
