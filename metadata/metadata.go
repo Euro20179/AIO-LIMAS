@@ -28,7 +28,11 @@ type GetMetadataInfo struct {
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entry := info.Entry
-	if entry.IsAnime() {
+	if entry.IsAnime() && (
+		entry.Type == db_types.TY_MANGA ||
+		entry.Type == db_types.TY_SHOW ||
+	    entry.Type == db_types.TY_MOVIE ||
+	    entry.Type == db_types.TY_MOVIE_SHORT){
 		return AnilistShow(info)
 	}
 
