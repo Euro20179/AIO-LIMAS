@@ -96,10 +96,16 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 	out.Provider = "openlibrary"
 	out.Title = data["title"].(string)
 	md := map[string]string{}
-	md["Book-page-count"] = fmt.Sprintf("%0f", data["number_of_pages"].(float64))
+	pages, ok := data["number_of_pages"]
+	if ok {
+		md["Book-page-count"] = fmt.Sprintf("%0f", pages.(float64))
+	}
 	y := data["publish_date"].(string)
 	thumbs := data["cover"].(map[string]any)
-	out.Thumbnail = thumbs["large"].(string)
+	large, ok := thumbs["large"]
+	if ok {
+		out.Thumbnail = large.(string)
+	}
 
 	d, _ := json.Marshal(md)
 	out.MediaDependant = string(d)
