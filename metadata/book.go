@@ -117,7 +117,7 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 		if len(dateL) <  2 {
 			return out, err
 		}
-		y = strings.Split(y, ",")[1]
+		y = strings.TrimSpace(strings.Split(y, ",")[1])
 		year, err = strconv.ParseInt(y, 10, 64)
 		if err != nil{
 			return out, err
