@@ -337,9 +337,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 	return nil
 }
 
-// FIXME:
-// an event should also have a time-zone associated with it
-// in case say, someone where to add an event in UTC-8, but then did something in UTC-2, they'd have very wacky times
 type UserViewingEvent struct {
 	Uid       int64
 	ItemId    int64
@@ -349,6 +346,7 @@ type UserViewingEvent struct {
 	Before    uint64
 	After     uint64 // this is also a timestamp, for when the exact timestamp is unknown
 	// this is to ensure that order can be determined
+	EventId int64
 }
 
 func (self UserViewingEvent) Id() int64 {
@@ -368,6 +366,7 @@ func (self *UserViewingEvent) ReadEntry(rows *sql.Rows) error {
 		&self.Event,
 		&self.TimeZone,
 		&self.Before,
+		&self.EventId,
 	)
 }
 

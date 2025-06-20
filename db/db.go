@@ -800,7 +800,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var events *sql.Rows
 	var err error
 	events, err = QueryDB(fmt.Sprintf(`
-	SELECT * from userEventInfo
+	SELECT *, rowid from userEventInfo
 	%s
 	ORDER BY
 		CASE timestamp
@@ -808,6 +808,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 				userEventInfo.after
 			ELSE timestamp
 		END`, whereText), whereItems...)
+
 	if err != nil {
 		return out, err
 	}
