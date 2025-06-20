@@ -387,6 +387,16 @@ func DeleteEvent(ctx RequestContext) {
 	success(w)
 }
 
+func DeletEventV2(ctx RequestContext) {
+	id := ctx.PP["id"].(int64)
+	err := db.DeletEventV2(ctx.Uid, id)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not delete event\n%s", err.Error())
+		return
+	}
+	success(ctx.W)
+}
+
 func RegisterEvent(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W

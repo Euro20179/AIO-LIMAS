@@ -394,6 +394,16 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "delete-event-v2",
+		Handler: DeletEventV2,
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_Int64, true),
+		},
+		Description: "Deletes an event by event id",
+		
+	},
+
+	{
 		EndPoint: "register-event",
 		Handler:  RegisterEvent,
 		QueryParams: QueryParams{

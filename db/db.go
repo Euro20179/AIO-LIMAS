@@ -777,6 +777,10 @@ func DeleteEvent(uid int64, id int64, timestamp int64, after int64, before int64
 	`, id, timestamp, after, before, uid)
 }
 
+func DeletEventV2(uid int64, id int64) error {
+	return ExecUserDb(uid, `DELETE FROM userEventInfo WHERE rowid == ?`, id)
+}
+
 // if id is -1, it lists all events
 func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
