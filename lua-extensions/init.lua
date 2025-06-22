@@ -159,6 +159,10 @@ local prefixMacros = {
             return "false", ""
         end
         return string.format("entryInfo.uid = %d", id), ""
+    end,
+    ["g:"] = function(macro)
+        local genre = string.sub(macro, 3)
+        return string.format("EXISTS (SELECT * FROM json_each(json_extract(genres, '$')) WHERE genres != '' AND json_each.value LIKE '%s')", genre), ""
     end
 }
 
