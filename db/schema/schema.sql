@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS entryInfo (
     parentId INTEGER,
     copyOf INTEGER,
     artStyle INTEGER,
-    library INTEGER
+    library INTEGER,
+    requires INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS metadata (

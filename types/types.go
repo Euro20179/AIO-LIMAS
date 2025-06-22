@@ -286,6 +286,7 @@ type InfoEntry struct {
 	ArtStyle      ArtStyle
 	CopyOf        int64
 	Library       int64
+	Requires      int64
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
@@ -322,6 +323,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.CopyOf,
 		&self.ArtStyle,
 		&self.Library,
+		&self.Requires,
 	)
 	if err != nil {
 		return err
