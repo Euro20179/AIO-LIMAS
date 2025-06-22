@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	db_types "aiolimas/types"
 )
@@ -168,6 +169,24 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 		out.Description = desc.(string)
 	}
 
+	categories, ok := volInfo["categories"].([]any)
+	if ok {
+		genresList := []string{}
+		for _, catList := range categories {
+			cats := strings.Split(catList.(string), " ")
+			for _, cat := range cats {
+				genresList = append(genresList, cat)
+			}
+		}
+		genres, err := json.Marshal(genresList)
+		if err == nil {
+			out.Genres = string(genres)
+		} else {
+			logging.ELog(err)
+			out.Genres = ""
+		}
+	}
+
 	pubDate := volInfo["publishedDate"].(string)
 	yearSegmentEnd := strings.Index(pubDate, "-")
 	if yearSegmentEnd != -1 {
@@ -180,15 +199,6 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	out.Thumbnail = thumbs["thumbnail"].(string)
 
 	md := map[string]string{}
-
-	categories, ok := volInfo["categories"]
-	if ok {
-		genreStr := []string{}
-		for _, cat := range categories.([]any) {
-			genreStr = append(genreStr, cat.(string))
-		}
-		md["Book-genre"] = strings.Join(genreStr, ", ")
-	}
 
 	md["Book-page-count"] = fmt.Sprintf("%.0f", volInfo["pageCount"].(float64))
 	d, _ := json.Marshal(md)

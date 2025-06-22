@@ -236,6 +236,7 @@ type MetadataEntry struct {
 	Native_Title   string // same with this
 	Provider       string // the provider that generated the metadata
 	ProviderID     string // the id that the provider used
+	Genres string
 }
 
 func (self MetadataEntry) Id() int64 {
@@ -261,6 +262,7 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 		&self.RatingMax,
 		&self.Provider,
 		&self.ProviderID,
+		&self.Genres,
 	)
 }
 

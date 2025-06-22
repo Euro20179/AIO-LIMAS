@@ -58,6 +58,7 @@ type AnlistMediaEntry struct {
 	Format     string `json:"format"`
 	Volumes    int    `json:"volumes"`
 	SeasonYear int    `json:"seasonYear"`
+	Genres     []string `json:"genres"`
 }
 type AnilistResponse struct {
 	Data struct {
@@ -93,7 +94,8 @@ const ANILIST_MEDIA_QUERY_INFO = `
 	type,
 	id,
 	format,
-	volumes
+	volumes,
+	genres
 `
 
 func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, error) {
@@ -150,6 +152,14 @@ func applyManga(anilistData AnlistMediaEntry) (db_types.MetadataEntry, error) {
 	o.ItemId = out.Id
 	o.Rating = float64(out.AverageScore)
 	o.RatingMax = 100
+
+	genres, err := json.Marshal(out.Genres)
+	if err == nil {
+		o.Genres = string(genres)
+	} else {
+		logging.ELog(err)
+		o.Genres = ""
+	}
 
 	o.Provider = "anilist"
 	o.ProviderID = fmt.Sprintf("%d", out.Id)
@@ -225,6 +235,14 @@ func applyShow(aniInfo AnlistMediaEntry) (db_types.MetadataEntry, error) {
 	outMeta.ReleaseYear = int64(aniInfo.StartDate.Year)
 	outMeta.Provider = "anilist"
 	outMeta.ProviderID = fmt.Sprintf("%d", aniInfo.Id)
+
+	genres, err := json.Marshal(aniInfo.Genres)
+	if err == nil {
+		outMeta.Genres = string(genres)
+	} else {
+		logging.ELog(err)
+		outMeta.Genres = ""
+	}
 
 	return outMeta, nil
 }
