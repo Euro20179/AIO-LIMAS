@@ -43,7 +43,7 @@ type IdAppData struct {
 		PackageGroups        any `json:"package_groups"`
 		Platforms            any
 		Categories           any
-		Genres               any
+		Genres               []struct{Id string; Description string}
 		Screenshots          any
 		Movies               any
 		ReleaseDate          struct {
@@ -199,6 +199,17 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	out.Provider = "steam"
 	out.ProviderID = id
 	out.Thumbnail = fmt.Sprintf("http://cdn.origin.steamstatic.com/steam/apps/%s/library_600x900_2x.jpg", url.PathEscape(id))
+
+	genresL := []string{}
+	for _, genre := range mainData.Data.Genres {
+		genresL = append(genresL, genre.Description)
+	}
+	genres, err := json.Marshal(genresL)
+	if err == nil {
+		out.Genres = string(genres)
+	} else {
+		logging.ELog(err)
+	}
 
 	if !mainData.Data.ReleaseDate.ComingSoon {
 		dateInfo := mainData.Data.ReleaseDate.Date
