@@ -114,19 +114,13 @@ Basic user facing docs can be found at `/usage`
 - [x] search by description
 - [ ] documentation
     - [x] webservice
-- [x] edit info/user/meta tables from ui
-    - [x] info
-    - [x] meta
-    - [x] ~user~ *decided against, as you can already edit everything anyway*
 - [x] calc mode
 - [x] proper search parser
 - [x] collection stat calculation modifier
-- [ ] requires
+- [x] requires
      - an id that should be viewed before this entry
      - eg: `starwars 2` requires `starwars 1`
      - if an entry requires more than 1 entry, make a collection containing all the requirements
-- [x] In thee ui, in graph mode, allow the user to write a function of some kind to determine how the grouping will work, isntead of the predetermined year/item name/tags etc...
-    - the user's function should return a string for each item indicating which group it's in
 
 - [ ] ~refactor the json metadata fields into their own tables
     for example, Shows have json that looks like `{"Show-episode-length": 49}`, etc...

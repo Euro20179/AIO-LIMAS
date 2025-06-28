@@ -229,7 +229,6 @@ function Expand_macro(macro)
 
     elseif string.sub(macro, 1, 1) == "#" then
         local t = string.sub(macro, 2)
-        print(t)
         return string.format("(En_Title LIKE '%%%s%%'  OR entryInfo.Native_Title LIKE '%%%s%%' OR Title LIKE '%%%s%%' OR metadata.Native_Title LIKE '%%%s%%')", t, t, t, t), ""
 
     elseif string.sub(macro, 0, 3) == "ev-" then
