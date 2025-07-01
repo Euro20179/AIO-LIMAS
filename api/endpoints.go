@@ -1,10 +1,11 @@
 package api
 
 import (
-	"aiolimas/util"
 	"fmt"
-	"text/template"
 	"net/http"
+	"text/template"
+
+	"aiolimas/util"
 )
 
 func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
@@ -78,6 +79,7 @@ var mainEndpointList = []ApiEndPoint{
 			"user-status":       MkQueryInfo(P_UserStatus, false),
 			"user-view-count":   MkQueryInfo(P_Int64, false),
 			"user-notes":        MkQueryInfo(P_True, false),
+			"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 		},
 		Description: "Adds a new entry, and registers an Add event",
 		Returns:     "InfoEntry",
@@ -209,7 +211,7 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "query-v3",
 		Handler:  QueryEntries3,
 		QueryParams: QueryParams{
-			"search": MkQueryInfo(P_NotEmpty, true),
+			"search":   MkQueryInfo(P_NotEmpty, true),
 			"order-by": MkQueryInfo(P_NotEmpty, false),
 		},
 		Returns:         "InfoEntry[]",
@@ -228,17 +230,16 @@ var mainEndpointList = []ApiEndPoint{
 		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry\\nEvents",
 		GuestAllowed: true,
 	},
-	
-	{
 
+	{
 		EndPoint: "get-all-for-entries",
 		Handler:  GetAllForEntries,
 		QueryParams: QueryParams{
 			"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
 		},
-		Description:  "Gets the userEntry, metadataEntry, and infoEntry for a , separated list of entries",
-		Returns:      "Same as get-all-for-entry, each item is separated by \\n\\n",
-		GuestAllowed: true,
+		Description:     "Gets the userEntry, metadataEntry, and infoEntry for a , separated list of entries",
+		Returns:         "Same as get-all-for-entry, each item is separated by \\n\\n",
+		GuestAllowed:    true,
 		UserIndependant: true,
 	},
 } // }}}
@@ -395,12 +396,11 @@ var engagementEndpointList = []ApiEndPoint{
 
 	{
 		EndPoint: "delete-event-v2",
-		Handler: DeletEventV2,
+		Handler:  DeletEventV2,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_Int64, true),
 		},
 		Description: "Deletes an event by event id",
-		
 	},
 
 	{
@@ -562,9 +562,9 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "authorized",
-		Handler: AuthCk,
-		Description: "Checks if the Authorization header is valid",
+		EndPoint:        "authorized",
+		Handler:         AuthCk,
+		Description:     "Checks if the Authorization header is valid",
 		UserIndependant: true,
 	},
 
@@ -689,9 +689,8 @@ func DocHTML(ctx RequestContext) {
 		htmlCache = []byte(html)
 	}
 
-	//use text template in order to have html not be escaped
+	// use text template in order to have html not be escaped
 	tmpl, err := template.ParseFiles("./docs/docs.html")
-
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not render docs %s", err)
 		return

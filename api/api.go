@@ -281,6 +281,13 @@ func AddEntry(ctx RequestContext) {
 		libraryId = l.(db_types.InfoEntry).ItemId
 	}
 
+	var requiresId int64 = 0
+	if r, exists := parsedParams["requires"]; exists {
+		requiresId = r.(db_types.InfoEntry).ItemId
+	}
+
+	println(requiresId)
+
 	style := parsedParams.Get("art-style", uint(0)).(uint)
 
 	if parsedParams.Get("is-anime", false).(bool) {
@@ -314,6 +321,7 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.CopyOf = copyOfId
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
+	entryInfo.Requires = requiresId
 
 	var metadata db_types.MetadataEntry
 
