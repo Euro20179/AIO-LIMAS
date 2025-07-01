@@ -18,6 +18,8 @@ const (
 	AS_DIGITAL     ArtStyle = 8
 	AS_CGI         ArtStyle = 16
 	AS_LIVE_ACTION ArtStyle = 32
+	AS_2D          ArtStyle = 64
+	AS_3D          ArtStyle = 128
 )
 
 func ArtStyle2Str(style ArtStyle) string {
@@ -40,6 +42,8 @@ func ListArtStyles() map[ArtStyle]string {
 		AS_DIGITAL:     "Digital",
 		AS_CGI:         "CGI",
 		AS_LIVE_ACTION: "Liveaction",
+		AS_2D: "2D",
+		AS_3D: "3D",
 	}
 }
 

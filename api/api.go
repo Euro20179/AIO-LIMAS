@@ -286,8 +286,6 @@ func AddEntry(ctx RequestContext) {
 		requiresId = r.(db_types.InfoEntry).ItemId
 	}
 
-	println(requiresId)
-
 	style := parsedParams.Get("art-style", uint(0)).(uint)
 
 	if parsedParams.Get("is-anime", false).(bool) {
