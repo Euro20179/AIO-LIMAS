@@ -102,6 +102,8 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	out.Provider = "omdb"
 	out.ProviderID = result.ImdbID[2:]
 
+	out.Title = result.Title
+
 	genres := strings.Split(result.Genre, ", ")
 	genreList, err := json.Marshal(genres)
 	if err == nil {
