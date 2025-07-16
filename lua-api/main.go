@@ -95,6 +95,12 @@ func Fullsetup(state *lua.LState) {
 		state.SetField(artStylesTble, strconv.Itoa(int(k)), lua.LString(v))
 	}
 	state.SetField(aioTble, "artStyles", artStylesTble)
+
+	typesTbl := state.NewTable()
+	for _, v := range db_types.ListMediaTypes() {
+		typesTbl.Append(lua.LString(v))
+	}
+	state.SetField(aioTble, "types", typesTbl)
 	// }}}
 
 

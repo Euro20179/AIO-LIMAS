@@ -168,24 +168,7 @@ local prefixMacros = {
 
 ---@param macro string
 function Expand_macro(macro)
-    local mediaTypes = {
-        "Show",
-        "Episode",
-        "Documentary",
-        "Movie",
-        "MovieShort",
-        "Game",
-        "BoardGame",
-        "Song",
-        "Book",
-        "Manga",
-        "Collection",
-        "Picture",
-        "Meme",
-        "Library",
-        "Video",
-        "ShortStory",
-    }
+    local mediaTypes = aio.types
 
     local statuses = {
         "Viewing",

@@ -42,8 +42,8 @@ func ListArtStyles() map[ArtStyle]string {
 		AS_DIGITAL:     "Digital",
 		AS_CGI:         "CGI",
 		AS_LIVE_ACTION: "Liveaction",
-		AS_2D: "2D",
-		AS_3D: "3D",
+		AS_2D:          "2D",
+		AS_3D:          "3D",
 	}
 }
 
@@ -174,6 +174,7 @@ const (
 	TY_VIDEO       MediaTypes = "Video"
 	TY_SHORTSTORY  MediaTypes = "ShortStory"
 	TY_ALBUMN      MediaTypes = "Albumn"
+	TY_SOUNDTRACK  MediaTypes = "Soundtrack"
 )
 
 func ListMediaTypes() []MediaTypes {
@@ -184,7 +185,7 @@ func ListMediaTypes() []MediaTypes {
 		TY_PICTURE, TY_MEME, TY_LIBRARY,
 		TY_DOCUMENTARY, TY_EPISODE, TY_VIDEO,
 		TY_SHORTSTORY,
-		TY_ALBUMN,
+		TY_ALBUMN, TY_SOUNDTRACK,
 	}
 }
 
@@ -244,7 +245,7 @@ type MetadataEntry struct {
 	Native_Title   string // same with this
 	Provider       string // the provider that generated the metadata
 	ProviderID     string // the id that the provider used
-	Genres string
+	Genres         string
 }
 
 func (self MetadataEntry) Id() int64 {
