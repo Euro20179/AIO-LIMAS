@@ -173,6 +173,7 @@ const (
 	TY_LIBRARY     MediaTypes = "Library"
 	TY_VIDEO       MediaTypes = "Video"
 	TY_SHORTSTORY  MediaTypes = "ShortStory"
+	TY_ALBUMN      MediaTypes = "Albumn"
 )
 
 func ListMediaTypes() []MediaTypes {
@@ -183,6 +184,7 @@ func ListMediaTypes() []MediaTypes {
 		TY_PICTURE, TY_MEME, TY_LIBRARY,
 		TY_DOCUMENTARY, TY_EPISODE, TY_VIDEO,
 		TY_SHORTSTORY,
+		TY_ALBUMN,
 	}
 }
 
