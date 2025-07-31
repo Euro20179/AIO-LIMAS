@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"os"
@@ -17,7 +18,6 @@ import (
 	"aiolimas/types"
 
 	"github.com/mattn/go-sqlite3"
-	"github.com/multiformats/go-multihash/register/all"
 )
 
 const DB_VERSION = 4
@@ -681,8 +681,8 @@ func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 
 	fullQuery := fmt.Sprintf(query, safeQuery)
 
-	if orderby != ""{
-		//TODO: make an option to toggle DESC
+	if orderby != "" {
+		// TODO: make an option to toggle DESC
 		safeOrderBy, err := search.Search2String(fmt.Sprintf("{ORDER BY %s DESC}", orderby))
 		if err != nil {
 			log.ELog(err)
@@ -819,7 +819,6 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 				userEventInfo.after
 			ELSE timestamp
 		END`, whereText), whereItems...)
-
 	if err != nil {
 		return out, err
 	}
@@ -878,12 +877,15 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 	var row db_types.UserViewingEntry
 
 	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?;", itemId, uid)
-	defer items.Close()
 	if err != nil {
 		return row, err
 	}
-	items.Next()
-	err = row.ReadEntry(items)
+	defer items.Close()
+	if items.Next() {
+		err = row.ReadEntry(items)
+	} else {
+		return row, errors.New("could not get entrf")
+	}
 	return row, err
 }
 
