@@ -17,6 +17,7 @@ import (
 	"aiolimas/types"
 
 	"github.com/mattn/go-sqlite3"
+	"github.com/multiformats/go-multihash/register/all"
 )
 
 const DB_VERSION = 4
@@ -49,6 +50,8 @@ func CkDBVersion() error {
 
 	var version int64 = 0
 
+	defer v.Close()
+
 	if !v.Next() {
 		logging.Info("COULD NOT DETERMINE DB VERSION, USING VERSION 0")
 		var cont int64
@@ -63,8 +66,6 @@ func CkDBVersion() error {
 			return err
 		}
 	}
-
-	v.Close()
 
 	for i := version; i < DB_VERSION; i++ {
 		schema, err := os.ReadFile(fmt.Sprintf("./db/schema/v%d-%d.sql", i, i+1))
@@ -118,6 +119,8 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 		log.ELog(err)
 		return out, err
 	}
+
+	defer allRows.Close()
 
 	for allRows.Next() {
 		var cur db_types.EntryTree
@@ -353,6 +356,8 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 	}
 
 	var out []db_types.MetadataEntry
+
+	defer items.Close()
 
 	i := 0
 	for items.Next() {
@@ -718,6 +723,7 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	if err != nil {
 		return out, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		collection := ""
 		err := rows.Scan(&collection)
@@ -817,6 +823,8 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 		return out, err
 	}
 
+	defer events.Close()
+
 	for events.Next() {
 		var event db_types.UserViewingEvent
 		err := event.ReadEntry(events)
@@ -851,6 +859,8 @@ func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 
 	var out []db_types.InfoEntry
 
+	defer items.Close()
+
 	for items.Next() {
 		var row db_types.InfoEntry
 		err = row.ReadEntry(items)
@@ -867,6 +877,7 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 	var row db_types.UserViewingEntry
 
 	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?;", itemId, uid)
+	defer items.Close()
 	if err != nil {
 		return row, err
 	}
@@ -884,6 +895,8 @@ func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	defer items.Close()
 
 	var out []db_types.UserViewingEntry
 	for items.Next() {
