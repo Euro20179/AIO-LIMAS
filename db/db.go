@@ -535,7 +535,8 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	updateStr = updateStr[:len(updateStr)-1]
 	updateStr += "\nWHERE " + tblName + ".uid = ? and itemId = ?"
 
-	return ExecUserDb(uid, updateStr, updateArgs...)
+	err := ExecUserDb(uid, updateStr, updateArgs...)
+	return err
 }
 
 func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
