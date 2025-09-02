@@ -446,7 +446,11 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	}
 
 	if timezone != "" {
-		err = RegisterBasicUserEvent(uid, timezone, "Added", metadataEntry.ItemId)
+		event := "Added"
+		if entryInfo.PurchasePrice > 0 && (entryInfo.Format & db_types.F_UNOWNED) != db_types.F_UNOWNED{
+			event = "Purchased"
+		}
+		err = RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
 		if err != nil {
 			return err
 		}
