@@ -298,6 +298,7 @@ type InfoEntry struct {
 	CopyOf        int64
 	Library       int64
 	Requires      int64
+	RecommendedBy string
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`

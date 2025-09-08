@@ -80,6 +80,7 @@ var mainEndpointList = []ApiEndPoint{
 			"user-view-count":   MkQueryInfo(P_Int64, false),
 			"user-notes":        MkQueryInfo(P_True, false),
 			"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"recommended-by":    MkQueryInfo(P_NotEmpty, false),
 		},
 		Description: "Adds a new entry, and registers an Add event",
 		Returns:     "InfoEntry",

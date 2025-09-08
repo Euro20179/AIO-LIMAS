@@ -320,6 +320,7 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
 	entryInfo.Requires = requiresId
+	entryInfo.RecommendedBy = parsedParams.Get("recommended-by", "").(string)
 
 	var metadata db_types.MetadataEntry
 
