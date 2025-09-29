@@ -336,6 +336,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.ArtStyle,
 		&self.Library,
 		&self.Requires,
+		&self.RecommendedBy,
 	)
 	if err != nil {
 		return err
