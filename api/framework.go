@@ -1,6 +1,7 @@
 package api
 
 import (
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -16,9 +17,9 @@ import (
 
 	"aiolimas/accounts"
 	"aiolimas/db"
+	"aiolimas/logging"
 	"aiolimas/metadata"
 	"aiolimas/types"
-	"aiolimas/logging"
 )
 
 type (
@@ -266,6 +267,20 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 	ctx.PP = parsedParams
 	ctx.Uid = uidInt
+
+	r := ctx.Req
+
+	var gz *gzip.Writer
+
+	acceptedEncoding := r.Header.Get("Accept-Encoding")
+	if strings.Contains(acceptedEncoding, "gzip") {
+		w.Header().Set("Content-Encoding", "gzip")
+		gz = gzip.NewWriter(w)
+		defer gz.Close()
+		w = gzipResponseWriter{Writer: gz, ResponseWriter: w}
+	}
+
+	ctx.W = w
 
 	self.Handler(ctx)
 }

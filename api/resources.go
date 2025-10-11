@@ -55,8 +55,8 @@ func serveThumbnail(w http.ResponseWriter, req *http.Request, path string) {
 	http.ServeFile(w, req, path)
 }
 
-func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	hash := pp["hash"].(string)
+func thumbnailResource(ctx RequestContext) {
+	hash := ctx.PP["hash"].(string)
 
 	aioPath := os.Getenv("AIO_DIR")
 	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
@@ -66,11 +66,11 @@ func thumbnailResource(w http.ResponseWriter, req *http.Request, pp ParsedParams
 
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/%c/%s", aioPath, hash[0], hash)
 
-	serveThumbnail(w, req, itemThumbnailPath)
+	serveThumbnail(ctx.W, ctx.Req, itemThumbnailPath)
 }
 
-func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp ParsedParams) {
-	id := pp["id"].(string)
+func thumbnailResourceLegacy(ctx RequestContext) {
+	id := ctx.PP["id"].(string)
 
 	aioPath := os.Getenv("AIO_DIR")
 	// this should gauranteed exist because we panic if AIO_DIR couldn't be set
@@ -80,12 +80,12 @@ func thumbnailResourceLegacy(w http.ResponseWriter, req *http.Request, pp Parsed
 
 	itemThumbnailPath := fmt.Sprintf("%s/thumbnails/item-%s", aioPath, id)
 
-	serveThumbnail(w, req, itemThumbnailPath)
+	serveThumbnail(ctx.W, ctx.Req, itemThumbnailPath)
 }
 
 var (
-	ThumbnailResource       = gzipMiddleman(thumbnailResource)
-	ThumbnailResourceLegacy = gzipMiddleman(thumbnailResourceLegacy)
+	ThumbnailResource       = thumbnailResource
+	ThumbnailResourceLegacy = thumbnailResourceLegacy
 )
 
 func DownloadThumbnail(ctx RequestContext) {
