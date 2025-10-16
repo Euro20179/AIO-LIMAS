@@ -162,6 +162,19 @@ func GetAllForEntries(ctx RequestContext) {
 	}
 }
 
+func GetRecommenders(ctx RequestContext) {
+	uid := ctx.Uid
+
+	r, err := db.GetRecommendersList(uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get a list of recommenders\n%s", err)
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write([]byte(strings.Join(r, "\x1F")))
+}
+
 func SetEntry(ctx RequestContext) {
 	w := ctx.W
 	req := ctx.Req

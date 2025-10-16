@@ -968,3 +968,25 @@ func DelTags(uid int64, id int64, tags []string) error {
 	}
 	return nil
 }
+
+func GetRecommendersList(uid int64) ([]string, error) {
+	db, err := OpenUserDb()
+	if err != nil {
+		return []string{}, err
+	}
+
+	defer db.Close()
+
+	rows, err := db.Query("SELECT DISTINCT recommendedBy from entryInfo WHERE recommendedBy != ''")
+	if err != nil {
+		return []string{}, err
+	}
+
+	recommenders := []string{}
+	for rows.Next() {
+		var r string
+		rows.Scan(&r)
+		recommenders = append(recommenders, r)
+	}
+	return recommenders, nil
+}

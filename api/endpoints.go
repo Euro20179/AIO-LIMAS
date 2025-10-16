@@ -243,6 +243,16 @@ var mainEndpointList = []ApiEndPoint{
 		GuestAllowed:    true,
 		UserIndependant: true,
 	},
+
+	{
+		EndPoint: "recommenders",
+		Handler: GetRecommenders,
+		QueryParams: QueryParams {},
+		Description: "Gets a list of all recommenders",
+		Returns: "string \\x1F (unit separator) separated",
+		GuestAllowed: true,
+		UserIndependant: false,
+	},
 } // }}}
 
 // `/metadata` endpoints {{{
