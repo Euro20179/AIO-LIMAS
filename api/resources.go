@@ -1,7 +1,6 @@
 package api
 
 import (
-	"compress/gzip"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
@@ -24,26 +23,6 @@ type gzipResponseWriter struct {
 
 func (self gzipResponseWriter) Write(b []byte) (int, error) {
 	return self.Writer.Write(b)
-}
-
-func gzipMiddleman(fn func(w http.ResponseWriter, req *http.Request, pp ParsedParams)) func(ctx RequestContext) {
-	return func(ctx RequestContext) {
-		r := ctx.Req
-		w := ctx.W
-		pp := ctx.PP
-
-		var gz *gzip.Writer
-
-		acceptedEncoding := r.Header.Get("Accept-Encoding")
-		if strings.Contains(acceptedEncoding, "gzip") {
-			w.Header().Set("Content-Encoding", "gzip")
-			gz = gzip.NewWriter(w)
-			defer gz.Close()
-			w = gzipResponseWriter{Writer: gz, ResponseWriter: w}
-		}
-
-		fn(w, r, pp)
-	}
 }
 
 func serveThumbnail(w http.ResponseWriter, req *http.Request, path string) {
