@@ -198,7 +198,7 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	out.Description = mainData.Data.DetailedDescription
 	out.Provider = "steam"
 	out.ProviderID = id
-	out.Thumbnail = fmt.Sprintf("http://cdn.origin.steamstatic.com/steam/apps/%s/library_600x900_2x.jpg", url.PathEscape(id))
+	out.Thumbnail = fmt.Sprintf("https://steamcdn-a.akamaihd.net/steam/apps/%s/library_600x900_2x.jpg", url.PathEscape(id))
 
 	genresL := []string{}
 	for _, genre := range mainData.Data.Genres {
