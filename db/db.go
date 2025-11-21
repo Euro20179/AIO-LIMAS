@@ -20,7 +20,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 5
+const DB_VERSION = 6
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -50,8 +50,6 @@ func CkDBVersion() error {
 
 	var version int64 = 0
 
-	defer v.Close()
-
 	if !v.Next() {
 		logging.Info("COULD NOT DETERMINE DB VERSION, USING VERSION 0")
 		var cont int64
@@ -66,6 +64,7 @@ func CkDBVersion() error {
 			return err
 		}
 	}
+	v.Close()
 
 	for i := version; i < DB_VERSION; i++ {
 		schema, err := os.ReadFile(fmt.Sprintf("./db/schema/v%d-%d.sql", i, i+1))
