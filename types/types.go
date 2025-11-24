@@ -15,6 +15,13 @@ type Relations struct {
 	Copies   []int64
 }
 
+type Relation uint
+const (
+	R_Child Relation = 1
+	R_Requires Relation = 2
+	R_Copy Relation = 3
+)
+
 type ArtStyle uint
 
 const (

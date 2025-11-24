@@ -119,6 +119,67 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "del-child",
+		Handler: DelChild,
+		QueryParams: QueryParams{
+			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Removes child as a child of parent",
+	},
+
+	{
+		EndPoint: "del-copy",
+		Handler: DelCopy,
+		QueryParams: QueryParams{
+			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes copy not a copy of copyof anymore, goes both directions",
+	},
+
+	{
+		EndPoint: "del-requires",
+		Handler: DelRequires,
+		QueryParams: QueryParams{
+			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Removes requires as a requirement of itemid",
+	},
+
+
+	{
+		EndPoint: "add-child",
+		Handler: AddChild,
+		QueryParams: QueryParams{
+			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Adds child as a child of parent",
+	},
+
+	{
+		EndPoint: "add-copy",
+		Handler: AddCopy,
+		QueryParams: QueryParams{
+			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes 2 items copies of each other",
+	},
+
+	{
+		EndPoint: "add-requires",
+		Handler: AddRequires,
+		QueryParams: QueryParams{
+			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes itemid require requires as a requirement",
+	},
+
+	{
 		EndPoint:    "set-entry",
 		Handler:     SetEntry,
 		QueryParams: QueryParams{},

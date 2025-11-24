@@ -281,6 +281,96 @@ func ModEntry(ctx RequestContext) {
 	success(w)
 }
 
+func DelChild(ctx RequestContext) {
+	uid := ctx.Uid
+	parent := ctx.PP["parent"].(db_types.InfoEntry)
+	child := ctx.PP["child"].(db_types.InfoEntry)
+
+	err := db.DelRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to delete child\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
+func DelCopy(ctx RequestContext) {
+	uid := ctx.Uid
+	cpy := ctx.PP["copy"].(db_types.InfoEntry)
+	cpyOf := ctx.PP["copyof"].(db_types.InfoEntry)
+
+	err := db.DelRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to delete copy\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
+func DelRequires(ctx RequestContext) {
+	uid := ctx.Uid
+	item := ctx.PP["itemid"].(db_types.InfoEntry)
+	requires := ctx.PP["requires"].(db_types.InfoEntry)
+
+	err := db.DelRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to delete requirement\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
+func AddChild(ctx RequestContext) {
+	uid := ctx.Uid
+	parent := ctx.PP["parent"].(db_types.InfoEntry)
+	child := ctx.PP["child"].(db_types.InfoEntry)
+
+	err := db.AddRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to add child\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
+func AddCopy(ctx RequestContext) {
+	uid := ctx.Uid
+	cpy := ctx.PP["copy"].(db_types.InfoEntry)
+	cpyOf := ctx.PP["copyof"].(db_types.InfoEntry)
+
+	err := db.AddRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to add copy\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
+func AddRequires(ctx RequestContext) {
+	uid := ctx.Uid
+	item := ctx.PP["itemid"].(db_types.InfoEntry)
+	requires := ctx.PP["requires"].(db_types.InfoEntry)
+
+	err := db.AddRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to add requirement\n%s", err.Error())
+		return
+	}
+
+	success(ctx.W)
+}
+
 // lets the user add an item in their library
 func AddEntry(ctx RequestContext) {
 	parsedParams := ctx.PP

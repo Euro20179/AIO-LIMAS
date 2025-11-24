@@ -446,7 +446,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	if timezone != "" {
 		event := "Added"
-		if entryInfo.PurchasePrice > 0 && (entryInfo.Format & db_types.F_UNOWNED) != db_types.F_UNOWNED{
+		if entryInfo.PurchasePrice > 0 && (entryInfo.Format&db_types.F_UNOWNED) != db_types.F_UNOWNED {
 			event = "Purchased"
 		}
 		err = RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
@@ -840,12 +840,30 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	return out, nil
 }
 
+func AddRelation(uid int64, left int64, relation db_types.Relation, right int64) error {
+	return ExecUserDb(uid, `
+		INSERT INTO relations (uid, left, relation, right)
+		VALUES (?, ?, ?, ?)
+`, uid, left, relation, right)
+}
+
+func DelRelation(uid int64, left int64, relation db_types.Relation, right int64) error {
+	return ExecUserDb(uid, `
+		DELETE FROM relations WHERE left = ? and relation = ? and right = ?
+`, left, relation, right)
+}
+
 func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 	out := map[int64]db_types.Relations{}
 
-	res, err := QueryDB("SELECT itemid, parentId, copyOf, requires FROM entryInfo")
+	where := ""
 
-	if err != nil{
+	if uid != 0 {
+		where = " WHERE uid = ?"
+	}
+
+	res, err := QueryDB("SELECT itemid, parentId, copyOf, requires FROM entryInfo"+where, uid)
+	if err != nil {
 		return out, err
 	}
 
@@ -853,15 +871,15 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 
 	for res.Next() {
 		var row struct {
-			ItemId int64
+			ItemId   int64
 			ParentId int64
-			CopyOf int64
+			CopyOf   int64
 			Requires int64
 		}
 
 		res.Scan(&row.ItemId, &row.ParentId, &row.CopyOf, &row.Requires)
 
-		relations, ok :=out[row.ItemId]
+		relations, ok := out[row.ItemId]
 		if !ok {
 			relations = db_types.Relations{}
 		}
@@ -888,6 +906,64 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 		out[row.ItemId] = relations
 	}
 
+	res, err = QueryDB("SELECT left, relation, right FROM relations"+where, uid)
+	if err != nil {
+		return out, err
+	}
+
+	defer res.Close()
+
+	for res.Next() {
+		var row struct {
+			Left     int64
+			Relation db_types.Relation
+			Right    int64
+		}
+
+		res.Scan(&row.Left, &row.Relation, &row.Right)
+
+		switch row.Relation {
+		case db_types.R_Child:
+			{
+				r, ok := out[row.Right]
+				if !ok {
+					r = db_types.Relations{}
+				}
+				r.Children = append(out[row.Right].Children, row.Left)
+				out[row.Right] = r
+			}
+		case db_types.R_Copy:
+			{
+				r, ok := out[row.Right]
+				if !ok {
+					r = db_types.Relations{}
+				}
+
+				r.Copies = append(r.Copies, row.Left)
+
+				out[row.Right] = r
+
+				// copies are symetrical, add to both
+				r, ok = out[row.Left]
+				if !ok {
+					r = db_types.Relations{}
+				}
+
+				r.Copies = append(r.Copies, row.Right)
+
+				out[row.Left] = r
+			}
+		case db_types.R_Requires:
+			{
+				r, ok := out[row.Left]
+				if !ok {
+					r = db_types.Relations{}
+				}
+
+				r.Requires = append(r.Requires, row.Right)
+			}
+		}
+	}
 
 	return out, nil
 }
