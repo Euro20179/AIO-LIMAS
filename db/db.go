@@ -20,7 +20,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 6
+const DB_VERSION = 7
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -847,9 +847,25 @@ func BecomeOriginal(uid int64, itemid int64) error{
 	`, itemid, itemid, db_types.R_Copy)
 }
 
+func SetParent(uid int64, itemid int64, parent int64) error {
+	if uid == 0 {
+		return errors.New("uid cannot be 0 to set a parent")
+	}
+
+	if err := BecomeOrphan(uid, itemid); err != nil {
+		return err
+	}
+
+	return ExecUserDb(uid, `
+		INSER INTO relations (uid, left, relation, right)
+		VALUES
+		(?, ?, ?, ?)
+	`, uid, itemid, db_types.R_Child, parent)
+}
+
 func SetCopy(uid int64, itemid int64, copyof int64) error {
 	if uid == 0 {
-		return errors.New("uid cannot be 0 to add a relation")
+		return errors.New("uid cannot be 0 to set a copy")
 	}
 
 	err := BecomeOriginal(uid, itemid)
@@ -895,7 +911,7 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 		where = " WHERE uid = ?"
 	}
 
-	res, err := QueryDB("SELECT itemid, parentId, copyOf, requires FROM entryInfo"+where, uid)
+	res, err := QueryDB("SELECT itemid, copyOf, requires FROM entryInfo"+where, uid)
 	if err != nil {
 		return out, err
 	}
@@ -905,27 +921,15 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 	for res.Next() {
 		var row struct {
 			ItemId   int64
-			ParentId int64
 			CopyOf   int64
 			Requires int64
 		}
 
-		res.Scan(&row.ItemId, &row.ParentId, &row.CopyOf, &row.Requires)
+		res.Scan(&row.ItemId, &row.CopyOf, &row.Requires)
 
 		relations, ok := out[row.ItemId]
 		if !ok {
 			relations = db_types.Relations{}
-		}
-
-		if row.ParentId != 0 {
-			parentRelations, ok := out[row.ParentId]
-			if !ok {
-				parentRelations = db_types.Relations{}
-			}
-
-			parentRelations.Children = append(parentRelations.Children, row.ItemId)
-
-			out[row.ParentId] = parentRelations
 		}
 
 		if row.CopyOf != 0 {

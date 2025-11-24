@@ -305,7 +305,6 @@ type InfoEntry struct {
 	Location      string
 	PurchasePrice float64
 	Collection    string
-	ParentId      int64
 	Type          MediaTypes
 	ArtStyle      ArtStyle
 	CopyOf        int64
@@ -344,7 +343,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.PurchasePrice,
 		&self.Collection,
 		&self.Type,
-		&self.ParentId,
 		&self.CopyOf,
 		&self.ArtStyle,
 		&self.Library,

@@ -243,18 +243,23 @@ func ModEntry(ctx RequestContext) {
 
 	parent, exists := parsedParams["parent-id"].(db_types.InfoEntry)
 	if exists {
-		info.ParentId = parent.ItemId
+		if err := db.SetParent(ctx.Uid, info.ItemId, parent.ItemId); err != nil {
+			logging.ELog(err)
+			util.WError(ctx.W, 500, "Failed to set parent\n%s", err.Error())
+		}
 	}
 
 	if orphan, exists := parsedParams["become-orphan"].(bool); exists && orphan {
 		if err := db.BecomeOrphan(ctx.Uid, info.ItemId); err != nil {
 			logging.ELog(err)
+			util.WError(ctx.W, 500, "Failed to make orphan\n%s", err.Error())
 		}
 	}
 
 	if original, exists := parsedParams["become-original"].(bool); exists && original {
 		if err := db.BecomeOriginal(ctx.Uid, info.ItemId); err != nil {
 			logging.ELog(err)
+			util.WError(ctx.W, 500, "Failed to make orignal\n%s", err.Error())
 		}
 	}
 
@@ -442,7 +447,6 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.Native_Title = nativeTitle
 	entryInfo.Location = location
 	entryInfo.Format = db_types.Format(formatInt)
-	entryInfo.ParentId = parentId
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
@@ -466,6 +470,10 @@ func AddEntry(ctx RequestContext) {
 
 	if copyOfId != 0 {
 		db.AddRelation(userEntry.Uid, entryInfo.ItemId, db_types.R_Copy, copyOfId)
+	}
+
+	if parentId != 0 {
+		db.AddRelation(userEntry.Uid, entryInfo.ItemId, db_types.R_Child, parentId)
 	}
 
 	if parsedParams.Get("get-metadata", false).(bool) {
