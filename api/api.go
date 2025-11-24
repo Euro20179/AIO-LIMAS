@@ -18,6 +18,25 @@ import (
 	"aiolimas/util"
 )
 
+func ListRelations(ctx RequestContext) {
+	relations, err := db.ListRelations(ctx.Uid)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Could not list relations\n%s", err.Error())
+		return
+	}
+
+	data, err := json.Marshal(relations)
+
+	if err != nil{
+		util.WError(ctx.W, 500, "Failed to serialize relations\n%s", err.Error())
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write(data)
+}
+
 func ListCollections(ctx RequestContext) {
 	w := ctx.W
 	collections, err := db.ListType(ctx.Uid, "en_title", db_types.TY_COLLECTION)

@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type Relations struct {
+	Children []int64
+	Requires []int64
+	Copies   []int64
+}
+
 type ArtStyle uint
 
 const (

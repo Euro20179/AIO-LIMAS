@@ -127,6 +127,13 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "list-relations",
+		Handler: ListRelations,
+		Description: "Lists relations of all entries",
+		GuestAllowed: true,
+	},
+
+	{
 		EndPoint: "list-entries",
 		Handler:  ListEntries,
 		QueryParams: QueryParams{

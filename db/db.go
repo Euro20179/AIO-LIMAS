@@ -840,6 +840,58 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	return out, nil
 }
 
+func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
+	out := map[int64]db_types.Relations{}
+
+	res, err := QueryDB("SELECT itemid, parentId, copyOf, requires FROM entryInfo")
+
+	if err != nil{
+		return out, err
+	}
+
+	defer res.Close()
+
+	for res.Next() {
+		var row struct {
+			ItemId int64
+			ParentId int64
+			CopyOf int64
+			Requires int64
+		}
+
+		res.Scan(&row.ItemId, &row.ParentId, &row.CopyOf, &row.Requires)
+
+		relations, ok :=out[row.ItemId]
+		if !ok {
+			relations = db_types.Relations{}
+		}
+
+		if row.ParentId != 0 {
+			parentRelations, ok := out[row.ParentId]
+			if !ok {
+				parentRelations = db_types.Relations{}
+			}
+
+			parentRelations.Children = append(parentRelations.Children, row.ItemId)
+
+			out[row.ParentId] = parentRelations
+		}
+
+		if row.CopyOf != 0 {
+			relations.Copies = append(relations.Copies, row.CopyOf)
+		}
+
+		if row.Requires != 0 {
+			relations.Requires = append(relations.Requires, row.Requires)
+		}
+
+		out[row.ItemId] = relations
+	}
+
+
+	return out, nil
+}
+
 // /sort must be valid sql
 func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 	whereClause := ""
