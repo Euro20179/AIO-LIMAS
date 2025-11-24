@@ -606,6 +606,7 @@ func Delete(uid int64, id int64) error {
 	transact.Exec(`DELETE FROM metadata WHERE itemId = ? and metadata.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ? and userEventInfo.uid = ?`, id, uid)
+	transact.Exec(`DELETE FROM relations WHERE left = ? or right = ?`, id, id)
 
 	return transact.Commit()
 }
@@ -840,7 +841,39 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	return out, nil
 }
 
+func BecomeOriginal(uid int64, itemid int64) error{
+	return ExecUserDb(uid, `
+		DELETE FROM relations WHERE left = ? or right = ? and relation = ?
+	`, itemid, itemid, db_types.R_Copy)
+}
+
+func SetCopy(uid int64, itemid int64, copyof int64) error {
+	if uid == 0 {
+		return errors.New("uid cannot be 0 to add a relation")
+	}
+
+	err := BecomeOriginal(uid, itemid)
+	if err != nil{
+		return err
+	}
+
+	return ExecUserDb(uid, `
+		INSERT INTO relations (uid, left, relation, right)
+		VALUES
+		(?, ?, ?, ?)
+	`, uid, itemid, db_types.R_Copy, copyof)
+}
+
+func BecomeOrphan(uid int64, itemid int64) error {
+	return ExecUserDb(uid, `
+		DELETE FROM relations WHERE left = ? and relation = ?
+	`, itemid, db_types.R_Child)
+}
+
 func AddRelation(uid int64, left int64, relation db_types.Relation, right int64) error {
+	if uid == 0 {
+		return errors.New("uid cannot be 0 to add a relation")
+	}
 	return ExecUserDb(uid, `
 		INSERT INTO relations (uid, left, relation, right)
 		VALUES (?, ?, ?, ?)

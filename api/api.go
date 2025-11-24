@@ -247,15 +247,21 @@ func ModEntry(ctx RequestContext) {
 	}
 
 	if orphan, exists := parsedParams["become-orphan"].(bool); exists && orphan {
-		info.ParentId = 0
+		if err := db.BecomeOrphan(ctx.Uid, info.ItemId); err != nil {
+			logging.ELog(err)
+		}
 	}
 
 	if original, exists := parsedParams["become-original"].(bool); exists && original {
-		info.CopyOf = 0
+		if err := db.BecomeOriginal(ctx.Uid, info.ItemId); err != nil {
+			logging.ELog(err)
+		}
 	}
 
 	if itemCopy, exists := parsedParams["copy-id"].(db_types.InfoEntry); exists {
-		info.CopyOf = itemCopy.ItemId
+		if err := db.SetCopy(ctx.Uid, info.ItemId, itemCopy.ItemId); err != nil {
+			logging.ELog(err)
+		}
 	}
 
 	if price, exists := parsedParams["price"].(float64); exists {
@@ -438,7 +444,6 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.Format = db_types.Format(formatInt)
 	entryInfo.ParentId = parentId
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
-	entryInfo.CopyOf = copyOfId
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
 	entryInfo.Requires = requiresId
@@ -458,6 +463,10 @@ func AddEntry(ctx RequestContext) {
 	userEntry.ViewCount = parsedParams.Get("user-view-count", int64(0)).(int64)
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
+
+	if copyOfId != 0 {
+		db.AddRelation(userEntry.Uid, entryInfo.ItemId, db_types.R_Copy, copyOfId)
+	}
 
 	if parsedParams.Get("get-metadata", false).(bool) {
 		providerOverride := parsedParams.Get("metadata-provider", "").(string)
