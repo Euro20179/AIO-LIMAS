@@ -468,14 +468,6 @@ func AddEntry(ctx RequestContext) {
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
 
-	if copyOfId != 0 {
-		db.AddRelation(userEntry.Uid, entryInfo.ItemId, db_types.R_Copy, copyOfId)
-	}
-
-	if parentId != 0 {
-		db.AddRelation(userEntry.Uid, entryInfo.ItemId, db_types.R_Child, parentId)
-	}
-
 	if parsedParams.Get("get-metadata", false).(bool) {
 		providerOverride := parsedParams.Get("metadata-provider", "").(string)
 		var err error
@@ -506,6 +498,14 @@ func AddEntry(ctx RequestContext) {
 		w.WriteHeader(500)
 		w.Write([]byte("Error adding into table\n" + err.Error()))
 		return
+	}
+
+	if copyOfId != 0 {
+		db.AddRelation(ctx.Uid, entryInfo.ItemId, db_types.R_Copy, copyOfId)
+	}
+
+	if parentId != 0 {
+		db.AddRelation(ctx.Uid, entryInfo.ItemId, db_types.R_Child, parentId)
 	}
 
 	if tags != "" {

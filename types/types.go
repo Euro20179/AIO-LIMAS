@@ -307,7 +307,6 @@ type InfoEntry struct {
 	Collection    string
 	Type          MediaTypes
 	ArtStyle      ArtStyle
-	CopyOf        int64
 	Library       int64
 	Requires      int64
 	RecommendedBy string
@@ -343,7 +342,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.PurchasePrice,
 		&self.Collection,
 		&self.Type,
-		&self.CopyOf,
 		&self.ArtStyle,
 		&self.Library,
 		&self.Requires,
