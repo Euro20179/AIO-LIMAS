@@ -155,6 +155,7 @@ type LocationMap map[string]LocationFunc
 var LocationFinders LocationMap = LocationMap{
 	"steam":  SteamLocationFinder,
 	"sonarr": SonarrGetLocation,
+	"radarr": RadarrGetLocation,
 }
 
 type ProviderFunc func(*GetMetadataInfo) (db_types.MetadataEntry, error)

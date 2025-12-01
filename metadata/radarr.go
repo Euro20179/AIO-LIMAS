@@ -6,12 +6,38 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
+	"aiolimas/logging"
 	"aiolimas/settings"
 	db_types "aiolimas/types"
-	"aiolimas/logging"
-
 )
+
+func RadarrGetLocation(us *settings.SettingsData, providerID string) (string, error) {
+	url := us.RadarrURL
+	key := us.RadarrKey
+
+	if url == "" || key == ""{
+		return "", errors.New("radarr is not setup")
+	}
+
+	id := providerID
+
+	if id == "" {
+		return "", errors.New("ProviderID is not set")
+	}
+
+	fId, _ := strconv.ParseFloat(id, 64)
+	path, err := LookupPathById(fId, url, key, ARR_Movie)
+
+	if err != nil {
+		return "", err
+	}
+
+	path = settings.CondensePathWithLocationAliases(us.LocationAliases, path)
+
+	return path, nil
+}
 
 func RadarrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry

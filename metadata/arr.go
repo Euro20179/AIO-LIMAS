@@ -40,8 +40,14 @@ func _request(fullUrl string, key string) ([]byte, error) {
 	return text, nil
 }
 
-func LookupPathById(id float64, apiPath string, key string) (string, error) {
-	fullUrl := apiPath + "api/v3/series"
+type ARRMediaType = string
+const (
+	ARR_Series ARRMediaType = "series"
+	ARR_Movie ARRMediaType = "movie"
+)
+
+func LookupPathById(id float64, apiPath string, key string, ty ARRMediaType) (string, error) {
+	fullUrl := apiPath + "api/v3/" + ty
 
 	text, err := _request(fullUrl, key)
 	if err != nil {

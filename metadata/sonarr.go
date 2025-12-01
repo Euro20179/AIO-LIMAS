@@ -28,11 +28,13 @@ func SonarrGetLocation(us *settings.SettingsData, providerID string) (string, er
 	}
 
 	fId, _ := strconv.ParseFloat(id, 64)
-	path, err := LookupPathById(fId, url, key)
+	path, err := LookupPathById(fId, url, key, ARR_Series)
 
 	if err != nil {
 		return "", err
 	}
+
+	path = settings.CondensePathWithLocationAliases(us.LocationAliases, path)
 
 	return path, nil
 }

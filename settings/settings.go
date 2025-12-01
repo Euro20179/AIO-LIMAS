@@ -50,6 +50,13 @@ func ExpandPathWithLocationAliases(aliases map[string]string, path string) strin
 	return path
 }
 
+func CondensePathWithLocationAliases(aliases map[string]string, path string) string {
+	for k, v := range aliases {
+		path = strings.Replace(path, v, "${" + k + "}", 1)
+	}
+	return path
+}
+
 func InitUserSettings(uid int64) error {
 	settingsFile := os.Getenv("AIO_DIR") + fmt.Sprintf("/users/%d/settings.json", uid)
 
