@@ -450,7 +450,6 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
-	entryInfo.Requires = requiresId
 	entryInfo.RecommendedBy = parsedParams.Get("recommended-by", "").(string)
 
 	var metadata db_types.MetadataEntry
@@ -506,6 +505,10 @@ func AddEntry(ctx RequestContext) {
 
 	if parentId != 0 {
 		db.AddRelation(ctx.Uid, entryInfo.ItemId, db_types.R_Child, parentId)
+	}
+
+	if requiresId != 0 {
+		db.AddRelation(ctx.Uid, entryInfo.ItemId, db_types.R_Requires, requiresId)
 	}
 
 	if tags != "" {

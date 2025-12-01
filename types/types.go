@@ -310,7 +310,6 @@ type InfoEntry struct {
 	Type          MediaTypes
 	ArtStyle      ArtStyle
 	Library       int64
-	Requires      int64
 	RecommendedBy string
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
@@ -346,7 +345,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Type,
 		&self.ArtStyle,
 		&self.Library,
-		&self.Requires,
 		&self.RecommendedBy,
 	)
 	if err != nil {

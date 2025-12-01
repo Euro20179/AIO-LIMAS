@@ -20,7 +20,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 8
+const DB_VERSION = 9
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -911,34 +911,7 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 		where = " WHERE uid = ?"
 	}
 
-	res, err := QueryDB("SELECT itemid, requires FROM entryInfo"+where, uid)
-	if err != nil {
-		return out, err
-	}
-
-	defer res.Close()
-
-	for res.Next() {
-		var row struct {
-			ItemId   int64
-			Requires int64
-		}
-
-		res.Scan(&row.ItemId, &row.Requires)
-
-		relations, ok := out[row.ItemId]
-		if !ok {
-			relations = db_types.Relations{}
-		}
-
-		if row.Requires != 0 {
-			relations.Requires = append(relations.Requires, row.Requires)
-		}
-
-		out[row.ItemId] = relations
-	}
-
-	res, err = QueryDB("SELECT left, relation, right FROM relations"+where, uid)
+	res, err := QueryDB("SELECT left, relation, right FROM relations"+where, uid)
 	if err != nil {
 		return out, err
 	}
@@ -993,6 +966,7 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 				}
 
 				r.Requires = append(r.Requires, row.Right)
+				out[row.Left] = r
 			}
 		}
 	}
