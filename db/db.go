@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 9
+const DB_VERSION = 10
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -379,7 +378,13 @@ func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
 func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := entryInfo.ItemId
 	if id == 0 {
-		id = rand.Int64()
+		res, err := QueryDB("SELECT max(itemid) FROM entryInfo")
+		if err != nil || !res.Next() {
+			return errors.New("failed to add entry, could not determine id")
+		}
+		res.Scan(&id)
+		res.Close()
+		id += 1
 	}
 
 	Db, err := OpenUserDb()
