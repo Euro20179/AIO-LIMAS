@@ -118,9 +118,8 @@ Basic user facing docs can be found at `/usage`
 - [x] proper search parser
 - [x] collection stat calculation modifier
 - [x] requires
-     - an id that should be viewed before this entry
+     - ids that should be viewed before this entry
      - eg: `starwars 2` requires `starwars 1`
-     - if an entry requires more than 1 entry, make a collection containing all the requirements
 
 - [ ] ~refactor the json metadata fields into their own tables
     for example, Shows have json that looks like `{"Show-episode-length": 49}`, etc...
