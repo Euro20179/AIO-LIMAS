@@ -280,7 +280,7 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "query-v4",
 		Handler: QueryEntries4,
 		QueryParams: QueryParams{
-			"search": MkQueryInfo(P_SqlSafe, true),
+			"search": MkQueryInfo(P_NotEmpty, true),
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",
