@@ -301,43 +301,29 @@ func P_Float64(uid int64, in string) (any, error) {
 	return f, nil
 }
 
-func P_VerifyIdAndGetUserEntry(uid int64, id string) (any, error) {
-	var out db_types.UserViewingEntry
+func _verifyIdAndGet[T any](uid int64, id string, getter func(int64, int64) (T, error)) (T, error) {
+	var out T
 	i, err := P_Int64(uid, id)
 	if err != nil {
 		return out, err
 	}
-	entry, err := db.GetUserViewEntryById(uid, i.(int64))
+	entry, err := getter(uid, i.(int64))
 	if err != nil {
 		return out, err
 	}
 	return entry, nil
+}
+
+func P_VerifyIdAndGetUserEntry(uid int64, id string) (any, error) {
+	return _verifyIdAndGet(uid, id, db.GetUserViewEntryById)
 }
 
 func P_VerifyIdAndGetInfoEntry(uid int64, id string) (any, error) {
-	var out db_types.InfoEntry
-	i, err := P_Int64(uid, id)
-	if err != nil {
-		return out, err
-	}
-	entry, err := db.GetInfoEntryById(uid, i.(int64))
-	if err != nil {
-		return out, err
-	}
-	return entry, nil
+	return _verifyIdAndGet(uid, id, db.GetInfoEntryById)
 }
 
 func P_VerifyIdAndGetMetaEntry(uid int64, id string) (any, error) {
-	var out db_types.MetadataEntry
-	i, err := P_Int64(uid, id)
-	if err != nil {
-		return out, err
-	}
-	entry, err := db.GetMetadataEntryById(uid, i.(int64))
-	if err != nil {
-		return out, err
-	}
-	return entry, nil
+	return _verifyIdAndGet(uid, id, db.GetMetadataEntryById)
 }
 
 func P_True(uid int64, in string) (any, error) {
