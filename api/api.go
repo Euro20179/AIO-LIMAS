@@ -554,6 +554,18 @@ func ListEntries(ctx RequestContext) {
 	w.Write([]byte("\n"))
 }
 
+func QueryEntries4(ctx RequestContext) {
+	search := ctx.PP["search"].(string)
+	results, err := db.Search4(ctx.Uid, search)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not complete search\n%s", err.Error())
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	writeSQLRowResults(ctx.W, results)
+}
+
 func QueryEntries3(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W

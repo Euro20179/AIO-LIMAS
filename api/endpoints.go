@@ -277,6 +277,18 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "query-v4",
+		Handler: QueryEntries4,
+		QueryParams: QueryParams{
+			"search": MkQueryInfo(P_SqlSafe, true),
+		},
+		Description: "Search with a plain title search",
+		Returns: "InfoEntry[]",
+		GuestAllowed: true,
+		UserIndependant: true,
+	},
+
+	{
 		EndPoint: "query-v3",
 		Handler:  QueryEntries3,
 		QueryParams: QueryParams{
