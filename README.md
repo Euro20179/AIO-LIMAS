@@ -2,7 +2,9 @@
 
 > [!NOTE]
 This software is written for me and me foremost, so a lot of things are very how-i-would-do-them.
-The most notable of which is how search works.
+A good example is query-v3
+(there is also query-v4 for people that dont want an extremely obtuse
+searching mechanism for some reason ◔_◔)
 
 
 ### AIO LIMAS For short
