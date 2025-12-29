@@ -250,6 +250,11 @@ func Lex(search []rune) []Token {
 			default:
 				ty = TT_WORD
 				val = parseWord("", []rune{})
+				if strings.ToLower(val) == "and" {
+					ty = TT_AND
+				} else if strings.ToLower(val) == "or" {
+					ty = TT_OR
+				}
 			}
 
 			tokens = append(tokens, Token{
