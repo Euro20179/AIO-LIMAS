@@ -35,6 +35,8 @@ type AnilistTitles struct {
 type AnlistMediaEntry struct {
 	Title AnilistTitles `json:"title"`
 
+	CountryOfOrigin string `json:"countryOfOrigin"`
+
 	CoverImage struct {
 		Medium     string `json:"medium"`
 		Large      string `json:"large"`
@@ -95,7 +97,8 @@ const ANILIST_MEDIA_QUERY_INFO = `
 	id,
 	format,
 	volumes,
-	genres
+	genres,
+	countryOfOrigin
 `
 
 func mkAnilistRequest[T any, TOut any](anilistQuery AnilistQuery[T]) (TOut, error) {
@@ -163,6 +166,7 @@ func applyManga(anilistData AnlistMediaEntry) (db_types.MetadataEntry, error) {
 
 	o.Provider = "anilist"
 	o.ProviderID = fmt.Sprintf("%d", out.Id)
+	o.Country = out.CountryOfOrigin
 
 	return o, nil
 }
@@ -235,6 +239,7 @@ func applyShow(aniInfo AnlistMediaEntry) (db_types.MetadataEntry, error) {
 	outMeta.ReleaseYear = int64(aniInfo.StartDate.Year)
 	outMeta.Provider = "anilist"
 	outMeta.ProviderID = fmt.Sprintf("%d", aniInfo.Id)
+	outMeta.Country = aniInfo.CountryOfOrigin
 
 	genres, err := json.Marshal(aniInfo.Genres)
 	if err == nil {

@@ -261,6 +261,7 @@ type MetadataEntry struct {
 	Provider       string // the provider that generated the metadata
 	ProviderID     string // the id that the provider used
 	Genres         string
+	Country string
 }
 
 func (self MetadataEntry) Id() int64 {
@@ -287,6 +288,7 @@ func (self *MetadataEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Provider,
 		&self.ProviderID,
 		&self.Genres,
+		&self.Country,
 	)
 }
 
