@@ -78,6 +78,7 @@ local formats = {
     VINYL        = 14,
     IMAGE        = 15,
     UNOWNED      = 16,
+    THEATER      = 17,
 }
 
 local F_MOD_DIGITAL = 0x1000
@@ -134,7 +135,8 @@ local prefixMacros = {
         end
 
         --return any matching format OR the digitally modified version
-        return "(" .. comp("Format", formats[reqFmt]) .. " or " .. comp("Format", aio.bor(formats[reqFmt], F_MOD_DIGITAL)) .. ")", ""
+        return "(" ..
+        comp("Format", formats[reqFmt]) .. " or " .. comp("Format", aio.bor(formats[reqFmt], F_MOD_DIGITAL)) .. ")", ""
     end,
 
     ["tag:"] = function(macro)
@@ -162,7 +164,10 @@ local prefixMacros = {
     end,
     ["g:"] = function(macro)
         local genre = string.sub(macro, 3)
-        return string.format("EXISTS (SELECT * FROM json_each(json_extract(genres, '$')) WHERE genres != '' AND json_each.value LIKE '%s')", genre), ""
+        return
+        string.format(
+        "EXISTS (SELECT * FROM json_each(json_extract(genres, '$')) WHERE genres != '' AND json_each.value LIKE '%s')",
+            genre), ""
     end
 }
 
@@ -210,23 +215,28 @@ function Expand_macro(macro)
         return basicMacros[macro], ""
     elseif prefixMacros[prefix] ~= nil then
         return prefixMacros[prefix](macro)
-
     elseif string.sub(macro, 1, 1) == "#" then
         local t = string.sub(macro, 2)
-        return string.format("(En_Title LIKE '%%%s%%'  OR entryInfo.Native_Title LIKE '%%%s%%' OR Title LIKE '%%%s%%' OR metadata.Native_Title LIKE '%%%s%%')", t, t, t, t), ""
-
+        return
+        string.format(
+        "(En_Title LIKE '%%%s%%'  OR entryInfo.Native_Title LIKE '%%%s%%' OR Title LIKE '%%%s%%' OR metadata.Native_Title LIKE '%%%s%%')",
+            t, t, t, t), ""
     elseif string.sub(macro, 0, 3) == "ev-" then
         local time = string.sub(macro, 4) .. "/"
         local d = parseDateParams(time, "start")
         --if the timestamp is less than date, OR if beforeTS is less than date, OR if date is between after and beforets
-        return string.format("((%s > timestamp AND timestamp > 0) OR (%s > beforeTS AND beforeTS > 0) OR (%s > after AND after > 0))", d, d, d, d), ""
-
+        return
+        string.format(
+        "((%s > timestamp AND timestamp > 0) OR (%s > beforeTS AND beforeTS > 0) OR (%s > after AND after > 0))", d, d, d,
+            d), ""
     elseif string.sub(macro, 0, 3) == "ev+" then
         local time = string.sub(macro, 4) .. "/"
         local d = parseDateParams(time, "end")
         --if the timestamp is less than date, OR if beforeTS is less than date, OR if date is between after and beforets
-        return string.format("((%s < timestamp AND timestamp > 0) OR (%s < after AND after > 0) OR (%s < beforeTS AND beforeTS != 0))", d, d, d, d), ""
-
+        return
+        string.format(
+        "((%s < timestamp AND timestamp > 0) OR (%s < after AND after > 0) OR (%s < beforeTS AND beforeTS != 0))", d, d,
+            d, d), ""
     elseif string.sub(macro, 0, 4) == "date" then
         local beginOrEnd = "start"
         if string.sub(macro, 5, 5) == "+" then
