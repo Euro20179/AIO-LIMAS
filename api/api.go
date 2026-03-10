@@ -413,23 +413,10 @@ type RadarrPostWebhook struct {
 	ApplicationUrl string
 }
 
-func AddEntryRadarr(ctx RequestContext) {
-	body, err := io.ReadAll(ctx.Req.Body)
-
-	defer ctx.Req.Body.Close()
-	if err != nil {
-		util.WError(ctx.W, 500, "Failed to read body\n%s", err.Error())
-		return
-	}
-
-	data := RadarrPostWebhook{}
-	if err := json.Unmarshal(body, &data); err != nil {
-		util.WError(ctx.W, 400, "Failed to parse body\n%s", err.Error())
-		return
-	}
-
+func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 	var entryInfo db_types.InfoEntry
 	var userEntry db_types.UserViewingEntry
+	fmt.Printf("%+v\n", data)
 
 	if slices.Contains(data.Movie.Tags, "planned") {
 		userEntry.Status = db_types.S_PLANNED
@@ -454,10 +441,30 @@ func AddEntryRadarr(ctx RequestContext) {
 	}
 	timezone := us.DefaultTimeZone
 
-	metadata, err := meta.GetMetadataById(data.RemoteMovie.ImdbId, ctx.Uid, "omdb")
-	if err != nil {
-		metadata = db_types.MetadataEntry{}
+	metadata := db_types.MetadataEntry{}
+	if !slices.Contains(data.Movie.Tags, "anime") && data.RemoteMovie.ImdbId != "" {
+		metadata, err = meta.GetMetadataById(data.RemoteMovie.ImdbId, ctx.Uid, "omdb")
+		if err != nil {
+			metadata = db_types.MetadataEntry{}
+		}
+	} else {
+		metadata, err = meta.GetMetadata(&meta.GetMetadataInfo{
+			Entry:         &entryInfo,
+			MetadataEntry: &metadata,
+			Uid:           ctx.Uid,
+		})
+		if err != nil {
+			metadata = db_types.MetadataEntry{}
+		}
 	}
+
+	datapoints := map[string] string{}
+	if metadata.Datapoints != "" {
+		json.Unmarshal([]byte(metadata.Datapoints), &datapoints)
+	}
+	datapoints["radarr-id"] = fmt.Sprintf("%d", data.Movie.Id)
+	mar_datapoints, _ := json.Marshal(datapoints)
+	metadata.Datapoints = string(mar_datapoints)
 
 	if err := db.AddEntry(ctx.Uid, timezone, &entryInfo, &metadata, &userEntry); err != nil {
 		util.WError(ctx.W, 500, "Error adding entry\n%s", err.Error())
@@ -472,6 +479,33 @@ func AddEntryRadarr(ctx RequestContext) {
 
 	ctx.W.WriteHeader(200)
 	ctx.W.Write(j)
+}
+
+func HookRadarr(ctx RequestContext) {
+	body, err := io.ReadAll(ctx.Req.Body)
+
+	defer ctx.Req.Body.Close()
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to read body\n%s", err.Error())
+		return
+	}
+
+	data := RadarrPostWebhook{}
+	if err := json.Unmarshal(body, &data); err != nil {
+		util.WError(ctx.W, 400, "Failed to parse body\n%s", err.Error())
+		return
+	}
+
+	println(data.EventType)
+	if data.EventType == "Test" {
+		ctx.W.WriteHeader(200)
+		ctx.W.Write([]byte("OK"))
+		return
+	} else if data.EventType == "MovieAdded" {
+		_radarrAdd(ctx, data)
+	} else {
+		util.WError(ctx.W, 422, "Unknown event: %s\n", data.EventType)
+	}
 }
 
 // lets the user add an item in their library

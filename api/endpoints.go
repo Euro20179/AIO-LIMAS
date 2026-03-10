@@ -58,11 +58,11 @@ var mainEndpointList = []ApiEndPoint{
 
 	{
 		Method: POST,
-		Handler: AddEntryRadarr,
+		Handler: HookRadarr,
 		QueryParams: QueryParams {},
-		Description: "Adds an entry based on a radarr webhook request",
+		Description: "Handles radar webhook requests",
 		Returns: "InfoEntry",
-		EndPoint: "add-entry-radarr",
+		EndPoint: "hook-radarr",
 	},
 
 	{
