@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"slices"
 
 	db "aiolimas/db"
 	"aiolimas/logging"
@@ -380,6 +381,97 @@ func AddRequires(ctx RequestContext) {
 	}
 
 	success(ctx.W)
+}
+
+type RadarrPostWebhook struct {
+	Movie struct {
+		Id int
+		Title string
+		Year int
+		ReleaseDate string
+		FolderPath string
+		TmdbId int
+		Tags []string
+	}
+	RemoteMovie struct {
+		TmdbId int
+		ImdbId string
+		Title string
+		year int
+	}
+	Release struct {
+		Quality string
+		QualityVersion int
+		ReleaseGroup string
+		ReleaseTitle string
+		Indexer string
+		Size int
+		CustomFormatScore int
+	}
+	EventType string
+	InstanceName string
+	ApplicationUrl string
+}
+
+func AddEntryRadarr(ctx RequestContext) {
+	body, err := io.ReadAll(ctx.Req.Body)
+
+	defer ctx.Req.Body.Close()
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to read body\n%s", err.Error())
+		return
+	}
+
+	data := RadarrPostWebhook{}
+	if err := json.Unmarshal(body, &data); err != nil {
+		util.WError(ctx.W, 400, "Failed to parse body\n%s", err.Error())
+		return
+	}
+
+	var entryInfo db_types.InfoEntry
+	var userEntry db_types.UserViewingEntry
+
+	if slices.Contains(data.Movie.Tags, "planned") {
+		userEntry.Status = db_types.S_PLANNED
+	}
+
+	entryInfo.En_Title = data.Movie.Title
+	entryInfo.Type = db_types.TY_MOVIE
+	entryInfo.ItemId = 0
+	entryInfo.Location = data.Movie.FolderPath
+	if slices.Contains(data.Movie.Tags, "anime") {
+		entryInfo.ArtStyle |= db_types.AS_ANIME
+	}
+
+	if slices.Contains(data.Movie.Tags, "live-action") {
+		entryInfo.ArtStyle |= db_types.AS_LIVE_ACTION
+	}
+
+	us, err := settings.GetUserSettings(ctx.Uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+	timezone := us.DefaultTimeZone
+
+	metadata, err := meta.GetMetadataById(data.RemoteMovie.ImdbId, ctx.Uid, "omdb")
+	if err != nil {
+		metadata = db_types.MetadataEntry{}
+	}
+
+	if err := db.AddEntry(ctx.Uid, timezone, &entryInfo, &metadata, &userEntry); err != nil {
+		util.WError(ctx.W, 500, "Error adding entry\n%s", err.Error())
+		return
+	}
+
+	j, err := entryInfo.ToJson()
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not convert new entry to json\n%s", err.Error())
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write(j)
 }
 
 // lets the user add an item in their library

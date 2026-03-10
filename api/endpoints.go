@@ -57,6 +57,15 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		Method: POST,
+		Handler: AddEntryRadarr,
+		QueryParams: QueryParams {},
+		Description: "Adds an entry based on a radarr webhook request",
+		Returns: "InfoEntry",
+		EndPoint: "add-entry-radarr",
+	},
+
+	{
 		Handler: AddEntry,
 		QueryParams: QueryParams{
 			"title":             MkQueryInfo(P_NotEmpty, true),
