@@ -460,18 +460,6 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		}
 	}
 
-	us, err := settings.GetUserSettings(uid)
-	if err != nil {
-		return err
-	}
-	// This should happen after the added event, because well, it was added, this file is a luxury thing
-	if us.WriteIdFile {
-		err = WriteLocationFile(entryInfo, us.LocationAliases)
-	}
-	if err != nil {
-		fmt.Printf("Error updating location file: %s\n", err.Error())
-	}
-
 	return nil
 }
 
@@ -552,39 +540,7 @@ func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 	return updateTable(uid, *entry, "metadata")
 }
 
-func WriteLocationFile(entry *db_types.InfoEntry, aliases map[string]string) error {
-	location := settings.ExpandPathWithLocationAliases(aliases, entry.Location)
-
-	var aioIdPath string
-	stat, err := os.Stat(location)
-	if err == nil && !stat.IsDir() {
-		dir := filepath.Dir(location)
-		aioIdPath = filepath.Join(dir, ".AIO-ID")
-	} else if err != nil {
-		return err
-	} else {
-		aioIdPath = filepath.Join(location, ".AIO-ID")
-	}
-
-	err = os.WriteFile(aioIdPath, fmt.Appendf(nil, "%d", entry.ItemId), 0o644)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
-	us, err := settings.GetUserSettings(uid)
-	if err != nil {
-		return err
-	}
-	if us.WriteIdFile {
-		err := WriteLocationFile(entry, us.LocationAliases)
-		if err != nil {
-			fmt.Printf("Error updating location file: %s\n", err.Error())
-		}
-	}
-
 	return updateTable(uid, *entry, "entryInfo")
 }
 
