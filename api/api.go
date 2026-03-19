@@ -422,6 +422,12 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 		return
 	}
 
+	us, err := settings.GetUserSettings(ctx.Uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not update entry\n%s", err.Error())
+		return
+	}
+
 	if slices.Contains(data.Movie.Tags, "planned") {
 		userEntry.Status = db_types.S_PLANNED
 	}
@@ -429,7 +435,7 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 	entryInfo.En_Title = data.Movie.Title
 	entryInfo.Type = db_types.TY_MOVIE
 	entryInfo.ItemId = 0
-	entryInfo.Location = data.Movie.FolderPath
+	entryInfo.Location = settings.CondensePathWithLocationAliases(us.LocationAliases, data.Movie.FolderPath)
 	if slices.Contains(data.Movie.Tags, "anime") {
 		entryInfo.ArtStyle |= db_types.AS_ANIME
 	}
@@ -438,11 +444,6 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 		entryInfo.ArtStyle |= db_types.AS_LIVE_ACTION
 	}
 
-	us, err := settings.GetUserSettings(ctx.Uid)
-	if err != nil {
-		util.WError(ctx.W, 500, "Could not update entry\n%s", err.Error())
-		return
-	}
 	timezone := us.DefaultTimeZone
 
 	metadata := db_types.MetadataEntry{}
