@@ -1107,17 +1107,12 @@ func DelTags(uid int64, id int64, tags []string) error {
 }
 
 func GetRecommendersList(uid int64) ([]string, error) {
-	db, err := OpenUserDb()
+	rows, err := QueryDB("SELECT DISTINCT recommendedBy from entryInfo WHERE recommendedBy != ''")
 	if err != nil {
 		return []string{}, err
 	}
 
-	defer db.Close()
-
-	rows, err := db.Query("SELECT DISTINCT recommendedBy from entryInfo WHERE recommendedBy != ''")
-	if err != nil {
-		return []string{}, err
-	}
+	defer rows.Close()
 
 	recommenders := []string{}
 	for rows.Next() {

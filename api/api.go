@@ -416,7 +416,11 @@ type RadarrPostWebhook struct {
 func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 	var entryInfo db_types.InfoEntry
 	var userEntry db_types.UserViewingEntry
-	fmt.Printf("%+v\n", data)
+
+	if slices.Contains(data.Movie.Tags, "no-add") {
+		ctx.W.WriteHeader(200)
+		return
+	}
 
 	if slices.Contains(data.Movie.Tags, "planned") {
 		userEntry.Status = db_types.S_PLANNED
@@ -477,7 +481,7 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 		return
 	}
 
-	ctx.W.WriteHeader(200)
+	ctx.W.WriteHeader(201)
 	ctx.W.Write(j)
 }
 
@@ -496,7 +500,6 @@ func HookRadarr(ctx RequestContext) {
 		return
 	}
 
-	println(data.EventType)
 	if data.EventType == "Test" {
 		ctx.W.WriteHeader(200)
 		ctx.W.Write([]byte("OK"))
