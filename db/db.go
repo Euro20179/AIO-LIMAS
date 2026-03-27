@@ -329,6 +329,12 @@ func ensureUserJsonNotEmpty(user *db_types.UserViewingEntry) {
 	}
 }
 
+func ensureRecommendedByNotEmpty(info *db_types.InfoEntry) {
+	if info.RecommendedBy == "" {
+		info.RecommendedBy = "[]"
+	}
+}
+
 func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 	if metadata.MediaDependant == "" {
 		metadata.MediaDependant = "{}"
@@ -400,6 +406,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	ensureMetadataJsonNotEmpty(metadataEntry)
 	ensureUserJsonNotEmpty(userViewingEntry)
+	ensureRecommendedByNotEmpty(entryInfo)
 
 	entries := map[string]db_types.TableRepresentation{
 		"entryInfo":       *entryInfo,
@@ -539,6 +546,7 @@ func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 }
 
 func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
+	ensureRecommendedByNotEmpty(entry)
 	return updateTable(uid, *entry, "entryInfo")
 }
 
