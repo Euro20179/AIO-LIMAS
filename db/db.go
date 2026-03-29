@@ -685,15 +685,17 @@ func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func Search4(uid int64, search string) ([]db_types.InfoEntry, error) {
+func Search4(uid int64, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
-	search = "%" + search + "%"
+	searchQuery = "%" + searchQuery + "%"
 
 	query := `SELECT DISTINCT entryInfo.*
 				FROM entryInfo
 				JOIN metadata ON
 					entryInfo.itemId == metadata.itemId
+				JOIN userViewingInfo ON
+					entryInfo.itemId == userViewingInfo.itemId
 				WHERE (
 						En_Title LIKE ? or
 						Title LIKE ? or
@@ -705,12 +707,21 @@ func Search4(uid int64, search string) ([]db_types.InfoEntry, error) {
 	//(it needs to happen separately)
 
 	if uid > 0 {
-		query += fmt.Sprintf("and metadata.uid = %d", uid)
+		query += fmt.Sprintf("and metadata.uid = %d ", uid)
+	}
+
+	if orderby != "" {
+		safeOrder, err := search.Search2String(fmt.Sprintf("{ORDER BY %s DESC}", orderby))
+		if err != nil {
+			log.ELog(err)
+			return out, err
+		}
+		query += safeOrder
 	}
 
 	log.Info("got query %s", query)
 
-	rows, err := QueryDB(query, search, search, search, search)
+	rows, err := QueryDB(query, searchQuery, searchQuery, searchQuery, searchQuery)
 	if err != nil {
 		return out, err
 	}

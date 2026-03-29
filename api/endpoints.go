@@ -290,6 +290,7 @@ var mainEndpointList = []ApiEndPoint{
 		Handler: QueryEntries4,
 		QueryParams: QueryParams{
 			"search": MkQueryInfo(P_NotEmpty, true),
+			"order-by": MkQueryInfo(P_NotEmpty, false),
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",

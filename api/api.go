@@ -686,7 +686,9 @@ func ListEntries(ctx RequestContext) {
 
 func QueryEntries4(ctx RequestContext) {
 	search := ctx.PP["search"].(string)
-	results, err := db.Search4(ctx.Uid, search)
+	orderBy := ctx.PP.Get("order-by", "").(string)
+	println(orderBy)
+	results, err := db.Search4(ctx.Uid, search, orderBy)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not complete search\n%s", err.Error())
 		return
