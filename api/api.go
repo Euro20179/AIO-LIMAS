@@ -434,6 +434,7 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 
 	entryInfo.En_Title = data.Movie.Title
 	entryInfo.Type = db_types.TY_MOVIE
+	entryInfo.Format = db_types.F_DIGITAL
 	entryInfo.ItemId = 0
 	entryInfo.Location = settings.CondensePathWithLocationAliases(us.LocationAliases, data.Movie.FolderPath)
 	if slices.Contains(data.Movie.Tags, "anime") {
