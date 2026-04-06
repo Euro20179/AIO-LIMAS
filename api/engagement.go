@@ -436,6 +436,7 @@ func ModUserEntry(ctx RequestContext) {
 	user.ViewCount = parsedParams.Get("view-count", user.ViewCount).(int64)
 	user.CurrentPosition = parsedParams.Get("current-position", user.CurrentPosition).(string)
 	user.Status = parsedParams.Get("status", user.Status).(db_types.Status)
+	user.Minutes = parsedParams.Get("minutes", user.Minutes).(int64)
 
 	err := db.UpdateUserViewingEntry(ctx.Uid, &user)
 	if err != nil {

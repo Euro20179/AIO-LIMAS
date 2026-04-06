@@ -537,6 +537,7 @@ var engagementEndpointList = []ApiEndPoint{
 			"view-count":       MkQueryInfo(P_Int64, false),
 			"current-position": MkQueryInfo(P_True, false),
 			"status":           MkQueryInfo(P_UserStatus, false),
+			"minutes":          MkQueryInfo(P_Int64, false),
 		},
 		Description: "Modifies datapoints of a user entry",
 	},
