@@ -581,7 +581,10 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
-	entryInfo.RecommendedBy = parsedParams.Get("recommended-by", "").(string)
+
+	recommended := []string{parsedParams.Get("recommended-by", "").(string)}
+	recommendedText, _ := json.Marshal(recommended)
+	entryInfo.RecommendedBy = string(recommendedText)
 
 	var metadata db_types.MetadataEntry
 
