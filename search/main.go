@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
-	globals "aiolimas/util"
-
-	"github.com/yuin/gopher-lua"
+	db_types "aiolimas/types"
 )
 
 type TT int
@@ -118,9 +118,9 @@ func Lex(search []rune) []Token {
 				break
 			}
 
-			if ch == '\''{
+			if ch == '\'' {
 				final += "''"
-			}else {
+			} else {
 				final += string(ch)
 			}
 			escape = false
@@ -202,7 +202,7 @@ func Lex(search []rune) []Token {
 				ty = TT_AND
 				val = string(ch)
 			case '=':
-				if len(search) > 1 && runeAt(search, i + 1) == '=' {
+				if len(search) > 1 && runeAt(search, i+1) == '=' {
 					next()
 					ty = TT_EQ
 					val = "=="
@@ -211,7 +211,7 @@ func Lex(search []rune) []Token {
 					val = "="
 				}
 			case '>':
-				if len(search) > 1 && runeAt(search, i + 1) == '=' {
+				if len(search) > 1 && runeAt(search, i+1) == '=' {
 					next()
 					ty = TT_GE
 					val = ">="
@@ -220,7 +220,7 @@ func Lex(search []rune) []Token {
 					val = ">"
 				}
 			case '<':
-				if len(search) > 1 && runeAt(search, i + 1) == '=' {
+				if len(search) > 1 && runeAt(search, i+1) == '=' {
 					next()
 					ty = TT_LE
 					val = "<="
@@ -293,31 +293,282 @@ type MacroNode struct {
 }
 
 func (self MacroNode) ToString() (string, error) {
-	onExpand, exists := globals.LuaEventRegistry["MacroExpand"]
-	if !exists {
-		return "", errors.New("Could not expand macro")
+	// onExpand, exists := globals.LuaEventRegistry["MacroExpand"]
+	// if !exists {
+	// 	return "", errors.New("Could not expand macro")
+	// }
+	//
+	// curMacro := self.Value
+	//
+	// // TODO reimplement the macro expansion in go
+	// // there isn't really a reason for it to be in lua
+	// // the user-config for lua never really manifested
+	//
+	// state := globals.GlobalLuaInstance
+	//
+	// for _, expansion := range onExpand {
+	// 	state.Push(expansion)
+	// 	state.Push(lua.LString(curMacro))
+	// 	state.Call(1, 2)
+	// 	userErr := state.Get(-1).(lua.LString)
+	// 	if userErr != "" {
+	// 		return curMacro, errors.New(string(userErr))
+	// 	}
+	//
+	// 	text := state.Get(-2).(lua.LString)
+	// 	if text != "" {
+	// 		curMacro = string(text)
+	// 	}
+	// }
+
+	macro := self.Value
+
+	comp := func(left string, right string) string {
+		return left + "==" + right
 	}
 
-	curMacro := self.Value
-
-	state := globals.GlobalLuaInstance
-
-	for _, expansion := range onExpand {
-		state.Push(expansion)
-		state.Push(lua.LString(curMacro))
-		state.Call(1, 2)
-		userErr := state.Get(-1).(lua.LString)
-		if userErr != "" {
-			return curMacro, errors.New(string(userErr))
+	parseDateParams := func(paramString string, startOrEnd string) string {
+		month := 1
+		if startOrEnd != "start" {
+			month = 12
 		}
 
-		text := state.Get(-2).(lua.LString)
-		if text != "" {
-			curMacro = string(text)
+		timeC := map[string]int {
+			"year": 2025,
+			"month": month,
+			"day": 1,
+			"hour": 0,
+			"minute": 0,
+			"second": 0,
 		}
+
+		curKey := ""
+		curVal := ""
+
+		parsing := "key"
+
+		fmt.Printf("date: %s\n", paramString)
+		for _, ch := range paramString {
+			if ch == ':' {
+				parsing = "val"
+				continue
+			} else if ch == '/' {
+				parsing = "key"
+
+				full, ok := map[string]string {
+					"y": "year",
+					"m": "month",
+					"d": "day",
+					"H": "hour",
+					"M": "minute",
+					"S": "second",
+				}[curKey]
+
+				if !ok {
+					_, ok = timeC[curKey]
+					if ok {
+						full = curKey
+					} else {
+						full = "year"
+					}
+				}
+
+				i, err := strconv.ParseInt(curVal, 10, 64)
+				if err == nil {
+					timeC[full] = int(i)
+					curKey = ""
+					curVal = ""
+				} else {
+					return "0"
+				}
+				continue
+			}
+
+			if parsing == "key" {
+				curKey = curKey + fmt.Sprintf("%c", ch)
+			} else {
+				curVal = curVal + fmt.Sprintf("%c", ch)
+			}
+		}
+
+		t := time.Date(
+			timeC["year"],
+			time.Month(timeC["month"]),
+			timeC["day"],
+			timeC["hour"],
+			timeC["minute"],
+			timeC["second"],
+			0,
+			time.UTC,
+		)
+		fmt.Printf("%+v %d\n", timeC, t.UnixMilli())
+		return fmt.Sprintf("%d", t.UnixMilli())
 	}
 
-	return curMacro, nil
+	statuses := db_types.ListStatuses()
+	mediaTypes := db_types.ListMediaTypes()
+	formatIds := db_types.ListFormats()
+	formats := map[string]db_types.Format {}
+	for k, v := range formatIds {
+		formats[v] = k
+	}
+
+	as := db_types.ListArtStyles()
+	asName2I := map[string]db_types.ArtStyle{}
+	for k, v := range as {
+		asName2I[v] = k
+	}
+
+	prefixMacros := map[string] func(string) (string, error) {
+		"s": func(macro string) (string, error){
+			text := strings.Title(macro[2:])
+			return comp("status", "\"" + text + "\""), nil
+		},
+		"t": func(macro string) (string, error) {
+			return comp("type", "\"" + strings.Title(macro[2:]) + "\""), nil
+		},
+		"a": func(macro string) (string, error) {
+			itemList := macro[2:]
+			items := strings.Split(itemList, "+")
+			query := ""
+			for _, item := range items {
+				titledArg := strings.Title(item)
+				as_int, ok := asName2I[titledArg]
+				if !ok {
+					return "", errors.New("invalid art style " + titledArg)
+				}
+
+				if query != "" {
+					query = query + fmt.Sprintf(
+						"and (artStyle & %d == %d)",
+						as_int,
+						as_int,
+					)
+				} else {
+					//extra ( because i want to encase the whole thing with ()
+					query = fmt.Sprintf("((argStyle & %d == %d)",
+						as_int,
+						as_int,
+					)
+				}
+			}
+			return query + ")", nil
+		},
+		"f": func(macro string) (string, error) {
+			reqFmt := strings.ToUpper(macro[2:])
+			if strings.Contains(macro, "+d") {
+				reqFmt = reqFmt[0:len(reqFmt) - 2]
+				reqFmt = fmt.Sprintf("%d", formats[reqFmt] | db_types.F_MOD_DIGITAL)
+				return comp("Format", reqFmt), nil
+			}
+
+			if strings.Contains(macro, "-d") {
+				reqFmt = reqFmt[0:len(reqFmt) - 2]
+				return comp("Format", fmt.Sprintf("%d", formats[reqFmt])), nil
+			}
+
+			return "(" + comp(
+							"Format",
+							fmt.Sprintf("%d", formats[reqFmt]),
+						) + " or " +
+						comp(
+							"Format",
+							fmt.Sprintf("%d", formats[reqFmt] | db_types.F_MOD_DIGITAL),
+						) + ")", nil
+		},
+
+		"tag": func(macro string) (string, error) {
+			tag := macro[4:]
+			return "Collection LIKE ('%' || char(31) || '" + tag + "' || char(31) || '%')", nil
+		},
+
+		"md": func(macro string) (string, error) {
+			name := macro[3:]
+			return fmt.Sprintf("mediaDependant != '' and json_extract(mediaDependant, '$.%s')", name), nil
+		},
+		"mdi": func(macro string) (string, error) {
+			name := macro[4:]
+			return fmt.Sprintf("mediaDependant != '' AND CAST(jsoN_extract(mediaDependant, '$.%s') as decimal)", name), nil
+		},
+
+		"g": func(macro string) (string, error) {
+			genre := macro[2:]
+			return fmt.Sprintf("EXISTS (SELECT * FROM json_each(json_extract(genres, '$')) WHERE genres != '' AND json_each.value LIKE '%s')", genre), nil
+		},
+	}
+
+	basicMacros := map[string]string{
+		"isAnime": fmt.Sprintf("(artStyle & %d == %d)", db_types.AS_ANIME, db_types.AS_ANIME),
+		"r":       "userRating",
+		"R":       "rating",
+		"t":       "en_title",
+		"T":       "title",
+		"d":       "description",
+		"ts":      "timestamp",
+		"y":       "releaseyear",
+		"s:v":     comp("status", "\"Viewing\"") + " or " + comp("status", "\"ReViewing\""),
+		"ep":      "CAST(json_extract(mediaDependant, format('$.%s-episodes', type)) as DECIMAL)",
+		"len":     "CAST(json_extract(mediaDependant, format('$.%s-length', type)) as DECIMAL)",
+		"epd":     "CAST(json_extract(mediaDependant, format('$.%s-episode-duration', type)) as DECIMAL)",
+	}
+
+	for _, item := range mediaTypes {
+		basicMacros[strings.ToLower(string(item))] = "(type = '" + string(item) + "')"
+	}
+
+	for _, item := range statuses {
+		basicMacros[strings.ToLower(string(item))] = "(status = '" + string(item) + "')"
+	}
+
+	e := strings.Index(macro, ":")
+	prefix := ""
+	if e != -1 {
+		prefix = macro[:e]
+	}
+
+	if v, has := basicMacros[macro]; has {
+		return v, nil
+	} else if v, has := prefixMacros[prefix]; has {
+		return v(macro)
+	} else if len(macro) > 2 && macro[0] == '#' {
+		text := macro[2:]
+		return fmt.Sprintf(`(
+			En_Title LIKE '%%%s%%' OR
+				entryInfo.Native_Title LIKE '%%%s%%' OR
+				Title LIKE '%%%s%%' OR
+				metadata.Native_Title LIKE '%%%s%%')`,
+			text, text, text, text), nil
+	} else if len(macro) > 3 && macro[0:3] == "ev-" {
+		time := macro[3:] + "/"
+		d := parseDateParams(time, "start")
+		return fmt.Sprintf(`
+			((%s > timestamp AND timestamp > 0) OR
+			(%s > after AND after > 0) OR
+			(%s > beforeTS AND beforeTS > 0))
+		`, d, d, d), nil
+	} else if len(macro) > 3 && macro[0:3] == "ev+" {
+		time := macro[3:] + "/"
+		d := parseDateParams(time, "end")
+		return fmt.Sprintf(`
+			((%s < timestamp AND timestamp > 0) OR
+			(%s < after AND after > 0) OR
+			(%s < beforeTS AND beforeTS != 0))
+		`, d, d, d), nil
+	} else if len(macro) > 6 && macro[0:4] == "date" {
+		beginOrEnd := "start"
+		if macro[4] == '+' {
+			beginOrEnd = "end"
+		}
+
+		time := macro[5:]
+		if time == "" {
+			return "false", nil
+		}
+
+		return parseDateParams(time, beginOrEnd), nil
+	} else {
+		return fmt.Sprintf("(en_title LIKE '%%%s%%')", macro[1:]), nil
+	}
 }
 
 type StringNode struct {
