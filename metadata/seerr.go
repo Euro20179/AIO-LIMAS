@@ -16,22 +16,42 @@ import (
 )
 
 type SeerrResult struct {
-	Id               int
-	MediaType        string
-	Adult            bool
-	GenreIds         []int
-	OriginalLanguage string
-	OriginalTitle    string
-	Overview         string
-	Popularity       float64
-	ReleaseDate      string
-	Title            string
-	Video            bool
-	VoteAverage      float64
-	VoteCount        int
-	BackdropPath     string
-	PosterPath       string
-	MediaInfo        SeerrMediaInfo
+	Id        int
+	MediaType string
+	Adult     bool
+	GenreIds  []int
+	Genres    []struct {
+		Id   int
+		Name string
+	}
+	OriginalLanguage    string
+	OriginalTitle       string
+	Overview            string
+	Popularity          float64
+	ReleaseDate         string
+	Title               string
+	Video               bool
+	VoteAverage         float64
+	VoteCount           int
+	BackdropPath        string
+	PosterPath          string
+	ProductionCountries []struct {
+		Iso_3166_1 string
+		Name       string
+	}
+	Runtime   int
+	Revenue   int
+	MediaInfo SeerrMediaInfo
+
+	Credits struct{Crew []struct {
+		CreditId string
+		Department string
+		Id int
+		Job string
+		Name string
+		Gender int
+		ProfilePath string
+	}; Cast []any}
 }
 
 type SeerrMediaInfo struct {
@@ -70,30 +90,30 @@ type SeerrResults struct {
 }
 
 type SeerGenre struct {
-	id int
+	id   int
 	name string
 }
 
 var seer_genres []SeerGenre = []SeerGenre{
-	{id:28,name:"Action"},
-	{id:12,name:"Adventure"},
-	{id:16,name:"Animation"},
-	{id:35,name:"Comedy"},
-	{id:80,name:"Crime"},
-	{id:99,name:"Documentary"},
-	{id:18,name:"Drama"},
-	{id:10751,name:"Family"},
-	{id:14,name:"Fantasy"},
-	{id:36,name:"History"},
-	{id:27,name:"Horror"},
-	{id:10402,name:"Music"},
-	{id:9648,name:"Mystery"},
-	{id:10749,name:"Romance"},
-	{id:878,name:"Science Fiction"},
-	{id:10770,name:"TV Movie"},
-	{id:53,name:"Thriller"},
-	{id:10752,name:"War"},
-	{id:37,name:"Western"},
+	{id: 28, name: "Action"},
+	{id: 12, name: "Adventure"},
+	{id: 16, name: "Animation"},
+	{id: 35, name: "Comedy"},
+	{id: 80, name: "Crime"},
+	{id: 99, name: "Documentary"},
+	{id: 18, name: "Drama"},
+	{id: 10751, name: "Family"},
+	{id: 14, name: "Fantasy"},
+	{id: 36, name: "History"},
+	{id: 27, name: "Horror"},
+	{id: 10402, name: "Music"},
+	{id: 9648, name: "Mystery"},
+	{id: 10749, name: "Romance"},
+	{id: 878, name: "Science Fiction"},
+	{id: 10770, name: "TV Movie"},
+	{id: 53, name: "Thriller"},
+	{id: 10752, name: "War"},
+	{id: 37, name: "Western"},
 }
 
 func SeerrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
@@ -173,7 +193,7 @@ func SeerrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-Api-Key", key)
 	res, err := client.Do(req)
-	if err != nil{
+	if err != nil {
 		return outMeta, err
 	}
 
@@ -202,6 +222,15 @@ func SeerrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	outMeta.Rating = result.VoteAverage
 	outMeta.RatingMax = 10
 
+	if result.ProductionCountries != nil {
+		for i, country := range result.ProductionCountries {
+			outMeta.Country += country.Iso_3166_1
+			if i != len(result.ProductionCountries)-1 {
+				outMeta.Country += ","
+			}
+		}
+	}
+
 	if result.ReleaseDate != "" {
 		dates := strings.Split(result.ReleaseDate, "-")
 		if len(dates) == 1 {
@@ -214,20 +243,43 @@ func SeerrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 		outMeta.ReleaseYear = y
 	}
 norelease:
-	if result.OriginalTitle != ""{
+	if result.OriginalTitle != "" {
 		outMeta.Native_Title = result.OriginalTitle
 	}
 
-	genres := []string{}
-	for _, id := range result.GenreIds {
-		for _, val := range seer_genres {
-			if val.id == id {
-				genres = append(genres, val.name)
+	var genres []string = []string{}
+	if result.Genres != nil {
+		for _, genre := range result.Genres {
+			genres = append(genres, genre.Name)
+		}
+	} else if result.GenreIds != nil {
+		for _, id := range result.GenreIds {
+			for _, val := range seer_genres {
+				if val.id == id {
+					genres = append(genres, val.name)
+				}
 			}
 		}
 	}
 	genresStr, _ := json.Marshal(genres)
 	outMeta.Genres = string(genresStr)
+
+	md := map[string]string{}
+	md["Movie-length"] = strconv.Itoa(result.Runtime)
+	md["Movie-revenue"] = strconv.Itoa(result.Revenue)
+	md["Movie-votes"] = strconv.Itoa(result.VoteCount)
+	if result.Credits.Crew != nil && len(result.Credits.Crew) != 0 {
+		for _, crew := range result.Credits.Crew {
+			if crew.Job == "Director" {
+				md["Movie-director"] = crew.Name
+			}
+		}
+	}
+
+	mediaDep, err := json.Marshal(md)
+	if err == nil {
+		outMeta.MediaDependant = string(mediaDep)
+	}
 
 	return outMeta, nil
 }
