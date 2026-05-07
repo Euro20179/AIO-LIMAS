@@ -27,12 +27,18 @@ type GetMetadataInfo struct {
 
 // entryType is used as a hint for where to get the metadata from
 func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	if info.Override != "" {
+		provider, ok := Providers[info.Override]
+		if ok {
+			return provider(info)
+		}
+	}
+
 	entry := info.Entry
-	if entry.IsAnime() && (
-		entry.Type == db_types.TY_MANGA ||
+	if entry.IsAnime() && (entry.Type == db_types.TY_MANGA ||
 		entry.Type == db_types.TY_SHOW ||
-	    entry.Type == db_types.TY_MOVIE ||
-	    entry.Type == db_types.TY_MOVIE_SHORT){
+		entry.Type == db_types.TY_MOVIE ||
+		entry.Type == db_types.TY_MOVIE_SHORT) {
 		return AnilistShow(info)
 	}
 
@@ -173,19 +179,20 @@ var Providers ProviderMap = ProviderMap{
 	"image":         ImageProvider,
 	"steam":         SteamProvider,
 	"googlebooks":   GoogleBooksProvider,
+	"seerr":         SeerrProvider,
 }
 
 type IdentifiersMap = map[string]func(info IdentifyMetadata) ([]db_types.MetadataEntry, error)
 
 // uses a search query
 var IdentifyProviders IdentifiersMap = IdentifiersMap{
-	"anilist": AnilistIdentifier,
-	"omdb":    OmdbIdentifier,
-	"sonarr":  SonarrIdentifier,
-	"radarr":  RadarrIdentifier,
-	"steam":   SteamIdentifier,
+	"anilist":     AnilistIdentifier,
+	"omdb":        OmdbIdentifier,
+	"sonarr":      SonarrIdentifier,
+	"radarr":      RadarrIdentifier,
+	"steam":       SteamIdentifier,
 	"googlebooks": GoogleBooksIdentifier,
-	"seerr": SeerrIdentifier,
+	"seerr":       SeerrIdentifier,
 }
 
 type (
@@ -209,5 +216,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"openlibrary": OpenLibraryIdIdentifier,
 	// isbn
 	"googlebooks": GoogleBooksIdIdentifier,
-	"seerr": SeerrIdIdentifier,
+	"seerr":       SeerrIdIdentifier,
 }

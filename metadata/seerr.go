@@ -160,6 +160,8 @@ func SeerrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 			continue
 		}
 		meta := db_types.MetadataEntry{}
+		meta.Provider = "seerr"
+		meta.ProviderID = strconv.Itoa(result.Id)
 		meta.ItemId = int64(result.Id)
 		meta.Description = result.Overview
 		meta.Title = result.Title
@@ -282,4 +284,26 @@ norelease:
 	}
 
 	return outMeta, nil
+}
+
+//TODO just make it use SeerrIdentifier, get the first reuslt, then SeerrIdentifier, done
+func SeerrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
+	entries, err := SeerrIdentifier(IdentifyMetadata{
+		Title: info.Entry.En_Title,
+		ForUid: info.Entry.Uid,
+	})
+
+	if err != nil {
+		return db_types.MetadataEntry{}, err
+	}
+
+	if len(entries) == 0 {
+		return db_types.MetadataEntry{}, errors.New("No results")
+	}
+
+	us, err := settings.GetUserSettings(info.Entry.Uid)
+	if err != nil {
+		return db_types.MetadataEntry{}, err
+	}
+	return SeerrIdIdentifier(entries[0].ProviderID, us)
 }
