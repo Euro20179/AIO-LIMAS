@@ -80,7 +80,7 @@ func SeerrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	url := fmt.Sprintf(
 		"%s/api/v1/search?query=%s",
 		base,
-		url.QueryEscape(info.Title),
+		url.PathEscape(info.Title),
 	)
 
 	client := http.Client{}
