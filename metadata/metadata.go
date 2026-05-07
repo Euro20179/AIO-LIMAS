@@ -185,6 +185,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"radarr":  RadarrIdentifier,
 	"steam":   SteamIdentifier,
 	"googlebooks": GoogleBooksIdentifier,
+	"seerr": SeerrIdentifier,
 }
 
 type (
