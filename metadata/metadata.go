@@ -209,4 +209,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"openlibrary": OpenLibraryIdIdentifier,
 	// isbn
 	"googlebooks": GoogleBooksIdIdentifier,
+	"seerr": SeerrIdIdentifier,
 }
