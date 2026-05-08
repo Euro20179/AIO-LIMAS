@@ -15,7 +15,7 @@ import (
 	db_types "aiolimas/types"
 )
 
-func fillmeta(meta *db_types.MetadataEntry, item map[string]any) {
+func googlebooksfillmeta(meta *db_types.MetadataEntry, item map[string]any) {
 	mediaDependant := map[string]string{}
 
 	volInfo := item["volumeInfo"].(map[string]any)
@@ -110,7 +110,7 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 	for _, i := range items {
 		var cur db_types.MetadataEntry
 
-		fillmeta(&cur, i.(map[string] any))
+		googlebooksfillmeta(&cur, i.(map[string] any))
 
 		out = append(out, cur)
 	}
@@ -206,7 +206,7 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	items := itemsCHK.([]any)
 
 	item := items[0].(map[string]any)
-	fillmeta(&out, item)
+	googlebooksfillmeta(&out, item)
 	return out, nil
 }
 

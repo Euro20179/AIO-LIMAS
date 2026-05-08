@@ -116,106 +116,9 @@ var seer_genres []SeerGenre = []SeerGenre{
 	{id: 37, name: "Western"},
 }
 
-func SeerrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
-	outMeta := []db_types.MetadataEntry{}
-	base := os.Getenv("SEERR_URL")
-	if base == "" {
-		return outMeta, errors.New("No seerr url configured")
-	}
-
-	key := os.Getenv("SEERR_KEY")
-	if key == "" {
-		return outMeta, errors.New("No seerr key configured")
-	}
-
-	url := fmt.Sprintf(
-		"%s/api/v1/search?query=%s",
-		base,
-		url.PathEscape(info.Title),
-	)
-
-	client := http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-Api-Key", key)
-	res, err := client.Do(req)
-	if err != nil {
-		return outMeta, err
-	}
-
-	defer res.Body.Close()
-	text, _ := io.ReadAll(res.Body)
-	if res.StatusCode != 200 {
-		return outMeta, fmt.Errorf("Request failed: %d, %s\n", res.StatusCode, string(text))
-	}
-
-	results := SeerrResults{}
-	err = json.Unmarshal(text, &results)
-	if err != nil {
-		println(err.Error())
-		return outMeta, err
-	}
-
-	for _, result := range results.Results {
-		if result.MediaType != "movie" {
-			continue
-		}
-		meta := db_types.MetadataEntry{}
-		meta.Provider = "seerr"
-		meta.ProviderID = strconv.Itoa(result.Id)
-		meta.ItemId = int64(result.Id)
-		meta.Description = result.Overview
-		meta.Title = result.Title
-		meta.Thumbnail = fmt.Sprintf("https://image.tmdb.org/t/p/w300_and_h450_face%s", result.PosterPath)
-		meta.Rating = result.VoteAverage
-		meta.RatingMax = 10
-		outMeta = append(outMeta, meta)
-	}
-
-	return outMeta, nil
-}
-
-func SeerrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+func seerrfillmeta(result SeerrResult, mediaKind string) db_types.MetadataEntry {
 	outMeta := db_types.MetadataEntry{}
-	base := os.Getenv("SEERR_URL")
-	if base == "" {
-		return outMeta, errors.New("No seerr url configured")
-	}
-
-	key := os.Getenv("SEERR_KEY")
-	if key == "" {
-		return outMeta, errors.New("No seerr key configured")
-	}
-
-	client := http.Client{}
-	url := fmt.Sprintf(
-		"%s/api/v1/movie/%s",
-		base,
-		id,
-	)
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-Api-Key", key)
-	res, err := client.Do(req)
-	if err != nil {
-		return outMeta, err
-	}
-
-	if res.StatusCode != 200 {
-		return outMeta, fmt.Errorf("Could not find id: %s", id)
-	}
-
-	result := SeerrResult{}
-
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return outMeta, errors.New("Failed to read body")
-	}
-
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return outMeta, errors.New("Failed to parse body")
-	}
-
+	outMeta.ItemId = int64(result.Id)
 	outMeta.ProviderID = strconv.Itoa(result.Id)
 	outMeta.Provider = "seerr"
 	outMeta.Thumbnail = fmt.Sprintf("https://image.tmdb.org/t/p/w300_and_h450_face%s", result.PosterPath)
@@ -267,13 +170,15 @@ norelease:
 	outMeta.Genres = string(genresStr)
 
 	md := map[string]string{}
-	md["Movie-length"] = strconv.Itoa(result.Runtime)
-	md["Movie-revenue"] = strconv.Itoa(result.Revenue)
-	md["Movie-votes"] = strconv.Itoa(result.VoteCount)
-	if result.Credits.Crew != nil && len(result.Credits.Crew) != 0 {
-		for _, crew := range result.Credits.Crew {
-			if crew.Job == "Director" {
-				md["Movie-director"] = crew.Name
+	if mediaKind == "movie" {
+		md["Movie-length"] = strconv.Itoa(result.Runtime)
+		md["Movie-revenue"] = strconv.Itoa(result.Revenue)
+		md["Movie-votes"] = strconv.Itoa(result.VoteCount)
+		if result.Credits.Crew != nil && len(result.Credits.Crew) != 0 {
+			for _, crew := range result.Credits.Crew {
+				if crew.Job == "Director" {
+					md["Movie-director"] = crew.Name
+				}
 			}
 		}
 	}
@@ -283,10 +188,104 @@ norelease:
 		outMeta.MediaDependant = string(mediaDep)
 	}
 
+	return outMeta
+}
+
+func SeerrIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	outMeta := []db_types.MetadataEntry{}
+	base := os.Getenv("SEERR_URL")
+	if base == "" {
+		return outMeta, errors.New("No seerr url configured")
+	}
+
+	key := os.Getenv("SEERR_KEY")
+	if key == "" {
+		return outMeta, errors.New("No seerr key configured")
+	}
+
+	url := fmt.Sprintf(
+		"%s/api/v1/search?query=%s",
+		base,
+		url.PathEscape(info.Title),
+	)
+
+	client := http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Api-Key", key)
+	res, err := client.Do(req)
+	if err != nil {
+		return outMeta, err
+	}
+
+	defer res.Body.Close()
+	text, _ := io.ReadAll(res.Body)
+	if res.StatusCode != 200 {
+		return outMeta, fmt.Errorf("Request failed: %d, %s\n", res.StatusCode, string(text))
+	}
+
+	results := SeerrResults{}
+	err = json.Unmarshal(text, &results)
+	if err != nil {
+		println(err.Error())
+		return outMeta, err
+	}
+
+	for _, result := range results.Results {
+		if result.MediaType != "movie" {
+			continue
+		}
+		meta := seerrfillmeta(result, "movie")
+		outMeta = append(outMeta, meta)
+	}
+
 	return outMeta, nil
 }
 
-//TODO just make it use SeerrIdentifier, get the first reuslt, then SeerrIdentifier, done
+func SeerrIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	outMeta := db_types.MetadataEntry{}
+	base := os.Getenv("SEERR_URL")
+	if base == "" {
+		return outMeta, errors.New("No seerr url configured")
+	}
+
+	key := os.Getenv("SEERR_KEY")
+	if key == "" {
+		return outMeta, errors.New("No seerr key configured")
+	}
+
+	client := http.Client{}
+	url := fmt.Sprintf(
+		"%s/api/v1/movie/%s",
+		base,
+		id,
+	)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Api-Key", key)
+	res, err := client.Do(req)
+	if err != nil {
+		return outMeta, err
+	}
+
+	if res.StatusCode != 200 {
+		return outMeta, fmt.Errorf("Could not find id: %s", id)
+	}
+
+	result := SeerrResult{}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return outMeta, errors.New("Failed to read body")
+	}
+
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return outMeta, errors.New("Failed to parse body")
+	}
+
+	return seerrfillmeta(result, "movie"), nil
+}
+
 func SeerrProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	entries, err := SeerrIdentifier(IdentifyMetadata{
 		Title: info.Entry.En_Title,
