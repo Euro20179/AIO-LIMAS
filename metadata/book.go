@@ -15,9 +15,77 @@ import (
 	db_types "aiolimas/types"
 )
 
+func fillmeta(meta *db_types.MetadataEntry, item map[string]any) {
+	mediaDependant := map[string]string{}
+
+	volInfo := item["volumeInfo"].(map[string]any)
+	industryIdents, ok := volInfo["industryIdentifiers"]
+	if !ok {
+		return
+	}
+	identifiers := industryIdents.([]any)
+	ident := identifiers[0].(map[string]any)
+	isbn := ident["identifier"].(string)
+	isbnInt, err := strconv.ParseInt(isbn, 10, 64)
+	if err != nil {
+		return
+	}
+	meta.ItemId = isbnInt
+	meta.ProviderID = isbn
+	meta.Provider = "googlebooks"
+
+	if title, ok := volInfo["title"]; ok {
+		meta.Title = title.(string)
+	}
+
+	if images, ok := volInfo["imageLinks"]; ok {
+		thumbs := images.(map[string]any)
+		meta.Thumbnail = thumbs["thumbnail"].(string)
+	}
+
+	if desc, ok := volInfo["description"]; ok {
+		meta.Description = desc.(string)
+	}
+
+	if categories, ok := volInfo["categories"]; ok {
+		genresList := []string{}
+		for _, catList := range categories.([]any) {
+			cats := strings.Split(catList.(string), " ")
+			for _, cat := range cats {
+				genresList = append(genresList, cat)
+			}
+		}
+		genres, err := json.Marshal(genresList)
+		if err == nil {
+			meta.Genres = string(genres)
+		} else {
+			logging.ELog(err)
+			meta.Genres = ""
+		}
+	}
+
+	pubDate := volInfo["publishedDate"].(string)
+	yearSegmentEnd := strings.Index(pubDate, "-")
+	if yearSegmentEnd != -1 {
+		yearStr := pubDate[0:yearSegmentEnd]
+		year, _ := strconv.ParseInt(yearStr, 10, 64)
+		meta.ReleaseYear = year
+	}
+
+	if thumbs, ok := volInfo["imageLinks"]; ok {
+		meta.Thumbnail = thumbs.(map[string] any)["thumbnail"].(string)
+	}
+
+	if pi, ok := volInfo["pageCount"]; ok {
+		mediaDependant["Book-page-count"] = fmt.Sprintf("%.0f", pi.(float64))
+	}
+	d, _ := json.Marshal(mediaDependant)
+	meta.MediaDependant = string(d)
+}
+
 func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	var out []db_types.MetadataEntry
-	enc := url.QueryEscape(info.Title)
+	enc := url.PathEscape(info.Title)
 	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s&langRestrict=en", enc)
 	res, err := http.Get(url)
 	if err != nil {
@@ -41,29 +109,9 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 
 	for _, i := range items {
 		var cur db_types.MetadataEntry
-		item := i.(map[string]any)
-		volInfo := item["volumeInfo"].(map[string]any)
-		industryIdents, ok := volInfo["industryIdentifiers"]
-		if !ok {
-			continue
-		}
-		identifiers := industryIdents.([]any)
-		ident := identifiers[0].(map[string]any)
-		isbn := ident["identifier"].(string)
-		isbnInt, err := strconv.ParseInt(isbn, 10, 64)
-		if err != nil {
-			continue
-		}
-		cur.ItemId = isbnInt
-		cur.ProviderID = isbn
-		cur.Provider = "googlebooks"
-		title := volInfo["title"].(string)
-		cur.Title = title
-		images, ok := volInfo["imageLinks"]
-		if ok {
-			thumbs := images.(map[string]any)
-			cur.Thumbnail = thumbs["thumbnail"].(string)
-		}
+
+		fillmeta(&cur, i.(map[string] any))
+
 		out = append(out, cur)
 	}
 	return out, nil
@@ -113,14 +161,14 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 
 	year, err := strconv.ParseInt(y, 10, 64)
 	if err != nil {
-		//assume date is in `Month 00day, 0000year` format
+		// assume date is in `Month 00day, 0000year` format
 		dateL := strings.Split(y, ",")
-		if len(dateL) <  2 {
+		if len(dateL) < 2 {
 			return out, err
 		}
 		y = strings.TrimSpace(strings.Split(y, ",")[1])
 		year, err = strconv.ParseInt(y, 10, 64)
-		if err != nil{
+		if err != nil {
 			return out, err
 		}
 	}
@@ -131,7 +179,7 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 
-	enc := url.QueryEscape(info.Entry.En_Title)
+	enc := url.PathEscape(info.Entry.En_Title)
 	url := fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s&langRestrict=en", enc)
 	res, err := http.Get(url)
 	if err != nil {
@@ -158,52 +206,7 @@ func GoogleBooksProvider(info *GetMetadataInfo) (db_types.MetadataEntry, error) 
 	items := itemsCHK.([]any)
 
 	item := items[0].(map[string]any)
-	volInfo := item["volumeInfo"].(map[string]any)
-	identifiers := volInfo["industryIdentifiers"].([]any)
-	ident := identifiers[0].(map[string]any)
-	isbn := ident["identifier"].(string)
-	out.ProviderID = isbn
-	out.Provider = "googlebooks"
-	desc, ok := volInfo["description"]
-	if ok {
-		out.Description = desc.(string)
-	}
-
-	categories, ok := volInfo["categories"].([]any)
-	if ok {
-		genresList := []string{}
-		for _, catList := range categories {
-			cats := strings.Split(catList.(string), " ")
-			for _, cat := range cats {
-				genresList = append(genresList, cat)
-			}
-		}
-		genres, err := json.Marshal(genresList)
-		if err == nil {
-			out.Genres = string(genres)
-		} else {
-			logging.ELog(err)
-			out.Genres = ""
-		}
-	}
-
-	pubDate := volInfo["publishedDate"].(string)
-	yearSegmentEnd := strings.Index(pubDate, "-")
-	if yearSegmentEnd != -1 {
-		yearStr := pubDate[0:yearSegmentEnd]
-		year, _ := strconv.ParseInt(yearStr, 10, 64)
-		out.ReleaseYear = year
-	}
-
-	thumbs := volInfo["imageLinks"].(map[string]any)
-	out.Thumbnail = thumbs["thumbnail"].(string)
-
-	md := map[string]string{}
-
-	md["Book-page-count"] = fmt.Sprintf("%.0f", volInfo["pageCount"].(float64))
-	d, _ := json.Marshal(md)
-	out.MediaDependant = string(d)
-
+	fillmeta(&out, item)
 	return out, nil
 }
 
