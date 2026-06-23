@@ -249,10 +249,6 @@ func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 }
 
 func InitDb() error {
-	err := CkDBVersion()
-	if err != nil {
-		panic(err.Error())
-	}
 	conn, err := OpenUserDb()
 	if err != nil {
 		panic(err.Error())
@@ -270,6 +266,11 @@ func InitDb() error {
 	if err != nil {
 		logging.ELog(err)
 		return err
+	}
+
+	err = CkDBVersion()
+	if err != nil {
+		panic(err.Error())
 	}
 
 	return nil

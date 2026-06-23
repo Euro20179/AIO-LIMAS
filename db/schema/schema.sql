@@ -1,3 +1,9 @@
+CREATE TABLE IF NOT EXISTS DBInfo (
+    version INTEGER DEFAULT 0
+);
+
+INSERT INTO DBInfo (version) VALUES (12);
+
 CREATE TABLE IF NOT EXISTS entryInfo (
     uid INTEGER,
     itemId INTEGER,
@@ -8,11 +14,9 @@ CREATE TABLE IF NOT EXISTS entryInfo (
     purchasePrice NUMERIC,
     collection TEXT,
     type TEXT,
-    parentId INTEGER,
-    copyOf INTEGER,
     artStyle INTEGER,
     library INTEGER,
-    requires INTEGER
+    recommendedBy TEXT
 );
 
 CREATE TABLE IF NOT EXISTS metadata (
@@ -28,7 +32,9 @@ CREATE TABLE IF NOT EXISTS metadata (
     native_title TEXT,
     ratingMax NUMERIC,
     provider TEXT,
-    providerID TEXT
+    providerID TEXT,
+    genres TEXT,
+    country STRING
 );
 
 CREATE TABLE IF NOT EXISTS userViewingInfo (
@@ -48,7 +54,14 @@ CREATE TABLE IF NOT EXISTS userEventInfo (
     itemId INTEGER,
     timestamp INTEGER,
     after INTEGER,
-    beforeTS INTEGER,
     event TEXT,
-    timezone TEXT
+    timezone TEXT,
+    beforeTS INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS relations (
+    uid INTEGER,
+    left INTEGER,
+    relation INTEGER,
+    right INTEGER
 );
