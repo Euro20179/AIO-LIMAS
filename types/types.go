@@ -313,6 +313,7 @@ type InfoEntry struct {
 	ArtStyle      ArtStyle
 	Library       int64
 	RecommendedBy string
+	Priority int64
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
@@ -348,6 +349,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.ArtStyle,
 		&self.Library,
 		&self.RecommendedBy,
+		&self.Priority,
 	)
 	if err != nil {
 		return err

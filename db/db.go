@@ -17,7 +17,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 12
+const DB_VERSION = 13
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
