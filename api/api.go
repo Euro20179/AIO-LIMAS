@@ -270,10 +270,6 @@ func ModEntry(ctx RequestContext) {
 		}
 	}
 
-	if price, exists := parsedParams["price"].(float64); exists {
-		info.PurchasePrice = price
-	}
-
 	if location, exists := parsedParams["location"].(string); exists {
 		info.Location = location
 	}
@@ -519,8 +515,6 @@ func AddEntry(ctx RequestContext) {
 	w := ctx.W
 	title := parsedParams["title"].(string)
 
-	priceNum := parsedParams.Get("price", 0.0).(float64)
-
 	formatInt := parsedParams["format"].(db_types.Format)
 
 	if digital, exists := parsedParams["is-digital"]; exists {
@@ -574,7 +568,6 @@ func AddEntry(ctx RequestContext) {
 	var entryInfo db_types.InfoEntry
 	entryInfo.ItemId = 0
 	entryInfo.En_Title = title
-	entryInfo.PurchasePrice = priceNum
 	entryInfo.Native_Title = nativeTitle
 	entryInfo.Location = location
 	entryInfo.Format = db_types.Format(formatInt)
@@ -833,25 +826,6 @@ func GetTree(ctx RequestContext) {
 
 	w.WriteHeader(200)
 	w.Write(jStr)
-}
-
-// TODO: allow this to accept multiple ids
-func TotalCostOf(ctx RequestContext) {
-	pp := ctx.PP
-	w := ctx.W
-	info := pp["id"].(db_types.InfoEntry)
-	desc, err := db.GetDescendants(ctx.Uid, info.ItemId)
-	if err != nil {
-		util.WError(w, 500, "Could not get descendants\n%s", err.Error())
-		return
-	}
-
-	cost := info.PurchasePrice
-	for _, item := range desc {
-		cost += item.PurchasePrice
-	}
-	w.WriteHeader(200)
-	fmt.Fprintf(w, "%f", cost)
 }
 
 func success(w http.ResponseWriter) {

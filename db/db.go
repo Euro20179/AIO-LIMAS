@@ -17,7 +17,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 13
+const DB_VERSION = 14
 
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
@@ -457,9 +457,6 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	if timezone != "" {
 		event := "Added"
-		if entryInfo.PurchasePrice > 0 && (entryInfo.Format&db_types.F_UNOWNED) != db_types.F_UNOWNED {
-			event = "Purchased"
-		}
 		err = RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
 		if err != nil {
 			return err
@@ -1141,4 +1138,42 @@ func GetRecommendersList(uid int64) ([]string, error) {
 		recommenders = append(recommenders, r)
 	}
 	return recommenders, nil
+}
+
+func CreateTransaction(transactionType db_types.Transaction, uid int64, itemId int64, timezone string, price float64, currency string) error {
+	if uid == 0 {
+		return errors.New("uid cannot be 0 for creating a transaction")
+	}
+
+	if err := RegisterBasicUserEvent(uid, timezone, string(transactionType), itemId); err != nil {
+		return err;
+	}
+
+	return ExecUserDb(uid, `
+		INSERT INTO transactions VALUES (
+			?,
+			?,
+			(SELECT MAX(rowid) FROM userEventInfo WHERE uid = ? AND itemId = ?),
+			?,
+			?
+		)
+	`, uid, itemId, uid, itemId, price, currency)
+}
+
+func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, error) {
+	rows, err := QueryDB(`
+		SELECT rowid, * from transactions WHERE (? == 0 OR uid = ?) AND (? = 0 OR itemid = ?)
+	`, uid, uid, itemid, itemid)
+
+	if err != nil {
+		return []db_types.TransactionEntry{}, err
+	}
+
+	var out = []db_types.TransactionEntry{}
+	for rows.Next() {
+		cur := db_types.TransactionEntry{}
+		cur.ReadEntry(rows)
+		out = append(out, cur)
+	}
+	return out, nil
 }

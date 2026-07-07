@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type Transaction string
+const (
+	TRANSACTION_BUY = "Purchased"
+	TRANSACTION_SELL = "Sold"
+)
+
 type Relations struct {
 	Children []int64
 	Requires []int64
@@ -243,6 +249,38 @@ type TableRepresentation interface {
 	ToJson() ([]byte, error)
 }
 
+type TransactionEntry struct {
+    Uid int64
+    ItemId int64
+    EventId int64
+    Price float64
+    Currency string
+	TransactionId int64
+}
+
+func (self TransactionEntry) Id() int64 {
+	return self.TransactionId
+}
+
+func (self TransactionEntry) ReadEntryCopy(rows *sql.Rows) (TableRepresentation, error) {
+	return self, self.ReadEntry(rows)
+}
+
+func (self *TransactionEntry) ReadEntry(rows *sql.Rows) error {
+	return rows.Scan(
+		&self.TransactionId,
+		&self.Uid,
+		&self.ItemId,
+		&self.EventId,
+		&self.Price,
+		&self.Currency,
+	)
+}
+
+func (self TransactionEntry) ToJson() ([]byte, error) {
+	return json.Marshal(self)
+}
+
 // names here MUST match names in the metadta sqlite table
 type MetadataEntry struct {
 	Uid    int64
@@ -307,7 +345,6 @@ type InfoEntry struct {
 	Native_Title  string
 	Format        Format
 	Location      string
-	PurchasePrice float64
 	Collection    string
 	Type          MediaTypes
 	ArtStyle      ArtStyle
@@ -343,7 +380,6 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Native_Title,
 		&self.Format,
 		&self.Location,
-		&self.PurchasePrice,
 		&self.Collection,
 		&self.Type,
 		&self.ArtStyle,

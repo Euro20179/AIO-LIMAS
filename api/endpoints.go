@@ -275,17 +275,6 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "total-cost",
-		Handler:  TotalCostOf,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description:  "Gets the total cost of an entry, summing itself + children",
-		Returns:      "float",
-		GuestAllowed: true,
-	},
-
-	{
 		EndPoint: "query-v4",
 		Handler: QueryEntries4,
 		QueryParams: QueryParams{
@@ -763,6 +752,26 @@ var Endpoints = map[string][]ApiEndPoint{
 	"/engagement": engagementEndpointList,
 	"/type":       typeEndpoints,
 	"/resource":   resourceEndpointList,
+	"/transact": {
+		{
+			EndPoint: "list",
+			Handler: ListTransactions,
+			QueryParams: QueryParams {
+				"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			},
+			GuestAllowed: true,
+		},
+		{
+			EndPoint: "do",
+			Handler: Transact,
+			QueryParams: QueryParams {
+				"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				"price": MkQueryInfo(P_Float64, true),
+				"currency": MkQueryInfo(P_NotEmpty, true),
+				"timezone": MkQueryInfo(P_NotEmpty, false),
+			},
+		},
+	},
 }
 
 // this way the html at least wont change until a server restart
