@@ -117,6 +117,8 @@ func _getAllForEntry(w http.ResponseWriter, uid int64, info db_types.InfoEntry) 
 		return
 	}
 
+	trans, err := db.ListTransactions(uid, info.ItemId)
+
 	uj, err := user.ToJson()
 	if err != nil {
 		util.WError(w, 500, "Could not marshal user info\n%s", err.Error())
@@ -145,6 +147,8 @@ func _getAllForEntry(w http.ResponseWriter, uid int64, info db_types.InfoEntry) 
 	w.Write([]byte("\n"))
 
 	writeSQLRowResults(w, events)
+	w.Write([]byte("TRANSACTIONS\n"))
+	writeSQLRowResults(w, trans)
 }
 
 func GetAllForEntry(ctx RequestContext) {
@@ -515,6 +519,8 @@ func AddEntry(ctx RequestContext) {
 	w := ctx.W
 	title := parsedParams["title"].(string)
 
+	priceNum := parsedParams.Get("price", 0.0).(float64)
+
 	formatInt := parsedParams["format"].(db_types.Format)
 
 	if digital, exists := parsedParams["is-digital"]; exists {
@@ -647,6 +653,10 @@ func AddEntry(ctx RequestContext) {
 			w.Write([]byte("Error adding tags table\n" + err.Error()))
 			return
 		}
+	}
+
+	if priceNum > 0 {
+		db.CreateTransaction("Purchased", ctx.Uid, entryInfo.ItemId, timezone, priceNum, "USD")
 	}
 
 	j, err := entryInfo.ToJson()
