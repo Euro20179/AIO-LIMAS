@@ -279,7 +279,7 @@ var mainEndpointList = []ApiEndPoint{
 		Handler: QueryEntries4,
 		QueryParams: QueryParams{
 			"search": MkQueryInfo(P_NotEmpty, true),
-			"order-by": MkQueryInfo(P_NotEmpty, false),
+			"order-by": MkQueryInfo(P_SqlSafe, false),
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",
@@ -292,7 +292,7 @@ var mainEndpointList = []ApiEndPoint{
 		Handler:  QueryEntries3,
 		QueryParams: QueryParams{
 			"search":   MkQueryInfo(P_NotEmpty, true),
-			"order-by": MkQueryInfo(P_NotEmpty, false),
+			"order-by": MkQueryInfo(P_SqlSafe, false),
 		},
 		Returns:         "InfoEntry[]",
 		Description:     "search query similar to how sql where query works",
