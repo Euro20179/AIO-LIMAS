@@ -506,8 +506,7 @@ func (self MacroNode) ToString() (string, error) {
 		"d":       "description",
 		"ts":      "timestamp",
 		"y":       "releaseyear",
-		"s:v":     comp("status", "\"Viewing\"") + " or " + comp("status", "\"ReViewing\""),
-		"viewing":     comp("status", "\"Viewing\"") + " or " + comp("status", "\"ReViewing\""),
+		"s:v":     "(" + comp("status", "'Viewing'") + " OR " + comp("status", "'ReViewing'") + ")",
 		"ep":      "CAST(json_extract(mediaDependant, format('$.%s-episodes', type)) as DECIMAL)",
 		"len":     "CAST(json_extract(mediaDependant, format('$.%s-length', type)) as DECIMAL)",
 		"epd":     "CAST(json_extract(mediaDependant, format('$.%s-episode-duration', type)) as DECIMAL)",
@@ -568,7 +567,7 @@ func (self MacroNode) ToString() (string, error) {
 
 		return parseDateParams(time, beginOrEnd), nil
 	} else {
-		return fmt.Sprintf("(en_title LIKE '%%%s%%')", macro[1:]), nil
+		return fmt.Sprintf("(en_title LIKE '%%%s%%')", macro), nil
 	}
 }
 
