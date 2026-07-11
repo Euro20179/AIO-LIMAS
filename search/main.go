@@ -507,6 +507,7 @@ func (self MacroNode) ToString() (string, error) {
 		"ts":      "timestamp",
 		"y":       "releaseyear",
 		"s:v":     comp("status", "\"Viewing\"") + " or " + comp("status", "\"ReViewing\""),
+		"viewing":     comp("status", "\"Viewing\"") + " or " + comp("status", "\"ReViewing\""),
 		"ep":      "CAST(json_extract(mediaDependant, format('$.%s-episodes', type)) as DECIMAL)",
 		"len":     "CAST(json_extract(mediaDependant, format('$.%s-length', type)) as DECIMAL)",
 		"epd":     "CAST(json_extract(mediaDependant, format('$.%s-episode-duration', type)) as DECIMAL)",
