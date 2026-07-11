@@ -687,6 +687,16 @@ var resourceEndpointList = []ApiEndPoint{
 		GuestAllowed:    true,
 		UserIndependant: true,
 	},
+	{
+		EndPoint: "get-thumbnail-by-id",
+		Handler: ThumbnailResourceById,
+		QueryParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		},
+		Description: "Returns a 303 pointing to the location of where to find the thumbnail for an item id",
+		GuestAllowed: true,
+		UserIndependant: true,
+	},
 
 	// this is the legacy one, since the url is hardcoded I can't really change it.
 	{

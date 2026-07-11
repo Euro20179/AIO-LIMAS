@@ -48,6 +48,17 @@ func thumbnailResource(ctx RequestContext) {
 	serveThumbnail(ctx.W, ctx.Req, itemThumbnailPath)
 }
 
+func ThumbnailResourceById(ctx RequestContext) {
+	meta := ctx.PP["id"].(db_types.MetadataEntry)
+
+	if meta.Thumbnail != "" {
+		ctx.W.Header().Add("Location", meta.Thumbnail)
+		ctx.W.WriteHeader(303)
+	} else {
+		ctx.W.WriteHeader(404)
+	}
+}
+
 func thumbnailResourceLegacy(ctx RequestContext) {
 	id := ctx.PP["id"].(string)
 
