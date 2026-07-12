@@ -603,7 +603,19 @@ func AddEntry(ctx RequestContext) {
 
 	userEntry.Notes = parsedParams.Get("user-notes", "").(string)
 
-	if parsedParams.Get("get-metadata", false).(bool) {
+	// "metadata" and "get-metadata" are mutually exclusive, otherwise
+	// it makes no sense since get-metadata would just override metadata
+	if data := parsedParams.Get("metadata", "").(string); data != "" {
+		var newMeta db_types.MetadataEntry
+		err := json.Unmarshal([]byte(data), &newMeta)
+		if err != nil {
+			util.WError(w, 400, "Failed to parse metadata json\n%s", err.Error())
+			return
+		}
+		newMeta.ItemId = entryInfo.ItemId
+		newMeta.Uid = ctx.Uid
+		metadata = newMeta
+	} else if parsedParams.Get("get-metadata", false).(bool) {
 		providerOverride := parsedParams.Get("metadata-provider", "").(string)
 		var err error
 		newMeta, err := meta.GetMetadata(&meta.GetMetadataInfo{

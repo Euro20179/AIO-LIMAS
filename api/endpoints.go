@@ -82,8 +82,9 @@ var mainEndpointList = []ApiEndPoint{
 			"native-title":      MkQueryInfo(P_True, false),
 			"tags":              MkQueryInfo(P_True, false),
 			"location":          MkQueryInfo(P_True, false),
-			"get-metadata":      MkQueryInfo(P_Bool, false),
-			"metadata-provider": MkQueryInfo(P_MetaProvider, false),
+			"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
+			"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
+			"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
 			"user-rating":       MkQueryInfo(P_Float64, false),
 			"user-status":       MkQueryInfo(P_UserStatus, false),
 			"user-view-count":   MkQueryInfo(P_Int64, false),
