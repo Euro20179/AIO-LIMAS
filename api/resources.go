@@ -31,6 +31,8 @@ func serveThumbnail(w http.ResponseWriter, req *http.Request, path string) {
 		return
 	}
 
+	w.Header().Set("Cache-Control", "max-age=2592000")
+
 	http.ServeFile(w, req, path)
 }
 
