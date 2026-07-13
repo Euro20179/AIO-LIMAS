@@ -17,6 +17,11 @@ import (
 	"golang.org/x/net/html"
 )
 
+type Requirements struct {
+	Minimum string
+	Recommended string
+}
+
 type IdAppData struct {
 	Success bool
 	Data    struct {
@@ -34,12 +39,13 @@ type IdAppData struct {
 		CapsuleImage         string `json:"capsule_image"`
 		CapsuleImageV5       string `json:"capsule_imagev5"`
 		Website              string
-		PcRequirements       any    `json:"pc_requirements"`
-		MacRequirements      any    `json:"mac_requirements"`
+		PcRequirements       Requirements `json:"pc_requirements"`
+		MacRequirements      Requirements `json:"mac_requirements"`
+		LinuxRequirements    Requirements `json:"linux_requirements"`
 		LegalNotice          string `json:"legal_notice"`
 		ExtUserAccountNotice string `json:"ext_user_account_notice"`
-		Developers           any
-		Publishers           any
+		Developers           []string
+		Publishers           []string
 		PackageGroups        any `json:"package_groups"`
 		Platforms            any
 		Categories           any
@@ -193,6 +199,14 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	json.Unmarshal(text, &respJson)
 
 	mainData := respJson[i]
+
+	mediaDep := map[string]string{
+		"Game-developers": strings.Join(mainData.Data.Developers, ", "),
+		"Game-publishers": strings.Join(mainData.Data.Publishers, ", "),
+	}
+
+	b, _ := json.Marshal(mediaDep)
+	out.MediaDependant = string(b)
 
 	out.Title = mainData.Data.Name
 	out.Description = mainData.Data.DetailedDescription

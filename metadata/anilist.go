@@ -374,7 +374,7 @@ func AnilistById(id string, us settings.SettingsData) (db_types.MetadataEntry, e
 		ty = "Movie"
 	case "MANGA":
 		ty = "Manga"
-	case "SHOW":
+	case "TV":
 		ty = "Show"
 	}
 
