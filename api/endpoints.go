@@ -73,6 +73,7 @@ var mainEndpointList = []ApiEndPoint{
 			"format":            MkQueryInfo(P_EntryFormat, true),
 			"timezone":          MkQueryInfo(P_NotEmpty, false),
 			"price":             MkQueryInfo(P_Float64, false),
+			"currency":          MkQueryInfo(P_NotEmpty, false),
 			"is-digital":        MkQueryInfo(P_Bool, false),
 			"is-anime":          MkQueryInfo(P_Bool, false),
 			"art-style":         MkQueryInfo(P_ArtStyle, false),
