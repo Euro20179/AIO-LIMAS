@@ -105,9 +105,17 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 		return out, err
 	}
 
-	items := jdata["items"].([]any)
+	items, ok := jdata["items"]
+	if !ok {
+		return out, errors.New("no results")
+	}
 
-	for _, i := range items {
+	hasErr, ok := jdata["error"]
+	if ok {
+		return out, errors.New(fmt.Sprintf("error from googlebooks: %s", hasErr.(map[string]any)["message"].(string)))
+	}
+
+	for _, i := range items.([]any) {
 		var cur db_types.MetadataEntry
 
 		googlebooksfillmeta(&cur, i.(map[string] any))
