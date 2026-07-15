@@ -157,7 +157,12 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 
 	descriptionβ, ok := jdata["description"]
 	if ok {
-		out.Description = descriptionβ.(map[string]any)["value"].(string)
+		switch vv := descriptionβ.(type) {
+		case map[string]any:
+			out.Description = vv["value"].(string)
+		case string:
+			out.Description = vv
+		}
 	}
 
 	titleβ, ok := jdata["title"]
@@ -180,6 +185,33 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 		}
 
 		out.Genres = string(arr)
+	}
+
+	if publishDateβ, ok := jdata["publish_date"]; ok {
+		year := strings.Split(publishDateβ.(string), "-")[0]
+		realYear, err := strconv.Atoi(year)
+		if err == nil {
+			out.ReleaseYear = int64(realYear)
+		}
+	}
+
+	md := map[string]string{}
+	if pageCountβ, ok := jdata["number_of_pages"]; ok {
+		md["Book-page-count"] = strconv.Itoa(int(pageCountβ.(float64)))
+	}
+
+	if isbn10, ok := jdata["isbn_10"]; ok {
+		md["Book-isbn10"] = isbn10.([]any)[0].(string)
+	}
+
+	if isbn13, ok := jdata["isbn_13"]; ok {
+		md["Book-isbn13"] = isbn13.([]any)[0].(string)
+	}
+
+	mdStr, err := json.Marshal(md)
+
+	if err == nil {
+		out.MediaDependant = string(mdStr)
 	}
 
 	return out, nil
