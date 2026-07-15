@@ -128,7 +128,7 @@ func GoogleBooksIdentifier(info IdentifyMetadata) ([]db_types.MetadataEntry, err
 func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	var out db_types.MetadataEntry
 	id = strings.ReplaceAll(id, "-", "")
-	url := fmt.Sprintf("https://openlibrary.org/api/books?bibkeys=ISBN:%s&format=json&jscmd=data", id)
+	url := fmt.Sprintf("https://openlibrary.org/works/%s.json", url.QueryEscape(id))
 
 	res, err := http.Get(url)
 	if err != nil {
@@ -148,39 +148,40 @@ func OpenLibraryIdIdentifier(id string, us settings.SettingsData) (db_types.Meta
 		return out, err
 	}
 
-	data := jdata[fmt.Sprintf("ISBN:%s", id)].(map[string]any)
+	if err, ok := jdata["error"]; ok {
+		return out, errors.New(err.(string))
+	}
+
 	out.ProviderID = id
 	out.Provider = "openlibrary"
-	out.Title = data["title"].(string)
-	md := map[string]string{}
-	pages, ok := data["number_of_pages"]
+
+	descriptionβ, ok := jdata["description"]
 	if ok {
-		md["Book-page-count"] = fmt.Sprintf("%0f", pages.(float64))
-	}
-	y := data["publish_date"].(string)
-	thumbs := data["cover"].(map[string]any)
-	large, ok := thumbs["large"]
-	if ok {
-		out.Thumbnail = large.(string)
+		out.Description = descriptionβ.(map[string]any)["value"].(string)
 	}
 
-	d, _ := json.Marshal(md)
-	out.MediaDependant = string(d)
+	titleβ, ok := jdata["title"]
+	if ok {
+		out.Title = titleβ.(string)
+	}
 
-	year, err := strconv.ParseInt(y, 10, 64)
-	if err != nil {
-		// assume date is in `Month 00day, 0000year` format
-		dateL := strings.Split(y, ",")
-		if len(dateL) < 2 {
-			return out, err
-		}
-		y = strings.TrimSpace(strings.Split(y, ",")[1])
-		year, err = strconv.ParseInt(y, 10, 64)
+	coversβ, ok := jdata["covers"]
+	if ok {
+		coverID := coversβ.([]any)[0]
+		out.Thumbnail = fmt.Sprintf("https://covers.openlibrary.org/b/id/%d.jpg", (int64)(coverID.(float64)))
+	}
+
+	subjectsβ, ok := jdata["subjects"]
+	if ok {
+		subjectsListβ := (subjectsβ.([]any))
+		arr, err := json.Marshal(subjectsListβ)
 		if err != nil {
 			return out, err
 		}
+
+		out.Genres = string(arr)
 	}
-	out.ReleaseYear = year
+
 	return out, nil
 }
 
