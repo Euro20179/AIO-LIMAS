@@ -32,6 +32,33 @@ func Transact(ctx RequestContext) {
 	ctx.W.WriteHeader(200)
 }
 
+func EditTransaction(ctx RequestContext) {
+	t, err := db.GetTransaction(ctx.Uid, ctx.PP.Get("id", 0).(int64))
+	if err != nil {
+		util.WError(ctx.W, 500, "Unable to get transaction: %s\n", err.Error())
+		return
+	}
+
+	if price := ctx.PP.Get("price", nil); price != nil {
+		t.Price = price.(float64)
+	}
+
+	if currency := ctx.PP.Get("currency", nil); currency != nil {
+		t.Currency = currency.(string)
+	}
+
+	if eventId := ctx.PP.Get("eventId", nil); eventId != nil {
+		t.EventId = eventId.(int64)
+	}
+
+	if eventId := ctx.PP.Get("itemId", nil); eventId != nil {
+		t.ItemId = eventId.(int64)
+	}
+
+	db.UpdateTransaction(ctx.Uid, &t)
+	ctx.W.WriteHeader(200)
+}
+
 func ListTransactions(ctx RequestContext) {
 	item, ok := ctx.PP["id"]
 	var id int64 = 0

@@ -783,6 +783,17 @@ var Endpoints = map[string][]ApiEndPoint{
 				"timezone": MkQueryInfo(P_NotEmpty, false),
 			},
 		},
+		{
+			EndPoint: "edit",
+			Handler: EditTransaction,
+			QueryParams: QueryParams {
+				"id": MkQueryInfo(P_Int64, true),
+				"price": MkQueryInfo(P_Float64, false),
+				"currency": MkQueryInfo(P_NotEmpty, false),
+				"eventId": MkQueryInfo(P_Int64, false),
+				"itemId": MkQueryInfo(P_Int64, false),
+			},
+		},
 	},
 }
 

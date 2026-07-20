@@ -538,6 +538,25 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	return err
 }
 
+func UpdateTransaction(uid int64, transaction *db_types.TransactionEntry) error {
+	set := ""
+	data := db_types.StructNamesToDict(*transaction)
+	updateArgs := []any{}
+
+	for k, v := range data {
+		if k == "transactionId" {
+			continue
+		}
+		updateArgs = append(updateArgs, v)
+
+		set += k + "= ?,"
+	}
+	println(set)
+	updateArgs = append(updateArgs, transaction.TransactionId)
+	set = set[:len(set)-1]
+	return ExecUserDb(uid, `UPDATE transactions SET ` + set + ` WHERE rowid = ?`, updateArgs...)
+}
+
 func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
 	ensureMetadataJsonNotEmpty(entry)
 	return updateTable(uid, *entry, "metadata")
@@ -1176,4 +1195,17 @@ func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, err
 		out = append(out, cur)
 	}
 	return out, nil
+}
+
+func GetTransaction(uid int64, id int64) (db_types.TransactionEntry, error) {
+	rows, err := QueryDB("select rowid, * from transactions WHERE rowid = ?", id)
+	if err != nil {
+		return db_types.TransactionEntry{}, err
+	}
+
+	rows.Next()
+	e := db_types.TransactionEntry{}
+	err = e.ReadEntry(rows)
+
+	return e, err
 }
