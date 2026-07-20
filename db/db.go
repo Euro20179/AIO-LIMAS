@@ -175,7 +175,7 @@ func Wait(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 }
 
 func Begin(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
-	err := RegisterBasicUserEvent(uid, timezone, "Viewing", entry.ItemId)
+	err := RegisterBasicUserEvent(uid, timezone, "Started", entry.ItemId)
 	if err != nil {
 		return err
 	}
@@ -443,10 +443,17 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	}
 
 	if userViewingEntry.Status != db_types.Status("") && timezone != "" {
+		eName := string(userViewingEntry.Status)
+	 	switch(eName) {
+			case "Viewing":
+				eName = "Started"
+			case "ReViewing":
+				eName = "Started"
+		}
 		err := RegisterUserEvent(uid, db_types.UserViewingEvent{
 			ItemId:    userViewingEntry.ItemId,
 			Timestamp: uint64(time.Now().UnixMilli()),
-			Event:     string(userViewingEntry.Status),
+			Event:     eName,
 			TimeZone:  timezone,
 			After:     0,
 		})
