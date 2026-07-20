@@ -538,6 +538,10 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	return err
 }
 
+func DeleteTransaction(uid int64, id int64) error {
+	return ExecUserDb(uid, `DELETE FROM transactions WHERE rowid = ?`, id)
+}
+
 func UpdateTransaction(uid int64, transaction *db_types.TransactionEntry) error {
 	set := ""
 	data := db_types.StructNamesToDict(*transaction)
@@ -591,6 +595,7 @@ func Delete(uid int64, id int64) error {
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ? and userEventInfo.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM relations WHERE left = ? or right = ?`, id, id)
+	transact.Exec(`DELETE FROM transactions WHERE itemid = ?`, id)
 
 	return transact.Commit()
 }
@@ -1188,6 +1193,8 @@ func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, err
 		return []db_types.TransactionEntry{}, err
 	}
 
+	defer rows.Close()
+
 	var out = []db_types.TransactionEntry{}
 	for rows.Next() {
 		cur := db_types.TransactionEntry{}
@@ -1202,6 +1209,8 @@ func GetTransaction(uid int64, id int64) (db_types.TransactionEntry, error) {
 	if err != nil {
 		return db_types.TransactionEntry{}, err
 	}
+
+	defer rows.Close()
 
 	rows.Next()
 	e := db_types.TransactionEntry{}

@@ -32,6 +32,14 @@ func Transact(ctx RequestContext) {
 	ctx.W.WriteHeader(200)
 }
 
+func DeleteTransaction(ctx RequestContext) {
+	if err := db.DeleteTransaction(ctx.Uid, ctx.PP.Get("id", 0).(int64)); err != nil {
+		util.WError(ctx.W, 500, "Failed to delete transaction: %s\n", err.Error())
+	} else {
+		success(ctx.W)
+	}
+}
+
 func EditTransaction(ctx RequestContext) {
 	t, err := db.GetTransaction(ctx.Uid, ctx.PP.Get("id", 0).(int64))
 	if err != nil {

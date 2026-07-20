@@ -17,7 +17,7 @@ const (
 )
 
 var OUTFILE = os.Stderr
-var LOGLEVEL = L_ERROR
+var LOGLEVEL = L_INFO
 
 var wd = os.Getenv("PWD")
 

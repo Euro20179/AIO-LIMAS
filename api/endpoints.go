@@ -794,6 +794,13 @@ var Endpoints = map[string][]ApiEndPoint{
 				"itemId": MkQueryInfo(P_Int64, false),
 			},
 		},
+		{
+			EndPoint: "delete",
+			Handler: DeleteTransaction,
+			QueryParams: QueryParams {
+				"id": MkQueryInfo(P_Int64, true),
+			},
+		},
 	},
 }
 
