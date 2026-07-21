@@ -414,11 +414,11 @@ func RegisterEvent(ctx RequestContext) {
 
 	event := db_types.UserViewingEvent{
 		ItemId: id.ItemId,
-		Timestamp: uint64(ts),
-		After: uint64(after),
+		Timestamp: int64(ts),
+		After: int64(after),
 		Event: name,
 		TimeZone: timezone,
-		Before: uint64(before),
+		Before: int64(before),
 	}
 
 	err = db.RegisterUserEvent(ctx.Uid, event)
@@ -435,6 +435,41 @@ func RegisterEvent(ctx RequestContext) {
 	}
 	w.WriteHeader(200)
 	w.Write(result)
+}
+
+func EditEvent(ctx RequestContext) {
+	ev, err := db.GetEvent(ctx.PP["eventId"].(int64))
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to get event: %s\n", err.Error())
+		return
+	}
+
+	if v, ok := ctx.PP["name"]; ok {
+		ev.Event = v.(string)
+	}
+
+	if v, ok := ctx.PP["timestamp"]; ok {
+		ev.Timestamp = v.(int64)
+	}
+
+	if v, ok := ctx.PP["after"]; ok {
+		ev.After = v.(int64)
+	}
+
+	if v, ok := ctx.PP["before"]; ok {
+		ev.Before = v.(int64)
+	}
+
+	if v, ok := ctx.PP["timezone"]; ok {
+		ev.TimeZone = v.(string)
+	}
+
+	if err := db.UpdateEvent(ctx.Uid, &ev); err != nil {
+		util.WError(ctx.W, 500, "Failed to update event: %s\n", err.Error())
+		return
+	}
+
+	success(ctx.W)
 }
 
 func ModUserEntry(ctx RequestContext) {

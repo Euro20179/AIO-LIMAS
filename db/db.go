@@ -19,6 +19,8 @@ import (
 
 const DB_VERSION = 14
 
+var DB *sql.DB
+
 func DbRoot() string {
 	aioPath := os.Getenv("AIO_DIR")
 	return fmt.Sprintf("%s/", aioPath)
@@ -31,13 +33,6 @@ func OpenUserDb() (*sql.DB, error) {
 }
 
 func CkDBVersion() error {
-	DB, err := OpenUserDb()
-	if err != nil {
-		return err
-	}
-
-	defer DB.Close()
-
 	DB.Exec("CREATE TABLE IF NOT EXISTS DBInfo (version INTEGER DEFAULT 0)")
 
 	v, err := DB.Query("SELECT version FROM DBInfo")
@@ -81,24 +76,11 @@ func CkDBVersion() error {
 }
 
 func QueryDB(query string, args ...any) (*sql.Rows, error) {
-	Db, err := OpenUserDb()
-	if err != nil {
-		log.ELog(err)
-		return nil, err
-	}
-	defer Db.Close()
-
-	return Db.Query(query, args...)
+	return DB.Query(query, args...)
 }
 
 func ExecUserDb(uid int64, query string, args ...any) error {
-	Db, err := OpenUserDb()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	_, err = Db.Exec(query, args...)
+	_, err := DB.Exec(query, args...)
 	return err
 }
 
@@ -253,7 +235,10 @@ func InitDb() error {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer conn.Close()
+	DB = conn
+
+	DB.SetMaxIdleConns(1)
+	DB.SetMaxOpenConns(1)
 
 	sqlite3.Version()
 
@@ -392,12 +377,6 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		id += 1
 	}
 
-	Db, err := OpenUserDb()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	entryInfo.Uid = uid
 	entryInfo.ItemId = id
 	metadataEntry.Uid = uid
@@ -416,7 +395,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	}
 
 	for entryName, entry := range entries {
-		entryData := db_types.StructNamesToDict(entry)
+		entryData := db_types.StructNamesToDict(entry, map[string]string{})
 
 		var entryArgs []any
 		questionMarks := ""
@@ -436,7 +415,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		entryQ = entryQ + ")"
 
 		entryQ += "VALUES(" + questionMarks + ")"
-		_, err := Db.Exec(entryQ, entryArgs...)
+		_, err := DB.Exec(entryQ, entryArgs...)
 		if err != nil {
 			return err
 		}
@@ -452,7 +431,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		}
 		err := RegisterUserEvent(uid, db_types.UserViewingEvent{
 			ItemId:    userViewingEntry.ItemId,
-			Timestamp: uint64(time.Now().UnixMilli()),
+			Timestamp: int64(time.Now().UnixMilli()),
 			Event:     eName,
 			TimeZone:  timezone,
 			After:     0,
@@ -464,7 +443,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	if timezone != "" {
 		event := "Added"
-		err = RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
+		err := RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
 		if err != nil {
 			return err
 		}
@@ -483,7 +462,7 @@ func RegisterUserEvent(uid int64, event db_types.UserViewingEvent) error {
 func RegisterBasicUserEvent(uid int64, timezone string, event string, itemId int64) error {
 	var e db_types.UserViewingEvent
 	e.Event = event
-	e.Timestamp = uint64(time.Now().UnixMilli())
+	e.Timestamp = int64(time.Now().UnixMilli())
 	e.ItemId = itemId
 	e.TimeZone = timezone
 	return RegisterUserEvent(uid, e)
@@ -522,7 +501,7 @@ func ClearUserEventEntries(uid int64, id int64) error {
 func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string) error {
 	updateStr := `UPDATE ` + tblName + ` SET `
 
-	data := db_types.StructNamesToDict(tblRepr)
+	data := db_types.StructNamesToDict(tblRepr, map[string]string{})
 
 	updateArgs := []any{}
 
@@ -545,27 +524,34 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	return err
 }
 
-func DeleteTransaction(uid int64, id int64) error {
-	return ExecUserDb(uid, `DELETE FROM transactions WHERE rowid = ?`, id)
-}
-
-func UpdateTransaction(uid int64, transaction *db_types.TransactionEntry) error {
+func updateRowidTable(uid int64, rowid int64, tblRepr db_types.TableRepresentation, tblName string) error {
 	set := ""
-	data := db_types.StructNamesToDict(*transaction)
+	data := db_types.StructNamesToDict(tblRepr, map[string]string{})
 	updateArgs := []any{}
 
 	for k, v := range data {
-		if k == "transactionId" {
+		if k == "eventId" || k == "transactionId" {
 			continue
 		}
 		updateArgs = append(updateArgs, v)
 
 		set += k + "= ?,"
 	}
-	println(set)
-	updateArgs = append(updateArgs, transaction.TransactionId)
+	updateArgs = append(updateArgs, rowid)
 	set = set[:len(set)-1]
-	return ExecUserDb(uid, `UPDATE transactions SET ` + set + ` WHERE rowid = ?`, updateArgs...)
+	return ExecUserDb(uid, `UPDATE ` + tblName + ` SET ` + set + ` WHERE rowid = ?`, updateArgs...)
+}
+
+func UpdateEvent(uid int64, event *db_types.UserViewingEvent) error {
+	return updateRowidTable(uid, event.EventId, *event, "userEventInfo")
+}
+
+func DeleteTransaction(uid int64, id int64) error {
+	return ExecUserDb(uid, `DELETE FROM transactions WHERE rowid = ?`, id)
+}
+
+func UpdateTransaction(uid int64, transaction *db_types.TransactionEntry) error {
+	return updateRowidTable(uid, transaction.TransactionId, *transaction, "transactions")
 }
 
 func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {
@@ -579,13 +565,7 @@ func UpdateInfoEntry(uid int64, entry *db_types.InfoEntry) error {
 }
 
 func Delete(uid int64, id int64) error {
-	Db, err := OpenUserDb()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	transact, err := Db.Begin()
+	transact, err := DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -608,13 +588,7 @@ func Delete(uid int64, id int64) error {
 }
 
 func DeleteByUID(uid int64) error {
-	Db, err := OpenUserDb()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
-	transact, err := Db.Begin()
+	transact, err := DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -623,6 +597,8 @@ func DeleteByUID(uid int64) error {
 	transact.Exec(`DELETE FROM metadata WHERE metadata.uid = ?`, uid)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE userViewingInfo.uid = ?`, uid)
 	transact.Exec(`DELETE FROM userEventInfo WHERE userEventInfo.uid = ?`, uid)
+	transact.Exec(`DELETE FROM relations WHERE userEventInfo.uid = ?`, uid)
+	transact.Exec(`DELETE FROM transactions WHERE userEventInfo.uid = ?`, uid)
 
 	return transact.Commit()
 }
@@ -1135,18 +1111,12 @@ func AddTags(uid int64, id int64, tags []string) error {
 }
 
 func DelTags(uid int64, id int64, tags []string) error {
-	Db, err := OpenUserDb()
-	if err != nil {
-		panic(err.Error())
-	}
-	defer Db.Close()
-
 	for _, tag := range tags {
 		if tag == "" {
 			continue
 		}
 
-		_, err = Db.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '') WHERE itemId = ? and entryInfo.uid = ?", tag, id, uid)
+		_, err := DB.Exec("UPDATE entryInfo SET collection = replace(collection, char(31) || ? || char(31), '') WHERE itemId = ? and entryInfo.uid = ?", tag, id, uid)
 		if err != nil {
 			return err
 		}
@@ -1231,6 +1201,21 @@ func GetTransaction(uid int64, id int64) (db_types.TransactionEntry, error) {
 
 	rows.Next()
 	e := db_types.TransactionEntry{}
+	err = e.ReadEntry(rows)
+
+	return e, err
+}
+
+func GetEvent(eventID int64) (db_types.UserViewingEvent, error) {
+	rows, err := QueryDB("select *, rowid from userEventInfo WHERE rowid = ?", eventID)
+	if err != nil {
+		return db_types.UserViewingEvent{}, err
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	e := db_types.UserViewingEvent{}
 	err = e.ReadEntry(rows)
 
 	return e, err

@@ -214,7 +214,7 @@ func IsValidType(ty string) bool {
 	return slices.Contains(ListMediaTypes(), MediaTypes(ty))
 }
 
-func StructNamesToDict(entity any) map[string]any {
+func StructNamesToDict(entity any, replacements map[string]string) map[string]any {
 	items := make(map[string]any)
 
 	val := reflect.ValueOf(entity)
@@ -227,6 +227,10 @@ func StructNamesToDict(entity any) map[string]any {
 		}
 
 		name := field.Name
+
+		if replacement, has := replacements[name]; has {
+			name = replacement
+		}
 
 		value := val.FieldByName(name).Interface()
 
@@ -406,9 +410,9 @@ type UserViewingEvent struct {
 	ItemId    int64
 	Event     string
 	TimeZone  string
-	Timestamp uint64
-	Before    uint64
-	After     uint64 // this is also a timestamp, for when the exact timestamp is unknown
+	Timestamp int64
+	Before    int64
+	After     int64 // this is also a timestamp, for when the exact timestamp is unknown
 	// this is to ensure that order can be determined
 	EventId int64
 }

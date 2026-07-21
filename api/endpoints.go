@@ -510,6 +510,19 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "edit-event",
+		Handler: EditEvent,
+		QueryParams: QueryParams{
+			"eventId":   MkQueryInfo(P_Int64, true),
+			"name":      MkQueryInfo(P_NotEmpty, true),
+			"timestamp": MkQueryInfo(P_Int64, false),
+			"after":     MkQueryInfo(P_Int64, false),
+			"timezone":  MkQueryInfo(P_NotEmpty, false),
+			"before":    MkQueryInfo(P_Int64, false),
+		},
+	},
+
+	{
 		EndPoint:     "list-events",
 		Handler:      ListEvents,
 		QueryParams:  QueryParams{},
