@@ -1171,24 +1171,34 @@ func GetRecommendersList(uid int64) ([]string, error) {
 	return recommenders, nil
 }
 
-func CreateTransaction(transactionType db_types.Transaction, uid int64, itemId int64, timezone string, price float64, currency string) error {
+func CreateTransaction(transactionType db_types.Transaction, uid int64, itemId int64, eventId int64, timezone string, price float64, currency string) error {
 	if uid == 0 {
 		return errors.New("uid cannot be 0 for creating a transaction")
 	}
 
-	if err := RegisterBasicUserEvent(uid, timezone, string(transactionType), itemId); err != nil {
-		return err;
+	if eventId == 0 {
+		if err := RegisterBasicUserEvent(uid, timezone, string(transactionType), itemId); err != nil {
+			return err;
+		}
+		return ExecUserDb(uid, `
+			INSERT INTO transactions VALUES (
+				?,
+				?,
+				(SELECT MAX(rowid) FROM userEventInfo WHERE uid = ? AND itemId = ?),
+				?,
+				?
+			)
+		`, uid, itemId, uid, itemId, price, currency)
 	}
 
 	return ExecUserDb(uid, `
 		INSERT INTO transactions VALUES (
 			?,
 			?,
-			(SELECT MAX(rowid) FROM userEventInfo WHERE uid = ? AND itemId = ?),
+			?,
 			?,
 			?
-		)
-	`, uid, itemId, uid, itemId, price, currency)
+	`, uid, itemId, eventId, price, currency)
 }
 
 func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, error) {

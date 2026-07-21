@@ -412,18 +412,29 @@ func RegisterEvent(ctx RequestContext) {
 	}
 	timezone := parsedParams.Get("timezone", us.DefaultTimeZone).(string)
 
-	err = db.RegisterUserEvent(ctx.Uid, db_types.UserViewingEvent{
+	event := db_types.UserViewingEvent{
 		ItemId: id.ItemId,
 		Timestamp: uint64(ts),
 		After: uint64(after),
 		Event: name,
 		TimeZone: timezone,
 		Before: uint64(before),
-	})
+	}
+
+	err = db.RegisterUserEvent(ctx.Uid, event)
+
 	if err != nil{
 		util.WError(w, 500, "Could not register event\n%s", err.Error())
 		return
 	}
+
+	result, err := event.ToJson()
+	if err != nil {
+		util.WError(w, 500, "Failed to convert event to json (but was still registered)\n%s", err.Error())
+		return
+	}
+	w.WriteHeader(200)
+	w.Write(result)
 }
 
 func ModUserEntry(ctx RequestContext) {

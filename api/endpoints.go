@@ -772,6 +772,7 @@ var Endpoints = map[string][]ApiEndPoint{
 				"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 			},
 			GuestAllowed: true,
+			UserIndependant: true,
 		},
 		{
 			EndPoint: "do",
@@ -781,6 +782,7 @@ var Endpoints = map[string][]ApiEndPoint{
 				"price": MkQueryInfo(P_Float64, true),
 				"currency": MkQueryInfo(P_NotEmpty, true),
 				"timezone": MkQueryInfo(P_NotEmpty, false),
+				"eventId": MkQueryInfo(P_NotEmpty, false),
 			},
 		},
 		{

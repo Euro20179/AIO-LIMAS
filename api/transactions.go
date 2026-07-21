@@ -24,6 +24,7 @@ func Transact(ctx RequestContext) {
 		db_types.Transaction(ty),
 		ctx.Uid,
 		ctx.PP["id"].(db_types.InfoEntry).ItemId,
+		ctx.PP.Get("eventId", int64(0)).(int64),
 		ctx.PP.Get("timezone", us.DefaultTimeZone).(string),
 		ctx.PP["price"].(float64),
 		ctx.PP["currency"].(string),

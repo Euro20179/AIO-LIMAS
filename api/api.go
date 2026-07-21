@@ -669,7 +669,7 @@ func AddEntry(ctx RequestContext) {
 
 	if priceNum > 0 {
 		currency := parsedParams.Get("currency", "USD").(string)
-		db.CreateTransaction("Purchased", ctx.Uid, entryInfo.ItemId, timezone, priceNum, currency)
+		db.CreateTransaction("Purchased", ctx.Uid, entryInfo.ItemId, 0, timezone, priceNum, currency)
 	}
 
 	j, err := entryInfo.ToJson()
