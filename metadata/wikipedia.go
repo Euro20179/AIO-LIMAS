@@ -148,7 +148,46 @@ func WikipediaIdIdentifier(id string, us settings.SettingsData) (db_types.Metada
 	out.Provider = "wikipedia"
 	out.Title = searchResult.Title
 	out.Thumbnail = searchResult.Thumbnail.Source
-	out.Description = searchResult.Extract_html
+
+	req, err = http.NewRequest("GET", "https://en.wikipedia.org/w/api.php", nil)
+	if err != nil {
+		return out, err
+	}
+	req.URL.RawQuery = url.Values {
+		"action": {"parse"},
+		"page": {id},
+		"format": {"json"},
+		"section": {"1"}, // assume this is the Gameplay section (it always seems to be the first section)
+	}.Encode()
+
+
+	req.Header.Set("User-Agent", "aio-limas/1.0 (https://github.com/Euro20179/AIO-LIMAS; anon5555@duck.com)")
+
+	res, err = client.Do(req)
+	if err != nil {
+		return out, err
+	}
+
+	jsonText, err = io.ReadAll(res.Body)
+	if err != nil {
+		return out, err
+	}
+
+	parsedResp := struct {
+		Parse struct {
+			Title string
+			Pageid float64
+			Revid float64
+			Text map[string] string
+		}
+	}{}
+
+	err = json.Unmarshal(jsonText, &parsedResp)
+	if err != nil {
+		return out, err
+	}
+
+	out.Description = parsedResp.Parse.Text["*"]
 
 	return out, nil
 }
