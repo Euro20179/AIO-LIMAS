@@ -270,6 +270,8 @@ func SetUserEntry(ctx RequestContext) {
 		return
 	}
 
+	user.Uid = ctx.Uid
+
 	err = db.UpdateUserViewingEntry(ctx.Uid, &user)
 	if err != nil {
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())

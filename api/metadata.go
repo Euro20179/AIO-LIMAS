@@ -132,6 +132,8 @@ func SetMetadataEntry(ctx RequestContext) {
 		return
 	}
 
+	meta.Uid = ctx.Uid
+
 	err = db.UpdateMetadataEntry(ctx.Uid, &meta)
 	if err != nil {
 		util.WError(w, 500, "Could not update metadata entry\n%s", err.Error())

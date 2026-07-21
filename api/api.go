@@ -218,6 +218,8 @@ func SetEntry(ctx RequestContext) {
 		return
 	}
 
+	entry.Uid = ctx.Uid
+
 	err = db.UpdateInfoEntry(ctx.Uid, &entry)
 	if err != nil {
 		util.WError(w, 500, "Could not update info entry\n%s", err.Error())
