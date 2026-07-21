@@ -134,6 +134,7 @@ const (
 	F_PS5 Format = iota // 24
 	F_NIN_SWITCH2 Format = iota // 25
 	F_EPIC Format = iota //26
+	F_GAMECUBE Format = iota //27
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -153,6 +154,7 @@ func ListFormats() map[Format]string {
 		F_EPIC:        "EPIC",
 		F_NIN_SWITCH:  "NIN_SWITCH",
 		F_NIN_SWITCH2:  "NIN_SWITCH2",
+		F_GAMECUBE:  "GAMECUBE",
 		F_WII:  "WII",
 		F_NIN_DS:  "NIN_DS",
 		F_PS1: "PS1",
