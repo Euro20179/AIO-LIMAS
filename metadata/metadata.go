@@ -193,6 +193,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"steam":       SteamIdentifier,
 	"googlebooks": GoogleBooksIdentifier,
 	"seerr":       SeerrIdentifier,
+	"wikipedia":   WikipediaIdentifier,
 }
 
 type (
@@ -217,4 +218,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	// isbn
 	"googlebooks": GoogleBooksIdIdentifier,
 	"seerr":       SeerrIdIdentifier,
+	"wikipedia":       WikipediaIdIdentifier,
 }
