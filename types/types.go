@@ -125,6 +125,14 @@ const (
 	F_IMAGE      Format = iota // 15
 	F_UNOWNED    Format = iota // 16
 	F_THEATER    Format = iota // 17
+	F_WII Format = iota // 18
+	F_NIN_DS Format = iota // 19
+	F_PS1 Format = iota // 20
+	F_PS2 Format = iota // 21
+	F_PS3 Format = iota // 22
+	F_PS4 Format = iota // 23
+	F_PS5 Format = iota // 24
+	F_NIN_SWITCH2 Format = iota // 25
 
 	F_MOD_DIGITAL Format = 0x1000
 )
@@ -142,6 +150,14 @@ func ListFormats() map[Format]string {
 		F_BOARDGAME:   "BOARDGAME",
 		F_STEAM:       "STEAM",
 		F_NIN_SWITCH:  "NIN_SWITCH",
+		F_NIN_SWITCH2:  "NIN_SWITCH2",
+		F_WII:  "WII",
+		F_NIN_DS:  "NIN_DS",
+		F_PS1: "PS1",
+		F_PS2: "PS2",
+		F_PS3: "PS3",
+		F_PS4: "PS4",
+		F_PS5: "PS5",
 		F_XBOXONE:     "XBOXONE",
 		F_XBOX360:     "XBOX360",
 		F_OTHER:       "OTHER",
@@ -254,11 +270,11 @@ type TableRepresentation interface {
 }
 
 type TransactionEntry struct {
-    Uid int64
-    ItemId int64
-    EventId int64
-    Price float64
-    Currency string
+	Uid int64
+	ItemId int64
+	EventId int64
+	Price float64
+	Currency string
 	TransactionId int64
 }
 
