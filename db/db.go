@@ -524,9 +524,9 @@ func updateTable(uid int64, tblRepr db_types.TableRepresentation, tblName string
 	return err
 }
 
-func updateRowidTable(uid int64, rowid int64, tblRepr db_types.TableRepresentation, tblName string) error {
+func updateRowidTable(uid int64, rowid int64, tblRepr db_types.TableRepresentation, tblName string, replacements map[string]string) error {
 	set := ""
-	data := db_types.StructNamesToDict(tblRepr, map[string]string{})
+	data := db_types.StructNamesToDict(tblRepr, replacements)
 	updateArgs := []any{}
 
 	for k, v := range data {
@@ -543,7 +543,7 @@ func updateRowidTable(uid int64, rowid int64, tblRepr db_types.TableRepresentati
 }
 
 func UpdateEvent(uid int64, event *db_types.UserViewingEvent) error {
-	return updateRowidTable(uid, event.EventId, *event, "userEventInfo")
+	return updateRowidTable(uid, event.EventId, *event, "userEventInfo", map[string]string { "Before": "beforets"})
 }
 
 func DeleteTransaction(uid int64, id int64) error {
@@ -551,7 +551,7 @@ func DeleteTransaction(uid int64, id int64) error {
 }
 
 func UpdateTransaction(uid int64, transaction *db_types.TransactionEntry) error {
-	return updateRowidTable(uid, transaction.TransactionId, *transaction, "transactions")
+	return updateRowidTable(uid, transaction.TransactionId, *transaction, "transactions", map[string]string{})
 }
 
 func UpdateMetadataEntry(uid int64, entry *db_types.MetadataEntry) error {

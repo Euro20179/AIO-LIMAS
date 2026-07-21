@@ -228,11 +228,11 @@ func StructNamesToDict(entity any, replacements map[string]string) map[string]an
 
 		name := field.Name
 
+		value := val.FieldByName(name).Interface()
+
 		if replacement, has := replacements[name]; has {
 			name = replacement
 		}
-
-		value := val.FieldByName(name).Interface()
 
 		words := strings.Split(name, "_")
 		for i, word := range words {
