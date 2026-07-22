@@ -48,6 +48,7 @@ type OMDBResponse struct {
 	Type         string
 	TotalSeasons string `json:"totalSeasons"`
 	Response     string
+	BoxOffice string
 }
 
 type OMDBSearchItem struct {
@@ -79,6 +80,12 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 		mediaDep[titleCase(result.Type)+"-director"] = result.Director
 		mediaDep[titleCase(result.Type)+"-length"] = length
 		mediaDep[titleCase(result.Type)+"-imdbid"] = result.ImdbID
+		if result.Rated != "" && result.Rated != "N/A" {
+			mediaDep[titleCase(result.Type)+"-rating"] = result.Rated
+		}
+		if result.BoxOffice != "N/A" && result.BoxOffice != "" {
+			mediaDep[titleCase(result.Type)+"-revenue"] = strings.Replace(strings.ReplaceAll(result.BoxOffice, ",", ""), "$", "", 1)
+		}
 	}
 
 	if result.ImdbRating != "N/A" {
