@@ -197,6 +197,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"wikipedia":   WikipediaIdentifier,
 	"gtdbwii":   GTDBWiiIdentify,
 	"gtdbswitch":   GTDBSwitchIdentify,
+	"gtdbds":   GTDBDSIdentify,
 }
 
 type (
@@ -224,4 +225,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"wikipedia":       WikipediaIdIdentifier,
 	"gtdbwii":        GTDBWiiIdIdentify,
 	"gtdbswitch":   GTDBSwitchIdIdentify,
+	"gtdbds":   GTDBDSIdIdentify,
 }

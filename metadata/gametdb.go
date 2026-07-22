@@ -375,7 +375,7 @@ func gtdbIdIdentify(format string, id string) (db_types.MetadataEntry, error) {
 		return out, err
 	}
 
-	rows, err := gtdbMEM.Query(`SELECT games.*, lang, synopsis, title, rating, agency FROM games JOIN locales ON games.id = locales.gameID LEFT JOIN ratings ON games.id = ratings.gameID WHERE id = ?`, id)
+	rows, err := gtdbMEM.Query(`SELECT games.*, COALESCE(lang, ''), COALESCE(synopsis, ''), COALESCE(title, ''), COALESCE(rating, ''), COALESCE(agency, '') FROM games JOIN locales ON games.id = locales.gameID LEFT JOIN ratings ON games.id = ratings.gameID WHERE id = ?`, id)
 	if err != nil {
 		return out, err
 	}
@@ -423,7 +423,7 @@ func gtdbIdentify(format string, iinfo IdentifyMetadata) ([]db_types.MetadataEnt
 	}
 
 	rows, err := gtdbMEM.Query(fmt.Sprintf(
-		`SELECT g.*, l.lang, l.synopsis, l.title FROM games as g
+		`SELECT g.*, COALESCE(l.lang, ''), COALESCE(l.synopsis, ''), COALESCE(l.title, '') FROM games as g
 		JOIN %sSearch
 			ON g.id = %sSearch.rowid
 		LEFT JOIN locales as l
@@ -493,4 +493,12 @@ func GTDBSwitchIdIdentify(id string, us settings.SettingsData) (db_types.Metadat
 
 func GTDBSwitchIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return gtdbIdentify("switch", iinfo)
+}
+
+func GTDBDSIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	return gtdbIdIdentify("ds", id)
+}
+
+func GTDBDSIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	return gtdbIdentify("ds", iinfo)
 }
