@@ -192,7 +192,7 @@ func IsValidFormat(format int64) bool {
 	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
 		format -= int64(F_MOD_DIGITAL)
 	}
-	return format >= int64(F_VHS) && format <= int64(F_THEATER)
+	return format >= int64(F_VHS) && format <= int64(F_GAMECUBE)
 }
 
 type MediaTypes string

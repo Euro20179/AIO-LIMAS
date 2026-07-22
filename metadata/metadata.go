@@ -91,6 +91,7 @@ func GetMetadataById(id string, foruid int64, provider string) (db_types.Metadat
 
 	us, err := settings.GetUserSettings(foruid)
 	if err != nil {
+		logging.ELog(err)
 		return db_types.MetadataEntry{}, err
 	}
 	return fn(id, us)
@@ -195,6 +196,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"seerr":       SeerrIdentifier,
 	"wikipedia":   WikipediaIdentifier,
 	"gtdbwii":   GTDBWiiIdentify,
+	"gtdbswitch":   GTDBSwitchIdentify,
 }
 
 type (
@@ -221,4 +223,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"seerr":       SeerrIdIdentifier,
 	"wikipedia":       WikipediaIdIdentifier,
 	"gtdbwii":        GTDBWiiIdIdentify,
+	"gtdbswitch":   GTDBSwitchIdIdentify,
 }
