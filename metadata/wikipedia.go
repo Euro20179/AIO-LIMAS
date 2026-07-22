@@ -8,6 +8,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type WikiSearch struct {
@@ -157,7 +160,7 @@ func WikipediaIdIdentifier(id string, us settings.SettingsData) (db_types.Metada
 		"action": {"parse"},
 		"page": {id},
 		"format": {"json"},
-		"section": {"1"}, // assume this is the Gameplay section (it always seems to be the first section)
+		"section": {"1"}, // This is probably the section the user wants.
 	}.Encode()
 
 
@@ -187,7 +190,69 @@ func WikipediaIdIdentifier(id string, us settings.SettingsData) (db_types.Metada
 		return out, err
 	}
 
-	out.Description = parsedResp.Parse.Text["*"]
+	desc, has := parsedResp.Parse.Text["*"]
+
+	if !has {
+		return out, nil
+	}
+
+	tree, err := html.Parse(strings.NewReader(desc))
+	if err != nil {
+		return out, err
+	}
+
+	getattr := func(n *html.Node, attr string) string {
+		for _, a := range n.Attr{
+			if a.Key == attr {
+				return a.Val
+			}
+		}
+		return ""
+	}
+
+	var trimHTML func(n *html.Node)
+	trimHTML = func(n *html.Node) {
+		for c := n.FirstChild; c != nil; {
+			next := c.NextSibling
+
+			if c.Type == html.ElementNode{
+				cls := getattr(c, "class")
+				if strings.Contains(cls, "mw-editsection") || strings.Contains(cls, "reference") {
+					n.RemoveChild(c)
+					goto next
+				}
+
+				if c.Data == "a"  {
+					// Insert each child of <a> before the <a>, keeping order.
+					// Take children out of <a> as we insert them.
+					insertBefore := next
+					for ch := c.FirstChild; ch != nil; {
+						chNext := ch.NextSibling
+
+						c.RemoveChild(ch)
+
+						n.InsertBefore(ch, insertBefore)
+
+						ch = chNext
+					}
+
+					n.RemoveChild(c)
+
+					goto next
+				}
+			}
+
+			trimHTML(c)
+next:
+			c = next
+		}
+	}
+
+	trimHTML(tree)
+
+	builder := strings.Builder{}
+	html.Render(&builder, tree)
+	out.Description = builder.String()
 
 	return out, nil
 }
