@@ -194,6 +194,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"googlebooks": GoogleBooksIdentifier,
 	"seerr":       SeerrIdentifier,
 	"wikipedia":   WikipediaIdentifier,
+	"gtdbwii":   GTDBWiiIdentify,
 }
 
 type (
@@ -219,4 +220,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"googlebooks": GoogleBooksIdIdentifier,
 	"seerr":       SeerrIdIdentifier,
 	"wikipedia":       WikipediaIdIdentifier,
+	"gtdbwii":        GTDBWiiIdIdentify,
 }
