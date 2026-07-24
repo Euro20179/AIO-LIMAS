@@ -816,10 +816,10 @@ func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 		SELECT * FROM entryInfo
 		WHERE
 		entryInfo.itemId IN (
-			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid
+			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = %d
 			WHERE
 			%s
-		)`, whereClause)
+		)`, db_types.R_Child, whereClause)
 	rows, err := QueryDB(queryStr, id)
 	if err != nil {
 		return out, err
