@@ -112,39 +112,45 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 	}
 	allRows.Close()
 
-	for _, cur := range out {
+	for id, cur := range out {
+		var copies, children []db_types.InfoEntry
+
+		cur.Copies = []string{}
+		cur.Children = []string{}
+
 		cur.UserInfo, err = GetUserViewEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
-			println("fail")
-			log.ELog(err)
-			continue
+			goto next
 		}
 
 		cur.MetaInfo, err = GetMetadataEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			log.ELog(err)
-			continue
+			goto next
 		}
 
-		children, err := GetChildren(uid, cur.EntryInfo.ItemId)
+		children, err = GetChildren(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			log.ELog(err)
-			continue
+			goto next
 		}
 
 		for _, child := range children {
 			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
 		}
 
-		copies, err := GetCopiesOf(uid, cur.EntryInfo.ItemId)
+		copies, err = GetCopiesOf(uid, cur.EntryInfo.ItemId)
 		if err != nil {
 			log.ELog(err)
-			continue
+			goto next
 		}
 
 		for _, c := range copies {
 			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
 		}
+
+		next:
+		out[id] = cur
 	}
 
 
@@ -802,11 +808,19 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 
 func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	whereClause := "parentId = ?"
-	if uid != 0 {
-		whereClause += " and entryInfo.uid = ?"
+	whereClause := "ei.itemid = ?"
+	if uid > 0 {
+		whereClause += fmt.Sprintf(" AND ei.uid = %d", uid)
 	}
-	rows, err := QueryDB("SELECT * FROM entryInfo where "+whereClause, id, uid)
+	queryStr := fmt.Sprintf(`
+		SELECT * FROM entryInfo
+		WHERE
+		entryInfo.itemId IN (
+			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid
+			WHERE
+			%s
+		)`, whereClause)
+	rows, err := QueryDB(queryStr, id)
 	if err != nil {
 		return out, err
 	}
