@@ -89,10 +89,10 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 
 	whereClause := ""
 	if uid != 0 {
-		whereClause = "WHERE entryInfo.uid = ?"
+		whereClause = fmt.Sprintf("WHERE entryInfo.uid = %d", uid)
 	}
 
-	allRows, err := QueryDB(`SELECT * FROM entryInfo `, whereClause, uid)
+	allRows, err := QueryDB(`SELECT * FROM entryInfo ` + whereClause)
 	if err != nil {
 		log.ELog(err)
 		return out, err
