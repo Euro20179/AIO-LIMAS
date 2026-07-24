@@ -129,7 +129,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 			goto next
 		}
 
-		children, err = GetChildren(uid, cur.EntryInfo.ItemId)
+		children, err = GetRelation(uid, cur.EntryInfo.ItemId, db_types.R_Child)
 		if err != nil {
 			log.ELog(err)
 			goto next
@@ -780,16 +780,7 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 }
 
 func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
-	var out []db_types.InfoEntry
-	whereClause := "copyOf = ?"
-	if uid != 0 {
-		whereClause += " and entryInfo.uid = ?"
-	}
-	rows, err := QueryDB("SELECT * FROM entryInfo WHERE "+whereClause, id, uid)
-	if err != nil {
-		return out, err
-	}
-	return mkRows(rows)
+	return GetRelation(uid, id, db_types.R_Copy)
 }
 
 func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
@@ -806,7 +797,7 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
+func GetRelation(uid int64, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 	whereClause := "ei.itemid = ?"
 	if uid > 0 {
@@ -819,7 +810,7 @@ func GetChildren(uid int64, id int64) ([]db_types.InfoEntry, error) {
 			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = %d
 			WHERE
 			%s
-		)`, db_types.R_Child, whereClause)
+		)`, relation, whereClause)
 	rows, err := QueryDB(queryStr, id)
 	if err != nil {
 		return out, err
@@ -1104,7 +1095,7 @@ func getDescendants(uid int64, id int64, recurse uint64, maxRecurse uint64) ([]d
 		return out, nil
 	}
 
-	children, err := GetChildren(uid, id)
+	children, err := GetRelation(uid, id, db_types.R_Child)
 	if err != nil {
 		return out, err
 	}
