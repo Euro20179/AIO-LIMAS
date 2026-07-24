@@ -11,16 +11,20 @@ import (
 func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 	// if the user sets this var, make all endpoints behind authorization
 	for _, endPoint := range endPoints {
-		http.HandleFunc(root+"/"+endPoint.EndPoint, func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			mthd := string(endPoint.Method)
-			if mthd == "" {
-				mthd = "GET"
-			}
-			w.Header().Set("Access-Control-Allow-Methods", mthd)
-			w.Header().Set("Access-Control-Allow-Headers", "Authorization")
-			endPoint.Listener(w, r)
-		})
+		names := []string{endPoint.EndPoint}
+		names = append(names, endPoint.Aliases...)
+		for _, name := range names {
+			http.HandleFunc(root + "/" + name, func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+				mthd := string(endPoint.Method)
+				if mthd == "" {
+					mthd = "GET"
+				}
+				w.Header().Set("Access-Control-Allow-Methods", mthd)
+				w.Header().Set("Access-Control-Allow-Headers", "Authorization")
+				endPoint.Listener(w, r)
+			})
+		}
 	}
 }
 
@@ -33,247 +37,12 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
-		Handler:     AddTags,
-		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
-		EndPoint:    "add-tags",
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
-				return in
-			}), true),
-		},
-	},
-
-	{
-		Handler:     DeleteTags,
-		Description: "Delets tag(s) from an entry, tags must be an \\x1F (ascii unit separator) separated list",
-		EndPoint:    "delete-tags",
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
-				return in
-			}), true),
-		},
-	},
-
-	{
 		Method: POST,
 		Handler: HookRadarr,
 		QueryParams: QueryParams {},
 		Description: "Handles radar webhook requests",
 		Returns: "InfoEntry",
 		EndPoint: "hook-radarr",
-	},
-
-	{
-		Handler: AddEntry,
-		QueryParams: QueryParams{
-			"title":             MkQueryInfo(P_NotEmpty, true),
-			"type":              MkQueryInfo(P_EntryType, true),
-			"format":            MkQueryInfo(P_EntryFormat, true),
-			"timezone":          MkQueryInfo(P_NotEmpty, false),
-			"price":             MkQueryInfo(P_Float64, false),
-			"currency":          MkQueryInfo(P_NotEmpty, false),
-			"is-digital":        MkQueryInfo(P_Bool, false),
-			"is-anime":          MkQueryInfo(P_Bool, false),
-			"art-style":         MkQueryInfo(P_ArtStyle, false),
-			"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"copyOf":            MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"native-title":      MkQueryInfo(P_True, false),
-			"tags":              MkQueryInfo(P_True, false),
-			"location":          MkQueryInfo(P_True, false),
-			"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
-			"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
-			"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
-			"user-rating":       MkQueryInfo(P_Float64, false),
-			"user-status":       MkQueryInfo(P_UserStatus, false),
-			"user-view-count":   MkQueryInfo(P_Int64, false),
-			"user-notes":        MkQueryInfo(P_True, false),
-			"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"recommended-by":    MkQueryInfo(P_NotEmpty, false),
-		},
-		Description: "Adds a new entry, and registers an Add event",
-		Returns:     "InfoEntry",
-		EndPoint:    "add-entry",
-	},
-
-	{
-		EndPoint:     "list-tree",
-		Handler:      GetTree,
-		QueryParams:  QueryParams{},
-		Description:  "Gets a tree-like json structure of all entries",
-		Returns:      "InfoEntry",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint: "mod-entry",
-		Handler:  ModEntry,
-		QueryParams: QueryParams{
-			"id":              MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"en-title":        MkQueryInfo(P_NotEmpty, false),
-			"native-title":    MkQueryInfo(P_True, false),
-			"format":          MkQueryInfo(P_EntryFormat, false),
-			"parent-id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"become-orphan":   MkQueryInfo(P_Bool, false),
-			"become-original": MkQueryInfo(P_Bool, false),
-			"copy-id":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"price":           MkQueryInfo(P_Float64, false),
-			"location":        MkQueryInfo(P_True, false),
-			"tags":            MkQueryInfo(P_True, false),
-			// "is-anime":        MkQueryInfo(P_Bool, false),
-			"art-style": MkQueryInfo(P_ArtStyle, false),
-			"type":      MkQueryInfo(P_EntryType, false),
-		},
-		Description: "Modifies an individual entry datapoint",
-	},
-
-	{
-		EndPoint: "del-child",
-		Handler: DelChild,
-		QueryParams: QueryParams{
-			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Removes child as a child of parent",
-	},
-
-	{
-		EndPoint: "del-copy",
-		Handler: DelCopy,
-		QueryParams: QueryParams{
-			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Makes copy not a copy of copyof anymore, goes both directions",
-	},
-
-	{
-		EndPoint: "del-requires",
-		Handler: DelRequires,
-		QueryParams: QueryParams{
-			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Removes requires as a requirement of itemid",
-	},
-
-
-	{
-		EndPoint: "add-child",
-		Handler: AddChild,
-		QueryParams: QueryParams{
-			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Adds child as a child of parent",
-	},
-
-	{
-		EndPoint: "add-copy",
-		Handler: AddCopy,
-		QueryParams: QueryParams{
-			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Makes 2 items copies of each other",
-	},
-
-	{
-		EndPoint: "add-requires",
-		Handler: AddRequires,
-		QueryParams: QueryParams{
-			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Makes itemid require requires as a requirement",
-	},
-
-	{
-		EndPoint:    "set-entry",
-		Handler:     SetEntry,
-		QueryParams: QueryParams{},
-		Method:      POST,
-		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
-	},
-
-	{
-		EndPoint: "list-relations",
-		Handler: ListRelations,
-		Description: "Lists relations of all entries",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint: "list-entries",
-		Handler:  ListEntries,
-		QueryParams: QueryParams{
-			"sort-by": MkQueryInfo(P_SqlSafe, false),
-		},
-		Description:  "List info entries",
-		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint: "stream-entry",
-		Handler:  Stream,
-		QueryParams: QueryParams{
-			"id":      MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"subfile": MkQueryInfo(P_NotEmpty, false),
-		},
-		Description: "Download the file located by the {id}'s location",
-		Returns:     "any",
-	},
-
-	{
-		EndPoint: "delete-entry",
-		Handler:  DeleteEntry,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description: "Deletes an entry",
-	},
-
-	{
-		EndPoint:     "list-collections",
-		Handler:      ListCollections,
-		QueryParams:  QueryParams{},
-		Description:  "Lists en_title of all entries who's type is Collection",
-		Returns:      "Sep<string, '\\n'>",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint:     "list-libraries",
-		Handler:      ListLibraries,
-		QueryParams:  QueryParams{},
-		Description:  "Lists ids of all entries who's type is Library",
-		Returns:      "Sep<string, '\\n'>",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint: "list-copies",
-		Handler:  GetCopies,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description:  "Lists copies of an entry",
-		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
-	},
-
-	{
-		EndPoint: "list-descendants",
-		Handler:  GetDescendants,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-		},
-		Description:  "Lists children of an entry",
-		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -325,8 +94,268 @@ var mainEndpointList = []ApiEndPoint{
 		UserIndependant: true,
 	},
 
+	// tag/ {{{
 	{
-		EndPoint: "recommenders",
+		Handler:     AddTags,
+		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
+		Aliases:    []string{"add-tags"},
+		EndPoint: "tag/add",
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
+				return in
+			}), true),
+		},
+	},
+
+	{
+		Handler:     DeleteTags,
+		Description: "Delets tag(s) from an entry, tags must be an \\x1F (ascii unit separator) separated list",
+		Aliases:    []string{"delete-tags"},
+		EndPoint: "tag/delete",
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
+				return in
+			}), true),
+		},
+	},
+	// }}}
+
+	// entry/ {{{
+	{
+		Handler: AddEntry,
+		QueryParams: QueryParams{
+			"title":             MkQueryInfo(P_NotEmpty, true),
+			"type":              MkQueryInfo(P_EntryType, true),
+			"format":            MkQueryInfo(P_EntryFormat, true),
+			"timezone":          MkQueryInfo(P_NotEmpty, false),
+			"price":             MkQueryInfo(P_Float64, false),
+			"currency":          MkQueryInfo(P_NotEmpty, false),
+			"is-digital":        MkQueryInfo(P_Bool, false),
+			"is-anime":          MkQueryInfo(P_Bool, false),
+			"art-style":         MkQueryInfo(P_ArtStyle, false),
+			"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"copyOf":            MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"native-title":      MkQueryInfo(P_True, false),
+			"tags":              MkQueryInfo(P_True, false),
+			"location":          MkQueryInfo(P_True, false),
+			"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
+			"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
+			"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
+			"user-rating":       MkQueryInfo(P_Float64, false),
+			"user-status":       MkQueryInfo(P_UserStatus, false),
+			"user-view-count":   MkQueryInfo(P_Int64, false),
+			"user-notes":        MkQueryInfo(P_True, false),
+			"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"recommended-by":    MkQueryInfo(P_NotEmpty, false),
+		},
+		Description: "Adds a new entry, and registers an Add event",
+		Returns:     "InfoEntry",
+		Aliases:    []string{"add-entry"},
+		EndPoint: "entry/add",
+	},
+
+	{
+		Aliases: []string{"delete-entry"},
+		EndPoint: "entry/delete",
+		Handler:  DeleteEntry,
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Deletes an entry",
+	},
+
+	{
+		Aliases:     []string{"list-tree"},
+		EndPoint: "entry/tree",
+		Handler:      GetTree,
+		QueryParams:  QueryParams{},
+		Description:  "Gets a tree-like json structure of all entries",
+		Returns:      "InfoEntry",
+		GuestAllowed: true,
+	},
+
+	{
+		EndPoint: "entry/mod",
+		Aliases: []string{"mod-entry"},
+		Handler:  ModEntry,
+		QueryParams: QueryParams{
+			"id":              MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"en-title":        MkQueryInfo(P_NotEmpty, false),
+			"native-title":    MkQueryInfo(P_True, false),
+			"format":          MkQueryInfo(P_EntryFormat, false),
+			"parent-id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"become-orphan":   MkQueryInfo(P_Bool, false),
+			"become-original": MkQueryInfo(P_Bool, false),
+			"copy-id":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			"price":           MkQueryInfo(P_Float64, false),
+			"location":        MkQueryInfo(P_True, false),
+			"tags":            MkQueryInfo(P_True, false),
+			// "is-anime":        MkQueryInfo(P_Bool, false),
+			"art-style": MkQueryInfo(P_ArtStyle, false),
+			"type":      MkQueryInfo(P_EntryType, false),
+		},
+		Description: "Modifies an individual entry datapoint",
+	},
+
+	{
+		EndPoint: "entry/set",
+		Aliases:    []string{"set-entry"},
+		Handler:     SetEntry,
+		QueryParams: QueryParams{},
+		Method:      POST,
+		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
+	},
+
+	{
+		EndPoint: "entry/list",
+		Aliases: []string{"list-entries"},
+		Handler:  ListEntries,
+		QueryParams: QueryParams{
+			"sort-by": MkQueryInfo(P_SqlSafe, false),
+		},
+		Description:  "List info entries",
+		Returns:      "JSONL<InfoEntry>",
+		GuestAllowed: true,
+	},
+
+
+	{
+		Aliases: []string{"add-child"},
+		EndPoint: "entry/child/add",
+		Handler: AddChild,
+		QueryParams: QueryParams{
+			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Adds child as a child of parent",
+	},
+
+	{
+		Aliases: []string{"del-child"},
+		EndPoint: "entry/child/delete",
+		Handler: DelChild,
+		QueryParams: QueryParams{
+			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Removes child as a child of parent",
+	},
+
+	{
+		Aliases: []string{"list-descendants"},
+		EndPoint: "entry/child/list",
+		Handler:  GetDescendants,
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description:  "Lists children of an entry",
+		Returns:      "JSONL<InfoEntry>",
+		GuestAllowed: true,
+	},
+
+	{
+		Aliases: []string{"add-copy"},
+		EndPoint: "entry/copy/add",
+		Handler: AddCopy,
+		QueryParams: QueryParams{
+			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes 2 items copies of each other",
+	},
+
+	{
+		Aliases: []string{"del-copy"},
+		EndPoint: "entry/copy/delete",
+		Handler: DelCopy,
+		QueryParams: QueryParams{
+			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes copy not a copy of copyof anymore, goes both directions",
+	},
+
+	{
+		Aliases: []string{"list-copies"},
+		EndPoint: "entry/copy/list",
+		Handler:  GetCopies,
+		QueryParams: QueryParams{
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description:  "Lists copies of an entry",
+		Returns:      "JSONL<InfoEntry>",
+		GuestAllowed: true,
+	},
+
+	{
+		Aliases: []string{"del-requires"},
+		EndPoint: "entry/requirement/delete",
+		Handler: DelRequires,
+		QueryParams: QueryParams{
+			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Removes requires as a requirement of itemid",
+	},
+
+
+	{
+		Aliases: []string{"add-requires"},
+		EndPoint: "entry/requirement/add",
+		Handler: AddRequires,
+		QueryParams: QueryParams{
+			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Makes itemid require requires as a requirement",
+	},
+
+	{
+		Aliases: []string{"list-relations"},
+		EndPoint: "entry/relation/list",
+		Handler: ListRelations,
+		Description: "Lists relations of all entries",
+		GuestAllowed: true,
+	},
+
+	{
+		Aliases: []string{"stream-entry"},
+		EndPoint: "entry/stream",
+		Handler:  Stream,
+		QueryParams: QueryParams{
+			"id":      MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"subfile": MkQueryInfo(P_NotEmpty, false),
+		},
+		Description: "Download the file located by the {id}'s location",
+		Returns:     "any",
+	},
+
+	{
+		Aliases:     []string{"list-collections"},
+		EndPoint:     "entry/collection/list",
+		Handler:      ListCollections,
+		QueryParams:  QueryParams{},
+		Description:  "Lists en_title of all entries who's type is Collection",
+		Returns:      "Sep<string, '\\n'>",
+		GuestAllowed: true,
+	},
+
+	{
+		Aliases:      []string{"list-libraries"},
+		EndPoint:     "entry/library/list",
+		Handler:      ListLibraries,
+		QueryParams:  QueryParams{},
+		Description:  "Lists ids of all entries who's type is Library",
+		Returns:      "Sep<string, '\\n'>",
+		GuestAllowed: true,
+	},
+
+	{
+		Aliases: []string{"recommenders"},
+		EndPoint: "entry/recommender/list",
 		Handler: GetRecommenders,
 		QueryParams: QueryParams {},
 		Description: "Gets a list of all recommenders",
@@ -334,6 +363,7 @@ var mainEndpointList = []ApiEndPoint{
 		GuestAllowed: true,
 		UserIndependant: false,
 	},
+	// }}}
 } // }}}
 
 // `/metadata` endpoints {{{
@@ -349,7 +379,8 @@ var metadataEndpointList = []ApiEndPoint{
 		Description: "Fetch the location of an entry based on the metadata and other info",
 	},
 	{
-		EndPoint: "identify",
+		Aliases: []string{"identify"},
+		EndPoint: "search",
 		Handler:  IdentifyWithSearch,
 		QueryParams: QueryParams{
 			"title":    MkQueryInfo(P_NotEmpty, true),
@@ -362,7 +393,8 @@ when using finalize-identify`,
 	},
 
 	{
-		EndPoint: "finalize-identify",
+		Aliases: []string{"finalize-identify"},
+		EndPoint: "apply",
 		Handler:  FinalizeIdentification,
 		QueryParams: QueryParams{
 			"identified-id": MkQueryInfo(P_NotEmpty, true),
@@ -374,7 +406,8 @@ when using finalize-identify`,
 	},
 
 	{
-		EndPoint:    "set-entry",
+		Aliases: []string{"set-entry"},
+		EndPoint:    "set",
 		Handler:     SetMetadataEntry,
 		Method:      "POST",
 		QueryParams: QueryParams{},
@@ -396,7 +429,8 @@ when using finalize-identify`,
 	},
 
 	{
-		EndPoint: "retrieve",
+		Aliases: []string{"retrieve"},
+		EndPoint: "get",
 		Handler:  RetrieveMetadataForEntry,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
@@ -407,7 +441,8 @@ when using finalize-identify`,
 	},
 
 	{
-		EndPoint: "mod-entry",
+		Aliases: []string{"mod-entry"},
+		EndPoint: "mod",
 		Handler:  ModMetadataEntry,
 		QueryParams: QueryParams{
 			"id":              MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
@@ -432,7 +467,8 @@ when using finalize-identify`,
 	},
 
 	{
-		EndPoint:     "list-entries",
+		Aliases:     []string{"list-entries"},
+		EndPoint:     "list",
 		Handler:      ListMetadata,
 		QueryParams:  QueryParams{},
 		Description:  "Lists all metadata entries",

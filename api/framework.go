@@ -68,6 +68,7 @@ const (
 type ApiEndPoint struct {
 	Handler        func(ctx RequestContext)
 	EndPoint       string
+	Aliases       []string
 	QueryParams    QueryParams
 	Method         Method
 	Description    string
