@@ -98,7 +98,6 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 		return out, err
 	}
 
-	defer allRows.Close()
 
 	for allRows.Next() {
 		var cur db_types.EntryTree
@@ -108,8 +107,15 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 			log.ELog(err)
 			continue
 		}
+
+		out[cur.EntryInfo.ItemId] = cur
+	}
+	allRows.Close()
+
+	for _, cur := range out {
 		cur.UserInfo, err = GetUserViewEntryById(uid, cur.EntryInfo.ItemId)
 		if err != nil {
+			println("fail")
 			log.ELog(err)
 			continue
 		}
@@ -139,9 +145,8 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 		for _, c := range copies {
 			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
 		}
-
-		out[cur.EntryInfo.ItemId] = cur
 	}
+
 
 	return out, nil
 }
