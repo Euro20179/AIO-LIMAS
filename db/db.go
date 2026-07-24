@@ -664,7 +664,7 @@ func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 			log.ELog(err)
 			return out, err
 		}
-		fullQuery += safeOrderBy
+		fullQuery += " " + safeOrderBy
 		log.Info("god order by %s", safeOrderBy)
 	}
 
