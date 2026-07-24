@@ -196,6 +196,8 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"seerr":       SeerrIdentifier,
 	"wikipedia":   WikipediaIdentifier,
 	"gtdbwii":   GTDBWiiIdentify,
+	"gtdbgamecube":        GTDBGameCubeIdentify,
+	"gtdbcustom":        GTDBCustomIdentify,
 	"gtdbswitch":   GTDBSwitchIdentify,
 	"gtdbds":   GTDBDSIdentify,
 }
@@ -224,6 +226,8 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"seerr":       SeerrIdIdentifier,
 	"wikipedia":       WikipediaIdIdentifier,
 	"gtdbwii":        GTDBWiiIdIdentify,
+	"gtdbgamecube":        GTDBGameCubeIdIdentify,
+	"gtdbcustom":        GTDBCustomIdIdentify,
 	"gtdbswitch":   GTDBSwitchIdIdentify,
 	"gtdbds":   GTDBDSIdIdentify,
 }

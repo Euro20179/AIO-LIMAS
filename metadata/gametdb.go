@@ -91,6 +91,12 @@ var formatDB = map[string]map[string]GTDBGame{}
 format can be "wii" | "switch"
 */
 func gtdbLoad(format string) error {
+	pathFmt := format
+
+	if format == "gamecube" || format == "custom"{
+		pathFmt = "wii"
+	}
+
 	if slices.Contains(formatsLoaded, format){
 		return nil
 	}
@@ -130,171 +136,174 @@ func gtdbLoad(format string) error {
 		return err
 	}
 
-	gtdbFolder := os.Getenv("GTDB_ROOT")
-	if _, err := os.Stat(gtdbFolder); err != nil {
-		logging.ELog(err)
-		return err
-	}
 
-	fullPath := fmt.Sprintf("%s/%s", gtdbFolder, format)
-
-	if _, err := os.Stat(fullPath + ".txt"); err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	ftxt, err := os.Open(fullPath + ".txt")
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	txtData, err := io.ReadAll(ftxt)
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	tx, err := gtdbMEM.Begin()
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	for _, line := range strings.Split(string(txtData), "\n") {
-		if strings.HasPrefix(line, "TITLES") {
-			continue
-		}
-
-		info := strings.SplitN(line, " = ", 2)
-		if len(info) == 1 {
-			continue
-		}
-		id := info[0]
-		nativeName := info[1]
-		if _, err = tx.Exec(`INSERT INTO games (native_name, id) VALUES (?, ?);`, nativeName, id); err != nil {
-			tx.Rollback()
+	if !slices.Contains(formatsLoaded, pathFmt){
+		gtdbFolder := os.Getenv("GTDB_ROOT")
+		if _, err := os.Stat(gtdbFolder); err != nil {
 			logging.ELog(err)
 			return err
 		}
-	}
 
-	if err = tx.Commit(); err != nil {
-		logging.ELog(err)
-		return err
-	}
+		fullPath := fmt.Sprintf("%s/%s", gtdbFolder, pathFmt)
 
-	fxml, err := os.Open(fullPath + ".xml")
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	xmlData, err := io.ReadAll(fxml)
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	df := Datafile{}
-
-	err = xml.Unmarshal(xmlData, &df)
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	tx, err = gtdbMEM.Begin()
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	formatDB[format] = map[string]GTDBGame{}
-	for _, game := range df.Games {
-		if game.Type == "" {
-			game.Type = "Wii"
+		if _, err := os.Stat(fullPath + ".txt"); err != nil {
+			logging.ELog(err)
+			return err
 		}
 
-		langs := strings.Split(game.Languages, ",")
-		genres := strings.Split(game.Genre, ",")
+		ftxt, err := os.Open(fullPath + ".txt")
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
 
-		genresJSON, _ := json.Marshal(genres)
-		langsJSON, _ := json.Marshal(langs)
+		txtData, err := io.ReadAll(ftxt)
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
 
-		tx.Exec(
-			`UPDATE games SET
-				name = ?,
-				region = ?,
-				languages = ?,
-				developer = ?,
-				publisher = ?,
-				year = ?,
-				month = ?,
-				day = ?,
-				genres = ?,
-				format = ?
-			WHERE id = ?`,
-			game.Name,
-			game.Region,
-			langsJSON,
-			game.Developer,
-			game.Publisher,
-			game.Date.Year,
-			game.Date.Month,
-			game.Date.Day,
-			genresJSON,
-			format,
-			game.Id,
-		)
+		tx, err := gtdbMEM.Begin()
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
 
-		for _, locale := range game.Locales {
-			tx.Exec(`INSERT INTO locales (gameID, lang, title, synopsis) VALUES (?, ?, ?, ?);`,
+		for _, line := range strings.Split(string(txtData), "\n") {
+			if strings.HasPrefix(line, "TITLES") {
+				continue
+			}
+
+			info := strings.SplitN(line, " = ", 2)
+			if len(info) == 1 {
+				continue
+			}
+			id := info[0]
+			nativeName := info[1]
+			if _, err = tx.Exec(`INSERT INTO games (native_name, id) VALUES (?, ?);`, nativeName, id); err != nil {
+				tx.Rollback()
+				logging.ELog(err)
+				return err
+			}
+		}
+
+		if err = tx.Commit(); err != nil {
+			logging.ELog(err)
+			return err
+		}
+
+		fxml, err := os.Open(fullPath + ".xml")
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
+
+		xmlData, err := io.ReadAll(fxml)
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
+
+		df := Datafile{}
+
+		err = xml.Unmarshal(xmlData, &df)
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
+
+		tx, err = gtdbMEM.Begin()
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
+
+		formatDB[format] = map[string]GTDBGame{}
+		for _, game := range df.Games {
+			if game.Type == "" {
+				game.Type = "Wii"
+			}
+
+			langs := strings.Split(game.Languages, ",")
+			genres := strings.Split(game.Genre, ",")
+
+			genresJSON, _ := json.Marshal(genres)
+			langsJSON, _ := json.Marshal(langs)
+
+			tx.Exec(
+				`UPDATE games SET
+					name = ?,
+					region = ?,
+					languages = ?,
+					developer = ?,
+					publisher = ?,
+					year = ?,
+					month = ?,
+					day = ?,
+					genres = ?,
+					format = ?
+				WHERE id = ?`,
+				game.Name,
+				game.Region,
+				langsJSON,
+				game.Developer,
+				game.Publisher,
+				game.Date.Year,
+				game.Date.Month,
+				game.Date.Day,
+				genresJSON,
+				strings.ToLower(game.Type),
 				game.Id,
-				locale.Lang,
-				locale.Title,
-				locale.Synopsis,
 			)
-		}
 
-		if game.Rating.Rating != "" {
-			tx.Exec(`INSERT INTO ratings (gameId, agency, rating) VALUES (?, ?, ?)`,
+			for _, locale := range game.Locales {
+				tx.Exec(`INSERT INTO locales (gameID, lang, title, synopsis) VALUES (?, ?, ?, ?);`,
 					game.Id,
-					game.Rating.Agency,
-					game.Rating.Rating)
+					locale.Lang,
+					locale.Title,
+					locale.Synopsis,
+				)
+			}
+
+			if game.Rating.Rating != "" {
+				tx.Exec(`INSERT INTO ratings (gameId, agency, rating) VALUES (?, ?, ?)`,
+						game.Id,
+						game.Rating.Agency,
+						game.Rating.Rating)
+			}
+
+			if game.RatingESRB.Rating != "" {
+				descriptors := strings.Join(game.RatingESRB.Descriptor, ", ")
+				tx.Exec(`INSERT INTO ratings (gameId, agency, rating, descriptors) VALUES (?, ?, ?, ?)`,
+						game.Id,
+						"ESRB",
+						game.RatingESRB.Rating,
+						descriptors)
+			}
+
+			if game.RatingPEGI.Rating != "" {
+				descriptors := strings.Join(game.RatingPEGI.Descriptor, ", ")
+				tx.Exec(`INSERT INTO ratings (gameId, agency, rating, descriptors) VALUES (?, ?, ?, ?)`,
+						game.Id,
+						"PEGI",
+						game.RatingESRB.Rating,
+						descriptors)
+			}
 		}
 
-		if game.RatingESRB.Rating != "" {
-			descriptors := strings.Join(game.RatingESRB.Descriptor, ", ")
-			tx.Exec(`INSERT INTO ratings (gameId, agency, rating, descriptors) VALUES (?, ?, ?, ?)`,
-					game.Id,
-					"ESRB",
-					game.RatingESRB.Rating,
-					descriptors)
+		err = tx.Commit()
+		if err != nil {
+			logging.ELog(err)
+			return err
 		}
-
-		if game.RatingPEGI.Rating != "" {
-			descriptors := strings.Join(game.RatingPEGI.Descriptor, ", ")
-			tx.Exec(`INSERT INTO ratings (gameId, agency, rating, descriptors) VALUES (?, ?, ?, ?)`,
-					game.Id,
-					"PEGI",
-					game.RatingESRB.Rating,
-					descriptors)
-		}
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		logging.ELog(err)
-		return err
 	}
 
 	_, err = gtdbMEM.Exec(fmt.Sprintf(`
 		CREATE VIRTUAL TABLE IF NOT EXISTS %sSearch USING fts4(rowid, name, native_name);
 
 		INSERT INTO %sSearch(rowid, name, native_name)
-		SELECT id, name, native_name FROM games;
-	`, format, format))
+		SELECT id, name, native_name FROM games WHERE format = ?;
+	`, format, format), format)
 
 	if err != nil {
 		logging.ELog(err)
@@ -363,7 +372,10 @@ func gtdbApply(game GTDBGame, out *db_types.MetadataEntry, format string) {
 	out.ReleaseYear = y
 	out.ProviderID = game.Id
 	ext := "jpg"
-	if format == "wii" {
+	if format == "gamecube" || format == "custom" {
+		format = "wii"
+	}
+	if format == "wii"{
 		ext = "png"
 	}
 	out.Thumbnail = fmt.Sprintf("https://art.gametdb.com/%s/cover/US/%s.%s", format, game.Id, ext)
@@ -429,13 +441,18 @@ func gtdbIdentify(format string, iinfo IdentifyMetadata) ([]db_types.MetadataEnt
 		LEFT JOIN locales as l
 			ON g.id = l.gameID
 		WHERE %sSearch MATCH ?
-			AND g.format LIKE ?`,
+			AND g.format = ?`,
 		format,
 		format,
 		format,
 	), iinfo.Title, format)
 
 	if err != nil {
+		logging.ELog(err)
+		return out, err
+	}
+
+	if err = rows.Err(); err != nil {
 		logging.ELog(err)
 		return out, err
 	}
@@ -501,4 +518,20 @@ func GTDBDSIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEnt
 
 func GTDBDSIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return gtdbIdentify("ds", iinfo)
+}
+
+func GTDBGameCubeIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	return gtdbIdIdentify("gamecube", id)
+}
+
+func GTDBGameCubeIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	return gtdbIdentify("gamecube", iinfo)
+}
+
+func GTDBCustomIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	return gtdbIdentify("custom", iinfo)
+}
+
+func GTDBCustomIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	return gtdbIdIdentify("custom", id)
 }
