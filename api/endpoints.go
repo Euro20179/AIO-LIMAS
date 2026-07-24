@@ -94,12 +94,12 @@ var mainEndpointList = []ApiEndPoint{
 		UserIndependant: true,
 	},
 
-	// tag/ {{{
+	// entry/ {{{
 	{
 		Handler:     AddTags,
 		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		Aliases:    []string{"add-tags"},
-		EndPoint: "tag/add",
+		EndPoint: "entry/tag/add",
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
@@ -112,7 +112,7 @@ var mainEndpointList = []ApiEndPoint{
 		Handler:     DeleteTags,
 		Description: "Delets tag(s) from an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		Aliases:    []string{"delete-tags"},
-		EndPoint: "tag/delete",
+		EndPoint: "entry/tag/delete",
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
@@ -120,9 +120,7 @@ var mainEndpointList = []ApiEndPoint{
 			}), true),
 		},
 	},
-	// }}}
 
-	// entry/ {{{
 	{
 		Handler: AddEntry,
 		QueryParams: QueryParams{
