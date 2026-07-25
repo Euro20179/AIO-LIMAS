@@ -1,8 +1,4 @@
-CREATE TABLE IF NOT EXISTS DBInfo (
-    version INTEGER DEFAULT 0
-);
-
-INSERT INTO DBInfo (version) VALUES (12);
+PRAGMA user_version = 15;
 
 CREATE TABLE IF NOT EXISTS entryInfo (
     uid INTEGER,
@@ -11,12 +7,12 @@ CREATE TABLE IF NOT EXISTS entryInfo (
     native_title TEXT,
     format INTEGER,
     location TEXT,
-    purchasePrice NUMERIC,
     collection TEXT,
     type TEXT,
     artStyle INTEGER,
     library INTEGER,
-    recommendedBy TEXT
+    recommendedBy TEXT,
+    priority INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS metadata (
@@ -65,3 +61,12 @@ CREATE TABLE IF NOT EXISTS relations (
     relation INTEGER,
     right INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS transactions (
+    uid INTEGER NOT NULL,
+    itemId INTEGER NOT NULL,
+    eventId INTEGER NOT NULL DEFAULT 0,
+    price NUMBER,
+    currency STRING
+);
+

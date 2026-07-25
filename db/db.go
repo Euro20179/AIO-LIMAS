@@ -17,7 +17,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 14
+const DB_VERSION = 15
 
 var DB *sql.DB
 
@@ -33,9 +33,7 @@ func OpenUserDb() (*sql.DB, error) {
 }
 
 func CkDBVersion() error {
-	DB.Exec("CREATE TABLE IF NOT EXISTS DBInfo (version INTEGER DEFAULT 0)")
-
-	v, err := DB.Query("SELECT version FROM DBInfo")
+	v, err := DB.Query("PRAGMA user_version")
 	if err != nil {
 		return err
 	}
