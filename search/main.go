@@ -458,7 +458,7 @@ func (self MacroNode) ToString() (string, error) {
 			reqFmt := strings.ToUpper(macro[2:])
 			if strings.Contains(macro, "+d") {
 				reqFmt = reqFmt[0:len(reqFmt) - 2]
-				return comp("Format", reqFmt) + " or format_modifiers & 1 = 1", nil
+				return comp("Format", fmt.Sprintf("%d", formats[reqFmt])) + " and format_modifiers & 1 = 1", nil
 			}
 
 			if strings.Contains(macro, "-d") {
