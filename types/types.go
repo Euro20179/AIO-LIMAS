@@ -365,7 +365,7 @@ type InfoEntry struct {
 	Library       int64
 	RecommendedBy string
 	Priority int64
-	FormatModifiers uint64
+	Format_Modifiers uint64
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
@@ -401,7 +401,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Library,
 		&self.RecommendedBy,
 		&self.Priority,
-		&self.FormatModifiers,
+		&self.Format_Modifiers,
 	)
 	if err != nil {
 		return err

@@ -583,7 +583,7 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
-	entryInfo.FormatModifiers = uint64(format_modifiers)
+	entryInfo.Format_Modifiers = uint64(format_modifiers)
 
 	recommendedList := parsedParams.Get("recommended-by", "").(string)
 	if recommendedList != "" {
