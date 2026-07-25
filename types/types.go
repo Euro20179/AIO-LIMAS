@@ -117,7 +117,7 @@ const (
 	F_OTHER      Format = iota // 13
 	F_VINYL      Format = iota // 14
 	F_IMAGE      Format = iota // 15
-	F_UNOWNED    Format = iota // 16
+	F_RESERVED    Format = iota // 16
 	F_THEATER    Format = iota // 17
 	F_WII Format = iota // 18
 	F_NIN_DS Format = iota // 19
@@ -170,7 +170,6 @@ func ListFormats() map[Format]string {
 		F_OTHER:       "OTHER",
 		F_VINYL:       "VINYL",
 		F_IMAGE:       "IMAGE",
-		F_UNOWNED:     "UNOWNED",
 		F_THEATER:     "THEATER",
 	}
 }

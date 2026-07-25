@@ -17,7 +17,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 16
+const DB_VERSION = 17
 
 var DB *sql.DB
 
