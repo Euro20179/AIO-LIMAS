@@ -17,7 +17,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 15
+const DB_VERSION = 16
 
 var DB *sql.DB
 
@@ -66,6 +66,12 @@ func CkDBVersion() error {
 
 		_, err = DB.Exec(string(schema))
 		if err != nil {
+			return err
+		}
+
+		_, err = DB.Exec(fmt.Sprintf("PRAGMA user_version = %d", i + 1))
+		if err != nil {
+			logging.ELog(err)
 			return err
 		}
 	}

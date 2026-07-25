@@ -97,13 +97,7 @@ func ListStatuses() []Status {
 }
 
 type Format uint32
-
-// the digital modifier can be applied to any format
-
-// This way the user has 2 options, they can say either that the item is F_DIGITAL
-// or they can be more specific and say it's F_VHS that's been digitized with F_MOD_DIGITAL
-// another use case is for console versions, eg: F_NIN_SWITCH refers to the cartridge,
-// but F_NIN_SWITCH & F_MOD_DIGITAL would be the store version
+type FormatMod uint64
 
 // F_DIGITAL & F_MOD_DIGITAL has undefined meaning
 const (
@@ -136,7 +130,16 @@ const (
 	F_EPIC Format = iota //26
 	F_GAMECUBE Format = iota //27
 
-	F_MOD_DIGITAL Format = 0x1000
+)
+
+// the digital modifier can be applied to any format
+
+// This way the user has 2 options, they can say either that the item is F_DIGITAL
+// or they can be more specific and say it's F_VHS that's been digitized with F_MOD_DIGITAL
+// another use case is for console versions, eg: F_NIN_SWITCH refers to the cartridge,
+// but F_NIN_SWITCH & F_MOD_DIGITAL would be the store version
+const (
+	F_MOD_DIGITAL FormatMod = 0b1 << 0;
 )
 
 func ListFormats() map[Format]string {
@@ -169,22 +172,10 @@ func ListFormats() map[Format]string {
 		F_IMAGE:       "IMAGE",
 		F_UNOWNED:     "UNOWNED",
 		F_THEATER:     "THEATER",
-		F_MOD_DIGITAL: "MOD_DIGITAL",
 	}
 }
 
-func (self *Format) MkDigital() Format {
-	return *self | F_MOD_DIGITAL
-}
-
-func (self *Format) MkUnDigital() Format {
-	if self.IsDigital() {
-		return *self - F_MOD_DIGITAL
-	}
-	return *self
-}
-
-func (self *Format) IsDigital() bool {
+func (self *FormatMod) IsDigital() bool {
 	return (*self & F_MOD_DIGITAL) == 1
 }
 
@@ -375,6 +366,7 @@ type InfoEntry struct {
 	Library       int64
 	RecommendedBy string
 	Priority int64
+	FormatModifiers uint64
 
 	// RUNTIME VALUES (not stored in database), see self.ReadEntry
 	Tags []string `runtime:"true"`
@@ -410,6 +402,7 @@ func (self *InfoEntry) ReadEntry(rows *sql.Rows) error {
 		&self.Library,
 		&self.RecommendedBy,
 		&self.Priority,
+		&self.FormatModifiers,
 	)
 	if err != nil {
 		return err

@@ -524,10 +524,11 @@ func AddEntry(ctx RequestContext) {
 	priceNum := parsedParams.Get("price", 0.0).(float64)
 
 	formatInt := parsedParams["format"].(db_types.Format)
+	format_modifiers := 0
 
 	if digital, exists := parsedParams["is-digital"]; exists {
 		if digital.(bool) {
-			formatInt |= db_types.F_MOD_DIGITAL
+			format_modifiers = int(db_types.F_MOD_DIGITAL)
 		}
 	}
 
@@ -582,6 +583,7 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
 	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
 	entryInfo.Library = libraryId
+	entryInfo.FormatModifiers = uint64(format_modifiers)
 
 	recommendedList := parsedParams.Get("recommended-by", "").(string)
 	if recommendedList != "" {

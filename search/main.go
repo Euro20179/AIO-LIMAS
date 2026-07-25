@@ -458,22 +458,17 @@ func (self MacroNode) ToString() (string, error) {
 			reqFmt := strings.ToUpper(macro[2:])
 			if strings.Contains(macro, "+d") {
 				reqFmt = reqFmt[0:len(reqFmt) - 2]
-				reqFmt = fmt.Sprintf("%d", formats[reqFmt] | db_types.F_MOD_DIGITAL)
-				return comp("Format", reqFmt), nil
+				return comp("Format", reqFmt) + " or format_modifiers & 1 = 1", nil
 			}
 
 			if strings.Contains(macro, "-d") {
 				reqFmt = reqFmt[0:len(reqFmt) - 2]
-				return comp("Format", fmt.Sprintf("%d", formats[reqFmt])), nil
+				return comp("Format", fmt.Sprintf("%d", formats[reqFmt])) + " and format_modifiers & 1 != 1", nil
 			}
 
 			return "(" + comp(
 							"Format",
 							fmt.Sprintf("%d", formats[reqFmt]),
-						) + " or " +
-						comp(
-							"Format",
-							fmt.Sprintf("%d", formats[reqFmt] | db_types.F_MOD_DIGITAL),
 						) + ")", nil
 		},
 
