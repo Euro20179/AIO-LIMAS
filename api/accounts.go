@@ -106,6 +106,15 @@ func ListUsers(ctx RequestContext) {
 	}
 }
 
+func RenameAccount(ctx RequestContext) {
+	aioPath := os.Getenv("AIO_DIR")
+	if err := accounts.RenameUser(aioPath, ctx.Uid, ctx.PP["new-username"].(string)); err != nil {
+		util.WError(ctx.W, 500, "Failed to change account name: %s\n", err)
+		return
+	}
+	success(ctx.W)
+}
+
 //this endpoint requires the user to be logged in, therefore once we reach here
 //the user IS logged in
 func AuthCk(ctx RequestContext) {

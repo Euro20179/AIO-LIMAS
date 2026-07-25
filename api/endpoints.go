@@ -722,6 +722,16 @@ var AccountEndPoints = []ApiEndPoint{
 		Description: "Delete an account",
 		Handler:     DeleteAccount,
 	},
+
+	{
+		EndPoint: "rename",
+		Description: "change your username",
+		QueryParams: QueryParams{
+			"new-username": MkQueryInfo(P_NotEmpty, true),
+		},
+		Handler: RenameAccount,
+		UserIndependant: true,
+	},
 } // }}}
 
 // `/resource` endpoints {{{

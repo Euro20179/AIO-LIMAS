@@ -47,6 +47,21 @@ func Username2Id(aioPath string, username string) (uint64, error) {
 	return out, nil
 }
 
+func RenameUser(aioPath string, uid int64, newname string) error {
+	dbPath := AccountsDbPath(aioPath)
+	conn, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer conn.Close()
+
+	_, err = conn.Exec("UPDATE accounts SET username = ? WHERE rowid = ?", newname, uid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ListUsers(aioPath string) ([]AccountInfo, error) {
 	dbPath := AccountsDbPath(aioPath)
 	conn, err := sql.Open("sqlite3", dbPath)
