@@ -32,31 +32,25 @@ func OpenUserDb() (*sql.DB, error) {
 	return sql.Open("sqlite3", path+"all.db")
 }
 
-func CkDBVersion() error {
+func CkDBVersion() (int64, error) {
 	v, err := DB.Query("PRAGMA user_version")
 	if err != nil {
-		return err
+		return 0, err
 	}
+	defer v.Close()
 
 	var version int64 = 0
 
-	if !v.Next() {
-		logging.Info("COULD NOT DETERMINE DB VERSION, USING VERSION 0")
-		var cont int64
-		print("type 1 if you are SURE that this is correct: ")
-		fmt.Scanln(&cont)
-		if cont != 1 {
-			panic("Could not determine db veresion")
-		}
-	} else {
-		err = v.Scan(&version)
-		if err != nil {
-			return err
-		}
+	v.Next()
+	err = v.Scan(&version)
+	if err != nil {
+		return 0, err
 	}
-	v.Close()
+	return version, nil
+}
 
-	for i := version; i < DB_VERSION; i++ {
+func UpgradeDB(curversion int64) error {
+	for i := curversion; i < DB_VERSION; i++ {
 		schema, err := os.ReadFile(fmt.Sprintf("./db/schema/v%d-%d.sql", i, i+1))
 		if err != nil {
 			return err
@@ -257,20 +251,29 @@ func InitDb() error {
 
 	sqlite3.Version()
 
-	schema, err := os.ReadFile("./db/schema/schema.sql")
-	if err != nil {
-		return err
-	}
-
-	_, err = conn.Exec(string(schema))
-	if err != nil {
-		logging.ELog(err)
-		return err
-	}
-
-	err = CkDBVersion()
+	v, err := CkDBVersion()
 	if err != nil {
 		panic(err.Error())
+	}
+
+	if v == 0 {
+		schema, err := os.ReadFile("./db/schema/schema.sql")
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Exec(string(schema))
+		if err != nil {
+			logging.ELog(err)
+			return err
+		}
+	}
+	v, err = CkDBVersion()
+	if err != nil {
+		panic(err.Error())
+	}
+	if v != DB_VERSION {
+		UpgradeDB(v)
 	}
 
 	return nil
