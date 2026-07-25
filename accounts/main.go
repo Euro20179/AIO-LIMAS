@@ -36,7 +36,10 @@ func Username2Id(aioPath string, username string) (uint64, error) {
 		return 0, err
 	}
 
-	defer res.Close()
+	if err = res.Err(); err != nil {
+		println(err)
+		return 0, err
+	}
 
 	var out uint64 = 0
 	res.Next()
@@ -44,6 +47,7 @@ func Username2Id(aioPath string, username string) (uint64, error) {
 	if err != nil {
 		println(err.Error())
 	}
+	res.Close()
 	return out, nil
 }
 
@@ -185,6 +189,7 @@ func CkLogin(username string, rawPassword string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer conn.Close()
 
 	rows, err := conn.Query("SELECT rowid, password FROM accounts WHERE username = ?", username)
 	if err != nil {
