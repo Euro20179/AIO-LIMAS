@@ -378,7 +378,14 @@ func gtdbApply(game GTDBGame, out *db_types.MetadataEntry, format string) {
 	if format == "wii"{
 		ext = "png"
 	}
-	out.Thumbnail = fmt.Sprintf("https://art.gametdb.com/%s/cover/US/%s.%s", format, game.Id, ext)
+
+	region := langs[0]
+	// if it's pal it should remain as EN
+	if region == "EN" && game.Region != "PAL" {
+		region = "US"
+	}
+
+	out.Thumbnail = fmt.Sprintf("https://art.gametdb.com/%s/cover/%s/%s.%s", format, region, game.Id, ext)
 }
 
 func gtdbIdIdentify(format string, id string) (db_types.MetadataEntry, error) {
