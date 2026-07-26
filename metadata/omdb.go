@@ -383,7 +383,7 @@ func omdbResultToMetadata(result OMDBResponse) (db_types.MetadataEntry, error) {
 	countries := strings.Split(result.Country, ",")
 	correctCountries := []string{}
 	for _, country := range countries {
-		correctCountries = append(correctCountries, countryNameToCountryCode(country))
+		correctCountries = append(correctCountries, countryNameToCountryCode(strings.Trim(country, " ")))
 	}
 	out.Country = strings.Join(correctCountries, ",")
 
