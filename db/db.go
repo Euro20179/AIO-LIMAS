@@ -1142,7 +1142,11 @@ func DelTags(uid int64, id int64, tags []string) error {
 }
 
 func GetRecommendersList(uid int64) ([]string, error) {
-	rows, err := QueryDB("SELECT DISTINCT json_each.value from entryInfo, json_each(recommendedBy) WHERE recommendedBy != ''")
+	whereClause := "recommendedBy != ''"
+	if uid != 0 {
+		whereClause += fmt.Sprintf(" AND uid = %d", uid)
+	}
+	rows, err := QueryDB("SELECT DISTINCT json_each.value from entryInfo, json_each(recommendedBy) WHERE " + whereClause)
 	if err != nil {
 		return []string{}, err
 	}
