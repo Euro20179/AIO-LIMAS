@@ -542,3 +542,11 @@ func GTDBCustomIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error
 func GTDBCustomIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
 	return gtdbIdIdentify("custom", id)
 }
+
+func GTDBWiiUIdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	return gtdbIdIdentify("wiiu", id)
+}
+
+func GTDBWiiUIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	return gtdbIdentify("wiiu", iinfo)
+}
