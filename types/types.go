@@ -181,10 +181,7 @@ func (self *FormatMod) IsDigital() bool {
 }
 
 func IsValidFormat(format int64) bool {
-	if format&int64(F_MOD_DIGITAL) == int64(F_MOD_DIGITAL) {
-		format -= int64(F_MOD_DIGITAL)
-	}
-	return format >= int64(F_VHS) && format <= int64(F_GAMECUBE)
+	return format >= int64(F_VHS) && format <= int64(F_WII_U)
 }
 
 type MediaTypes string
