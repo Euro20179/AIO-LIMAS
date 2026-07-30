@@ -132,6 +132,7 @@ var mainEndpointList = []ApiEndPoint{
 			"currency":          MkQueryInfo(P_NotEmpty, false),
 			"is-digital":        MkQueryInfo(P_Bool, false),
 			"is-anime":          MkQueryInfo(P_Bool, false),
+			"format-modifiers":  MkQueryInfo(P_Int64, false),
 			"art-style":         MkQueryInfo(P_ArtStyle, false),
 			"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 			"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),

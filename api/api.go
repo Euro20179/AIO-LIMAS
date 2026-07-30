@@ -524,11 +524,15 @@ func AddEntry(ctx RequestContext) {
 	priceNum := parsedParams.Get("price", 0.0).(float64)
 
 	formatInt := parsedParams["format"].(db_types.Format)
-	format_modifiers := 0
+	format_modifiers := int64(0)
+
+	if mods, exists := parsedParams["format-modifiers"]; exists {
+		format_modifiers = mods.(int64)
+	}
 
 	if digital, exists := parsedParams["is-digital"]; exists {
 		if digital.(bool) {
-			format_modifiers = int(db_types.F_MOD_DIGITAL)
+			format_modifiers |= int64(db_types.F_MOD_DIGITAL)
 		}
 	}
 
