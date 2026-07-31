@@ -175,7 +175,7 @@ func GetAllForEntry2(ctx RequestContext) {
 
 	children, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Child)
 	copies, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Copy)
-	requirements, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Requires)
+	requirements, err := db.GetRequires(ctx.Uid, info.ItemId)
 
 	if events == nil {
 		events = []db_types.UserViewingEvent{}

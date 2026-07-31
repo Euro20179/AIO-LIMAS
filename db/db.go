@@ -804,6 +804,27 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
+func GetRequires(uid int64, id int64) ([]db_types.InfoEntry, error) {
+	var out []db_types.InfoEntry
+	whereClause := ""
+	if uid > 0 {
+		whereClause += fmt.Sprintf(" AND entryItem.uid = %d", uid)
+	}
+	queryStr := fmt.Sprintf(`
+		SELECT * FROM entryInfo
+		WHERE
+		itemId IN (
+			SELECT right FROM relations
+			WHERE
+			relation = 2 AND left = ?
+		) %s`, whereClause)
+	rows, err := QueryDB(queryStr, id)
+	if err != nil {
+		return out, err
+	}
+	return mkRows(rows)
+}
+
 func GetRelation(uid int64, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 	whereClause := "ei.itemid = ?"
