@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
-	"slices"
 
 	db "aiolimas/db"
 	"aiolimas/logging"
@@ -149,6 +149,77 @@ func _getAllForEntry(w http.ResponseWriter, uid int64, info db_types.InfoEntry) 
 	writeSQLRowResults(w, events)
 	w.Write([]byte("TRANSACTIONS\n"))
 	writeSQLRowResults(w, trans)
+}
+
+func GetAllForEntry2(ctx RequestContext) {
+	info := ctx.PP["id"].(db_types.InfoEntry)
+	events, err := db.GetEvents(ctx.Uid, info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get events\n%s", err.Error())
+		return
+	}
+
+	user, err := db.GetUserViewEntryById(ctx.Uid, info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get user info\n%s", err.Error())
+		return
+	}
+
+	meta, err := db.GetMetadataEntryById(ctx.Uid, info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get metadata info\n%s", err.Error())
+		return
+	}
+
+	trans, err := db.ListTransactions(ctx.Uid, info.ItemId)
+
+	children, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Child)
+	copies, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Copy)
+	requirements, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Requires)
+
+	if events == nil {
+		events = []db_types.UserViewingEvent{}
+	}
+
+	final := struct {
+		Info db_types.InfoEntry;
+		User db_types.UserViewingEntry;
+		Meta db_types.MetadataEntry;
+		Events []db_types.UserViewingEvent;
+		Transactions []db_types.TransactionEntry;
+		Children []uint64;
+		Copies []uint64;
+		Requirements []uint64;
+	}{
+		Info: info,
+		Meta: meta,
+		User: user,
+		Events: events,
+		Transactions: trans,
+		Copies: []uint64{},
+		Children: []uint64{},
+		Requirements: []uint64{},
+	}
+
+	for _, child := range children {
+		final.Children = append(final.Children, uint64(child.ItemId))
+	}
+
+	for _, copy := range copies {
+		final.Copies = append(final.Copies, uint64(copy.ItemId))
+	}
+
+	for _, requirement := range requirements {
+		final.Requirements = append(final.Requirements, uint64(requirement.ItemId))
+	}
+
+	out, err := json.Marshal(final)
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to marshal response: %s\n", err)
+		return
+	}
+	ctx.W.WriteHeader(200)
+	ctx.W.Write(out)
 }
 
 func GetAllForEntry(ctx RequestContext) {

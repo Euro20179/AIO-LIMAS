@@ -72,6 +72,17 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "entry/allfor",
+		Handler: GetAllForEntry2,
+		QueryParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Gets all related information for an entry",
+		GuestAllowed: true,
+		UserIndependant: true,
+	},
+
+	{
 		EndPoint: "get-all-for-entry",
 		Handler:  GetAllForEntry,
 		QueryParams: QueryParams{
