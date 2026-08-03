@@ -691,6 +691,38 @@ var AccountEndPoints = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "access/gen-code",
+		Handler: GenSyncCode,
+		Description: "Generates a code to let the user give a client access to their account",
+	},
+
+	{
+		EndPoint: "access/verify-code",
+		Handler: VerifySyncCode,
+		Description: "Verify a code given from /account/sync/gen-code, returns a random hashstring that can then be used to authenticate as the user<br>Optionally, have a label to describe what the newly generated hashstring is for",
+		QueryParams: QueryParams {
+			"code": MkQueryInfo(P_NotEmpty, true),
+			"label": MkQueryInfo(P_NotEmpty, true),
+		},
+		GuestAllowed: true,
+	},
+
+	{
+		EndPoint: "access/list",
+		Handler: ListAccesses,
+		Description: "List all hashes that are being used as authentication strings",
+	},
+
+	{
+		EndPoint: "access/delete",
+		Handler: DeleteAccessCode,
+		Description: "Deletes an access code",
+		QueryParams: QueryParams {
+			"label": MkQueryInfo(P_NotEmpty, true),
+		},
+	},
+
+	{
 		EndPoint:    "username2id",
 		Handler:     Username2Id,
 		Description: "get a user's id from username",

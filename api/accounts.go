@@ -1,10 +1,14 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/url"
 	"os"
+	"time"
 
 	"aiolimas/accounts"
 	"aiolimas/util"
@@ -120,4 +124,81 @@ func RenameAccount(ctx RequestContext) {
 func AuthCk(ctx RequestContext) {
 	ctx.W.WriteHeader(200)
 	fmt.Fprintf(ctx.W, "%d", ctx.Uid)
+}
+
+var validSyncCodes = map[string]int64{}
+
+func GenSyncCode(ctx RequestContext) {
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	code := ""
+	for range 10 {
+		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		code += string(chars[idx.Int64()])
+	}
+	validSyncCodes[code] = ctx.Uid
+
+	go func() {
+		time.Sleep(5 * time.Minute)
+		delete(validSyncCodes, code)
+	}()
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write([]byte(code))
+}
+
+func VerifySyncCode(ctx RequestContext) {
+	code := ctx.PP["code"].(string)
+
+	forUid, has := validSyncCodes[code]
+	if !has {
+		ctx.W.WriteHeader(401)
+		ctx.W.Write([]byte("Invalid sync code"))
+		return
+	}
+
+	delete(validSyncCodes, code)
+
+	if forUid != ctx.Uid {
+		ctx.W.WriteHeader(401)
+		ctx.W.Write([]byte("uid missmatch (requested uid is different from sync code's associated uid)"))
+		return
+	}
+
+	hash, err := accounts.CreateAccessHash(forUid, ctx.PP["label"].(string))
+
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to create an access hash: %s\n", err)
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write([]byte(hash))
+}
+
+func DeleteAccessCode(ctx RequestContext) {
+	label := ctx.PP["label"].(string)
+	if err := accounts.DeleteAccessCode(label); err != nil {
+		util.WError(ctx.W, 500, "Failed to delete access code: %s\n", err)
+		return
+	}
+
+	success(ctx.W)
+}
+
+func ListAccesses(ctx RequestContext) {
+	list, err := accounts.ListAccessCodes(ctx.Uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to list access codes: %s\n", err)
+		return
+	}
+
+	out, err := json.Marshal(list)
+
+	if err != nil {
+		util.WError(ctx.W, 500, "Failed to marshal access codes: %s\n", err)
+		return
+	}
+
+	ctx.W.WriteHeader(200)
+	ctx.W.Write(out)
 }
