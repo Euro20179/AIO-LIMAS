@@ -47,6 +47,7 @@ type RequestContext struct {
 	W          http.ResponseWriter
 	Authorized int64
 	PP         ParsedParams
+	GuestAllowed bool
 }
 
 func MkQueryInfo(parser Parser, required bool) QueryParamInfo {
@@ -178,6 +179,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	ctx := RequestContext{}
 	ctx.Req = req
 	ctx.W = w
+	ctx.GuestAllowed = self.GuestAllowed
 
 	method := self.Method
 	if method == "" {
@@ -330,6 +332,11 @@ func _verifyIdAndGet[T any](ctx RequestContext, id string, getter func(db.Reques
 	if err != nil {
 		return out, err
 	}
+
+	if !ctx.GuestAllowed && reflect.ValueOf(entry).FieldByName("Uid").Int() != ctx.Authorized {
+		return out, errors.New("attempting to access an item from another user with priveleged access")
+	}
+
 	return entry, nil
 }
 
