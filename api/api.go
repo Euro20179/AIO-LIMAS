@@ -21,15 +21,13 @@ import (
 
 func ListRelations(ctx RequestContext) {
 	relations, err := db.ListRelations(ctx.Uid)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Could not list relations\n%s", err.Error())
 		return
 	}
 
 	data, err := json.Marshal(relations)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to serialize relations\n%s", err.Error())
 		return
 	}
@@ -182,22 +180,22 @@ func GetAllForEntry2(ctx RequestContext) {
 	}
 
 	final := struct {
-		Info db_types.InfoEntry;
-		User db_types.UserViewingEntry;
-		Meta db_types.MetadataEntry;
-		Events []db_types.UserViewingEvent;
-		Transactions []db_types.TransactionEntry;
-		Children []uint64;
-		Copies []uint64;
-		Requirements []uint64;
+		Info         db_types.InfoEntry
+		User         db_types.UserViewingEntry
+		Meta         db_types.MetadataEntry
+		Events       []db_types.UserViewingEvent
+		Transactions []db_types.TransactionEntry
+		Children     []uint64
+		Copies       []uint64
+		Requirements []uint64
 	}{
-		Info: info,
-		Meta: meta,
-		User: user,
-		Events: events,
+		Info:         info,
+		Meta:         meta,
+		User:         user,
+		Events:       events,
 		Transactions: trans,
-		Copies: []uint64{},
-		Children: []uint64{},
+		Copies:       []uint64{},
+		Children:     []uint64{},
 		Requirements: []uint64{},
 	}
 
@@ -215,7 +213,7 @@ func GetAllForEntry2(ctx RequestContext) {
 
 	out, err := json.Marshal(final)
 	if err != nil {
-		util.WError(ctx.W, 500, "Failed to marshal response: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to marshal response: %s\n", err.Error())
 		return
 	}
 	ctx.W.WriteHeader(200)
@@ -247,7 +245,7 @@ func GetAllForEntries(ctx RequestContext) {
 
 		i, err := db.GetInfoEntryById(actx2dctx(ctx), n)
 		if err != nil {
-			util.WError(ctx.W, 500, "An error occured while accessing id: '%s': %s", id, err)
+			util.WError(ctx.W, 500, "An error occured while accessing id: '%s': %s", id, err.Error())
 			break
 		}
 
@@ -260,7 +258,7 @@ func GetAllForEntries(ctx RequestContext) {
 func GetRecommenders(ctx RequestContext) {
 	r, err := db.GetRecommendersList(actx2dctx(ctx))
 	if err != nil {
-		util.WError(ctx.W, 500, "Could not get a list of recommenders\n%s", err)
+		util.WError(ctx.W, 500, "Could not get a list of recommenders\n%s", err.Error())
 		return
 	}
 
@@ -370,8 +368,7 @@ func DelChild(ctx RequestContext) {
 	child := ctx.PP["child"].(db_types.InfoEntry)
 
 	err := db.DelRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete child\n%s", err.Error())
 		return
 	}
@@ -385,8 +382,7 @@ func DelCopy(ctx RequestContext) {
 	cpyOf := ctx.PP["copyof"].(db_types.InfoEntry)
 
 	err := db.DelRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete copy\n%s", err.Error())
 		return
 	}
@@ -400,8 +396,7 @@ func DelRequires(ctx RequestContext) {
 	requires := ctx.PP["requires"].(db_types.InfoEntry)
 
 	err := db.DelRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete requirement\n%s", err.Error())
 		return
 	}
@@ -415,8 +410,7 @@ func AddChild(ctx RequestContext) {
 	child := ctx.PP["child"].(db_types.InfoEntry)
 
 	err := db.AddRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to add child\n%s", err.Error())
 		return
 	}
@@ -430,8 +424,7 @@ func AddCopy(ctx RequestContext) {
 	cpyOf := ctx.PP["copyof"].(db_types.InfoEntry)
 
 	err := db.AddRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to add copy\n%s", err.Error())
 		return
 	}
@@ -445,8 +438,7 @@ func AddRequires(ctx RequestContext) {
 	requires := ctx.PP["requires"].(db_types.InfoEntry)
 
 	err := db.AddRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId)
-
-	if err != nil{
+	if err != nil {
 		util.WError(ctx.W, 500, "Failed to add requirement\n%s", err.Error())
 		return
 	}
@@ -456,31 +448,31 @@ func AddRequires(ctx RequestContext) {
 
 type RadarrPostWebhook struct {
 	Movie struct {
-		Id int
-		Title string
-		Year int
+		Id          int
+		Title       string
+		Year        int
 		ReleaseDate string
-		FolderPath string
-		TmdbId int
-		Tags []string
+		FolderPath  string
+		TmdbId      int
+		Tags        []string
 	}
 	RemoteMovie struct {
 		TmdbId int
 		ImdbId string
-		Title string
-		year int
+		Title  string
+		year   int
 	}
 	Release struct {
-		Quality string
-		QualityVersion int
-		ReleaseGroup string
-		ReleaseTitle string
-		Indexer string
-		Size int
+		Quality           string
+		QualityVersion    int
+		ReleaseGroup      string
+		ReleaseTitle      string
+		Indexer           string
+		Size              int
 		CustomFormatScore int
 	}
-	EventType string
-	InstanceName string
+	EventType      string
+	InstanceName   string
 	ApplicationUrl string
 }
 
@@ -535,7 +527,7 @@ func _radarrAdd(ctx RequestContext, data RadarrPostWebhook) {
 		}
 	}
 
-	datapoints := map[string] string{}
+	datapoints := map[string]string{}
 	if metadata.Datapoints != "" {
 		json.Unmarshal([]byte(metadata.Datapoints), &datapoints)
 	}
@@ -914,7 +906,7 @@ func GetDescendants(ctx RequestContext) {
 func GetTree(ctx RequestContext) {
 	w := ctx.W
 	tree, err := db.BuildEntryTree(db.RequestContext{
-		UID: ctx.Uid,
+		UID:  ctx.Uid,
 		Auth: ctx.Authorized,
 	})
 	if err != nil {
@@ -929,6 +921,57 @@ func GetTree(ctx RequestContext) {
 
 	w.WriteHeader(200)
 	w.Write(jStr)
+}
+
+func EntrySettings(ctx RequestContext) {
+	settings, err := db.GetEntrySettings(ctx.PP["id"].(db_types.InfoEntry).ItemId)
+	if ctx.Req.Method == "GET" {
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to get settings for entry: %s\n", err.Error())
+			return
+		}
+
+		res, err := json.Marshal(settings)
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to marshal settings: %s\n", err.Error())
+			return
+		}
+
+		ctx.W.WriteHeader(200)
+		ctx.W.Write(res)
+	} else if ctx.Req.Method == "POST" {
+		body, err := io.ReadAll(ctx.Req.Body)
+		defer ctx.Req.Body.Close()
+
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to read body: %s\n", err.Error())
+			return
+		}
+
+		newSettings := db_types.EntrySettings{
+			ItemId: settings.ItemId,
+			Permissions: settings.Permissions,
+		}
+
+		if err = json.Unmarshal(body, &newSettings); err != nil {
+			util.WError(ctx.W, 400, "Invalid body: %s\n", err.Error())
+			return
+		}
+
+		//for now can only be 0 or PERM_READ (1)
+		if newSettings.Permissions < 0 || newSettings.Permissions > 1{
+			util.WError(ctx.W, 400, "Bad permissions specified\n")
+			return
+		}
+
+		if err = db.SetEntrySettings(newSettings); err != nil {
+			util.WError(ctx.W, 500, "Failed to set settings: %s\n", err.Error())
+			return
+		}
+		success(ctx.W)
+	} else {
+		ctx.W.WriteHeader(405)
+	}
 }
 
 func success(w http.ResponseWriter) {

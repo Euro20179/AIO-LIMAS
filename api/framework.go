@@ -192,7 +192,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if req.Method != string(method){
+	if req.Method != string(method) && method != "*"{
 		w.WriteHeader(405)
 		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, method)
 		return
@@ -222,6 +222,12 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			authorized = false
 		}
 
+		if !authorized {
+			w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
+			w.WriteHeader(401)
+			return
+		}
+
 		uidInt, err := strconv.ParseInt(newUid, 10, 64)
 
 		if err != nil {
@@ -234,12 +240,6 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		uidStr = newUid
 	} else {
 		ctx.Authorized = 0
-	}
-
-	if !authorized {
-		w.Header().Add("WWW-Authenticate", "Basic realm=\"/\"")
-		w.WriteHeader(401)
-		return
 	}
 
 	query := req.URL.Query()

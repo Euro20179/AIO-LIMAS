@@ -15,6 +15,18 @@ const (
 	PERM_WRITE = iota
 )
 
+type EntrySettings struct {
+	ItemId int64;
+	Permissions int64;
+}
+
+func (self *EntrySettings) ReadEntry(rows *sql.Rows) error {
+	return rows.Scan(
+		&self.ItemId,
+		&self.Permissions,
+	)
+}
+
 type Transaction string
 const (
 	TRANSACTION_BUY = "Purchased"

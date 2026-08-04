@@ -373,6 +373,16 @@ var mainEndpointList = []ApiEndPoint{
 		GuestAllowed: true,
 		UserIndependant: false,
 	},
+
+	{
+		EndPoint: "entry/settings",
+		Handler: EntrySettings,
+		Method: "*",
+		Description: "Gets/sets the settings for an entry, GET gets, POST sets<br>the POST body must be a Partial<EntrySettings> json, any fields not specified will be unchanged",
+		QueryParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+	},
 	// }}}
 } // }}}
 
@@ -937,7 +947,7 @@ func DocHTML(ctx RequestContext) {
 	// use text template in order to have html not be escaped
 	tmpl, err := template.ParseFiles("./docs/docs.html")
 	if err != nil {
-		util.WError(ctx.W, 500, "Could not render docs %s", err)
+		util.WError(ctx.W, 500, "Could not render docs %s", err.Error())
 		return
 	}
 

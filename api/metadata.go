@@ -33,7 +33,7 @@ func FetchLocation(ctx RequestContext) {
 
 	location, err := metadata.GetLocation(providerID, ctx.Uid, provider)
 	if err != nil {
-		util.WError(ctx.W, 500, "could not get location: %s", err)
+		util.WError(ctx.W, 500, "could not get location: %s", err.Error())
 		return
 	}
 
@@ -42,7 +42,7 @@ func FetchLocation(ctx RequestContext) {
 
 	err = db.UpdateInfoEntry(ctx.Uid, &entry)
 	if err != nil {
-		util.WError(ctx.W, 500, "failed to update entry location: %s", err)
+		util.WError(ctx.W, 500, "failed to update entry location: %s", err.Error())
 		return
 	}
 	ctx.W.WriteHeader(200)
@@ -91,7 +91,7 @@ func FetchMetadataForEntry(ctx RequestContext) {
 
 	data, err := newMeta.ToJson()
 	if err != nil {
-		util.WError(ctx.W, 500, "could not serialize new metadata (new metadata saved): %s", err)
+		util.WError(ctx.W, 500, "could not serialize new metadata (new metadata saved): %s", err.Error())
 		return
 	}
 

@@ -463,3 +463,30 @@ func CreateTransaction(transactionType db_types.Transaction, uid int64, itemId i
 	`, uid, itemId, eventId, price, currency)
 }
 
+func GetEntrySettings(id int64) (db_types.EntrySettings, error) {
+	out := db_types.EntrySettings{}
+	rows, err := DB.Query(`SELECT * FROM entrySettings WHERE itemid = ?`, id)
+	if err != nil {
+		return out, err
+	}
+
+	defer rows.Close()
+
+	if rows.Next() {
+		if err = out.ReadEntry(rows); err != nil {
+			return out, err
+		}
+	}
+
+	return out, nil
+}
+
+func SetEntrySettings(settings db_types.EntrySettings) error {
+	_, err := DB.Exec(
+		`UPDATE entrySettings SET permissions = ? WHERE itemid = ?`,
+		settings.Permissions,
+		settings.ItemId,
+	)
+
+	return err
+}

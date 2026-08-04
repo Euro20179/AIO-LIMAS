@@ -88,7 +88,7 @@ func Username2Id(ctx RequestContext) {
 	aioPath := os.Getenv("AIO_DIR")
 	id, err := accounts.Username2Id(aioPath, name)
 	if err != nil {
-		util.WError(ctx.W, 500, "could not find user id: %s", err)
+		util.WError(ctx.W, 500, "could not find user id: %s", err.Error())
 		return
 	}
 	ctx.W.WriteHeader(200)
@@ -114,7 +114,7 @@ func ListUsers(ctx RequestContext) {
 func RenameAccount(ctx RequestContext) {
 	aioPath := os.Getenv("AIO_DIR")
 	if err := accounts.RenameUser(aioPath, ctx.Uid, ctx.PP["new-username"].(string)); err != nil {
-		util.WError(ctx.W, 500, "Failed to change account name: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to change account name: %s\n", err.Error())
 		return
 	}
 	success(ctx.W)
@@ -162,7 +162,7 @@ func VerifySyncCode(ctx RequestContext) {
 	hash, err := accounts.CreateAccessHash(forUid, ctx.PP["label"].(string))
 
 	if err != nil {
-		util.WError(ctx.W, 500, "Failed to create an access hash: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to create an access hash: %s\n", err.Error())
 		return
 	}
 
@@ -173,7 +173,7 @@ func VerifySyncCode(ctx RequestContext) {
 func DeleteAccessCode(ctx RequestContext) {
 	label := ctx.PP["label"].(string)
 	if err := accounts.DeleteAccessCode(label); err != nil {
-		util.WError(ctx.W, 500, "Failed to delete access code: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to delete access code: %s\n", err.Error())
 		return
 	}
 
@@ -183,14 +183,14 @@ func DeleteAccessCode(ctx RequestContext) {
 func ListAccesses(ctx RequestContext) {
 	list, err := accounts.ListAccessCodes(ctx.Uid)
 	if err != nil {
-		util.WError(ctx.W, 500, "Failed to list access codes: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to list access codes: %s\n", err.Error())
 		return
 	}
 
 	out, err := json.Marshal(list)
 
 	if err != nil {
-		util.WError(ctx.W, 500, "Failed to marshal access codes: %s\n", err)
+		util.WError(ctx.W, 500, "Failed to marshal access codes: %s\n", err.Error())
 		return
 	}
 
