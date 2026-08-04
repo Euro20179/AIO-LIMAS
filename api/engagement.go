@@ -34,7 +34,7 @@ func CopyUserViewingEntry(ctx RequestContext) {
 		return
 	}
 
-	events, err := db.GetEvents(ctx.Uid, oldId)
+	events, err := db.GetEvents(actx2dctx(ctx), oldId)
 	if err != nil {
 		util.WError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
@@ -278,7 +278,7 @@ func SetUserEntry(ctx RequestContext) {
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(ctx.Uid, user.ItemId)
+	entry, err := db.GetUserViewEntryById(actx2dctx(ctx), user.ItemId)
 	if err != nil{
 		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -309,7 +309,7 @@ func GetUserEntry(ctx RequestContext) {
 	pp := ctx.PP
 	w := ctx.W
 	entry := pp["id"].(db_types.UserViewingEntry)
-	item, err := db.GetUserEntry(ctx.Uid, entry.ItemId)
+	item, err := db.GetUserEntry(actx2dctx(ctx), entry.ItemId)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
@@ -320,7 +320,7 @@ func GetUserEntry(ctx RequestContext) {
 
 func UserEntries(ctx RequestContext) {
 	w := ctx.W
-	items, err := db.AllUserEntries(ctx.Uid)
+	items, err := db.AllUserEntries(actx2dctx(ctx))
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
@@ -332,7 +332,7 @@ func UserEntries(ctx RequestContext) {
 
 func ListEvents(ctx RequestContext) {
 	w := ctx.W
-	events, err := db.GetEvents(ctx.Uid, -1)
+	events, err := db.GetEvents(actx2dctx(ctx), -1)
 	if err != nil {
 		util.WError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
@@ -355,7 +355,7 @@ func GetEventsOf(ctx RequestContext) {
 	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 
-	events, err := db.GetEvents(ctx.Uid, id.ItemId)
+	events, err := db.GetEvents(actx2dctx(ctx), id.ItemId)
 	if err != nil {
 		util.WError(w, 400, "Could not get events\n%s", err.Error())
 		return
@@ -440,7 +440,7 @@ func RegisterEvent(ctx RequestContext) {
 }
 
 func EditEvent(ctx RequestContext) {
-	ev, err := db.GetEvent(ctx.PP["eventId"].(int64))
+	ev, err := db.GetEvent(actx2dctx(ctx), ctx.PP["eventId"].(int64))
 	if err != nil {
 		util.WError(ctx.W, 500, "Failed to get event: %s\n", err.Error())
 		return

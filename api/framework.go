@@ -22,8 +22,15 @@ import (
 	"aiolimas/types"
 )
 
+func actx2dctx(ctx RequestContext) db.RequestContext {
+	return db.RequestContext{
+		UID: ctx.Uid,
+		Auth: ctx.Authorized,
+	}
+}
+
 type (
-	Parser      = func(uid int64, in string) (any, error)
+	Parser      = func(ctx RequestContext, in string) (any, error)
 	QueryParams = map[string]QueryParamInfo
 )
 
@@ -38,7 +45,7 @@ type RequestContext struct {
 	Uid        int64
 	Req        *http.Request
 	W          http.ResponseWriter
-	Authorized bool
+	Authorized int64
 	PP         ParsedParams
 }
 
@@ -213,7 +220,18 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			authorized = false
 		}
 
+		uidInt, err := strconv.ParseInt(uidStr, 10, 64)
+
+		if err != nil {
+			w.WriteHeader(400)
+			fmt.Fprintf(w, "Invalid user id, %s", err.Error())
+			return
+		}
+
+		ctx.Authorized = uidInt
 		uidStr = newUid
+	} else {
+		ctx.Authorized = 0
 	}
 
 	if !authorized {
@@ -255,7 +273,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 
 		queryVal := query.Get(name)
 
-		val, err := info.Parser(uidInt, queryVal)
+		val, err := info.Parser(ctx, queryVal)
 		if err != nil {
 			w.WriteHeader(400)
 			funcName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
@@ -286,7 +304,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	self.Handler(ctx)
 }
 
-func P_Int64(uid int64, in string) (any, error) {
+func P_Int64(ctx RequestContext, in string) (any, error) {
 	i, err := strconv.ParseInt(in, 10, 64)
 	if err != nil {
 		return 0, err
@@ -294,7 +312,7 @@ func P_Int64(uid int64, in string) (any, error) {
 	return i, nil
 }
 
-func P_Float64(uid int64, in string) (any, error) {
+func P_Float64(ctx RequestContext, in string) (any, error) {
 	f, err := strconv.ParseFloat(in, 64)
 	if err != nil {
 		return 0, err
@@ -302,39 +320,39 @@ func P_Float64(uid int64, in string) (any, error) {
 	return f, nil
 }
 
-func _verifyIdAndGet[T any](uid int64, id string, getter func(int64, int64) (T, error)) (T, error) {
+func _verifyIdAndGet[T any](ctx RequestContext, id string, getter func(db.RequestContext, int64) (T, error)) (T, error) {
 	var out T
-	i, err := P_Int64(uid, id)
+	i, err := P_Int64(ctx, id)
 	if err != nil {
 		return out, err
 	}
-	entry, err := getter(uid, i.(int64))
+	entry, err := getter(db.RequestContext{UID: ctx.Uid, Auth: ctx.Authorized}, i.(int64))
 	if err != nil {
 		return out, err
 	}
 	return entry, nil
 }
 
-func P_VerifyIdAndGetUserEntry(uid int64, id string) (any, error) {
-	return _verifyIdAndGet(uid, id, db.GetUserViewEntryById)
+func P_VerifyIdAndGetUserEntry(ctx RequestContext, id string) (any, error) {
+	return _verifyIdAndGet(ctx, id, db.GetUserViewEntryById)
 }
 
-func P_VerifyIdAndGetInfoEntry(uid int64, id string) (any, error) {
-	return _verifyIdAndGet(uid, id, db.GetInfoEntryById)
+func P_VerifyIdAndGetInfoEntry(ctx RequestContext, id string) (any, error) {
+	return _verifyIdAndGet(ctx, id, db.GetInfoEntryById)
 }
 
-func P_VerifyIdAndGetMetaEntry(uid int64, id string) (any, error) {
-	return _verifyIdAndGet(uid, id, db.GetMetadataEntryById)
+func P_VerifyIdAndGetMetaEntry(ctx RequestContext, id string) (any, error) {
+	return _verifyIdAndGet(ctx, id, db.GetMetadataEntryById)
 }
 
-func P_True(uid int64, in string) (any, error) {
+func P_True(ctx RequestContext, in string) (any, error) {
 	if !utf8.ValidString(in) {
 		return in, errors.New("Invalid utf8")
 	}
 	return in, nil
 }
 
-func P_NotEmpty(uid int64, in string) (any, error) {
+func P_NotEmpty(ctx RequestContext, in string) (any, error) {
 	if !utf8.ValidString(in) {
 		return in, errors.New("Invalid utf8")
 	}
@@ -344,7 +362,7 @@ func P_NotEmpty(uid int64, in string) (any, error) {
 	return in, errors.New("Empty")
 }
 
-func P_SqlSafe(uid int64, in string) (any, error) {
+func P_SqlSafe(ctx RequestContext, in string) (any, error) {
 	if in == "" {
 		return in, errors.New("Empty")
 	}
@@ -357,8 +375,8 @@ func P_SqlSafe(uid int64, in string) (any, error) {
 	return in, fmt.Errorf("'%s' contains invalid characters", in)
 }
 
-func P_EntryFormat(uid int64, in string) (any, error) {
-	i, err := P_Int64(uid, in)
+func P_EntryFormat(ctx RequestContext, in string) (any, error) {
+	i, err := P_Int64(ctx, in)
 	if err != nil {
 		return 0, err
 	}
@@ -368,14 +386,14 @@ func P_EntryFormat(uid int64, in string) (any, error) {
 	return db_types.Format(i.(int64)), nil
 }
 
-func P_EntryType(uid int64, in string) (any, error) {
+func P_EntryType(ctx RequestContext, in string) (any, error) {
 	if db_types.IsValidType(in) {
 		return db_types.MediaTypes(in), nil
 	}
 	return db_types.MediaTypes("Show"), fmt.Errorf("Invalid entry type: '%s'", in)
 }
 
-func P_ArtStyle(uid int64, in string) (any, error) {
+func P_ArtStyle(ctx RequestContext, in string) (any, error) {
 	val, err := strconv.ParseUint(in, 10, 64)
 	if err != nil {
 		return uint(0), err
@@ -383,29 +401,29 @@ func P_ArtStyle(uid int64, in string) (any, error) {
 	return uint(val), nil
 }
 
-func P_LocationProvider(uid int64, in string) (any, error) {
+func P_LocationProvider(ctx RequestContext, in string) (any, error) {
 	if metadata.IsValidLocationProvider(in) {
 		return in, nil
 	}
 	return in, fmt.Errorf("Invalid location provider: '%s'", in)
 }
 
-func P_MetaProvider(uid int64, in string) (any, error) {
+func P_MetaProvider(ctx RequestContext, in string) (any, error) {
 	if metadata.IsValidProvider(in) {
 		return in, nil
 	}
 	return in, fmt.Errorf("Invalid metadata provider: '%s'", in)
 }
 
-func P_UserStatus(uid int64, in string) (any, error) {
+func P_UserStatus(ctx RequestContext, in string) (any, error) {
 	if db_types.IsValidStatus(in) {
 		return db_types.Status(in), nil
 	}
 	return "Planned", fmt.Errorf("Invalid user status: '%s'", in)
 }
 
-func P_TList[T any](sep string, toT func(in string) T) func(int64, string) (any, error) {
-	return func(uid int64, in string) (any, error) {
+func P_TList[T any](sep string, toT func(in string) T) func(RequestContext, string) (any, error) {
+	return func(ctx RequestContext, in string) (any, error) {
 		var arr []T
 		items := strings.Split(in, sep)
 		for _, i := range items {
@@ -415,7 +433,7 @@ func P_TList[T any](sep string, toT func(in string) T) func(int64, string) (any,
 	}
 }
 
-func P_Uint64Array(uid int64, in string) (any, error) {
+func P_Uint64Array(ctx RequestContext, in string) (any, error) {
 	var arr []uint64
 	err := json.Unmarshal([]byte(in), &arr)
 	if err != nil {
@@ -424,7 +442,7 @@ func P_Uint64Array(uid int64, in string) (any, error) {
 	return arr, nil
 }
 
-func P_Bool(uid int64, in string) (any, error) {
+func P_Bool(ctx RequestContext, in string) (any, error) {
 	if in == "true" || in == "on" {
 		return true, nil
 	}
@@ -434,14 +452,14 @@ func P_Bool(uid int64, in string) (any, error) {
 	return false, fmt.Errorf("Not a boolean: '%s'", in)
 }
 
-func P_IdIdentifier(uid int64, in string) (any, error) {
+func P_IdIdentifier(ctx RequestContext, in string) (any, error) {
 	if metadata.IsValidIdIdentifier(in) {
 		return in, nil
 	}
 	return "", fmt.Errorf("Invalid id identifier: '%s'", in)
 }
 
-func P_Identifier(uid int64, in string) (any, error) {
+func P_Identifier(ctx RequestContext, in string) (any, error) {
 	if metadata.IsValidIdentifier(in) {
 		return in, nil
 	}
@@ -449,8 +467,8 @@ func P_Identifier(uid int64, in string) (any, error) {
 }
 
 func As_JsonMarshal(parser Parser) Parser {
-	return func(uid int64, in string) (any, error) {
-		v, err := parser(uid, in)
+	return func(ctx RequestContext, in string) (any, error) {
+		v, err := parser(ctx, in)
 		if err != nil {
 			return "", err
 		}

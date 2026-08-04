@@ -154,6 +154,11 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 		}
 	}
 
+	DB.Exec(
+		`INSERT INTO entrySettings (itemid, permissions) VALUES (?, ?)`,
+		id, db_types.PERM_READ,
+	)
+
 	if userViewingEntry.Status != db_types.Status("") && timezone != "" {
 		eName := string(userViewingEntry.Status)
 	 	switch(eName) {

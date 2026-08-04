@@ -42,7 +42,7 @@ func DeleteTransaction(ctx RequestContext) {
 }
 
 func EditTransaction(ctx RequestContext) {
-	t, err := db.GetTransaction(ctx.Uid, ctx.PP.Get("id", 0).(int64))
+	t, err := db.GetTransaction(actx2dctx(ctx), ctx.PP.Get("id", 0).(int64))
 	if err != nil {
 		util.WError(ctx.W, 500, "Unable to get transaction: %s\n", err.Error())
 		return
@@ -74,7 +74,7 @@ func ListTransactions(ctx RequestContext) {
 	if ok {
 		id = item.(db_types.InfoEntry).ItemId
 	}
-	ts, err := db.ListTransactions(ctx.Uid, id)
+	ts, err := db.ListTransactions(actx2dctx(ctx), id)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not fetch transaction list\n%s", err.Error())
 		return

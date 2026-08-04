@@ -40,7 +40,7 @@ func ListRelations(ctx RequestContext) {
 
 func ListCollections(ctx RequestContext) {
 	w := ctx.W
-	collections, err := db.ListType(ctx.Uid, "en_title", db_types.TY_COLLECTION)
+	collections, err := db.ListType(actx2dctx(ctx), "en_title", db_types.TY_COLLECTION)
 	if err != nil {
 		util.WError(w, 500, "Could not get collections\n%s", err.Error())
 		return
@@ -53,7 +53,7 @@ func ListCollections(ctx RequestContext) {
 
 func ListLibraries(ctx RequestContext) {
 	w := ctx.W
-	libraries, err := db.ListType(ctx.Uid, "itemId", db_types.TY_LIBRARY)
+	libraries, err := db.ListType(actx2dctx(ctx), "itemId", db_types.TY_LIBRARY)
 	if err != nil {
 		util.WError(w, 500, "Could not get collections\n%s", err.Error())
 		return
@@ -98,84 +98,84 @@ func DownloadDB(ctx RequestContext) {
 	http.ServeFile(ctx.W, ctx.Req, dbPath)
 }
 
-func _getAllForEntry(w http.ResponseWriter, uid int64, info db_types.InfoEntry) {
-	events, err := db.GetEvents(uid, info.ItemId)
-	if err != nil {
-		util.WError(w, 500, "Could not get events\n%s", err.Error())
-		return
-	}
-
-	user, err := db.GetUserViewEntryById(uid, info.ItemId)
-	if err != nil {
-		util.WError(w, 500, "Could not get user info\n%s", err.Error())
-		return
-	}
-
-	meta, err := db.GetMetadataEntryById(uid, info.ItemId)
-	if err != nil {
-		util.WError(w, 500, "Could not get metadata info\n%s", err.Error())
-		return
-	}
-
-	trans, err := db.ListTransactions(uid, info.ItemId)
-
-	uj, err := user.ToJson()
-	if err != nil {
-		util.WError(w, 500, "Could not marshal user info\n%s", err.Error())
-		return
-	}
-
-	mj, err := meta.ToJson()
-	if err != nil {
-		util.WError(w, 500, "Could not marshal metadata info\n%s", err.Error())
-		return
-	}
-
-	ij, err := info.ToJson()
-	if err != nil {
-		util.WError(w, 500, "Could not marshal main entry info\n%s", err.Error())
-		return
-	}
-
-	w.Write(uj)
-	w.Write([]byte("\n"))
-
-	w.Write(mj)
-	w.Write([]byte("\n"))
-
-	w.Write(ij)
-	w.Write([]byte("\n"))
-
-	writeSQLRowResults(w, events)
-	w.Write([]byte("TRANSACTIONS\n"))
-	writeSQLRowResults(w, trans)
-}
-
-func GetAllForEntry2(ctx RequestContext) {
-	info := ctx.PP["id"].(db_types.InfoEntry)
-	events, err := db.GetEvents(ctx.Uid, info.ItemId)
+func _getAllForEntry(ctx RequestContext, info db_types.InfoEntry) {
+	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get events\n%s", err.Error())
 		return
 	}
 
-	user, err := db.GetUserViewEntryById(ctx.Uid, info.ItemId)
+	user, err := db.GetUserViewEntryById(actx2dctx(ctx), info.ItemId)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get user info\n%s", err.Error())
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(ctx.Uid, info.ItemId)
+	meta, err := db.GetMetadataEntryById(actx2dctx(ctx), info.ItemId)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get metadata info\n%s", err.Error())
 		return
 	}
 
-	trans, err := db.ListTransactions(ctx.Uid, info.ItemId)
+	trans, err := db.ListTransactions(actx2dctx(ctx), info.ItemId)
 
-	children, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Child)
-	copies, err := db.GetRelation(ctx.Uid, info.ItemId, db_types.R_Copy)
-	requirements, err := db.GetRequires(ctx.Uid, info.ItemId)
+	uj, err := user.ToJson()
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not marshal user info\n%s", err.Error())
+		return
+	}
+
+	mj, err := meta.ToJson()
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not marshal metadata info\n%s", err.Error())
+		return
+	}
+
+	ij, err := info.ToJson()
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not marshal main entry info\n%s", err.Error())
+		return
+	}
+
+	ctx.W.Write(uj)
+	ctx.W.Write([]byte("\n"))
+
+	ctx.W.Write(mj)
+	ctx.W.Write([]byte("\n"))
+
+	ctx.W.Write(ij)
+	ctx.W.Write([]byte("\n"))
+
+	writeSQLRowResults(ctx.W, events)
+	ctx.W.Write([]byte("TRANSACTIONS\n"))
+	writeSQLRowResults(ctx.W, trans)
+}
+
+func GetAllForEntry2(ctx RequestContext) {
+	info := ctx.PP["id"].(db_types.InfoEntry)
+	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get events\n%s", err.Error())
+		return
+	}
+
+	user, err := db.GetUserViewEntryById(actx2dctx(ctx), info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get user info\n%s", err.Error())
+		return
+	}
+
+	meta, err := db.GetMetadataEntryById(actx2dctx(ctx), info.ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get metadata info\n%s", err.Error())
+		return
+	}
+
+	trans, err := db.ListTransactions(actx2dctx(ctx), info.ItemId)
+
+	children, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Child)
+	copies, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Copy)
+	requirements, err := db.GetRequires(actx2dctx(ctx), info.ItemId)
 
 	if events == nil {
 		events = []db_types.UserViewingEvent{}
@@ -228,7 +228,7 @@ func GetAllForEntry(ctx RequestContext) {
 
 	info := parsedParams["id"].(db_types.InfoEntry)
 	w.WriteHeader(200)
-	_getAllForEntry(ctx.W, ctx.Uid, info)
+	_getAllForEntry(ctx, info)
 }
 
 func GetAllForEntries(ctx RequestContext) {
@@ -245,22 +245,20 @@ func GetAllForEntries(ctx RequestContext) {
 			break
 		}
 
-		i, err := db.GetInfoEntryById(ctx.Uid, n)
+		i, err := db.GetInfoEntryById(actx2dctx(ctx), n)
 		if err != nil {
 			util.WError(ctx.W, 500, "An error occured while accessing id: '%s': %s", id, err)
 			break
 		}
 
 		ctx.W.WriteHeader(200)
-		_getAllForEntry(ctx.W, ctx.Uid, i)
+		_getAllForEntry(ctx, i)
 		ctx.W.Write([]byte("\n"))
 	}
 }
 
 func GetRecommenders(ctx RequestContext) {
-	uid := ctx.Uid
-
-	r, err := db.GetRecommendersList(uid)
+	r, err := db.GetRecommendersList(actx2dctx(ctx))
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get a list of recommenders\n%s", err)
 		return
@@ -766,7 +764,7 @@ func ListEntries(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
 	sortBy, _ := parsedParams.Get("sort-by", "userRating").(string)
-	entries, err := db.ListEntries(ctx.Uid, sortBy)
+	entries, err := db.ListEntries(actx2dctx(ctx), sortBy)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("Could not query entries\n" + err.Error()))
@@ -790,7 +788,7 @@ func QueryEntries4(ctx RequestContext) {
 	search := ctx.PP["search"].(string)
 	orderBy := ctx.PP.Get("order-by", "").(string)
 	println(orderBy)
-	results, err := db.Search4(ctx.Uid, search, orderBy)
+	results, err := db.Search4(actx2dctx(ctx), search, orderBy)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not complete search\n%s", err.Error())
 		return
@@ -810,7 +808,7 @@ func QueryEntries3(ctx RequestContext) {
 		search += fmt.Sprintf(" & {entryInfo.uid = %d}", ctx.Uid)
 	}
 
-	results, err := db.Search3(search, pp.Get("order-by", "").(string))
+	results, err := db.Search3(actx2dctx(ctx), search, pp.Get("order-by", "").(string))
 	if err != nil {
 		util.WError(w, 500, "Could not complete search\n%s", err.Error())
 		return
@@ -825,7 +823,7 @@ func GetCopies(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
-	copies, err := db.GetCopiesOf(ctx.Uid, entry.ItemId)
+	copies, err := db.GetCopiesOf(actx2dctx(ctx), entry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get copies of %d\n%s", entry.ItemId, err.Error())
 		return
@@ -902,7 +900,7 @@ func GetDescendants(ctx RequestContext) {
 	w := ctx.W
 	entry := pp["id"].(db_types.InfoEntry)
 
-	items, err := db.GetDescendants(ctx.Uid, entry.ItemId)
+	items, err := db.GetDescendants(actx2dctx(ctx), entry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not get items\n%s", err.Error())
 		return
@@ -915,7 +913,10 @@ func GetDescendants(ctx RequestContext) {
 
 func GetTree(ctx RequestContext) {
 	w := ctx.W
-	tree, err := db.BuildEntryTree(ctx.Uid)
+	tree, err := db.BuildEntryTree(db.RequestContext{
+		UID: ctx.Uid,
+		Auth: ctx.Authorized,
+	})
 	if err != nil {
 		util.WError(w, 500, "Could not build tree\n%s", err.Error())
 		return

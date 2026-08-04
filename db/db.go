@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"aiolimas/logging"
 	log "aiolimas/logging"
@@ -17,7 +16,12 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-const DB_VERSION = 17
+type RequestContext struct {
+	UID  int64 // requested uid
+	Auth int64 // authenticated uid
+}
+
+const DB_VERSION = 18
 
 var DB *sql.DB
 
@@ -63,7 +67,7 @@ func UpgradeDB(curversion int64) error {
 			return err
 		}
 
-		_, err = DB.Exec(fmt.Sprintf("PRAGMA user_version = %d", i + 1))
+		_, err = DB.Exec(fmt.Sprintf("PRAGMA user_version = %d", i+1))
 		if err != nil {
 			logging.ELog(err)
 			return err
@@ -122,20 +126,57 @@ func InitDb() error {
 	return nil
 }
 
-func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
+func uidWhere(ctx RequestContext, uidvar string, itemidvar string) string {
+	whereClause := " "
+	if ctx.UID != 0 {
+		if ctx.UID != ctx.Auth {
+			//if uid != authuid AND uid > 0, select items from uid with READ permission
+			//since uid > 0, we dont have to special case authenticated items, since we are not requesting them
+			whereClause += fmt.Sprintf(
+				`WHERE %s = %d AND ((select permissions from entrySettings where entrySettings.itemid = %s) & %d) = %d`,
+				uidvar,
+				ctx.UID,
+				itemidvar,
+				db_types.PERM_READ,
+				db_types.PERM_READ,
+			)
+		} else {
+			//if uid == authid, select everything, they are authenticated
+			whereClause += fmt.Sprintf(
+				`WHERE %s = %d`, uidvar, ctx.UID,
+			)
+		}
+	} else if ctx.Auth != 0{
+		//if authenticated, but selecting from all users (uid 0), select uid = authuid (everything from that user) OR, where permission has PERM_READ
+		whereClause += fmt.Sprintf(
+			`WHERE %s = %d OR ((select permissions from entrySettings where itemid = %s AND permissions & %d) = %d)`,
+			uidvar,
+			ctx.Auth,
+			itemidvar,
+			db_types.PERM_READ,
+			db_types.PERM_READ,
+		)
+	} else {
+		//if authuid == uid AND uid == 0, select only PERM_READ items
+		whereClause += fmt.Sprintf(
+			`WHERE ((SELECT permissions from entrySettings WHERE itemid = %s AND permissions & %d) = %d)`,
+			itemidvar, db_types.PERM_READ, db_types.PERM_READ,
+		)
+	}
+
+	return whereClause
+}
+
+func BuildEntryTree(ctx RequestContext) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
 
-	whereClause := ""
-	if uid != 0 {
-		whereClause = fmt.Sprintf("WHERE entryInfo.uid = %d", uid)
-	}
+	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid")
 
 	allRows, err := QueryDB(`SELECT * FROM entryInfo ` + whereClause)
 	if err != nil {
 		log.ELog(err)
 		return out, err
 	}
-
 
 	for allRows.Next() {
 		var cur db_types.EntryTree
@@ -156,18 +197,18 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 		cur.Copies = []string{}
 		cur.Children = []string{}
 
-		cur.UserInfo, err = GetUserViewEntryById(uid, cur.EntryInfo.ItemId)
+		cur.UserInfo, err = GetUserViewEntryById(ctx, cur.EntryInfo.ItemId)
 		if err != nil {
 			goto next
 		}
 
-		cur.MetaInfo, err = GetMetadataEntryById(uid, cur.EntryInfo.ItemId)
+		cur.MetaInfo, err = GetMetadataEntryById(ctx, cur.EntryInfo.ItemId)
 		if err != nil {
 			log.ELog(err)
 			goto next
 		}
 
-		children, err = GetRelation(uid, cur.EntryInfo.ItemId, db_types.R_Child)
+		children, err = GetRelation(ctx, cur.EntryInfo.ItemId, db_types.R_Child)
 		if err != nil {
 			log.ELog(err)
 			goto next
@@ -177,7 +218,7 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 			cur.Children = append(cur.Children, fmt.Sprintf("%d", child.ItemId))
 		}
 
-		copies, err = GetCopiesOf(uid, cur.EntryInfo.ItemId)
+		copies, err = GetCopiesOf(ctx, cur.EntryInfo.ItemId)
 		if err != nil {
 			log.ELog(err)
 			goto next
@@ -187,22 +228,17 @@ func BuildEntryTree(uid int64) (map[int64]db_types.EntryTree, error) {
 			cur.Copies = append(cur.Copies, fmt.Sprintf("%d", c.ItemId))
 		}
 
-		next:
+	next:
 		out[id] = cur
 	}
-
 
 	return out, nil
 }
 
+func getById[T db_types.TableRepresentation](ctx RequestContext, id int64, tblName string, out *T) error {
+	query := "SELECT * FROM " + tblName + uidWhere(ctx, fmt.Sprintf("%s.uid", tblName), fmt.Sprintf("%s.itemid", tblName))
 
-func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string, out *T) error {
-	query := "SELECT * FROM " + tblName + " WHERE itemId = ?"
-	if uid > 0{
-		query += " and " + tblName + ".uid = ?;"
-	}
-
-	rows, err := QueryDB(query, id, uid)
+	rows, err := QueryDB(query, id, ctx.UID)
 	if err != nil {
 		return err
 	}
@@ -224,24 +260,24 @@ func getById[T db_types.TableRepresentation](uid int64, id int64, tblName string
 	return nil
 }
 
-func GetInfoEntryById(uid int64, id int64) (db_types.InfoEntry, error) {
+func GetInfoEntryById(ctx RequestContext, id int64) (db_types.InfoEntry, error) {
 	var res db_types.InfoEntry
-	return res, getById(uid, id, "entryInfo", &res)
+	return res, getById(ctx, id, "entryInfo", &res)
 }
 
-func GetUserViewEntryById(uid int64, id int64) (db_types.UserViewingEntry, error) {
+func GetUserViewEntryById(ctx RequestContext, id int64) (db_types.UserViewingEntry, error) {
 	var res db_types.UserViewingEntry
-	return res, getById(uid, id, "userViewingInfo", &res)
+	return res, getById(ctx, id, "userViewingInfo", &res)
 }
 
-func GetUserEventEntryById(uid int64, id int64) (db_types.UserViewingEvent, error) {
+func GetUserEventEntryById(ctx RequestContext, id int64) (db_types.UserViewingEvent, error) {
 	var res db_types.UserViewingEvent
-	return res, getById(uid, id, "userEventInfo", &res)
+	return res, getById(ctx, id, "userEventInfo", &res)
 }
 
-func GetMetadataEntryById(uid int64, id int64) (db_types.MetadataEntry, error) {
+func GetMetadataEntryById(ctx RequestContext, id int64) (db_types.MetadataEntry, error) {
 	var res db_types.MetadataEntry
-	return res, getById(uid, id, "metadata", &res)
+	return res, getById(ctx, id, "metadata", &res)
 }
 
 func ensureUserJsonNotEmpty(user *db_types.UserViewingEntry) {
@@ -265,15 +301,12 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 	}
 }
 
-func ListMetadata(uid int64) ([]db_types.MetadataEntry, error) {
+func ListMetadata(ctx RequestContext) ([]db_types.MetadataEntry, error) {
 	var items *sql.Rows
 	var err error
-	qs := "SELECT * FROM metadata WHERE metadata.uid = ?"
-	if uid < 1 {
-		qs = "SELECT * FROM metadata"
-	}
+	qs := "SELECT * FROM metadata " + uidWhere(ctx, "metadata.uid", "metadata.itemid")
 
-	items, err = QueryDB(qs, uid)
+	items, err = QueryDB(qs, ctx.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -329,18 +362,19 @@ type SearchData struct {
 
 type SearchQuery []SearchData
 
-func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
+func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
 	query := `SELECT DISTINCT entryInfo.*
-				FROM entryInfo
-				JOIN userViewingInfo ON
-					entryInfo.itemId == userViewingInfo.itemId
-				JOIN metadata ON
-					entryInfo.itemId == metadata.itemId
-				LEFT JOIN userEventInfo ON
-					entryInfo.itemId == userEventInfo.itemId
-				WHERE %s`
+	FROM entryInfo
+	JOIN userViewingInfo ON
+	entryInfo.itemId == userViewingInfo.itemId
+	JOIN metadata ON
+	entryInfo.itemId == metadata.itemId
+	LEFT JOIN userEventInfo ON
+	entryInfo.itemId == userEventInfo.itemId ` +
+	uidWhere(ctx, "metadata.uid", "entryinfo.itemid") +
+	" and %s"
 
 	safeQuery, err := search.Search2String(searchQuery)
 	if err != nil {
@@ -383,30 +417,26 @@ func Search3(searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func Search4(uid int64, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
+func Search4(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 
 	searchQuery = "%" + searchQuery + "%"
 
 	query := `SELECT DISTINCT entryInfo.*
-				FROM entryInfo
-				JOIN metadata ON
-					entryInfo.itemId == metadata.itemId
-				JOIN userViewingInfo ON
-					entryInfo.itemId == userViewingInfo.itemId
-				WHERE (
-						En_Title LIKE ? or
-						Title LIKE ? or
-						entryInfo.Native_Title LIKE ? or
-						metadata.Native_Title LIKE ?
-					)
-					`
+	FROM entryInfo
+	JOIN metadata ON
+	entryInfo.itemId == metadata.itemId
+	JOIN userViewingInfo ON
+	entryInfo.itemId == userViewingInfo.itemId
+	` + uidWhere(ctx, "metadata.uid", "entryInfo.itemid") + ` AND (
+		En_Title LIKE ? or
+		Title LIKE ? or
+		entryInfo.Native_Title LIKE ? or
+		metadata.Native_Title LIKE ?
+	)
+	`
 	//parens are for if we want to add the uid condition
 	//(it needs to happen separately)
-
-	if uid > 0 {
-		query += fmt.Sprintf("and metadata.uid = %d ", uid)
-	}
 
 	if orderby != "" {
 		safeOrder, err := search.Search2String(fmt.Sprintf("{ORDER BY %s DESC}", orderby))
@@ -439,13 +469,11 @@ func Search4(uid int64, searchQuery string, orderby string) ([]db_types.InfoEntr
 	return out, nil
 }
 
-func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
+func ListType(ctx RequestContext, col string, ty db_types.MediaTypes) ([]string, error) {
 	var out []string
-	whereClause := "WHERE type = ?"
-	if uid != 0 {
-		whereClause += " and entryInfo.uid = ?"
-	}
-	rows, err := QueryDB(`SELECT ? FROM entryInfo `+whereClause, col, string(ty), uid)
+	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") +  " AND type = ?"
+
+	rows, err := QueryDB(`SELECT ? FROM entryInfo `+whereClause, col, string(ty), ctx.UID)
 	if err != nil {
 		return out, err
 	}
@@ -461,8 +489,8 @@ func ListType(uid int64, col string, ty db_types.MediaTypes) ([]string, error) {
 	return out, nil
 }
 
-func GetCopiesOf(uid int64, id int64) ([]db_types.InfoEntry, error) {
-	return GetRelation(uid, id, db_types.R_Copy)
+func GetCopiesOf(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
+	return GetRelation(ctx, id, db_types.R_Copy)
 }
 
 func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
@@ -479,20 +507,15 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func GetRequires(uid int64, id int64) ([]db_types.InfoEntry, error) {
+func GetRequires(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	whereClause := ""
-	if uid > 0 {
-		whereClause += fmt.Sprintf(" AND entryItem.uid = %d", uid)
-	}
-	queryStr := fmt.Sprintf(`
-		SELECT * FROM entryInfo
-		WHERE
+	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") + ` AND
 		itemId IN (
 			SELECT right FROM relations
 			WHERE
 			relation = 2 AND left = ?
-		) %s`, whereClause)
+		)`
+	queryStr := fmt.Sprintf(`SELECT * FROM entryInfo %s`, whereClause)
 	rows, err := QueryDB(queryStr, id)
 	if err != nil {
 		return out, err
@@ -500,20 +523,16 @@ func GetRequires(uid int64, id int64) ([]db_types.InfoEntry, error) {
 	return mkRows(rows)
 }
 
-func GetRelation(uid int64, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
+func GetRelation(ctx RequestContext, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
-	whereClause := "ei.itemid = ?"
-	if uid > 0 {
-		whereClause += fmt.Sprintf(" AND ei.uid = %d", uid)
-	}
+	whereClause := uidWhere(ctx, "ei.uid", "ei.itemid") +  " AND ei.itemid = ?"
 	queryStr := fmt.Sprintf(`
-		SELECT * FROM entryInfo
-		WHERE
-		entryInfo.itemId IN (
-			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = %d
-			WHERE
-			%s
-		)`, relation, whereClause)
+	SELECT * FROM entryInfo
+	WHERE
+	entryInfo.itemId IN (
+		SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = %d
+		%s
+	)`, relation, whereClause)
 	rows, err := QueryDB(queryStr, id)
 	if err != nil {
 		return out, err
@@ -522,7 +541,7 @@ func GetRelation(uid int64, id int64, relation db_types.Relation) ([]db_types.In
 }
 
 // if id is -1, it lists all events
-func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
+func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
 	whereClause := []string{}
@@ -531,10 +550,7 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 		whereClause = append(whereClause, "itemId == ?")
 		whereItems = append(whereItems, id)
 	}
-	if uid != 0 {
-		whereClause = append(whereClause, "userEventInfo.uid = ?")
-		whereItems = append(whereItems, uid)
-	}
+	whereClause = append(whereClause, strings.TrimPrefix(uidWhere(ctx, "userEventInfo.uid", "userEventInfo.itemid"), " WHERE"))
 
 	whereText := ""
 	if len(whereClause) != 0 {
@@ -547,11 +563,11 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	SELECT *, rowid from userEventInfo
 	%s
 	ORDER BY
-		CASE timestamp
-			WHEN 0 THEN
-				userEventInfo.after
-			ELSE timestamp
-		END`, whereText), whereItems...)
+	CASE timestamp
+	WHEN 0 THEN
+	userEventInfo.after
+	ELSE timestamp
+	END`, whereText), whereItems...)
 	if err != nil {
 		return out, err
 	}
@@ -570,6 +586,8 @@ func GetEvents(uid int64, id int64) ([]db_types.UserViewingEvent, error) {
 	return out, nil
 }
 
+//Setting up a uidWhere for this may be tricky but it shouldn't matter
+//too much anyway because all an outsider would see is A -> B without knowing what A and B are
 func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 	out := map[int64]db_types.Relations{}
 
@@ -643,21 +661,18 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 }
 
 // /sort must be valid sql
-func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
-	whereClause := ""
-	if uid != 0 {
-		whereClause = "WHERE entryInfo.uid = ?"
-	}
+func ListEntries(ctx RequestContext, sort string) ([]db_types.InfoEntry, error) {
+	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid")
 	qs := fmt.Sprintf(`
-		SELECT entryInfo.*
-		FROM
-			entryInfo JOIN userViewingInfo
-		ON
-			entryInfo.itemId = userViewingInfo.itemId
-		%s
-		ORDER BY %s`, whereClause, sort)
+	SELECT entryInfo.*
+	FROM
+	entryInfo JOIN userViewingInfo
+	ON
+	entryInfo.itemId = userViewingInfo.itemId
+	%s
+	ORDER BY %s`, whereClause, sort)
 
-	items, err := QueryDB(qs, uid)
+	items, err := QueryDB(qs, ctx.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -678,10 +693,12 @@ func ListEntries(uid int64, sort string) ([]db_types.InfoEntry, error) {
 	return out, nil
 }
 
-func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
+func GetUserEntry(ctx RequestContext, itemId int64) (db_types.UserViewingEntry, error) {
 	var row db_types.UserViewingEntry
 
-	items, err := QueryDB("SELECT * FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?;", itemId, uid)
+	whereClause := uidWhere(ctx, "userViewingInfo.uid", "userViewingInfo.itemid") + " AND itemId = ?"
+
+	items, err := QueryDB("SELECT * FROM userViewingInfo " + whereClause, itemId)
 	if err != nil {
 		return row, err
 	}
@@ -694,12 +711,10 @@ func GetUserEntry(uid int64, itemId int64) (db_types.UserViewingEntry, error) {
 	return row, err
 }
 
-func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
-	qs := "SELECT * FROM userViewingInfo WHERE userViewingInfo.uid = ?"
-	if uid < 1 {
-		qs = "SELECT * FROM userViewingInfo"
-	}
-	items, err := QueryDB(qs, uid)
+func AllUserEntries(ctx RequestContext) ([]db_types.UserViewingEntry, error) {
+	whereClause := uidWhere(ctx, "userViewingInfo.uid", "userViewingInfo.itemid")
+	qs := "SELECT * FROM userViewingInfo " + whereClause
+	items, err := QueryDB(qs, ctx.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -719,20 +734,20 @@ func AllUserEntries(uid int64) ([]db_types.UserViewingEntry, error) {
 	return out, nil
 }
 
-func getDescendants(uid int64, id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
+func getDescendants(ctx RequestContext, id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
 	if recurse > maxRecurse {
 		return out, nil
 	}
 
-	children, err := GetRelation(uid, id, db_types.R_Child)
+	children, err := GetRelation(ctx, id, db_types.R_Child)
 	if err != nil {
 		return out, err
 	}
 
 	for _, item := range children {
 		out = append(out, item)
-		newItems, err := getDescendants(uid, item.ItemId, recurse+1, maxRecurse)
+		newItems, err := getDescendants(ctx, item.ItemId, recurse+1, maxRecurse)
 		if err != nil {
 			continue
 		}
@@ -741,16 +756,13 @@ func getDescendants(uid int64, id int64, recurse uint64, maxRecurse uint64) ([]d
 	return out, nil
 }
 
-func GetDescendants(uid int64, id int64) ([]db_types.InfoEntry, error) {
-	return getDescendants(uid, id, 0, 10)
+func GetDescendants(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
+	return getDescendants(ctx, id, 0, 10)
 }
 
-func GetRecommendersList(uid int64) ([]string, error) {
-	whereClause := "recommendedBy != ''"
-	if uid != 0 {
-		whereClause += fmt.Sprintf(" AND uid = %d", uid)
-	}
-	rows, err := QueryDB("SELECT DISTINCT json_each.value from entryInfo, json_each(recommendedBy) WHERE " + whereClause)
+func GetRecommendersList(ctx RequestContext) ([]string, error) {
+	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") +  " AND recommendedBy != ''"
+	rows, err := QueryDB("SELECT DISTINCT json_each.value from entryInfo, json_each(recommendedBy) " + whereClause)
 	if err != nil {
 		return []string{}, err
 	}
@@ -766,18 +778,17 @@ func GetRecommendersList(uid int64) ([]string, error) {
 	return recommenders, nil
 }
 
-func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, error) {
-	rows, err := QueryDB(`
-		SELECT rowid, * from transactions WHERE (? == 0 OR uid = ?) AND (? = 0 OR itemid = ?)
-	`, uid, uid, itemid, itemid)
-
+func ListTransactions(ctx RequestContext, itemid int64) ([]db_types.TransactionEntry, error) {
+	rows, err := QueryDB(fmt.Sprintf(`
+	SELECT rowid, * from transactions %s AND (? = 0 OR itemid = ?)
+	`, uidWhere(ctx, "uid", "itemid")), itemid, itemid)
 	if err != nil {
 		return []db_types.TransactionEntry{}, err
 	}
 
 	defer rows.Close()
 
-	var out = []db_types.TransactionEntry{}
+	out := []db_types.TransactionEntry{}
 	for rows.Next() {
 		cur := db_types.TransactionEntry{}
 		cur.ReadEntry(rows)
@@ -786,8 +797,9 @@ func ListTransactions(uid int64, itemid int64) ([]db_types.TransactionEntry, err
 	return out, nil
 }
 
-func GetTransaction(uid int64, id int64) (db_types.TransactionEntry, error) {
-	rows, err := QueryDB("select rowid, * from transactions WHERE rowid = ?", id)
+func GetTransaction(ctx RequestContext, id int64) (db_types.TransactionEntry, error) {
+	whereClause := uidWhere(ctx, "transactions.uid", "transactions.itemid") + " AND rowid = ?"
+	rows, err := QueryDB("select rowid, * from transactions " + whereClause, id)
 	if err != nil {
 		return db_types.TransactionEntry{}, err
 	}
@@ -801,8 +813,9 @@ func GetTransaction(uid int64, id int64) (db_types.TransactionEntry, error) {
 	return e, err
 }
 
-func GetEvent(eventID int64) (db_types.UserViewingEvent, error) {
-	rows, err := QueryDB("select *, rowid from userEventInfo WHERE rowid = ?", eventID)
+func GetEvent(ctx RequestContext, eventID int64) (db_types.UserViewingEvent, error) {
+	whereClause := uidWhere(ctx, "userEventInfo.uid", "userEventInfo.itemid") + " AND rowid = ?"
+	rows, err := QueryDB("select *, rowid from userEventInfo " + whereClause, eventID)
 	if err != nil {
 		return db_types.UserViewingEvent{}, err
 	}

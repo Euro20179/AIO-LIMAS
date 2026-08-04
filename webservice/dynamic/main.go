@@ -23,7 +23,10 @@ func handleSearchPath(w http.ResponseWriter, req *http.Request, uid int64) {
 		query = "#"
 	}
 
-	results, err := db.Search3(query, "")
+	results, err := db.Search3(db.RequestContext{
+		UID: uid,
+		Auth: 0,
+	}, query, "")
 	if err != nil {
 		util.WError(w, 500, "Could not complete search: %s", err.Error())
 		return
@@ -58,28 +61,40 @@ func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) 
 		return
 	}
 
-	info, err := db.GetInfoEntryById(uid, i)
+	info, err := db.GetInfoEntryById(db.RequestContext{
+		UID: uid,
+		Auth: 0,
+	}, i)
 	if err != nil {
 		util.WError(w, 404, "Item not found")
 		logging.ELog(err)
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(uid, i)
+	meta, err := db.GetMetadataEntryById(db.RequestContext{
+		UID: uid,
+		Auth: 0,
+	}, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item metadata")
 		logging.ELog(err)
 		return
 	}
 
-	view, err := db.GetUserViewEntryById(uid, i)
+	view, err := db.GetUserViewEntryById(db.RequestContext{
+		UID: uid,
+		Auth: 0,
+	}, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item viewing info")
 		logging.ELog(err)
 		return
 	}
 
-	events, err := db.GetEvents(uid, i)
+	events, err := db.GetEvents(db.RequestContext{
+		UID: uid,
+		Auth: 0,
+	}, i)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item events")
 		logging.ELog(err)

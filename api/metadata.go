@@ -22,7 +22,7 @@ func FetchLocation(ctx RequestContext) {
 	}
 
 	if provider == "" {
-		info, _ := db.GetInfoEntryById(ctx.Uid, m.ItemId)
+		info, _ := db.GetInfoEntryById(actx2dctx(ctx), m.ItemId)
 		provider = metadata.DetermineBestLocationProvider(&info, &m)
 	}
 
@@ -37,7 +37,7 @@ func FetchLocation(ctx RequestContext) {
 		return
 	}
 
-	entry, _ := db.GetInfoEntryById(ctx.Uid, m.ItemId)
+	entry, _ := db.GetInfoEntryById(actx2dctx(ctx), m.ItemId)
 	entry.Location = location
 
 	err = db.UpdateInfoEntry(ctx.Uid, &entry)
@@ -55,7 +55,7 @@ func FetchMetadataForEntry(ctx RequestContext) {
 	req := ctx.Req
 	mainEntry := pp["id"].(db_types.InfoEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(ctx.Uid, mainEntry.ItemId)
+	metadataEntry, err := db.GetMetadataEntryById(actx2dctx(ctx), mainEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
@@ -140,7 +140,7 @@ func SetMetadataEntry(ctx RequestContext) {
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(ctx.Uid, meta.ItemId)
+	entry, err := db.GetUserViewEntryById(actx2dctx(ctx), meta.ItemId)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
 		return
@@ -194,7 +194,7 @@ func ModMetadataEntry(ctx RequestContext) {
 
 func ListMetadata(ctx RequestContext) {
 	w := ctx.W
-	items, err := db.ListMetadata(ctx.Uid)
+	items, err := db.ListMetadata(actx2dctx(ctx))
 	if err != nil {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return

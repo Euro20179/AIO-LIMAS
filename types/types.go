@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+type Permission int
+const (
+	PERM_READ = 1
+	PERM_WRITE = iota
+)
+
 type Transaction string
 const (
 	TRANSACTION_BUY = "Purchased"
