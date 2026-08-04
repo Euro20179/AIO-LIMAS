@@ -220,7 +220,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			authorized = false
 		}
 
-		uidInt, err := strconv.ParseInt(uidStr, 10, 64)
+		uidInt, err := strconv.ParseInt(newUid, 10, 64)
 
 		if err != nil {
 			w.WriteHeader(400)

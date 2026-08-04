@@ -128,12 +128,13 @@ func InitDb() error {
 
 func uidWhere(ctx RequestContext, uidvar string, itemidvar string) string {
 	whereClause := " "
-	if ctx.UID != 0 {
+	// -1 means no uid specified (should be treated the same as uid = 0)
+	if ctx.UID > 0 {
 		if ctx.UID != ctx.Auth {
 			//if uid != authuid AND uid > 0, select items from uid with READ permission
 			//since uid > 0, we dont have to special case authenticated items, since we are not requesting them
 			whereClause += fmt.Sprintf(
-				`WHERE %s = %d AND ((select permissions from entrySettings where entrySettings.itemid = %s) & %d) = %d`,
+				`WHERE (%s = %d AND ((select permissions from entrySettings where entrySettings.itemid = %s) & %d) = %d)`,
 				uidvar,
 				ctx.UID,
 				itemidvar,
@@ -149,7 +150,7 @@ func uidWhere(ctx RequestContext, uidvar string, itemidvar string) string {
 	} else if ctx.Auth != 0{
 		//if authenticated, but selecting from all users (uid 0), select uid = authuid (everything from that user) OR, where permission has PERM_READ
 		whereClause += fmt.Sprintf(
-			`WHERE %s = %d OR ((select permissions from entrySettings where itemid = %s AND permissions & %d) = %d)`,
+			`WHERE (%s = %d OR ((select permissions from entrySettings where itemid = %s AND permissions & %d) = %d))`,
 			uidvar,
 			ctx.Auth,
 			itemidvar,
@@ -236,9 +237,9 @@ func BuildEntryTree(ctx RequestContext) (map[int64]db_types.EntryTree, error) {
 }
 
 func getById[T db_types.TableRepresentation](ctx RequestContext, id int64, tblName string, out *T) error {
-	query := "SELECT * FROM " + tblName + uidWhere(ctx, fmt.Sprintf("%s.uid", tblName), fmt.Sprintf("%s.itemid", tblName))
+	query := "SELECT * FROM " + tblName + uidWhere(ctx, fmt.Sprintf("%s.uid", tblName), fmt.Sprintf("%s.itemid", tblName)) + fmt.Sprintf(" AND %s.itemid = ?", tblName)
 
-	rows, err := QueryDB(query, id, ctx.UID)
+	rows, err := QueryDB(query, id)
 	if err != nil {
 		return err
 	}
@@ -473,7 +474,7 @@ func ListType(ctx RequestContext, col string, ty db_types.MediaTypes) ([]string,
 	var out []string
 	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") +  " AND type = ?"
 
-	rows, err := QueryDB(`SELECT ? FROM entryInfo `+whereClause, col, string(ty), ctx.UID)
+	rows, err := QueryDB(fmt.Sprintf(`SELECT %s FROM entryInfo `+whereClause, col), string(ty), ctx.UID)
 	if err != nil {
 		return out, err
 	}
