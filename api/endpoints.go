@@ -699,12 +699,13 @@ var AccountEndPoints = []ApiEndPoint{
 	{
 		EndPoint: "access/verify-code",
 		Handler: VerifySyncCode,
-		Description: "Verify a code given from /account/sync/gen-code, returns a random hashstring that can then be used to authenticate as the user<br>Optionally, have a label to describe what the newly generated hashstring is for",
+		Description: "Verify a code given from /account/gen-code, returns a random hashstring that can then be used to authenticate as the user<br>Optionally, have a label to describe what the newly generated hashstring is for",
 		QueryParams: QueryParams {
 			"code": MkQueryInfo(P_NotEmpty, true),
 			"label": MkQueryInfo(P_NotEmpty, true),
 		},
 		GuestAllowed: true,
+		UserIndependant: true,
 	},
 
 	{

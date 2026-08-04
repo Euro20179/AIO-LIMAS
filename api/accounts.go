@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strings"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -130,20 +131,20 @@ var validSyncCodes = map[string]int64{}
 
 func GenSyncCode(ctx RequestContext) {
 	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	code := ""
-	for range 10 {
+	var code strings.Builder
+	for range 24 {
 		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
-		code += string(chars[idx.Int64()])
+		code.WriteString(string(chars[idx.Int64()]))
 	}
-	validSyncCodes[code] = ctx.Uid
+	validSyncCodes[code.String()] = ctx.Uid
 
 	go func() {
-		time.Sleep(5 * time.Minute)
-		delete(validSyncCodes, code)
+		time.Sleep(1 * time.Minute)
+		delete(validSyncCodes, code.String())
 	}()
 
 	ctx.W.WriteHeader(200)
-	ctx.W.Write([]byte(code))
+	ctx.W.Write([]byte(code.String()))
 }
 
 func VerifySyncCode(ctx RequestContext) {
@@ -157,12 +158,6 @@ func VerifySyncCode(ctx RequestContext) {
 	}
 
 	delete(validSyncCodes, code)
-
-	if forUid != ctx.Uid {
-		ctx.W.WriteHeader(401)
-		ctx.W.Write([]byte("uid missmatch (requested uid is different from sync code's associated uid)"))
-		return
-	}
 
 	hash, err := accounts.CreateAccessHash(forUid, ctx.PP["label"].(string))
 
