@@ -70,6 +70,13 @@ func (self *ParsedParams) Get(name string, backup any) any {
 type MethodSpec struct {
 	Description string
 	Params QueryParams
+	// whether or not auth is required, false == auth required, true == auth not required
+	// it's named this way, so that by default, auth is intuitively required
+	// because by default this will be false
+	GuestAllowed bool
+
+	// whether or not a user id is a required parameter
+	UserIndependant bool
 }
 
 type ApiEndPoint struct {
@@ -81,13 +88,6 @@ type ApiEndPoint struct {
 	Description    string
 	Returns        string
 	PossibleErrors []string
-	// whether or not auth is required, false == auth required, true == auth not required
-	// it's named this way, so that by default, auth is intuitively required
-	// because by default this will be false
-	GuestAllowed bool
-
-	// whether or not a user id is a required parameter
-	UserIndependant bool
 }
 
 func pParser2Name(name string) string{
@@ -119,9 +119,9 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 	queryList += "</ul>"
 
 	authorized := "true"
-	if self.GuestAllowed {
-		authorized = "false"
-	}
+	// if self.GuestAllowed {
+	// 	authorized = "false"
+	// }
 
 	return fmt.Sprintf(`
 		<div>
@@ -180,7 +180,6 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	ctx := RequestContext{}
 	ctx.Req = req
 	ctx.W = w
-	ctx.GuestAllowed = self.GuestAllowed
 
 	//"preflight" request
 	if req.Method == "OPTIONS" {
@@ -201,12 +200,14 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		methodSpec = MethodSpec{}
 	}
 
+	ctx.GuestAllowed = methodSpec.GuestAllowed
+
 	var uidStr = req.URL.Query().Get("uid")
 
 	authorized := true
 
 	privateAll := os.Getenv("AIO_PRIVATE")
-	if !self.GuestAllowed || privateAll != "" {
+	if !methodSpec.GuestAllowed || privateAll != "" {
 		auth := req.Header.Get("Authorization")
 
 		if auth == "" {
@@ -252,7 +253,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	// uid is required on almost all endpoints, so
 	// have UserIndependant that keeps track of if it's **not** required
 	// this also saves the hassle of having to say it is required in QueryParams
-	if !self.UserIndependant && uidStr == "" {
+	if !methodSpec.UserIndependant && uidStr == "" {
 		w.WriteHeader(400)
 		fmt.Fprintf(w, "Missing parameter: 'uid'")
 		return

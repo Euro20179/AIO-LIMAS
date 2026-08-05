@@ -51,12 +51,12 @@ var mainEndpointList = []ApiEndPoint{
 					"search": MkQueryInfo(P_NotEmpty, true),
 					"order-by": MkQueryInfo(P_SqlSafe, false),
 				},
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",
-		GuestAllowed: true,
-		UserIndependant: true,
 	},
 
 	{
@@ -68,12 +68,12 @@ var mainEndpointList = []ApiEndPoint{
 					"search":   MkQueryInfo(P_NotEmpty, true),
 					"order-by": MkQueryInfo(P_SqlSafe, false),
 				},
+				GuestAllowed:    true,
+				UserIndependant: true,
 			},
 		},
 		Returns:         "InfoEntry[]",
 		Description:     "search query similar to how sql where query works",
-		GuestAllowed:    true,
-		UserIndependant: true,
 	},
 
 	{
@@ -84,11 +84,11 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams {
 					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 				},
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 		},
 		Description: "Gets all related information for an entry",
-		GuestAllowed: true,
-		UserIndependant: true,
 	},
 
 	{
@@ -99,11 +99,11 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Gets the userEntry, metadataEntry, and infoEntry for an entry",
 		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry\\nEvents",
-		GuestAllowed: true,
 	},
 
 	{
@@ -114,12 +114,12 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
 				},
+				GuestAllowed:    true,
+				UserIndependant: true,
 			},
 		},
 		Description:     "Gets the userEntry, metadataEntry, and infoEntry for a , separated list of entries",
 		Returns:         "Same as get-all-for-entry, each item is separated by \\n\\n",
-		GuestAllowed:    true,
-		UserIndependant: true,
 	},
 
 	// entry/ {{{
@@ -217,11 +217,11 @@ var mainEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params:  QueryParams{},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Gets a tree-like json structure of all entries",
 		Returns:      "InfoEntry",
-		GuestAllowed: true,
 	},
 
 	{
@@ -270,11 +270,11 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"sort-by": MkQueryInfo(P_SqlSafe, false),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "List info entries",
 		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
 	},
 
 
@@ -317,11 +317,11 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists children of an entry",
 		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -363,11 +363,11 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists copies of an entry",
 		Returns:      "JSONL<InfoEntry>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -406,7 +406,11 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry/relation/list",
 		Handler: ListRelations,
 		Description: "Lists relations of all entries",
-		GuestAllowed: true,
+		Methods: map[string]MethodSpec{
+			"GET": {
+				GuestAllowed: true,
+			},
+		},
 	},
 
 	{
@@ -432,11 +436,11 @@ var mainEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params:  QueryParams{},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists en_title of all entries who's type is Collection",
 		Returns:      "Sep<string, '\\n'>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -446,11 +450,11 @@ var mainEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params:  QueryParams{},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists ids of all entries who's type is Library",
 		Returns:      "Sep<string, '\\n'>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -460,12 +464,12 @@ var mainEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams {},
+				GuestAllowed: true,
+				UserIndependant: false,
 			},
 		},
 		Description: "Gets a list of all recommenders",
 		Returns: "string \\x1F (unit separator) separated",
-		GuestAllowed: true,
-		UserIndependant: false,
 	},
 
 	{
@@ -579,11 +583,11 @@ when using finalize-identify`,
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Gets the metadata for an entry",
 		Returns:      "MetadataEntry",
-		GuestAllowed: true,
 	},
 
 	{
@@ -626,11 +630,11 @@ when using finalize-identify`,
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params:  QueryParams{},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists all metadata entries",
 		Returns:      "JSONL<MetadataEntry>",
-		GuestAllowed: true,
 	},
 } // }}}
 
@@ -659,11 +663,11 @@ var engagementEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists the events of an entry",
 		Returns:      "JSONL<EventEntry>",
-		GuestAllowed: true,
 	},
 	{
 		EndPoint: "delete-event",
@@ -739,11 +743,11 @@ var engagementEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params:  QueryParams{},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Lists all events",
 		Returns:      "JSONL<EventEntry>",
-		GuestAllowed: true,
 	},
 
 	{
@@ -784,7 +788,11 @@ var engagementEndpointList = []ApiEndPoint{
 		Handler:      UserEntries,
 		Description:  "Lists all user entries",
 		Returns:      "JSONL<UserEntry>",
-		GuestAllowed: true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				GuestAllowed: true,
+			},
+		},
 	},
 
 	{
@@ -796,11 +804,11 @@ var engagementEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
 				},
+				GuestAllowed: true,
 			},
 		},
 		Description:  "Gets a user entry by id",
 		Returns:      "UserEntry",
-		GuestAllowed: true,
 	},
 
 	{
@@ -973,11 +981,12 @@ var AccountEndPoints = []ApiEndPoint{
 		EndPoint:        "create",
 		Handler:         CreateAccount,
 		Methods:          map[string]MethodSpec{
-			"POST": {},
+			"POST": {
+				UserIndependant: true,
+				GuestAllowed:    true,
+			},
 		},
 		Description:     "Creates an account",
-		UserIndependant: true,
-		GuestAllowed:    true,
 	},
 
 	{
@@ -996,10 +1005,10 @@ var AccountEndPoints = []ApiEndPoint{
 					"code": MkQueryInfo(P_NotEmpty, true),
 					"label": MkQueryInfo(P_NotEmpty, true),
 				},
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 		},
-		GuestAllowed: true,
-		UserIndependant: true,
 	},
 
 	{
@@ -1030,10 +1039,10 @@ var AccountEndPoints = []ApiEndPoint{
 				Params: QueryParams{
 					"username": MkQueryInfo(P_NotEmpty, true),
 				},
+				UserIndependant: true,
+				GuestAllowed:    true,
 			},
 		},
-		UserIndependant: true,
-		GuestAllowed:    true,
 	},
 
 	{
@@ -1045,26 +1054,34 @@ var AccountEndPoints = []ApiEndPoint{
 					"username": MkQueryInfo(P_NotEmpty, false),
 					"password": MkQueryInfo(P_NotEmpty, false),
 				},
+				UserIndependant: true,
+				GuestAllowed:    true,
 			},
 		},
 		Description:     "Login",
-		UserIndependant: true,
-		GuestAllowed:    true,
 	},
 
 	{
 		EndPoint:        "authorized",
 		Handler:         AuthCk,
 		Description:     "Checks if the Authorization header is valid",
-		UserIndependant: true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				UserIndependant: true,
+			},
+		},
 	},
 
 	{
 		EndPoint:        "list",
 		Handler:         ListUsers,
 		Description:     "List all users",
-		UserIndependant: true,
-		GuestAllowed:    true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				UserIndependant: true,
+				GuestAllowed:    true,
+			},
+		},
 	},
 
 	{
@@ -1084,10 +1101,10 @@ var AccountEndPoints = []ApiEndPoint{
 				Params: QueryParams{
 					"new-username": MkQueryInfo(P_NotEmpty, true),
 				},
+				UserIndependant: true,
 			},
 		},
 		Handler: RenameAccount,
-		UserIndependant: true,
 	},
 } // }}}
 
@@ -1101,11 +1118,11 @@ var resourceEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"hash": MkQueryInfo(P_NotEmpty, true),
 				},
+				GuestAllowed:    true,
+				UserIndependant: true,
 			},
 		},
 		Description:     "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
-		GuestAllowed:    true,
-		UserIndependant: true,
 	},
 	{
 		EndPoint: "get-thumbnail-by-id",
@@ -1115,11 +1132,11 @@ var resourceEndpointList = []ApiEndPoint{
 				Params: QueryParams {
 					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
 				},
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 		},
 		Description: "Returns a 303 pointing to the location of where to find the thumbnail for an item id",
-		GuestAllowed: true,
-		UserIndependant: true,
 	},
 
 	// this is the legacy one, since the url is hardcoded I can't really change it.
@@ -1131,11 +1148,11 @@ var resourceEndpointList = []ApiEndPoint{
 				Params: QueryParams{
 					"id": MkQueryInfo(P_NotEmpty, true),
 				},
+				GuestAllowed:    true,
+				UserIndependant: true,
 			},
 		},
 		Description:     "LEGACY, Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
-		GuestAllowed:    true,
-		UserIndependant: true,
 	},
 
 	{
@@ -1158,24 +1175,36 @@ var typeEndpoints = []ApiEndPoint{
 		EndPoint:        "format",
 		Handler:         ListFormats,
 		Description:     "Lists the valid values for a Format",
-		GuestAllowed:    true,
-		UserIndependant: true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				GuestAllowed:    true,
+				UserIndependant: true,
+			},
+		},
 	},
 
 	{
 		EndPoint:        "type",
 		Handler:         ListTypes,
 		Description:     "Lists the types for a Type",
-		GuestAllowed:    true,
-		UserIndependant: true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				GuestAllowed:    true,
+				UserIndependant: true,
+			},
+		},
 	},
 
 	{
 		EndPoint:        "artstyle",
 		Handler:         ListArtStyles,
 		Description:     "Lists the types art styles",
-		GuestAllowed:    true,
-		UserIndependant: true,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				GuestAllowed:    true,
+				UserIndependant: true,
+			},
+		},
 	},
 } // }}}
 
@@ -1184,8 +1213,12 @@ var MainDocs = ApiEndPoint{
 	EndPoint:        "",
 	Handler:         DocHTML,
 	Description:     "The documentation",
-	GuestAllowed:    true,
-	UserIndependant: true,
+	Methods: map[string]MethodSpec {
+		"GET": {
+			GuestAllowed:    true,
+			UserIndependant: true,
+		},
+	},
 } // }}}
 
 var Endpoints = map[string][]ApiEndPoint{
@@ -1203,10 +1236,10 @@ var Endpoints = map[string][]ApiEndPoint{
 					Params: QueryParams {
 						"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 					},
+					GuestAllowed: true,
+					UserIndependant: true,
 				},
 			},
-			GuestAllowed: true,
-			UserIndependant: true,
 		},
 		{
 			EndPoint: "do",
