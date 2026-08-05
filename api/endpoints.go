@@ -16,11 +16,7 @@ func MakeEndPointsFromList(root string, endPoints []ApiEndPoint) {
 		for _, name := range names {
 			http.HandleFunc(root + "/" + name, func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Access-Control-Allow-Origin", "*")
-				mthd := string(endPoint.Method)
-				if mthd == "" {
-					mthd = "GET"
-				}
-				w.Header().Set("Access-Control-Allow-Methods", mthd)
+				w.Header().Set("Access-Control-Allow-Methods", "*")
 				w.Header().Set("Access-Control-Allow-Headers", "Authorization")
 				endPoint.Listener(w, r)
 			})
@@ -37,9 +33,10 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
-		Method: POST,
+		Methods: map[string]MethodSpec{
+			"POST": {},
+		},
 		Handler: HookRadarr,
-		QueryParams: QueryParams {},
 		Description: "Handles radar webhook requests",
 		Returns: "InfoEntry",
 		EndPoint: "hook-radarr",
@@ -48,9 +45,13 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "query-v4",
 		Handler: QueryEntries4,
-		QueryParams: QueryParams{
-			"search": MkQueryInfo(P_NotEmpty, true),
-			"order-by": MkQueryInfo(P_SqlSafe, false),
+		Methods: map[string]MethodSpec{
+			"GET": {
+				Params: QueryParams{
+					"search": MkQueryInfo(P_NotEmpty, true),
+					"order-by": MkQueryInfo(P_SqlSafe, false),
+				},
+			},
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",
@@ -61,9 +62,13 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "query-v3",
 		Handler:  QueryEntries3,
-		QueryParams: QueryParams{
-			"search":   MkQueryInfo(P_NotEmpty, true),
-			"order-by": MkQueryInfo(P_SqlSafe, false),
+		Methods: map[string]MethodSpec{
+			"GET": {
+				Params: QueryParams{
+					"search":   MkQueryInfo(P_NotEmpty, true),
+					"order-by": MkQueryInfo(P_SqlSafe, false),
+				},
+			},
 		},
 		Returns:         "InfoEntry[]",
 		Description:     "search query similar to how sql where query works",
@@ -74,8 +79,12 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "entry/allfor",
 		Handler: GetAllForEntry2,
-		QueryParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec{
+			"GET": {
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Gets all related information for an entry",
 		GuestAllowed: true,
@@ -85,8 +94,12 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "get-all-for-entry",
 		Handler:  GetAllForEntry,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description:  "Gets the userEntry, metadataEntry, and infoEntry for an entry",
 		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry\\nEvents",
@@ -96,8 +109,12 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "get-all-for-entries",
 		Handler:  GetAllForEntries,
-		QueryParams: QueryParams{
-			"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
+				},
+			},
 		},
 		Description:     "Gets the userEntry, metadataEntry, and infoEntry for a , separated list of entries",
 		Returns:         "Same as get-all-for-entry, each item is separated by \\n\\n",
@@ -111,11 +128,15 @@ var mainEndpointList = []ApiEndPoint{
 		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		Aliases:    []string{"add-tags"},
 		EndPoint: "entry/tag/add",
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
-				return in
-			}), true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
+						return in
+					}), true),
+				},
+			},
 		},
 	},
 
@@ -124,42 +145,50 @@ var mainEndpointList = []ApiEndPoint{
 		Description: "Delets tag(s) from an entry, tags must be an \\x1F (ascii unit separator) separated list",
 		Aliases:    []string{"delete-tags"},
 		EndPoint: "entry/tag/delete",
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
-				return in
-			}), true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"tags": MkQueryInfo(P_TList("\x1F", func(in string) string {
+						return in
+					}), true),
+				},
+			},
 		},
 	},
 
 	{
 		Handler: AddEntry,
-		QueryParams: QueryParams{
-			"title":             MkQueryInfo(P_NotEmpty, true),
-			"type":              MkQueryInfo(P_EntryType, true),
-			"format":            MkQueryInfo(P_EntryFormat, true),
-			"timezone":          MkQueryInfo(P_NotEmpty, false),
-			"price":             MkQueryInfo(P_Float64, false),
-			"currency":          MkQueryInfo(P_NotEmpty, false),
-			"is-digital":        MkQueryInfo(P_Bool, false),
-			"is-anime":          MkQueryInfo(P_Bool, false),
-			"format-modifiers":  MkQueryInfo(P_Int64, false),
-			"art-style":         MkQueryInfo(P_ArtStyle, false),
-			"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"copyOf":            MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"native-title":      MkQueryInfo(P_True, false),
-			"tags":              MkQueryInfo(P_True, false),
-			"location":          MkQueryInfo(P_True, false),
-			"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
-			"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
-			"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
-			"user-rating":       MkQueryInfo(P_Float64, false),
-			"user-status":       MkQueryInfo(P_UserStatus, false),
-			"user-view-count":   MkQueryInfo(P_Int64, false),
-			"user-notes":        MkQueryInfo(P_True, false),
-			"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"recommended-by":    MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"title":             MkQueryInfo(P_NotEmpty, true),
+					"type":              MkQueryInfo(P_EntryType, true),
+					"format":            MkQueryInfo(P_EntryFormat, true),
+					"timezone":          MkQueryInfo(P_NotEmpty, false),
+					"price":             MkQueryInfo(P_Float64, false),
+					"currency":          MkQueryInfo(P_NotEmpty, false),
+					"is-digital":        MkQueryInfo(P_Bool, false),
+					"is-anime":          MkQueryInfo(P_Bool, false),
+					"format-modifiers":  MkQueryInfo(P_Int64, false),
+					"art-style":         MkQueryInfo(P_ArtStyle, false),
+					"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"copyOf":            MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"native-title":      MkQueryInfo(P_True, false),
+					"tags":              MkQueryInfo(P_True, false),
+					"location":          MkQueryInfo(P_True, false),
+					"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
+					"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
+					"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
+					"user-rating":       MkQueryInfo(P_Float64, false),
+					"user-status":       MkQueryInfo(P_UserStatus, false),
+					"user-view-count":   MkQueryInfo(P_Int64, false),
+					"user-notes":        MkQueryInfo(P_True, false),
+					"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"recommended-by":    MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Adds a new entry, and registers an Add event",
 		Returns:     "InfoEntry",
@@ -171,8 +200,12 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"delete-entry"},
 		EndPoint: "entry/delete",
 		Handler:  DeleteEntry,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Deletes an entry",
 	},
@@ -181,7 +214,11 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases:     []string{"list-tree"},
 		EndPoint: "entry/tree",
 		Handler:      GetTree,
-		QueryParams:  QueryParams{},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params:  QueryParams{},
+			},
+		},
 		Description:  "Gets a tree-like json structure of all entries",
 		Returns:      "InfoEntry",
 		GuestAllowed: true,
@@ -191,21 +228,25 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry/mod",
 		Aliases: []string{"mod-entry"},
 		Handler:  ModEntry,
-		QueryParams: QueryParams{
-			"id":              MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"en-title":        MkQueryInfo(P_NotEmpty, false),
-			"native-title":    MkQueryInfo(P_True, false),
-			"format":          MkQueryInfo(P_EntryFormat, false),
-			"parent-id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"become-orphan":   MkQueryInfo(P_Bool, false),
-			"become-original": MkQueryInfo(P_Bool, false),
-			"copy-id":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
-			"price":           MkQueryInfo(P_Float64, false),
-			"location":        MkQueryInfo(P_True, false),
-			"tags":            MkQueryInfo(P_True, false),
-			// "is-anime":        MkQueryInfo(P_Bool, false),
-			"art-style": MkQueryInfo(P_ArtStyle, false),
-			"type":      MkQueryInfo(P_EntryType, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":              MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"en-title":        MkQueryInfo(P_NotEmpty, false),
+					"native-title":    MkQueryInfo(P_True, false),
+					"format":          MkQueryInfo(P_EntryFormat, false),
+					"parent-id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"become-orphan":   MkQueryInfo(P_Bool, false),
+					"become-original": MkQueryInfo(P_Bool, false),
+					"copy-id":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"price":           MkQueryInfo(P_Float64, false),
+					"location":        MkQueryInfo(P_True, false),
+					"tags":            MkQueryInfo(P_True, false),
+					// "is-anime":        MkQueryInfo(P_Bool, false),
+					"art-style": MkQueryInfo(P_ArtStyle, false),
+					"type":      MkQueryInfo(P_EntryType, false),
+				},
+			},
 		},
 		Description: "Modifies an individual entry datapoint",
 	},
@@ -214,8 +255,9 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry/set",
 		Aliases:    []string{"set-entry"},
 		Handler:     SetEntry,
-		QueryParams: QueryParams{},
-		Method:      POST,
+		Methods: map[string]MethodSpec {
+			"POST": {},
+		},
 		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
 	},
 
@@ -223,8 +265,12 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry/list",
 		Aliases: []string{"list-entries"},
 		Handler:  ListEntries,
-		QueryParams: QueryParams{
-			"sort-by": MkQueryInfo(P_SqlSafe, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"sort-by": MkQueryInfo(P_SqlSafe, false),
+				},
+			},
 		},
 		Description:  "List info entries",
 		Returns:      "JSONL<InfoEntry>",
@@ -236,9 +282,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"add-child"},
 		EndPoint: "entry/child/add",
 		Handler: AddChild,
-		QueryParams: QueryParams{
-			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Adds child as a child of parent",
 	},
@@ -247,9 +297,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"del-child"},
 		EndPoint: "entry/child/delete",
 		Handler: DelChild,
-		QueryParams: QueryParams{
-			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"parent": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Removes child as a child of parent",
 	},
@@ -258,8 +312,12 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"list-descendants"},
 		EndPoint: "entry/child/list",
 		Handler:  GetDescendants,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description:  "Lists children of an entry",
 		Returns:      "JSONL<InfoEntry>",
@@ -270,9 +328,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"add-copy"},
 		EndPoint: "entry/copy/add",
 		Handler: AddCopy,
-		QueryParams: QueryParams{
-			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Makes 2 items copies of each other",
 	},
@@ -281,9 +343,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"del-copy"},
 		EndPoint: "entry/copy/delete",
 		Handler: DelCopy,
-		QueryParams: QueryParams{
-			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"copyof": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Makes copy not a copy of copyof anymore, goes both directions",
 	},
@@ -292,8 +358,12 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"list-copies"},
 		EndPoint: "entry/copy/list",
 		Handler:  GetCopies,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description:  "Lists copies of an entry",
 		Returns:      "JSONL<InfoEntry>",
@@ -304,9 +374,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"del-requires"},
 		EndPoint: "entry/requirement/delete",
 		Handler: DelRequires,
-		QueryParams: QueryParams{
-			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Removes requires as a requirement of itemid",
 	},
@@ -316,9 +390,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"add-requires"},
 		EndPoint: "entry/requirement/add",
 		Handler: AddRequires,
-		QueryParams: QueryParams{
-			"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"itemid": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"requires": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Makes itemid require requires as a requirement",
 	},
@@ -335,9 +413,13 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"stream-entry"},
 		EndPoint: "entry/stream",
 		Handler:  Stream,
-		QueryParams: QueryParams{
-			"id":      MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"subfile": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":      MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"subfile": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Download the file located by the {id}'s location",
 		Returns:     "any",
@@ -347,7 +429,11 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases:     []string{"list-collections"},
 		EndPoint:     "entry/collection/list",
 		Handler:      ListCollections,
-		QueryParams:  QueryParams{},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params:  QueryParams{},
+			},
+		},
 		Description:  "Lists en_title of all entries who's type is Collection",
 		Returns:      "Sep<string, '\\n'>",
 		GuestAllowed: true,
@@ -357,7 +443,11 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases:      []string{"list-libraries"},
 		EndPoint:     "entry/library/list",
 		Handler:      ListLibraries,
-		QueryParams:  QueryParams{},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params:  QueryParams{},
+			},
+		},
 		Description:  "Lists ids of all entries who's type is Library",
 		Returns:      "Sep<string, '\\n'>",
 		GuestAllowed: true,
@@ -367,7 +457,11 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"recommenders"},
 		EndPoint: "entry/recommender/list",
 		Handler: GetRecommenders,
-		QueryParams: QueryParams {},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams {},
+			},
+		},
 		Description: "Gets a list of all recommenders",
 		Returns: "string \\x1F (unit separator) separated",
 		GuestAllowed: true,
@@ -377,10 +471,19 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "entry/settings",
 		Handler: EntrySettings,
-		Method: "*",
-		Description: "Gets/sets the settings for an entry, GET gets, POST sets<br>the POST body must be a Partial<EntrySettings> json, any fields not specified will be unchanged",
-		QueryParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: "Gets the settings for an entry",
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
+			"POST": {
+				Description: "Sets the settings for an entry. Body data must be Partial<EntrySettings>, any fields not specified will remain unchanged",
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 	},
 	// }}}
@@ -391,10 +494,14 @@ var metadataEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "fetch-location",
 		Handler:  FetchLocation,
-		QueryParams: QueryParams{
-			"id":          MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
-			"provider":    MkQueryInfo(P_LocationProvider, false),
-			"provider-id": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":          MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+					"provider":    MkQueryInfo(P_LocationProvider, false),
+					"provider-id": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Fetch the location of an entry based on the metadata and other info",
 	},
@@ -402,9 +509,13 @@ var metadataEndpointList = []ApiEndPoint{
 		Aliases: []string{"identify"},
 		EndPoint: "search",
 		Handler:  IdentifyWithSearch,
-		QueryParams: QueryParams{
-			"title":    MkQueryInfo(P_NotEmpty, true),
-			"provider": MkQueryInfo(P_Identifier, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"title":    MkQueryInfo(P_NotEmpty, true),
+					"provider": MkQueryInfo(P_Identifier, true),
+				},
+			},
 		},
 		Description: `List metadata results based on a search query + provider<br>
 The id of the metadata entry will be the id that's supposed to be given to <code>identified-id</code><br>
@@ -416,10 +527,14 @@ when using finalize-identify`,
 		Aliases: []string{"finalize-identify"},
 		EndPoint: "apply",
 		Handler:  FinalizeIdentification,
-		QueryParams: QueryParams{
-			"identified-id": MkQueryInfo(P_NotEmpty, true),
-			"provider":      MkQueryInfo(P_IdIdentifier, true),
-			"apply-to":      MkQueryInfo(P_VerifyIdAndGetMetaEntry, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"identified-id": MkQueryInfo(P_NotEmpty, true),
+					"provider":      MkQueryInfo(P_IdIdentifier, true),
+					"apply-to":      MkQueryInfo(P_VerifyIdAndGetMetaEntry, false),
+				},
+			},
 		},
 		Description: "Apply an identified id from /identify, to an entry using a provider",
 		Returns:     "none",
@@ -429,8 +544,11 @@ when using finalize-identify`,
 		Aliases: []string{"set-entry"},
 		EndPoint:    "set",
 		Handler:     SetMetadataEntry,
-		Method:      "POST",
-		QueryParams: QueryParams{},
+		Methods: map[string]MethodSpec {
+			"POST": {
+				Params: QueryParams{},
+			},
+		},
 		Description: "Set a metadata entry to the json of an entry<br>post body must be updated metadata entry",
 		Returns:     "UserEntry",
 	},
@@ -438,9 +556,13 @@ when using finalize-identify`,
 	{
 		EndPoint: "fetch",
 		Handler:  FetchMetadataForEntry,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"provider": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"provider": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Returns: "MetadataEntry",
 		Description: `Fetch the metadata for an entry based on the type<br>
@@ -452,8 +574,12 @@ when using finalize-identify`,
 		Aliases: []string{"retrieve"},
 		EndPoint: "get",
 		Handler:  RetrieveMetadataForEntry,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+				},
+			},
 		},
 		Description:  "Gets the metadata for an entry",
 		Returns:      "MetadataEntry",
@@ -464,14 +590,18 @@ when using finalize-identify`,
 		Aliases: []string{"mod-entry"},
 		EndPoint: "mod",
 		Handler:  ModMetadataEntry,
-		QueryParams: QueryParams{
-			"id":              MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
-			"rating":          MkQueryInfo(P_Float64, false),
-			"description":     MkQueryInfo(P_NotEmpty, false),
-			"release-year":    MkQueryInfo(P_Int64, false),
-			"thumbnail":       MkQueryInfo(P_NotEmpty, false),
-			"media-dependant": MkQueryInfo(P_NotEmpty, false),
-			"datapoints":      MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":              MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+					"rating":          MkQueryInfo(P_Float64, false),
+					"description":     MkQueryInfo(P_NotEmpty, false),
+					"release-year":    MkQueryInfo(P_Int64, false),
+					"thumbnail":       MkQueryInfo(P_NotEmpty, false),
+					"media-dependant": MkQueryInfo(P_NotEmpty, false),
+					"datapoints":      MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Modify metadata by datapoint",
 	},
@@ -479,18 +609,25 @@ when using finalize-identify`,
 	{
 		EndPoint: "set-thumbnail",
 		Handler:  SetThumbnail,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		Methods: map[string]MethodSpec {
+			"POST": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+				},
+			},
 		},
 		Description: "Set the thumbnail for a metadata entry",
-		Method:      POST,
 	},
 
 	{
 		Aliases:     []string{"list-entries"},
 		EndPoint:     "list",
 		Handler:      ListMetadata,
-		QueryParams:  QueryParams{},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params:  QueryParams{},
+			},
+		},
 		Description:  "Lists all metadata entries",
 		Returns:      "JSONL<MetadataEntry>",
 		GuestAllowed: true,
@@ -502,9 +639,13 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "copy",
 		Handler:  CopyUserViewingEntry,
-		QueryParams: QueryParams{
-			"src-id":  MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"dest-id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"src-id":  MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"dest-id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Moves all user entry data, and events from one entry entry to another",
 	},
@@ -513,8 +654,12 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"get-events"},
 		EndPoint: "event/listfor",
 		Handler:  GetEventsOf,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description:  "Lists the events of an entry",
 		Returns:      "JSONL<EventEntry>",
@@ -523,11 +668,15 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "delete-event",
 		Handler:  DeleteEvent,
-		QueryParams: QueryParams{
-			"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"timestamp": MkQueryInfo(P_Int64, true),
-			"after":     MkQueryInfo(P_Int64, true),
-			"before":    MkQueryInfo(P_Int64, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"timestamp": MkQueryInfo(P_Int64, true),
+					"after":     MkQueryInfo(P_Int64, true),
+					"before":    MkQueryInfo(P_Int64, true),
+				},
+			},
 		},
 		Description: "<b>DEPRECATED, use event/delete</b>",
 	},
@@ -536,8 +685,12 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"delete-event-v2"},
 		EndPoint: "event/delete",
 		Handler:  DeletEventV2,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_Int64, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_Int64, true),
+				},
+			},
 		},
 		Description: "Deletes an event by event id",
 	},
@@ -546,13 +699,17 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"register-event"},
 		EndPoint: "event/register",
 		Handler:  RegisterEvent,
-		QueryParams: QueryParams{
-			"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"name":      MkQueryInfo(P_NotEmpty, true),
-			"timestamp": MkQueryInfo(P_Int64, false),
-			"after":     MkQueryInfo(P_Int64, false),
-			"timezone":  MkQueryInfo(P_NotEmpty, false),
-			"before":    MkQueryInfo(P_Int64, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+					"name":      MkQueryInfo(P_NotEmpty, true),
+					"timestamp": MkQueryInfo(P_Int64, false),
+					"after":     MkQueryInfo(P_Int64, false),
+					"timezone":  MkQueryInfo(P_NotEmpty, false),
+					"before":    MkQueryInfo(P_Int64, false),
+				},
+			},
 		},
 		Description: "Registers an event for an entry",
 	},
@@ -561,13 +718,17 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"edit-event"},
 		EndPoint: "event/edit",
 		Handler: EditEvent,
-		QueryParams: QueryParams{
-			"eventId":   MkQueryInfo(P_Int64, true),
-			"name":      MkQueryInfo(P_NotEmpty, true),
-			"timestamp": MkQueryInfo(P_Int64, false),
-			"after":     MkQueryInfo(P_Int64, false),
-			"timezone":  MkQueryInfo(P_NotEmpty, false),
-			"before":    MkQueryInfo(P_Int64, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"eventId":   MkQueryInfo(P_Int64, true),
+					"name":      MkQueryInfo(P_NotEmpty, true),
+					"timestamp": MkQueryInfo(P_Int64, false),
+					"after":     MkQueryInfo(P_Int64, false),
+					"timezone":  MkQueryInfo(P_NotEmpty, false),
+					"before":    MkQueryInfo(P_Int64, false),
+				},
+			},
 		},
 	},
 
@@ -575,7 +736,11 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases:     []string{"list-events"},
 		EndPoint: "event/list",
 		Handler:      ListEvents,
-		QueryParams:  QueryParams{},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params:  QueryParams{},
+			},
+		},
 		Description:  "Lists all events",
 		Returns:      "JSONL<EventEntry>",
 		GuestAllowed: true,
@@ -585,14 +750,18 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"mod-entry"},
 		EndPoint: "mod",
 		Handler:  ModUserEntry,
-		QueryParams: QueryParams{
-			"id":               MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"notes":            MkQueryInfo(P_True, false),
-			"rating":           MkQueryInfo(P_Float64, false),
-			"view-count":       MkQueryInfo(P_Int64, false),
-			"current-position": MkQueryInfo(P_True, false),
-			"status":           MkQueryInfo(P_UserStatus, false),
-			"minutes":          MkQueryInfo(P_Int64, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":               MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"notes":            MkQueryInfo(P_True, false),
+					"rating":           MkQueryInfo(P_Float64, false),
+					"view-count":       MkQueryInfo(P_Int64, false),
+					"current-position": MkQueryInfo(P_True, false),
+					"status":           MkQueryInfo(P_UserStatus, false),
+					"minutes":          MkQueryInfo(P_Int64, false),
+				},
+			},
 		},
 		Description: "Modifies datapoints of a user entry",
 	},
@@ -601,8 +770,11 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases:    []string{"set-entry"},
 		EndPoint: "set",
 		Handler:     SetUserEntry,
-		Method:      "POST",
-		QueryParams: QueryParams{},
+		Methods: map[string]MethodSpec {
+			"POST": {
+				Params: QueryParams{},
+			},
+		},
 		Description: "Updates the user entry with the post body<br>Post body must be updated user entry",
 	},
 
@@ -619,8 +791,12 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"get-entry"},
 		EndPoint: "get",
 		Handler:  GetUserEntry,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+				},
+			},
 		},
 		Description:  "Gets a user entry by id",
 		Returns:      "UserEntry",
@@ -630,19 +806,54 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "{id}",
 		Handler: EngagementResource,
-		Method: "*",
-		Description: `
-			A General /engagement endpoint. <br>
-			Accepted verbs:
-			<ul>
-				<li> &lt;ACTION&gt;: same as the action endpoints, eg begin, finish, ...
-				<li> FINISH: ?rating is required
-				<li> GET: same as /engagement/get, if id is 0, same as /engagement/list
-			</ul>
-		`,
-		QueryParams: QueryParams {
-			"timezone": MkQueryInfo(P_NotEmpty, false),
-			"rating": MkQueryInfo(P_Float64, false),
+		Description: `A General /engagement endpoint to control/access the user viewing state.`,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: "Gets a user viewing entry by id",
+			},
+			"DROP": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Drops an entry",
+			},
+			"RESUME": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Resumes an entry",
+			},
+			"PAUSE": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Pauses an entry",
+			},
+			"PLAN": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Plans an entry",
+			},
+			"BEGIN": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Begins an entry",
+			},
+			"WAIT": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Waits an entry",
+			},
+			"FINISH": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+					"rating": MkQueryInfo(P_Float64, true),
+				},
+				Description: "Finishes an entry",
+			},
 		},
 		PathParams: QueryParams {
 			"id": MkQueryInfo(P_Int64, false),
@@ -653,9 +864,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"drop-media"},
 		EndPoint: "drop",
 		Handler:  DropMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Drops a media, and registers a Drop event",
 	},
@@ -664,9 +879,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"resume-media"},
 		EndPoint: "resume",
 		Handler:  ResumeMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Resumes a media and registers a ReViewing event",
 	},
@@ -675,9 +894,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"pause-media"},
 		EndPoint: "pause",
 		Handler:  PauseMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Pauses a media and registers a Pause event",
 	},
@@ -686,9 +909,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"plan-media"},
 		EndPoint: "plan",
 		Handler:  PlanMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Plans a media and registers a Plan event",
 	},
@@ -697,9 +924,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"begin-media"},
 		EndPoint: "begin",
 		Handler:  BeginMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Begins a media and registers a Viewing event",
 	},
@@ -707,9 +938,13 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"wait-media"},
 		EndPoint: "wait",
 		Handler:  WaitMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Sets the status to waiting, and registers a Waiting event",
 	},
@@ -718,10 +953,14 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"finish-media"},
 		EndPoint: "finish",
 		Handler:  FinishMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"rating":   MkQueryInfo(P_Float64, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+					"rating":   MkQueryInfo(P_Float64, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description: "Finishes a media, and registers a Finish event",
 	},
@@ -733,7 +972,9 @@ var AccountEndPoints = []ApiEndPoint{
 	{
 		EndPoint:        "create",
 		Handler:         CreateAccount,
-		Method:          POST,
+		Methods:          map[string]MethodSpec{
+			"POST": {},
+		},
 		Description:     "Creates an account",
 		UserIndependant: true,
 		GuestAllowed:    true,
@@ -749,9 +990,13 @@ var AccountEndPoints = []ApiEndPoint{
 		EndPoint: "access/verify-code",
 		Handler: VerifySyncCode,
 		Description: "Verify a code given from /account/gen-code, returns a random hashstring that can then be used to authenticate as the user<br>Optionally, have a label to describe what the newly generated hashstring is for",
-		QueryParams: QueryParams {
-			"code": MkQueryInfo(P_NotEmpty, true),
-			"label": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams {
+					"code": MkQueryInfo(P_NotEmpty, true),
+					"label": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 		GuestAllowed: true,
 		UserIndependant: true,
@@ -767,8 +1012,12 @@ var AccountEndPoints = []ApiEndPoint{
 		EndPoint: "access/delete",
 		Handler: DeleteAccessCode,
 		Description: "Deletes an access code",
-		QueryParams: QueryParams {
-			"label": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams {
+					"label": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 	},
 
@@ -776,8 +1025,12 @@ var AccountEndPoints = []ApiEndPoint{
 		EndPoint:    "username2id",
 		Handler:     Username2Id,
 		Description: "get a user's id from username",
-		QueryParams: QueryParams{
-			"username": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"username": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 		UserIndependant: true,
 		GuestAllowed:    true,
@@ -786,9 +1039,13 @@ var AccountEndPoints = []ApiEndPoint{
 	{
 		EndPoint: "login",
 		Handler:  Login,
-		QueryParams: QueryParams{
-			"username": MkQueryInfo(P_NotEmpty, false),
-			"password": MkQueryInfo(P_NotEmpty, false),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"username": MkQueryInfo(P_NotEmpty, false),
+					"password": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 		},
 		Description:     "Login",
 		UserIndependant: true,
@@ -812,7 +1069,9 @@ var AccountEndPoints = []ApiEndPoint{
 
 	{
 		EndPoint:    "delete",
-		Method:      DELETE,
+		Methods:      map[string]MethodSpec{
+			"DELETE": {},
+		},
 		Description: "Delete an account",
 		Handler:     DeleteAccount,
 	},
@@ -820,8 +1079,12 @@ var AccountEndPoints = []ApiEndPoint{
 	{
 		EndPoint: "rename",
 		Description: "change your username",
-		QueryParams: QueryParams{
-			"new-username": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"new-username": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 		Handler: RenameAccount,
 		UserIndependant: true,
@@ -833,8 +1096,12 @@ var resourceEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "get-thumbnail",
 		Handler:  ThumbnailResource,
-		QueryParams: QueryParams{
-			"hash": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"hash": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 		Description:     "Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
 		GuestAllowed:    true,
@@ -843,8 +1110,12 @@ var resourceEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "get-thumbnail-by-id",
 		Handler: ThumbnailResourceById,
-		QueryParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+				},
+			},
 		},
 		Description: "Returns a 303 pointing to the location of where to find the thumbnail for an item id",
 		GuestAllowed: true,
@@ -855,8 +1126,12 @@ var resourceEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "thumbnail",
 		Handler:  ThumbnailResourceLegacy,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_NotEmpty, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_NotEmpty, true),
+				},
+			},
 		},
 		Description:     "LEGACY, Gets the thumbnail for an id (if it can find the thumbnail in the thumbnails dir)",
 		GuestAllowed:    true,
@@ -866,8 +1141,12 @@ var resourceEndpointList = []ApiEndPoint{
 	{
 		EndPoint: "download-thumbnail",
 		Handler:  DownloadThumbnail,
-		QueryParams: QueryParams{
-			"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Params: QueryParams{
+					"id": MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+				},
+			},
 		},
 		Description: "If the id has a remote thumbnail, download it, does not update metadata",
 	},
@@ -919,8 +1198,12 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "list",
 			Handler: ListTransactions,
-			QueryParams: QueryParams {
-				"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+			Methods: map[string]MethodSpec {
+				"GET": {
+					Params: QueryParams {
+						"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					},
+				},
 			},
 			GuestAllowed: true,
 			UserIndependant: true,
@@ -928,30 +1211,42 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "do",
 			Handler: Transact,
-			QueryParams: QueryParams {
-				"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-				"price": MkQueryInfo(P_Float64, true),
-				"currency": MkQueryInfo(P_NotEmpty, true),
-				"timezone": MkQueryInfo(P_NotEmpty, false),
-				"eventId": MkQueryInfo(P_NotEmpty, false),
+			Methods: map[string]MethodSpec {
+				"GET": {
+					Params: QueryParams {
+						"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+						"price": MkQueryInfo(P_Float64, true),
+						"currency": MkQueryInfo(P_NotEmpty, true),
+						"timezone": MkQueryInfo(P_NotEmpty, false),
+						"eventId": MkQueryInfo(P_NotEmpty, false),
+					},
+				},
 			},
 		},
 		{
 			EndPoint: "edit",
 			Handler: EditTransaction,
-			QueryParams: QueryParams {
-				"id": MkQueryInfo(P_Int64, true),
-				"price": MkQueryInfo(P_Float64, false),
-				"currency": MkQueryInfo(P_NotEmpty, false),
-				"eventId": MkQueryInfo(P_Int64, false),
-				"itemId": MkQueryInfo(P_Int64, false),
+			Methods: map[string]MethodSpec {
+				"GET": {
+					Params: QueryParams {
+						"id": MkQueryInfo(P_Int64, true),
+						"price": MkQueryInfo(P_Float64, false),
+						"currency": MkQueryInfo(P_NotEmpty, false),
+						"eventId": MkQueryInfo(P_Int64, false),
+						"itemId": MkQueryInfo(P_Int64, false),
+					},
+				},
 			},
 		},
 		{
 			EndPoint: "delete",
 			Handler: DeleteTransaction,
-			QueryParams: QueryParams {
-				"id": MkQueryInfo(P_Int64, true),
+			Methods: map[string]MethodSpec {
+				"GET": {
+					Params: QueryParams {
+						"id": MkQueryInfo(P_Int64, true),
+					},
+				},
 			},
 		},
 	},

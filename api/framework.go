@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -65,21 +67,17 @@ func (self *ParsedParams) Get(name string, backup any) any {
 	return backup
 }
 
-type Method string
-
-const (
-	GET  Method = "GET"
-	POST Method = "POST"
-	DELETE Method = "DELETE"
-)
+type MethodSpec struct {
+	Description string
+	Params QueryParams
+}
 
 type ApiEndPoint struct {
 	Handler        func(ctx RequestContext)
 	EndPoint       string
-	Aliases       []string
-	QueryParams    QueryParams
 	PathParams     QueryParams
-	Method         Method
+	Aliases        []string
+	Methods        map[string]MethodSpec
 	Description    string
 	Returns        string
 	PossibleErrors []string
@@ -107,14 +105,16 @@ func parser2Type(pName string) string {
 
 func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 	queryList := "<ul>"
-	for k, v := range self.QueryParams {
-		cls := "not-required"
-		if v.Required {
-			cls = "required"
+	for _, mthd := range self.Methods {
+		for k, v := range mthd.Params {
+			cls := "not-required"
+			if v.Required {
+				cls = "required"
+			}
+			fnName := runtime.FuncForPC(reflect.ValueOf(v.Parser).Pointer()).Name()
+			fnName = parser2Type(fnName[len("aiolimas/api."):])
+			queryList += fmt.Sprintf("<li class=\"%s\"><b>%s</b>: %s, </li>", cls, k, fnName)
 		}
-		fnName := runtime.FuncForPC(reflect.ValueOf(v.Parser).Pointer()).Name()
-		fnName = parser2Type(fnName[len("aiolimas/api."):])
-		queryList += fmt.Sprintf("<li class=\"%s\"><b>%s</b>: %s, </li>", cls, k, fnName)
 	}
 	queryList += "</ul>"
 
@@ -182,21 +182,23 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 	ctx.W = w
 	ctx.GuestAllowed = self.GuestAllowed
 
-	method := self.Method
-	if method == "" {
-		method = "GET"
-	}
-
 	//"preflight" request
 	if req.Method == "OPTIONS" {
 		w.WriteHeader(200)
 		return
 	}
 
-	if req.Method != string(method) && method != "*"{
+	methodSpec, has := self.Methods[req.Method]
+
+	if len(self.Methods) > 0 && !has {
 		w.WriteHeader(405)
-		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, method)
+		fmt.Fprintf(w, "Invalid method: '%s', expected: %s", req.Method, strings.Join(
+			slices.Collect(maps.Keys(self.Methods)),
+			", ",
+		))
 		return
+	} else if len(self.Methods) == 0 {
+		methodSpec = MethodSpec{}
 	}
 
 	var uidStr = req.URL.Query().Get("uid")
@@ -264,7 +266,7 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	for name, info := range self.QueryParams {
+	for name, info := range methodSpec.Params {
 		if !query.Has(name) {
 			if info.Required {
 				w.WriteHeader(400)
