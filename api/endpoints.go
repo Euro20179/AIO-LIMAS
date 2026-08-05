@@ -511,7 +511,7 @@ var engagementEndpointList = []ApiEndPoint{
 
 	{
 		Aliases: []string{"get-events"},
-		EndPoint: "event/list",
+		EndPoint: "event/listfor",
 		Handler:  GetEventsOf,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
@@ -576,7 +576,7 @@ var engagementEndpointList = []ApiEndPoint{
 		EndPoint: "event/list",
 		Handler:      ListEvents,
 		QueryParams:  QueryParams{},
-		Description:  "Lists all events associated with an entry",
+		Description:  "Lists all events",
 		Returns:      "JSONL<EventEntry>",
 		GuestAllowed: true,
 	},
@@ -628,8 +628,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "",
-		Handler: ActionMedia,
+		EndPoint: "{id}",
+		Handler: EngagementResource,
 		Method: "*",
 		Description: `
 			A General /engagement endpoint. <br>
@@ -641,9 +641,11 @@ var engagementEndpointList = []ApiEndPoint{
 			</ul>
 		`,
 		QueryParams: QueryParams {
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
 			"timezone": MkQueryInfo(P_NotEmpty, false),
 			"rating": MkQueryInfo(P_Float64, false),
+		},
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_Int64, false),
 		},
 	},
 

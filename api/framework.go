@@ -78,6 +78,7 @@ type ApiEndPoint struct {
 	EndPoint       string
 	Aliases       []string
 	QueryParams    QueryParams
+	PathParams     QueryParams
 	Method         Method
 	Description    string
 	Returns        string
@@ -283,6 +284,27 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		parsedParams[name] = val
+	}
+
+	for name, info := range self.PathParams {
+		if req.PathValue(name) == ""{
+			if info.Required {
+				w.WriteHeader(400)
+				fmt.Fprintf(w, "Missing path parameter: '%s'", name)
+				return
+			}
+			continue
+		}
+
+		strval := req.PathValue(name)
+		val, err := info.Parser(ctx, strval)
+		if err != nil {
+			w.WriteHeader(400)
+			funcName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
+			fmt.Fprintf(w, "%s\nInvalid value for: '%s'\nexpected to pass: '%s'", err.Error(), name, funcName)
+			return
+		}
 		parsedParams[name] = val
 	}
 
