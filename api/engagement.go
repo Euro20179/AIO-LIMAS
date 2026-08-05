@@ -164,7 +164,7 @@ func PlanMedia(ctx RequestContext) {
 	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanPlan() {
-		util.WError(w, 400, "%d can not be planned\n", entry.ItemId)
+		util.WError(w, 405, "%d can not be planned\n", entry.ItemId)
 		return
 	}
 
@@ -211,7 +211,7 @@ func PauseMedia(ctx RequestContext) {
 	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanPause() {
-		util.WError(w, 400, "%d cannot be dropped\n", entry.ItemId)
+		util.WError(w, 405, "%d cannot be dropped\n", entry.ItemId)
 		return
 	}
 
@@ -238,7 +238,7 @@ func ResumeMedia(ctx RequestContext) {
 	timezone := pp.Get("timezone", us.DefaultTimeZone).(string)
 
 	if !entry.CanResume() {
-		util.WError(w, 400, "%d cannot be resumed\n", entry.ItemId)
+		util.WError(w, 405, "%d cannot be resumed\n", entry.ItemId)
 		return
 	}
 
@@ -250,6 +250,36 @@ func ResumeMedia(ctx RequestContext) {
 	}
 
 	success(w)
+}
+
+func ActionMedia(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "DROP":
+		DropMedia(ctx)
+	case "RESUME":
+		ResumeMedia(ctx)
+	case "PAUSE":
+		PauseMedia(ctx)
+	case "PLAN":
+		PlanMedia(ctx)
+	case "BEGIN":
+		BeginMedia(ctx)
+	case "WAIT":
+		WaitMedia(ctx)
+	case "FINISH":
+		if _, has := ctx.PP["rating"]; !has {
+			util.WError(ctx.W, 400, "?rating not specified with FINISH\n")
+			return
+		}
+		FinishMedia(ctx)
+
+	case "GET":
+		if ctx.PP["id"].(int64) == 0 {
+			UserEntries(ctx)
+		} else {
+			GetUserEntry(ctx)
+		}
+	}
 }
 
 func SetUserEntry(ctx RequestContext) {

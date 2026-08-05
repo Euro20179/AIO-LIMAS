@@ -500,17 +500,6 @@ when using finalize-identify`,
 // `/engagement` endpoints {{{
 var engagementEndpointList = []ApiEndPoint{
 	{
-		EndPoint: "finish-media",
-		Handler:  FinishMedia,
-		QueryParams: QueryParams{
-			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-			"rating":   MkQueryInfo(P_Float64, true),
-			"timezone": MkQueryInfo(P_NotEmpty, false),
-		},
-		Description: "Finishes a media, and registers a Finish event",
-	},
-
-	{
 		EndPoint: "copy",
 		Handler:  CopyUserViewingEntry,
 		QueryParams: QueryParams{
@@ -521,7 +510,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "get-events",
+		Aliases: []string{"get-events"},
+		EndPoint: "event/list",
 		Handler:  GetEventsOf,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
@@ -539,11 +529,12 @@ var engagementEndpointList = []ApiEndPoint{
 			"after":     MkQueryInfo(P_Int64, true),
 			"before":    MkQueryInfo(P_Int64, true),
 		},
-		Description: "Deletes an event from an entry",
+		Description: "<b>DEPRECATED, use event/delete</b>",
 	},
 
 	{
-		EndPoint: "delete-event-v2",
+		Aliases: []string{"delete-event-v2"},
+		EndPoint: "event/delete",
 		Handler:  DeletEventV2,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_Int64, true),
@@ -552,7 +543,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "register-event",
+		Aliases: []string{"register-event"},
+		EndPoint: "event/register",
 		Handler:  RegisterEvent,
 		QueryParams: QueryParams{
 			"id":        MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
@@ -566,7 +558,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "edit-event",
+		Aliases: []string{"edit-event"},
+		EndPoint: "event/edit",
 		Handler: EditEvent,
 		QueryParams: QueryParams{
 			"eventId":   MkQueryInfo(P_Int64, true),
@@ -579,7 +572,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint:     "list-events",
+		Aliases:     []string{"list-events"},
+		EndPoint: "event/list",
 		Handler:      ListEvents,
 		QueryParams:  QueryParams{},
 		Description:  "Lists all events associated with an entry",
@@ -588,7 +582,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "mod-entry",
+		Aliases: []string{"mod-entry"},
+		EndPoint: "mod",
 		Handler:  ModUserEntry,
 		QueryParams: QueryParams{
 			"id":               MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -603,7 +598,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint:    "set-entry",
+		Aliases:    []string{"set-entry"},
+		EndPoint: "set",
 		Handler:     SetUserEntry,
 		Method:      "POST",
 		QueryParams: QueryParams{},
@@ -611,7 +607,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint:     "list-entries",
+		Aliases:     []string{"list-entries"},
+		EndPoint: "list",
 		Handler:      UserEntries,
 		Description:  "Lists all user entries",
 		Returns:      "JSONL<UserEntry>",
@@ -619,7 +616,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "get-entry",
+		Aliases: []string{"get-entry"},
+		EndPoint: "get",
 		Handler:  GetUserEntry,
 		QueryParams: QueryParams{
 			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -630,7 +628,28 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "drop-media",
+		EndPoint: "",
+		Handler: ActionMedia,
+		Method: "*",
+		Description: `
+			A General /engagement endpoint. <br>
+			Accepted verbs:
+			<ul>
+				<li> &lt;ACTION&gt;: same as the action endpoints, eg begin, finish, ...
+				<li> FINISH: ?rating is required
+				<li> GET: same as /engagement/get, if id is 0, same as /engagement/list
+			</ul>
+		`,
+		QueryParams: QueryParams {
+			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+			"timezone": MkQueryInfo(P_NotEmpty, false),
+			"rating": MkQueryInfo(P_Float64, false),
+		},
+	},
+
+	{
+		Aliases: []string{"drop-media"},
+		EndPoint: "drop",
 		Handler:  DropMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -640,7 +659,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "resume-media",
+		Aliases: []string{"resume-media"},
+		EndPoint: "resume",
 		Handler:  ResumeMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -650,7 +670,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "pause-media",
+		Aliases: []string{"pause-media"},
+		EndPoint: "pause",
 		Handler:  PauseMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -660,7 +681,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "plan-media",
+		Aliases: []string{"plan-media"},
+		EndPoint: "plan",
 		Handler:  PlanMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -670,7 +692,8 @@ var engagementEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "begin-media",
+		Aliases: []string{"begin-media"},
+		EndPoint: "begin",
 		Handler:  BeginMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -679,7 +702,8 @@ var engagementEndpointList = []ApiEndPoint{
 		Description: "Begins a media and registers a Viewing event",
 	},
 	{
-		EndPoint: "wait-media",
+		Aliases: []string{"wait-media"},
+		EndPoint: "wait",
 		Handler:  WaitMedia,
 		QueryParams: QueryParams{
 			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
@@ -687,6 +711,19 @@ var engagementEndpointList = []ApiEndPoint{
 		},
 		Description: "Sets the status to waiting, and registers a Waiting event",
 	},
+
+	{
+		Aliases: []string{"finish-media"},
+		EndPoint: "finish",
+		Handler:  FinishMedia,
+		QueryParams: QueryParams{
+			"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+			"rating":   MkQueryInfo(P_Float64, true),
+			"timezone": MkQueryInfo(P_NotEmpty, false),
+		},
+		Description: "Finishes a media, and registers a Finish event",
+	},
+
 } //}}}
 
 // `/account` endpoints {{{
