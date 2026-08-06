@@ -974,6 +974,19 @@ func EntrySettings(ctx RequestContext) {
 	}
 }
 
+func EntryHandler(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "QUERY":
+		v := ctx.PP.Get("v", int64(4)).(int64)
+		ctx.PP["search"] = ctx.PP["q"]
+		if v == 3 {
+			QueryEntries3(ctx)
+		} else if v == 4 {
+			QueryEntries4(ctx)
+		}
+	}
+}
+
 func success(w http.ResponseWriter) {
 	w.WriteHeader(200)
 	w.Write([]byte("Success\n"))

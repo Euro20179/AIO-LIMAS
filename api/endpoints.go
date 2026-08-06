@@ -42,6 +42,7 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "hook-radarr",
 	},
 
+
 	{
 		EndPoint: "query-v4",
 		Handler: QueryEntries4,
@@ -75,22 +76,9 @@ var mainEndpointList = []ApiEndPoint{
 		},
 		Returns:         "InfoEntry[]",
 		Description:     "search query similar to how sql where query works",
+		Deprecated: "Use QUERY /entry/?v=3 instead",
 	},
 
-	{
-		EndPoint: "entry/allfor",
-		Handler: GetAllForEntry2,
-		Methods: map[string]MethodSpec{
-			"GET": {
-				Params: QueryParams {
-					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-				},
-				GuestAllowed: true,
-				UserIndependant: true,
-			},
-		},
-		Description: "Gets all related information for an entry",
-	},
 
 	{
 		EndPoint: "get-all-for-entry",
@@ -124,6 +112,39 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	// entry/ {{{
+	{
+		EndPoint: "entry",
+		Handler: EntryHandler,
+		Methods: map[string]MethodSpec {
+			"QUERY": {
+				Description: "Do a search. ?v specifies the search version, can be 3 or 4.",
+				Returns: "JSONL<InfoEntry>",
+				Params: QueryParams {
+					"q": MkQueryInfo(P_NotEmpty, true),
+					"order-by": MkQueryInfo(P_SqlSafe, false),
+					"v": MkQueryInfo(P_Int64, false),
+				},
+				GuestAllowed: true,
+				UserIndependant: true,
+			},
+		},
+	},
+
+	{
+		EndPoint: "entry/allfor",
+		Handler: GetAllForEntry2,
+		Methods: map[string]MethodSpec{
+			"GET": {
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+				GuestAllowed: true,
+				UserIndependant: true,
+			},
+		},
+		Description: "Gets all related information for an entry",
+	},
+
 	{
 		Handler:     AddTags,
 		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
@@ -1299,7 +1320,9 @@ func DocHTML(ctx RequestContext) {
 		html := "<style>.required::after { content: \"(required) \"; font-weight: bold; }</style>"
 		tableOfContents := "<p>Table of contents</p><ul>"
 		docsHTML := ""
-		for root, list := range Endpoints {
+		for _, root := range []string {
+			"", "/engagement", "/metadata", "/transact", "/resource", "/account", "/type",
+		} {
 			if root != "" {
 				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", root, root)
 				docsHTML += fmt.Sprintf("<HR><h3 id=\"%s\">%s</h3>", root, root)
@@ -1307,7 +1330,7 @@ func DocHTML(ctx RequestContext) {
 				tableOfContents += fmt.Sprintf("<li><a href=\"#%s\">%s</a></li>", "/", "/")
 				docsHTML += fmt.Sprintf("<HR><h3 id=\"%s\">%s</h3>", "/", "/")
 			}
-			for _, endP := range list {
+			for _, endP := range Endpoints[root] {
 				docsHTML += endP.GenerateDocHTML(root)
 			}
 		}
