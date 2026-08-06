@@ -819,6 +819,8 @@ var engagementEndpointList = []ApiEndPoint{
 			"GET": {
 				Description: "Gets a user viewing entry by id",
 				Returns: "JSONL<UserEntry>",
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 			"DROP": {
 				Params: QueryParams{
