@@ -145,26 +145,30 @@
         required fields across all tables.
     </p>
     <h4>
-        Info fields
+        InfoEntry
     </h4>
     <ul>
-        <li>ItemId</li>
-        <li>En_Title (string): The user specified name for the item</li>
-        <li>Native_Title (string): The user specified native name for the item</li>
+        <li>Uid (int): The id of the user that owns this item
+        <li>ItemId
+        <li>En_Title (string): The user specified name for the item
+        <li>Native_Title (string): The user specified native name for the item
         <li>Format (int): The format the entry is stored on, also see: <a href="#format-list">format list</a>, and
-            the #f macro</li>
-        <li>Location (string): Location (on disk) of the entry</li>
+            the #f macro
+        <li>Location (string): Location (on disk) of the entry
         <li>Collection (string): <del>An \x1F seperated list of tags</del> <ins>use the #tag macro instead</ins>
-        </li>
-        <li>Type (string): The type of the entry, also see: <a href="#type-list">type list</a></li>
+        <li>Type (string): The type of the entry, also see: <a href="#type-list">type list</a>
         <li>ArtStyle (int): A bitfield of the entry's different art styles, also see: <a href="#art-styles">art
-                styles</a></li>
-        <li>Library (int): 0 or the library that the entry is appart of</li>
+                styles</a>
+        <li>Library (int): 0 or the library that the entry is appart of
+        <li>RecommendedBy (string): a json list of recommenders
+        <li>Priority (int): a number representing the user's priority
+        <li>Format_Modifiers (int): a bitfield of modifiers to format (unowned, digitized)
     </ul>
     <h4>
-        User fields
+        UserEntry
     </h4>
     <ul>
+        <li>Uid (int): The id of the user that owns this item
         <li>ItemId</li>
         <li>Status (string): the user's status, also see: <a href="#status-list">statuses</a></li>
         <li>ViewCount (int): the amount of times the entry has been viewed</li>
@@ -175,9 +179,10 @@
         <li>Minutes (int): the number of minutes the user has spent viewing the entry</li>
     </ul>
     <h4>
-        Metadata fields
+        Metadata
     </h4>
     <ul>
+        <li>Uid (int): The id of the user that owns this item
         <li>ItemId</li>
         <li>Rating (float): the general rating</li>
         <li>RatingMax (float): the maximum possible rating depending on the metadata provider</li>
@@ -191,6 +196,8 @@
         <li>Native_Title (string): Official native title</li>
         <li>Provider (string): The metadata provider</li>
         <li>ProviderId (string): The id of the item according to the metadata provider</li>
+        <li>Genres (string): a json array of strings for genres
+        <li>Country (string): a "," separated list of countries (with an attempt to be iso compliant)
     </ul>
     <h4>
         Event fields
@@ -255,6 +262,9 @@
         <li>Meme</li>
         <li>Library</li>
         <li>Video</li>
+        <li>ShortStory</li>
+        <li>Albumn</li>
+        <li>Soundtrack</li>
     </ul>
 
     <h4 id="art-styles">Art Styles</h4>
