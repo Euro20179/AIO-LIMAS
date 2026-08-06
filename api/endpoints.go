@@ -57,6 +57,7 @@ var mainEndpointList = []ApiEndPoint{
 		},
 		Description: "Search with a plain title search",
 		Returns: "InfoEntry[]",
+		Deprecated: "Use QUERY /entry/ instead",
 	},
 
 	{

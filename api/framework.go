@@ -78,6 +78,8 @@ type MethodSpec struct {
 
 	// whether or not a user id is a required parameter
 	UserIndependant bool
+
+	Deprecated string
 }
 
 type ApiEndPoint struct {
@@ -89,6 +91,8 @@ type ApiEndPoint struct {
 	Description    string
 	Returns        string
 	PossibleErrors []string
+
+	Deprecated string
 }
 
 func pParser2Name(name string) string{
@@ -110,7 +114,7 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 	methodHTML := strings.Builder{}
 
 	for mthdName, mthd := range self.Methods {
-		tags.WriteString(fmt.Sprintf("<div class='tag'>%s</div>", mthdName))
+		fmt.Fprintf(&tags, "<div class='tag'>%s</div>", mthdName)
 		mthdTags := ""
 
 		if !mthd.GuestAllowed {
@@ -127,25 +131,41 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 			for name, info := range mthd.Params {
 				fnName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
 				fnName = parser2Type(fnName[len("aiolimas/api."):])
-				paramHTMLBuilder.WriteString(fmt.Sprintf("<li><b>%s</b>: %s", name, fnName))
+				fmt.Fprintf(&paramHTMLBuilder, "<li><b>%s</b>: %s", name, fnName)
 			}
 			paramHTMLBuilder.WriteString("</ul>")
 		}
+
+		nameTitle := fmt.Sprintf("<h3>%s</h3>", mthdName)
+		if mthd.Deprecated != "" {
+			nameTitle = fmt.Sprintf("<h3><del>%s</del></h3>", mthdName)
+			mthdTags += "<div class='tag focus'>Deprecated</div>"
+		}
+
 		thisMthdHTML := "<article>"
 		thisMthdHTML += fmt.Sprintf(`
 				<aside class="tags">%s</aside>
-				<h3>%s</h3>
+				%s
 				<p>%s</p>
-				%s`, mthdTags, mthdName, mthd.Description, paramHTMLBuilder.String())
+				<p>%s</p>
+				%s`, mthdTags, nameTitle, mthd.Deprecated, mthd.Description, paramHTMLBuilder.String())
 		thisMthdHTML += "</article>"
 		methodHTML.WriteString(thisMthdHTML)
+	}
+
+	nameTitle := fmt.Sprintf("<h2>%s/%s</h2>", root, self.EndPoint)
+
+	if self.Deprecated != "" {
+		nameTitle = fmt.Sprintf("<h2><del>%s/%s</del></h2>", root, self.EndPoint)
+		tags.WriteString("<div class='tag focus'>Deprecated</div>")
 	}
 
 	return fmt.Sprintf(`
 		<article>
 			<aside class="tags">%s</aside>
-			<h2>%s/%s</h2>
+			%s
 
+			<p>%s</p>
 			<p>%s</p>
 
 			<h3>Returns</h3>
@@ -156,7 +176,7 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 			%s
 			</section>
 		</article>
-	`, tags.String(), root, self.EndPoint, self.Description, self.Returns, methodHTML.String())
+	`, tags.String(), nameTitle, self.Deprecated, self.Description, self.Returns, methodHTML.String())
 }
 
 
