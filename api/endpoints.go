@@ -818,6 +818,7 @@ var engagementEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Description: "Gets a user viewing entry by id",
+				Returns: "JSONL<UserEntry>",
 			},
 			"DROP": {
 				Params: QueryParams{

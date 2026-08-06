@@ -69,6 +69,7 @@ func (self *ParsedParams) Get(name string, backup any) any {
 
 type MethodSpec struct {
 	Description string
+	Returns string
 	Params QueryParams
 	// whether or not auth is required, false == auth required, true == auth not required
 	// it's named this way, so that by default, auth is intuitively required
