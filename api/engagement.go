@@ -253,17 +253,6 @@ func ResumeMedia(ctx RequestContext) {
 }
 
 func EngagementResource(ctx RequestContext) {
-	id := ctx.PP.Get("id", nil)
-	if id != nil {
-		item, err := db.GetUserViewEntryById(actx2dctx(ctx), id.(int64))
-		if err == nil {
-			ctx.PP["id"] = item
-		} else {
-			util.WError(ctx.W, 400, "Could not get user entry: %s\n", err.Error())
-			return
-		}
-	}
-
 	switch ctx.Req.Method {
 	case "DROP":
 		DropMedia(ctx)
@@ -285,11 +274,7 @@ func EngagementResource(ctx RequestContext) {
 		FinishMedia(ctx)
 
 	case "GET":
-		if id == 0 {
-			UserEntries(ctx)
-		} else {
-			GetUserEntry(ctx)
-		}
+		GetUserEntry(ctx)
 	}
 }
 

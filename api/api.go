@@ -220,15 +220,6 @@ func GetAllForEntry2(ctx RequestContext) {
 	ctx.W.Write(out)
 }
 
-func GetAllForEntry(ctx RequestContext) {
-	parsedParams := ctx.PP
-	w := ctx.W
-
-	info := parsedParams["id"].(db_types.InfoEntry)
-	w.WriteHeader(200)
-	_getAllForEntry(ctx, info)
-}
-
 func GetAllForEntries(ctx RequestContext) {
 	ids := ctx.PP["ids"].([]string)
 
@@ -974,16 +965,19 @@ func EntrySettings(ctx RequestContext) {
 	}
 }
 
-func EntryHandler(ctx RequestContext) {
+func EntryResource(ctx RequestContext) {
 	switch ctx.Req.Method {
 	case "QUERY":
 		v := ctx.PP.Get("v", int64(4)).(int64)
 		ctx.PP["search"] = ctx.PP["q"]
-		if v == 3 {
+		switch v {
+		case 3:
 			QueryEntries3(ctx)
-		} else if v == 4 {
+		case 4:
 			QueryEntries4(ctx)
 		}
+	case "POST":
+		AddEntry(ctx)
 	}
 }
 

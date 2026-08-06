@@ -79,22 +79,6 @@ var mainEndpointList = []ApiEndPoint{
 		Deprecated: "Use QUERY /entry/?v=3 instead",
 	},
 
-
-	{
-		EndPoint: "get-all-for-entry",
-		Handler:  GetAllForEntry,
-		Methods: map[string]MethodSpec {
-			"GET": {
-				Params: QueryParams{
-					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-				},
-				GuestAllowed: true,
-			},
-		},
-		Description:  "Gets the userEntry, metadataEntry, and infoEntry for an entry",
-		Returns:      "UserEntry\\nMetadataEntry\\nInfoEntry\\nEvents",
-	},
-
 	{
 		EndPoint: "get-all-for-entries",
 		Handler:  GetAllForEntries,
@@ -114,7 +98,7 @@ var mainEndpointList = []ApiEndPoint{
 	// entry/ {{{
 	{
 		EndPoint: "entry",
-		Handler: EntryHandler,
+		Handler: EntryResource,
 		Methods: map[string]MethodSpec {
 			"QUERY": {
 				Description: "Do a search. ?v specifies the search version, can be 3 or 4.",
@@ -126,6 +110,37 @@ var mainEndpointList = []ApiEndPoint{
 				},
 				GuestAllowed: true,
 				UserIndependant: true,
+			},
+			"POST": {
+				Description: "Create a new entry",
+				Returns: "InfoEntry",
+				Params: QueryParams{
+					"title":             MkQueryInfo(P_NotEmpty, true),
+					"type":              MkQueryInfo(P_EntryType, true),
+					"format":            MkQueryInfo(P_EntryFormat, true),
+					"timezone":          MkQueryInfo(P_NotEmpty, false),
+					"price":             MkQueryInfo(P_Float64, false),
+					"currency":          MkQueryInfo(P_NotEmpty, false),
+					"is-digital":        MkQueryInfo(P_Bool, false),
+					"is-anime":          MkQueryInfo(P_Bool, false),
+					"format-modifiers":  MkQueryInfo(P_Int64, false),
+					"art-style":         MkQueryInfo(P_ArtStyle, false),
+					"libraryId":         MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"parentId":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"copyOf":            MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"native-title":      MkQueryInfo(P_True, false),
+					"tags":              MkQueryInfo(P_True, false),
+					"location":          MkQueryInfo(P_True, false),
+					"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
+					"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
+					"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata
+					"user-rating":       MkQueryInfo(P_Float64, false),
+					"user-status":       MkQueryInfo(P_UserStatus, false),
+					"user-view-count":   MkQueryInfo(P_Int64, false),
+					"user-notes":        MkQueryInfo(P_True, false),
+					"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
+					"recommended-by":    MkQueryInfo(P_NotEmpty, false),
+				},
 			},
 		},
 	},
@@ -212,6 +227,7 @@ var mainEndpointList = []ApiEndPoint{
 				},
 			},
 		},
+		Deprecated: "Use POST /entry/ instead",
 		Description: "Adds a new entry, and registers an Add event",
 		Returns:     "InfoEntry",
 		Aliases:    []string{"add-entry"},
@@ -889,7 +905,7 @@ var engagementEndpointList = []ApiEndPoint{
 			},
 		},
 		PathParams: QueryParams {
-			"id": MkQueryInfo(P_Int64, false),
+			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
 		},
 	},
 
