@@ -5,13 +5,37 @@
             width: min(80%, 1000px);
         }
 
-        section {
-            border-bottom: 1px solid grey;
-        }
-        div {
+        article {
             padding: 2ch;
             border: 1px solid;
+            border-radius: 2ch;
             margin-block: 2cap;
+        }
+
+        article > :where(h2, h3, h4) {
+            margin: 0;
+        }
+
+        .tags {
+            float: right;
+            display: flex;
+            gap: 2ch;
+        }
+
+        .tag.focus {
+            background: var(--red);
+        }
+
+        .tag {
+            font-size: 0.8em;
+            background: var(--blue);
+            color: var(--main);
+            padding: 0.5ch;
+            border-radius: 5px;
+        }
+
+        .methods {
+            list-style: none;
         }
     </style>
 </head>

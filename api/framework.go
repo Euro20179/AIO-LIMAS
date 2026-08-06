@@ -105,38 +105,58 @@ func parser2Type(pName string) string {
 }
 
 func (self *ApiEndPoint) GenerateDocHTML(root string) string {
-	queryList := "<ul>"
-	for _, mthd := range self.Methods {
-		for k, v := range mthd.Params {
-			cls := "not-required"
-			if v.Required {
-				cls = "required"
-			}
-			fnName := runtime.FuncForPC(reflect.ValueOf(v.Parser).Pointer()).Name()
-			fnName = parser2Type(fnName[len("aiolimas/api."):])
-			queryList += fmt.Sprintf("<li class=\"%s\"><b>%s</b>: %s, </li>", cls, k, fnName)
-		}
-	}
-	queryList += "</ul>"
+	tags := strings.Builder{}
 
-	authorized := "true"
-	// if self.GuestAllowed {
-	// 	authorized = "false"
-	// }
+	methodHTML := strings.Builder{}
+
+	for mthdName, mthd := range self.Methods {
+		tags.WriteString(fmt.Sprintf("<div class='tag'>%s</div>", mthdName))
+		mthdTags := ""
+
+		if !mthd.GuestAllowed {
+			mthdTags += "<div class='tag focus'>Auth</div>"
+		}
+
+		if !mthd.UserIndependant {
+			mthdTags += "<div class='tag'>UID</div>"
+		}
+
+		paramHTMLBuilder := strings.Builder{}
+		if len(mthd.Params) > 0 {
+			paramHTMLBuilder.WriteString("<ul class='params'><h4>URL Parameters</h4>")
+			for name, info := range mthd.Params {
+				fnName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
+				fnName = parser2Type(fnName[len("aiolimas/api."):])
+				paramHTMLBuilder.WriteString(fmt.Sprintf("<li><b>%s</b>: %s", name, fnName))
+			}
+			paramHTMLBuilder.WriteString("</ul>")
+		}
+		thisMthdHTML := "<article>"
+		thisMthdHTML += fmt.Sprintf(`
+				<aside class="tags">%s</aside>
+				<h3>%s</h3>
+				<p>%s</p>
+				%s`, mthdTags, mthdName, mthd.Description, paramHTMLBuilder.String())
+		thisMthdHTML += "</article>"
+		methodHTML.WriteString(thisMthdHTML)
+	}
 
 	return fmt.Sprintf(`
-		<div>
+		<article>
+			<aside class="tags">%s</aside>
 			<h2>%s/%s</h2>
-				<h3>Authorized?</h3>
-				%s
-				<h3>Query Parameters</h3>
-				%s
-				<h3>Description</h3>
-					<p>%s</p>
-				<h3>Returns</h3>
-					<p>%s</p>
-		</div>
-	`, root, self.EndPoint, authorized, queryList, self.Description, self.Returns)
+
+			<p>%s</p>
+
+			<h3>Returns</h3>
+				<p>%s</p>
+
+			<h3>Methods</h3>
+			<section class="methods">
+			%s
+			</section>
+		</article>
+	`, tags.String(), root, self.EndPoint, self.Description, self.Returns, methodHTML.String())
 }
 
 
