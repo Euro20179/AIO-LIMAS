@@ -168,12 +168,20 @@ func uidWhere(ctx RequestContext, uidvar string, itemidvar string) string {
 	return whereClause
 }
 
-func BuildEntryTree(ctx RequestContext) (map[int64]db_types.EntryTree, error) {
+func BuildEntryTree(ctx RequestContext, id int64) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
 
 	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid")
+	
+	if id != 0 {
+		whereClause += fmt.Sprintf(" AND entryInfo.itemid = %d", id)
+	}
 
-	allRows, err := QueryDB(`SELECT * FROM entryInfo ` + whereClause)
+	allRows, err := QueryDB(`
+	SELECT * FROM entryInfo
+	JOIN metadata ON entryInfo.itemid = metadata.itemid
+	JOIN userViewingInfo uvi ON entryInfo.itemid = uvi.itemid
+	` + whereClause)
 	if err != nil {
 		log.ELog(err)
 		return out, err
@@ -182,10 +190,53 @@ func BuildEntryTree(ctx RequestContext) (map[int64]db_types.EntryTree, error) {
 	for allRows.Next() {
 		var cur db_types.EntryTree
 
-		err := cur.EntryInfo.ReadEntry(allRows)
-		if err != nil {
-			log.ELog(err)
-			continue
+		allRows.Scan(
+			&cur.EntryInfo.Uid,
+			&cur.EntryInfo.ItemId,
+			&cur.EntryInfo.En_Title,
+			&cur.EntryInfo.Native_Title,
+			&cur.EntryInfo.Format,
+			&cur.EntryInfo.Location,
+			&cur.EntryInfo.Collection,
+			&cur.EntryInfo.Type,
+			&cur.EntryInfo.ArtStyle,
+			&cur.EntryInfo.Library,
+			&cur.EntryInfo.RecommendedBy,
+			&cur.EntryInfo.Priority,
+			&cur.EntryInfo.Format_Modifiers,
+
+			&cur.MetaInfo.Uid,
+			&cur.MetaInfo.ItemId,
+			&cur.MetaInfo.Rating,
+			&cur.MetaInfo.Description,
+			&cur.MetaInfo.ReleaseYear,
+			&cur.MetaInfo.Thumbnail,
+			&cur.MetaInfo.MediaDependant,
+			&cur.MetaInfo.Datapoints,
+			&cur.MetaInfo.Title,
+			&cur.MetaInfo.Native_Title,
+			&cur.MetaInfo.RatingMax,
+			&cur.MetaInfo.Provider,
+			&cur.MetaInfo.ProviderID,
+			&cur.MetaInfo.Genres,
+			&cur.MetaInfo.Country,
+
+			&cur.UserInfo.Uid,
+			&cur.UserInfo.ItemId,
+			&cur.UserInfo.Status,
+			&cur.UserInfo.ViewCount,
+			&cur.UserInfo.UserRating,
+			&cur.UserInfo.Notes,
+			&cur.UserInfo.CurrentPosition,
+			&cur.UserInfo.Extra,
+			&cur.UserInfo.Minutes,
+		)
+
+		for _, name := range strings.Split(cur.EntryInfo.Collection, "\x1F") {
+			if name == "" {
+				continue
+			}
+			cur.EntryInfo.Tags = append(cur.EntryInfo.Tags, name)
 		}
 
 		out[cur.EntryInfo.ItemId] = cur
@@ -197,17 +248,6 @@ func BuildEntryTree(ctx RequestContext) (map[int64]db_types.EntryTree, error) {
 
 		cur.Copies = []string{}
 		cur.Children = []string{}
-
-		cur.UserInfo, err = GetUserViewEntryById(ctx, cur.EntryInfo.ItemId)
-		if err != nil {
-			goto next
-		}
-
-		cur.MetaInfo, err = GetMetadataEntryById(ctx, cur.EntryInfo.ItemId)
-		if err != nil {
-			log.ELog(err)
-			goto next
-		}
 
 		children, err = GetRelation(ctx, cur.EntryInfo.ItemId, db_types.R_Child)
 		if err != nil {

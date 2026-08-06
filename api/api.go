@@ -908,7 +908,7 @@ func GetTree(ctx RequestContext) {
 	tree, err := db.BuildEntryTree(db.RequestContext{
 		UID:  ctx.Uid,
 		Auth: ctx.Authorized,
-	})
+	}, 0)
 	if err != nil {
 		util.WError(w, 500, "Could not build tree\n%s", err.Error())
 		return
