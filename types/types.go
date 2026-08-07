@@ -544,7 +544,7 @@ func (self *UserViewingEntry) CanFinish() bool {
 }
 
 func (self *UserViewingEntry) CanPlan() bool {
-	return self.Status == S_DROPPED || self.Status == ""
+	return self.Status == S_DROPPED || self.Status == "" || self.Status == S_FINISHED
 }
 
 func (self *UserViewingEntry) CanDrop() bool {

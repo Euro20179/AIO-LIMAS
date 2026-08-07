@@ -185,11 +185,76 @@ var mainEndpointList = []ApiEndPoint{
 		},
 		Description: "Various methods for a specific entry",
 		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: `Get various information about an entry
+				Values for ?kind
+				<dl>
+					<dt> relations
+					<dd> lists relations of the entry
+					<dt> events
+					<dd> lists all events
+					<dt> transactions
+					<dd> lists all transactions
+					<dt> info
+					<dd> get info
+					<dt> meta
+					<dd> get metadata
+					<dt> user
+					<dd> get user viewing info
+				</dl>
+				`,
+				Params: QueryParams {
+					"kind": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 			"PATCH": {
 				Description: "Update the info entry with new information in the form of Partial<InfoEntry> from the request body",
 			},
 			"DELETE": {
 				Description: "Delete the entry {id}",
+			},
+			"DROP": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Drops an entry",
+			},
+			"RESUME": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Resumes an entry",
+			},
+			"PAUSE": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Pauses an entry",
+			},
+			"PLAN": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Plans an entry",
+			},
+			"BEGIN": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Begins an entry",
+			},
+			"WAIT": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+				},
+				Description: "Waits an entry",
+			},
+			"FINISH": {
+				Params: QueryParams{
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+					"rating": MkQueryInfo(P_Float64, true),
+				},
+				Description: "Finishes an entry",
 			},
 		},
 	},
@@ -910,66 +975,6 @@ var engagementEndpointList = []ApiEndPoint{
 		},
 		Description:  "Gets a user entry by id",
 		Returns:      "UserEntry",
-	},
-
-	{
-		EndPoint: "{id}",
-		Handler: EngagementResource,
-		Description: `A General /engagement endpoint to control/access the user viewing state.`,
-		Methods: map[string]MethodSpec {
-			"GET": {
-				Description: "Gets a user viewing entry by id",
-				Returns: "JSONL<UserEntry>",
-				GuestAllowed: true,
-				UserIndependant: true,
-			},
-			"DROP": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Drops an entry",
-			},
-			"RESUME": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Resumes an entry",
-			},
-			"PAUSE": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Pauses an entry",
-			},
-			"PLAN": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Plans an entry",
-			},
-			"BEGIN": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Begins an entry",
-			},
-			"WAIT": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-				},
-				Description: "Waits an entry",
-			},
-			"FINISH": {
-				Params: QueryParams{
-					"timezone": MkQueryInfo(P_NotEmpty, false),
-					"rating": MkQueryInfo(P_Float64, true),
-				},
-				Description: "Finishes an entry",
-			},
-		},
-		PathParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
-		},
 	},
 
 	{

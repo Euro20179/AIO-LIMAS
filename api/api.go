@@ -857,6 +857,16 @@ func GetCopies(ctx RequestContext) {
 	writeSQLRowResults(w, copies)
 }
 
+func GetEntry(ctx RequestContext) {
+	entry := ctx.PP["id"].(db_types.InfoEntry)
+	res, err := json.Marshal(&entry)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not marshal info item: %s\n", err.Error())
+		return
+	}
+	ctx.W.Write(res)
+}
+
 func Stream(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
@@ -1018,10 +1028,6 @@ func EntryResource(ctx RequestContext) {
 		case 4:
 			QueryEntries4(ctx)
 		}
-	case "POST":
-		AddEntry(ctx)
-	case "TREE":
-		GetTree(ctx)
 	case "GET":
 		kind := ctx.PP["kind"].(string)
 		switch kind {
@@ -1041,12 +1047,59 @@ func EntryResource(ctx RequestContext) {
 	}
 }
 
+func actionMedia(ctx RequestContext, fn func(RequestContext)) {
+	user, err := db.GetUserEntry(actx2dctx(ctx), ctx.PP["id"].(db_types.InfoEntry).ItemId)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not get corresponding user viewing info\n%s", err.Error())
+		return
+	}
+	ctx.PP["id"] = user
+	fn(ctx)
+}
+
 func SpecificEntry(ctx RequestContext) {
 	switch ctx.Req.Method {
+	case "POST":
+		AddEntry(ctx)
+	case "TREE":
+		GetTree(ctx)
+	case "DROP":
+		actionMedia(ctx, DropMedia)
+	case "RESUME":
+		actionMedia(ctx, ResumeMedia)
+	case "PAUSE":
+		actionMedia(ctx, PauseMedia)
+	case "PLAN":
+		actionMedia(ctx, PlanMedia)
+	case "BEGIN":
+		actionMedia(ctx, BeginMedia)
+	case "WAIT":
+		actionMedia(ctx, WaitMedia)
+	case "FINISH":
+		if _, has := ctx.PP["rating"]; !has {
+			util.WError(ctx.W, 400, "?rating not specified with FINISH\n")
+			return
+		}
+		actionMedia(ctx, FinishMedia)
 	case "PATCH":
 		SetEntry(ctx)
 	case "DELETE":
 		DeleteEntry(ctx)
+	case "GET":
+		kind := ctx.PP["kind"].(string)
+		switch kind {
+		case "relations":
+		case "events":
+			GetEventsOf(ctx)
+		case "transactions":
+			ListTransactions(ctx)
+		case "info":
+			GetEntry(ctx)
+		case "meta":
+			RetrieveMetadataForEntry(ctx)
+		case "user":
+			GetUserEntry(ctx)
+		}
 	}
 }
 
