@@ -306,6 +306,24 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "entry/{id}/copy/{copy}",
+		Handler: EntryCopyResource,
+		Description: "both {id} and {copy} must be ids of entries",
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"copy": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Methods: map[string]MethodSpec {
+			"POST": {
+				Description: "makes {copy} a copy of {id} (reciprocal)",
+			},
+			"DELETE": {
+				Description: "removes {copy} as a copy of {id} (reciprocal)",
+			},
+		},
+	},
+
+	{
 		EndPoint: "entry/allfor",
 		Handler: GetAllForEntry2,
 		Deprecated: "use GET /entry/{id}/all",
@@ -536,6 +554,7 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"add-copy"},
 		EndPoint: "entry/copy/add",
+		Deprecated: "use POST /entry/{id}/copy/{copy}",
 		Handler: AddCopy,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -551,6 +570,7 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"del-copy"},
 		EndPoint: "entry/copy/delete",
+		Deprecated: "use DELETE /entry/{id}/copy/{copy}",
 		Handler: DelCopy,
 		Methods: map[string]MethodSpec {
 			"GET": {

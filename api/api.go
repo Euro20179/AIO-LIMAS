@@ -400,7 +400,7 @@ func DelChild(ctx RequestContext) {
 	parent := ctx.PP["parent"].(db_types.InfoEntry)
 	child := ctx.PP["child"].(db_types.InfoEntry)
 
-	err := db.DelRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId)
+	err := db.DelRelation(uid, child.ItemId, db_types.R_Child, parent.ItemId, false)
 	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete child\n%s", err.Error())
 		return
@@ -414,7 +414,7 @@ func DelCopy(ctx RequestContext) {
 	cpy := ctx.PP["copy"].(db_types.InfoEntry)
 	cpyOf := ctx.PP["copyof"].(db_types.InfoEntry)
 
-	err := db.DelRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId)
+	err := db.DelRelation(uid, cpy.ItemId, db_types.R_Copy, cpyOf.ItemId, true)
 	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete copy\n%s", err.Error())
 		return
@@ -428,7 +428,7 @@ func DelRequires(ctx RequestContext) {
 	item := ctx.PP["itemid"].(db_types.InfoEntry)
 	requires := ctx.PP["requires"].(db_types.InfoEntry)
 
-	err := db.DelRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId)
+	err := db.DelRelation(uid, item.ItemId, db_types.R_Requires, requires.ItemId, false)
 	if err != nil {
 		util.WError(ctx.W, 500, "Failed to delete requirement\n%s", err.Error())
 		return
@@ -1124,6 +1124,17 @@ func EntryChildResource(ctx RequestContext) {
 	case "DELETE":
 		ctx.PP["parent"] = ctx.PP["id"]
 		DelChild(ctx)
+	}
+}
+
+func EntryCopyResource(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "POST":
+		ctx.PP["copyof"] = ctx.PP["id"]
+		AddCopy(ctx)
+	case "DELETE":
+		ctx.PP["copyof"] = ctx.PP["id"]
+		DelCopy(ctx)
 	}
 }
 

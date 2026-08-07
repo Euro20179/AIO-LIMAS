@@ -408,10 +408,16 @@ func AddRelation(uid int64, left int64, relation db_types.Relation, right int64)
 `, uid, left, relation, right)
 }
 
-func DelRelation(uid int64, left int64, relation db_types.Relation, right int64) error {
-	return ExecUserDb(uid, `
-		DELETE FROM relations WHERE left = ? and relation = ? and right = ?
-`, left, relation, right)
+func DelRelation(uid int64, left int64, relation db_types.Relation, right int64, reciprocal bool) error {
+	if !reciprocal {
+		return ExecUserDb(uid, `
+			DELETE FROM relations WHERE left = ? and relation = ? and right = ?
+	`, left, relation, right)
+	} else {
+		return ExecUserDb(uid, `
+			DELETE FROM relations WHERE (left = ? or right = ?) and relation = ? and (right = ? or left = ?)
+	`, left, left, relation, right, right)
+	}
 }
 
 func AddTags(uid int64, id int64, tags []string) error {
