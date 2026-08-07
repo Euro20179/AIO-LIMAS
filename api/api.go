@@ -1019,6 +1019,8 @@ func EntrySettings(ctx RequestContext) {
 
 func EntryResource(ctx RequestContext) {
 	switch ctx.Req.Method {
+	case "TREE":
+		GetTree(ctx)
 	case "QUERY":
 		v := ctx.PP.Get("v", int64(4)).(int64)
 		ctx.PP["search"] = ctx.PP["q"]
