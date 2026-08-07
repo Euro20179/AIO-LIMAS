@@ -1059,8 +1059,6 @@ func actionMedia(ctx RequestContext, fn func(RequestContext)) {
 
 func SpecificEntry(ctx RequestContext) {
 	switch ctx.Req.Method {
-	case "POST":
-		AddEntry(ctx)
 	case "TREE":
 		GetTree(ctx)
 	case "DROP":
@@ -1081,6 +1079,10 @@ func SpecificEntry(ctx RequestContext) {
 			return
 		}
 		actionMedia(ctx, FinishMedia)
+	case "TRANSACT":
+		Transact(ctx)
+	case "POST":
+		AddEntry(ctx)
 	case "PATCH":
 		SetEntry(ctx)
 	case "DELETE":

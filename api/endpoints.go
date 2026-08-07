@@ -207,6 +207,15 @@ var mainEndpointList = []ApiEndPoint{
 					"kind": MkQueryInfo(P_NotEmpty, false),
 				},
 			},
+			"TRANSACT": {
+				Description: "registers a transaction",
+				Params: QueryParams{
+					"price": MkQueryInfo(P_Float64, true),
+					"currency": MkQueryInfo(P_NotEmpty, true),
+					"timezone": MkQueryInfo(P_NotEmpty, false),
+					"eventId": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
 			"PATCH": {
 				Description: "Update the info entry with new information in the form of Partial<InfoEntry> from the request body",
 			},
@@ -1363,6 +1372,7 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "do",
 			Handler: Transact,
+			Deprecated: "use TRANSACT /entry/{id}",
 			Methods: map[string]MethodSpec {
 				"GET": {
 					Params: QueryParams {
