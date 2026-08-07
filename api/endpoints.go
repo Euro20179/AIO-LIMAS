@@ -187,7 +187,7 @@ var mainEndpointList = []ApiEndPoint{
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Description: `Get various information about an entry
-				Values for ?kind
+				Values for ?kind, if not given, default to "info"
 				<dl>
 					<dt> relations
 					<dd> lists relations of the entry

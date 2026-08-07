@@ -1088,7 +1088,7 @@ func SpecificEntry(ctx RequestContext) {
 	case "DELETE":
 		DeleteEntry(ctx)
 	case "GET":
-		kind := ctx.PP["kind"].(string)
+		kind := ctx.PP.Get("kind", "info").(string)
 		switch kind {
 		case "relations":
 		case "events":
