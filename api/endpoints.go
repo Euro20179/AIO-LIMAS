@@ -981,6 +981,7 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases: []string{"drop-media"},
 		EndPoint: "drop",
 		Handler:  DropMedia,
+		Deprecated: "use DROP /entry/{id}",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{
@@ -995,6 +996,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"resume-media"},
 		EndPoint: "resume",
+		Deprecated: "use RESUME /entry/{id}",
 		Handler:  ResumeMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1010,6 +1012,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"pause-media"},
 		EndPoint: "pause",
+		Deprecated: "use PAUSE /entry/{id}",
 		Handler:  PauseMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1025,6 +1028,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"plan-media"},
 		EndPoint: "plan",
+		Deprecated: "use PLAN /entry/{id}",
 		Handler:  PlanMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1040,6 +1044,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"begin-media"},
 		EndPoint: "begin",
+		Deprecated: "use BEGIN /entry/{id}",
 		Handler:  BeginMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1054,6 +1059,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"wait-media"},
 		EndPoint: "wait",
+		Deprecated: "use WAIT /entry/{id}",
 		Handler:  WaitMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1069,6 +1075,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"finish-media"},
 		EndPoint: "finish",
+		Deprecated: "use FINISH /entry/{id}",
 		Handler:  FinishMedia,
 		Methods: map[string]MethodSpec {
 			"GET": {
