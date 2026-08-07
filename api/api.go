@@ -308,7 +308,7 @@ func SetEntry(ctx RequestContext) {
 		return
 	}
 
-	var entry db_types.InfoEntry
+	entry := ctx.PP["id"].(db_types.InfoEntry)
 	err = json.Unmarshal(data, &entry)
 	if err != nil {
 		util.WError(w, 400, "Could not parse json into entry\n%s", err.Error())

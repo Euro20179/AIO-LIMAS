@@ -341,7 +341,11 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases:    []string{"set-entry"},
 		Handler:     SetEntry,
 		Methods: map[string]MethodSpec {
-			"POST": {},
+			"POST": {
+				Params: QueryParams {
+					"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+				},
+			},
 		},
 		Description: "Set an entry to the json of an entry<br>Post body must be updated entry",
 	},
