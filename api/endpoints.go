@@ -185,6 +185,9 @@ var mainEndpointList = []ApiEndPoint{
 		},
 		Description: "Various methods for a specific entry",
 		Methods: map[string]MethodSpec {
+			"PATCH": {
+				Description: "Update the info entry with new information in the form of Partial<InfoEntry> from the request body",
+			},
 			"DELETE": {
 				Description: "Delete the entry {id}",
 			},
@@ -340,6 +343,7 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry/set",
 		Aliases:    []string{"set-entry"},
 		Handler:     SetEntry,
+		Deprecated: "use PATCH /entry/{id}",
 		Methods: map[string]MethodSpec {
 			"POST": {
 				Params: QueryParams {

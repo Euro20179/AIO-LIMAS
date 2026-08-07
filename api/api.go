@@ -1040,6 +1040,8 @@ func EntryResource(ctx RequestContext) {
 
 func SpecificEntry(ctx RequestContext) {
 	switch ctx.Req.Method {
+	case "PATCH":
+		SetEntry(ctx)
 	case "DELETE":
 		DeleteEntry(ctx)
 	}
