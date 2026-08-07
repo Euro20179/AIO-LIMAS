@@ -326,6 +326,7 @@ var mainEndpointList = []ApiEndPoint{
 
 	{
 		EndPoint: "entry/list",
+		Deprecated: "use GET /entry?kind=info",
 		Aliases: []string{"list-entries"},
 		Handler:  ListEntries,
 		Methods: map[string]MethodSpec {
@@ -467,6 +468,7 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"list-relations"},
 		EndPoint: "entry/relation/list",
+		Deprecated: "use GET /entry?kind=relations",
 		Handler: ListRelations,
 		Description: "Lists relations of all entries",
 		Methods: map[string]MethodSpec{
@@ -689,6 +691,7 @@ when using finalize-identify`,
 	{
 		Aliases:     []string{"list-entries"},
 		EndPoint:     "list",
+		Deprecated: "use GET /entry?kind=meta",
 		Handler:      ListMetadata,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -849,6 +852,7 @@ var engagementEndpointList = []ApiEndPoint{
 		Aliases:     []string{"list-entries"},
 		EndPoint: "list",
 		Handler:      UserEntries,
+		Deprecated: "use GET /entry?kind=user",
 		Description:  "Lists all user entries",
 		Returns:      "JSONL<UserEntry>",
 		Methods: map[string]MethodSpec {
