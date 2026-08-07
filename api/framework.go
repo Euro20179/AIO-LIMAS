@@ -134,13 +134,17 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 
 		paramHTMLBuilder := strings.Builder{}
 		if len(mthd.Params) > 0 {
-			paramHTMLBuilder.WriteString("<ul class='params'><h4>URL Parameters</h4>")
+			paramHTMLBuilder.WriteString("<h4>URL Parameters</h4><dl class='params'>")
 			for name, info := range mthd.Params {
 				fnName := runtime.FuncForPC(reflect.ValueOf(info.Parser).Pointer()).Name()
 				fnName = parser2Type(fnName[len("aiolimas/api."):])
-				fmt.Fprintf(&paramHTMLBuilder, "<li><b>%s</b>: %s", name, fnName)
+				displayName := name
+				if info.Required {
+					displayName = fmt.Sprintf("<b>%s</b> (required)", displayName)
+				}
+				fmt.Fprintf(&paramHTMLBuilder, "<dt>%s <dd> %s", displayName, fnName)
 			}
-			paramHTMLBuilder.WriteString("</ul>")
+			paramHTMLBuilder.WriteString("</dl>")
 		}
 
 		nameTitle := fmt.Sprintf("<h3>%s</h3>", mthdName)
