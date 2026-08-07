@@ -206,6 +206,8 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams {
 					"kind": MkQueryInfo(P_NotEmpty, false),
 				},
+				GuestAllowed: true,
+				UserIndependant: true,
 			},
 			"TRANSACT": {
 				Description: "registers a transaction",
