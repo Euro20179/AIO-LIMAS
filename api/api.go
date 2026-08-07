@@ -42,6 +42,7 @@ func ListRelationsAsJSONL(ctx RequestContext) {
 		util.WError(ctx.W, 500, "Could not list relations\n%s", err.Error())
 		return
 	}
+	println(len(relations))
 	for id, rs := range relations {
 		out := struct{
 			ItemId int64

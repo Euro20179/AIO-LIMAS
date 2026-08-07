@@ -577,7 +577,7 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 
 	where := ""
 
-	if uid != 0 {
+	if uid > 0 {
 		where = " WHERE uid = ?"
 	}
 
