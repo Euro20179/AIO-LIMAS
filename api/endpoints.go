@@ -95,11 +95,37 @@ var mainEndpointList = []ApiEndPoint{
 		Returns:         "Same as get-all-for-entry, each item is separated by \\n\\n",
 	},
 
-	// entry/ {{{
+	// /entry {{{
 	{
 		EndPoint: "entry",
 		Handler: EntryResource,
 		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: `
+					Get various information about all entries <BR>
+					Values for ?kind
+					<dl>
+						<dt> relations
+						<dd> lists relations of all entries
+						<dt> events
+						<dd> lists all events
+						<dt> transactions
+						<dd> lists all transactions
+						<dt> info
+						<dd> lists all info items (can use ?sort-by)
+						<dt> meta
+						<dd> lists all metadata items
+						<dt> user
+						<dd> lists all user viewing items
+					</dl>
+				`,
+				Params: QueryParams {
+					"kind": MkQueryInfo(P_NotEmpty, true),
+					"sort-by": MkQueryInfo(P_SqlSafe, false),
+				},
+				UserIndependant: true,
+				GuestAllowed: true,
+			},
 			"QUERY": {
 				Description: "Do a search. ?v specifies the search version, can be 3 or 4.",
 				Returns: "JSONL<InfoEntry>",
@@ -163,8 +189,7 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		Handler:     AddTags,
 		Description: "Adds tag(s) to an entry, tags must be an \\x1F (ascii unit separator) separated list",
-		Aliases:    []string{"add-tags"},
-		EndPoint: "entry/tag/add",
+		EndPoint:    "add-tags",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{

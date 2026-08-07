@@ -67,6 +67,13 @@ func (self *ParsedParams) Get(name string, backup any) any {
 	return backup
 }
 
+func (self *ParsedParams) Has(name string) bool {
+	if _, exists := (*self)[name]; exists {
+		return true
+	}
+	return false
+}
+
 type MethodSpec struct {
 	Description string
 	Returns string

@@ -36,6 +36,45 @@ func ListRelations(ctx RequestContext) {
 	ctx.W.Write(data)
 }
 
+func ListRelationsAsJSONL(ctx RequestContext) {
+	relations, err := db.ListRelations(ctx.Uid)
+	if err != nil {
+		util.WError(ctx.W, 500, "Could not list relations\n%s", err.Error())
+		return
+	}
+	for id, rs := range relations {
+		out := struct{
+			ItemId int64
+			Children []int64
+			Requires []int64
+			Copies []int64
+		} {
+			ItemId: id,
+			Children: rs.Children,
+			Copies: rs.Copies,
+			Requires: rs.Requires,
+		}
+
+		if out.Children == nil {
+			out.Children = []int64{}
+		}
+		if out.Requires == nil {
+			out.Requires = []int64{}
+		}
+		if out.Copies == nil {
+			out.Copies = []int64{}
+		}
+
+		res, err := json.Marshal(out)
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to serialize relations\n%s", err.Error())
+			return
+		}
+		ctx.W.Write(res)
+		ctx.W.Write([]byte("\n"))
+	}
+}
+
 func ListCollections(ctx RequestContext) {
 	w := ctx.W
 	collections, err := db.ListType(actx2dctx(ctx), "en_title", db_types.TY_COLLECTION)
@@ -978,6 +1017,22 @@ func EntryResource(ctx RequestContext) {
 		}
 	case "POST":
 		AddEntry(ctx)
+	case "GET":
+		kind := ctx.PP["kind"].(string)
+		switch kind {
+		case "relations":
+			ListRelationsAsJSONL(ctx)
+		case "events":
+			ListEvents(ctx)
+		case "transactions":
+			ListTransactions(ctx)
+		case "info":
+			ListEntries(ctx)
+		case "meta":
+			ListMetadata(ctx)
+		case "user":
+			UserEntries(ctx)
+		}
 	}
 }
 

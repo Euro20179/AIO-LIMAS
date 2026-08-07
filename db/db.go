@@ -629,6 +629,7 @@ func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error
 
 //Setting up a uidWhere for this may be tricky but it shouldn't matter
 //too much anyway because all an outsider would see is A -> B without knowing what A and B are
+//packageAs can be "object" to get itemid keys, or "jsonl" where each line represents an item's relations all packaged as 1 object
 func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 	out := map[int64]db_types.Relations{}
 
