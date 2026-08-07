@@ -1108,7 +1108,20 @@ func SpecificEntry(ctx RequestContext) {
 			RetrieveMetadataForEntry(ctx)
 		case "user":
 			actionMedia(ctx, GetUserEntry)
+		case "all":
+			GetAllForEntry2(ctx)
 		}
+	}
+}
+
+func EntryChildResource(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "POST":
+		ctx.PP["parent"] = ctx.PP["id"]
+		AddChild(ctx)
+	case "DELETE":
+		ctx.PP["parent"] = ctx.PP["id"]
+		DelChild(ctx)
 	}
 }
 

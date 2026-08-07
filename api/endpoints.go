@@ -178,22 +178,6 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
-		EndPoint: "entry/{id}/{kind}",
-		Handler: SpecificEntry,
-		PathParams: QueryParams {
-			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
-			"kind": MkQueryInfo(P_NotEmpty, true),
-		},
-		Methods: map[string]MethodSpec {
-			"GET": {
-				Description: "A path version of GET entry/{id} with a {kind} path param instead of query param",
-				GuestAllowed: true,
-				UserIndependant: true,
-			},
-		},
-	},
-
-	{
 		EndPoint: "entry/{id}",
 		Handler: SpecificEntry,
 		PathParams: QueryParams {
@@ -202,28 +186,7 @@ var mainEndpointList = []ApiEndPoint{
 		Description: "Various methods for a specific entry",
 		Methods: map[string]MethodSpec {
 			"GET": {
-				Description: `Get various information about an entry
-				Values for ?kind, if not given, default to "info"
-				<dl>
-					<dt> info
-					<dd> get info
-					<dt> meta
-					<dd> get metadata
-					<dt> user
-					<dd> get user viewing info
-					<dt> children
-					<dd> lists children of entry
-					<dt> relations
-					<dd> lists relations of the entry
-					<dt> events
-					<dd> lists all events
-					<dt> transactions
-					<dd> lists all transactions
-				</dl>
-				`,
-				Params: QueryParams {
-					"kind": MkQueryInfo(P_NotEmpty, false),
-				},
+				Description: `Get an entry's info item, use entry/{id}/{kind} for more`,
 				GuestAllowed: true,
 				UserIndependant: true,
 			},
@@ -289,8 +252,63 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "entry/{id}/{kind}",
+		Handler: SpecificEntry,
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"kind": MkQueryInfo(P_NotEmpty, true),
+		},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: `A path version of GET entry/{id} with a {kind} path param instead of query param
+				Values for {kind}
+				<dl>
+					<dt> info
+					<dd> get info
+					<dt> meta
+					<dd> get metadata
+					<dt> user
+					<dd> get user viewing info
+					<dt> children
+					<dd> lists children of entry
+					<dt> relations
+					<dd> lists relations of the entry
+					<dt> events
+					<dd> lists all events
+					<dt> transactions
+					<dd> lists all transactions
+					<dt> all
+					<dd> gets all information
+				</dl>
+				`,
+				GuestAllowed: true,
+				UserIndependant: true,
+			},
+		},
+	},
+
+	{
+		EndPoint: "entry/{id}/child/{child}",
+		Handler: EntryChildResource,
+		Description: "both {id} and {child} must be ids of entries",
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"child": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Methods: map[string]MethodSpec {
+			"POST": {
+				Description: "Add an {child} as a child of {id}",
+			},
+			"DELETE": {
+				Description: "Removes {child} as a descendant of {id}",
+			},
+		},
+	},
+
+	{
 		EndPoint: "entry/allfor",
 		Handler: GetAllForEntry2,
+		Deprecated: "use GET /entry/{id}/all",
 		Methods: map[string]MethodSpec{
 			"GET": {
 				Params: QueryParams {
@@ -470,6 +488,7 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"add-child"},
 		EndPoint: "entry/child/add",
 		Handler: AddChild,
+		Deprecated: "use POST /entry/{id}/child/{child}",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{
@@ -485,6 +504,7 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"del-child"},
 		EndPoint: "entry/child/delete",
 		Handler: DelChild,
+		Deprecated: "use DELETE /entry/{id}/child/{child}",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{
