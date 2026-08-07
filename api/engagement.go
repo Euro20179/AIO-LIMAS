@@ -289,7 +289,9 @@ func SetUserEntry(ctx RequestContext) {
 		return
 	}
 
-	var user db_types.UserViewingEntry
+	user := ctx.PP["id"].(db_types.UserViewingEntry)
+	oldId := user.ItemId
+
 	err = json.Unmarshal(data, &user)
 	if err != nil {
 		util.WError(w, 400, "Could not parse json\n%s", err.Error())
@@ -297,6 +299,7 @@ func SetUserEntry(ctx RequestContext) {
 	}
 
 	user.Uid = ctx.Uid
+	user.ItemId = oldId
 
 	err = db.UpdateUserViewingEntry(ctx.Uid, &user)
 	if err != nil {

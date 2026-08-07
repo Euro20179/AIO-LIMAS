@@ -309,6 +309,8 @@ func SetEntry(ctx RequestContext) {
 	}
 
 	entry := ctx.PP["id"].(db_types.InfoEntry)
+	oldId := entry.ItemId
+
 	err = json.Unmarshal(data, &entry)
 	if err != nil {
 		util.WError(w, 400, "Could not parse json into entry\n%s", err.Error())
@@ -316,6 +318,7 @@ func SetEntry(ctx RequestContext) {
 	}
 
 	entry.Uid = ctx.Uid
+	entry.ItemId = oldId
 
 	err = db.UpdateInfoEntry(ctx.Uid, &entry)
 	if err != nil {

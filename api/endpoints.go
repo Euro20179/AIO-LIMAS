@@ -645,7 +645,9 @@ when using finalize-identify`,
 		Handler:     SetMetadataEntry,
 		Methods: map[string]MethodSpec {
 			"POST": {
-				Params: QueryParams{},
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetMetaEntry, true),
+				},
 			},
 		},
 		Description: "Set a metadata entry to the json of an entry<br>post body must be updated metadata entry",
@@ -872,7 +874,9 @@ var engagementEndpointList = []ApiEndPoint{
 		Handler:     SetUserEntry,
 		Methods: map[string]MethodSpec {
 			"POST": {
-				Params: QueryParams{},
+				Params: QueryParams{
+					"id":       MkQueryInfo(P_VerifyIdAndGetUserEntry, true),
+				},
 			},
 		},
 		Description: "Updates the user entry with the post body<br>Post body must be updated user entry",

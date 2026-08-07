@@ -125,13 +125,16 @@ func SetMetadataEntry(ctx RequestContext) {
 		return
 	}
 
-	var meta db_types.MetadataEntry
+	meta := ctx.PP["id"].(db_types.MetadataEntry)
+	oldId := meta.ItemId
+
 	err = json.Unmarshal(data, &meta)
 	if err != nil {
 		util.WError(w, 400, "Could not parse json\n%s", err.Error())
 		return
 	}
 
+	meta.ItemId = oldId
 	meta.Uid = ctx.Uid
 
 	err = db.UpdateMetadataEntry(ctx.Uid, &meta)
