@@ -739,6 +739,7 @@ when using finalize-identify`,
 	{
 		Aliases: []string{"retrieve"},
 		EndPoint: "get",
+		Deprecated: "use GET entry/{id}?kind=meta",
 		Handler:  RetrieveMetadataForEntry,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -964,6 +965,7 @@ var engagementEndpointList = []ApiEndPoint{
 	{
 		Aliases: []string{"get-entry"},
 		EndPoint: "get",
+		Deprecated: "use GET /entry/{id}?kind=user",
 		Handler:  GetUserEntry,
 		Methods: map[string]MethodSpec {
 			"GET": {
@@ -1347,6 +1349,7 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "list",
 			Handler: ListTransactions,
+			Deprecated: "use GET /entry?kind=transactions",
 			Methods: map[string]MethodSpec {
 				"GET": {
 					Params: QueryParams {
