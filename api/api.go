@@ -1095,12 +1095,19 @@ func SpecificEntry(ctx RequestContext) {
 			GetEventsOf(ctx)
 		case "transactions":
 			ListTransactions(ctx)
+		case "children":
+			GetDescendants(ctx)
 		case "info":
 			GetEntry(ctx)
 		case "meta":
+			meta, err := db.GetMetadataEntryById(actx2dctx(ctx), ctx.PP["id"].(db_types.InfoEntry).ItemId)
+			if err != nil {
+				util.WError(ctx.W, 500, "Could not get corresponding meta info\n%s", err.Error())
+			}
+			ctx.PP["id"] = meta
 			RetrieveMetadataForEntry(ctx)
 		case "user":
-			GetUserEntry(ctx)
+			actionMedia(ctx, GetUserEntry)
 		}
 	}
 }

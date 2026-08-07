@@ -178,6 +178,22 @@ var mainEndpointList = []ApiEndPoint{
 	},
 
 	{
+		EndPoint: "entry/{id}/{kind}",
+		Handler: SpecificEntry,
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+			"kind": MkQueryInfo(P_NotEmpty, true),
+		},
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: "A path version of GET entry/{id} with a {kind} path param instead of query param",
+				GuestAllowed: true,
+				UserIndependant: true,
+			},
+		},
+	},
+
+	{
 		EndPoint: "entry/{id}",
 		Handler: SpecificEntry,
 		PathParams: QueryParams {
@@ -189,18 +205,20 @@ var mainEndpointList = []ApiEndPoint{
 				Description: `Get various information about an entry
 				Values for ?kind, if not given, default to "info"
 				<dl>
-					<dt> relations
-					<dd> lists relations of the entry
-					<dt> events
-					<dd> lists all events
-					<dt> transactions
-					<dd> lists all transactions
 					<dt> info
 					<dd> get info
 					<dt> meta
 					<dd> get metadata
 					<dt> user
 					<dd> get user viewing info
+					<dt> children
+					<dd> lists children of entry
+					<dt> relations
+					<dd> lists relations of the entry
+					<dt> events
+					<dd> lists all events
+					<dt> transactions
+					<dd> lists all transactions
 				</dl>
 				`,
 				Params: QueryParams {
@@ -482,6 +500,7 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"list-descendants"},
 		EndPoint: "entry/child/list",
 		Handler:  GetDescendants,
+		Deprecated: "use GET /entry/{id}?kind=children",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{
