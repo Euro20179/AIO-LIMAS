@@ -1376,7 +1376,15 @@ func DocHTML(ctx RequestContext) {
 				docsHTML += fmt.Sprintf("<HR><h3 id=\"%s\">%s</h3>", "/", "/")
 			}
 			for _, endP := range Endpoints[root] {
-				docsHTML += endP.GenerateDocHTML(root)
+				html := endP.GenerateDocHTML(root)
+				if endP.Deprecated != "" {
+					docsHTML += fmt.Sprintf(
+						"<details><summary><h3 style='display: inline'>deprecated %s/%s</h3></summary>%s</details>",
+						root, endP.EndPoint, html,
+					)
+				} else {
+					docsHTML += html
+				}
 			}
 		}
 		html += tableOfContents + "</ul>" + docsHTML
