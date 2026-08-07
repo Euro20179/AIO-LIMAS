@@ -100,6 +100,12 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "entry",
 		Handler: EntryResource,
 		Methods: map[string]MethodSpec {
+			"TREE": {
+				Description: "Generate a tree representation of all entries",
+				Returns: "Record<string, {EntryInfo: InfoEntry, MetaInfo: Metadata, UserInfo: UserEntry, Children: string[], Copies: string[]}>",
+				GuestAllowed: true,
+				UserIndependant: true,
+			},
 			"GET": {
 				Description: `
 					Get various information about all entries <BR>
@@ -167,6 +173,20 @@ var mainEndpointList = []ApiEndPoint{
 					"requires":          MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 					"recommended-by":    MkQueryInfo(P_NotEmpty, false),
 				},
+			},
+		},
+	},
+
+	{
+		EndPoint: "entry/{id}",
+		Handler: SpecificEntry,
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_VerifyIdAndGetInfoEntry, true),
+		},
+		Description: "Various methods for a specific entry",
+		Methods: map[string]MethodSpec {
+			"DELETE": {
+				Description: "Delete the entry {id}",
 			},
 		},
 	},
@@ -263,6 +283,7 @@ var mainEndpointList = []ApiEndPoint{
 		Aliases: []string{"delete-entry"},
 		EndPoint: "entry/delete",
 		Handler:  DeleteEntry,
+		Deprecated: "use DELETE /entry/{id}",
 		Methods: map[string]MethodSpec {
 			"GET": {
 				Params: QueryParams{
@@ -276,6 +297,7 @@ var mainEndpointList = []ApiEndPoint{
 	{
 		Aliases:     []string{"list-tree"},
 		EndPoint: "entry/tree",
+		Deprecated: "use TREE /entry",
 		Handler:      GetTree,
 		Methods: map[string]MethodSpec {
 			"GET": {

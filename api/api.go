@@ -1017,6 +1017,8 @@ func EntryResource(ctx RequestContext) {
 		}
 	case "POST":
 		AddEntry(ctx)
+	case "TREE":
+		GetTree(ctx)
 	case "GET":
 		kind := ctx.PP["kind"].(string)
 		switch kind {
@@ -1033,6 +1035,13 @@ func EntryResource(ctx RequestContext) {
 		case "user":
 			UserEntries(ctx)
 		}
+	}
+}
+
+func SpecificEntry(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "DELETE":
+		DeleteEntry(ctx)
 	}
 }
 
