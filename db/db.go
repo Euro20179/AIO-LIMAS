@@ -168,6 +168,34 @@ func uidWhere(ctx RequestContext, uidvar string, itemidvar string) string {
 	return whereClause
 }
 
+func Select[T db_types.TableRepresentation](ctx RequestContext, scanTo T, statement string, uidwhere string, args ...any) ([]T, error) {
+	out := []T{}
+	if uidwhere != "" {
+		statement = fmt.Sprintf(statement, uidwhere)
+	}
+	println(statement)
+	rows, err := QueryDB(statement, args...)
+	if err != nil {
+		return out, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		res, err := scanTo.ReadEntryCopy(rows)
+		if err != nil {
+			return out, err
+		}
+		out = append(out, res.(T))
+	}
+
+	if len(out) == 0 {
+		return out, fmt.Errorf("no results for query: %s", statement)
+	}
+
+	return out, nil
+}
+
 func BuildEntryTree(ctx RequestContext, id int64) (map[int64]db_types.EntryTree, error) {
 	out := map[int64]db_types.EntryTree{}
 
@@ -343,65 +371,8 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 func ListMetadata(ctx RequestContext) ([]db_types.MetadataEntry, error) {
-	var items *sql.Rows
-	var err error
-	qs := "SELECT * FROM metadata " + uidWhere(ctx, "metadata.uid", "metadata.itemid")
-
-	items, err = QueryDB(qs, ctx.UID)
-	if err != nil {
-		return nil, err
-	}
-
-	var out []db_types.MetadataEntry
-
-	defer items.Close()
-
-	i := 0
-	for items.Next() {
-		i++
-		var row db_types.MetadataEntry
-		err := row.ReadEntry(items)
-		if err != nil {
-			log.ELog(err)
-			continue
-		}
-		out = append(out, row)
-	}
-	return out, nil
+	return Select(ctx, db_types.MetadataEntry{}, "SELECT * FROM metadata %s", uidWhere(ctx, "metadata.uid", "metadata.itemid"))
 }
-
-type DataChecker int
-
-const (
-	DATA_GT      DataChecker = iota
-	DATA_LT      DataChecker = iota
-	DATA_LE      DataChecker = iota
-	DATA_GE      DataChecker = iota
-	DATA_EQ      DataChecker = iota
-	DATA_NE      DataChecker = iota
-	DATA_LIKE    DataChecker = iota
-	DATA_IN      DataChecker = iota
-	DATA_NOTIN   DataChecker = iota
-	DATA_NOTLIKE DataChecker = iota
-	DATA_OR      DataChecker = iota
-	DATA_AND     DataChecker = iota
-)
-
-type LogicType int
-
-const (
-	LOGIC_AND LogicType = iota
-	LOGIC_OR  LogicType = iota
-)
-
-type SearchData struct {
-	DataName  string
-	DataValue []string
-	Checker   DataChecker
-	LogicType LogicType
-}
-
-type SearchQuery []SearchData
 
 func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
 	var out []db_types.InfoEntry
@@ -438,24 +409,7 @@ func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 
 	log.Info("got query %s", safeQuery)
 
-	rows, err := QueryDB(fullQuery)
-	if err != nil {
-		return out, err
-	}
-
-	defer rows.Close()
-
-	for i := 0; rows.Next(); i++ {
-		var row db_types.InfoEntry
-		err = row.ReadEntry(rows)
-		if err != nil {
-			log.ELog(err)
-			continue
-		}
-		out = append(out, row)
-	}
-
-	return out, nil
+	return Select(ctx, db_types.InfoEntry{}, fullQuery, "")
 }
 
 func Search4(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
@@ -490,24 +444,16 @@ func Search4(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 
 	log.Info("got query %s", query)
 
-	rows, err := QueryDB(query, searchQuery, searchQuery, searchQuery, searchQuery)
-	if err != nil {
-		return out, err
-	}
-
-	defer rows.Close()
-
-	for i := 0; rows.Next(); i++ {
-		var row db_types.InfoEntry
-		err = row.ReadEntry(rows)
-		if err != nil {
-			log.ELog(err)
-			continue
-		}
-		out = append(out, row)
-	}
-
-	return out, nil
+	return Select(
+		ctx,
+		db_types.InfoEntry{},
+		query,
+		"",
+		searchQuery,
+		searchQuery,
+		searchQuery,
+		searchQuery,
+	)
 }
 
 func ListType(ctx RequestContext, col string, ty db_types.MediaTypes) ([]string, error) {
@@ -549,36 +495,25 @@ func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
 }
 
 func GetRequires(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
-	var out []db_types.InfoEntry
-	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") + ` AND
-		itemId IN (
-			SELECT right FROM relations
-			WHERE
-			relation = 2 AND left = ?
-		)`
-	queryStr := fmt.Sprintf(`SELECT * FROM entryInfo %s`, whereClause)
-	rows, err := QueryDB(queryStr, id)
-	if err != nil {
-		return out, err
-	}
-	return mkRows(rows)
+	return Select(
+		ctx,
+		db_types.InfoEntry{},
+		`SELECT * FROM entryInfo %s AND itemId IN ( SELECT right FROM relations WHERE relation = 2 AND left = ?)`,
+		uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid"),
+		id,
+	)
 }
 
 func GetRelation(ctx RequestContext, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
-	var out []db_types.InfoEntry
-	whereClause := uidWhere(ctx, "ei.uid", "ei.itemid") +  " AND ei.itemid = ?"
-	queryStr := fmt.Sprintf(`
-	SELECT * FROM entryInfo
-	WHERE
-	entryInfo.itemId IN (
-		SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = %d
-		%s
-	)`, relation, whereClause)
-	rows, err := QueryDB(queryStr, id)
-	if err != nil {
-		return out, err
-	}
-	return mkRows(rows)
+	return Select(
+		ctx,
+		db_types.InfoEntry{},
+		`SELECT * FROM entryInfo
+		 WHERE entryInfo.itemId IN (
+			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = ? %s AND ei.itemid = ?
+		)`,
+		uidWhere(ctx, "ei.uid", "ei.itemid"),
+		relation, id)
 }
 
 // if id is -1, it lists all events
@@ -704,35 +639,14 @@ func ListRelations(uid int64) (map[int64]db_types.Relations, error) {
 
 // /sort must be valid sql
 func ListEntries(ctx RequestContext, sort string) ([]db_types.InfoEntry, error) {
-	whereClause := uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid")
-	qs := fmt.Sprintf(`
-	SELECT entryInfo.*
-	FROM
-	entryInfo JOIN userViewingInfo
-	ON
-	entryInfo.itemId = userViewingInfo.itemId
-	%s
-	ORDER BY %s`, whereClause, sort)
-
-	items, err := QueryDB(qs, ctx.UID)
-	if err != nil {
-		return nil, err
-	}
-
-	var out []db_types.InfoEntry
-
-	defer items.Close()
-
-	for items.Next() {
-		var row db_types.InfoEntry
-		err = row.ReadEntry(items)
-		if err != nil {
-			log.ELog(err)
-			continue
-		}
-		out = append(out, row)
-	}
-	return out, nil
+	return Select(
+		ctx,
+		db_types.InfoEntry{},
+		fmt.Sprintf(`SELECT entryInfo.* FROM entryInfo
+		JOIN userViewingInfo ON entryInfo.itemid = userViewingInfo.itemid
+		%s
+		ORDER BY %s`, uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid"), sort), "",
+	)
 }
 
 func GetUserEntry(ctx RequestContext, itemId int64) (db_types.UserViewingEntry, error) {
@@ -754,26 +668,12 @@ func GetUserEntry(ctx RequestContext, itemId int64) (db_types.UserViewingEntry, 
 }
 
 func AllUserEntries(ctx RequestContext) ([]db_types.UserViewingEntry, error) {
-	whereClause := uidWhere(ctx, "userViewingInfo.uid", "userViewingInfo.itemid")
-	qs := "SELECT * FROM userViewingInfo " + whereClause
-	items, err := QueryDB(qs, ctx.UID)
-	if err != nil {
-		return nil, err
-	}
-
-	defer items.Close()
-
-	var out []db_types.UserViewingEntry
-	for items.Next() {
-		var row db_types.UserViewingEntry
-		err := row.ReadEntry(items)
-		if err != nil {
-			log.ELog(err)
-			continue
-		}
-		out = append(out, row)
-	}
-	return out, nil
+	return Select(
+		ctx,
+		db_types.UserViewingEntry{},
+		"SELECT * FROM userViewingInfo %s",
+		uidWhere(ctx, "userViewingInfo.uid", "userViewingInfo.itemid"),
+	)
 }
 
 func getDescendants(ctx RequestContext, id int64, recurse uint64, maxRecurse uint64) ([]db_types.InfoEntry, error) {
@@ -821,22 +721,12 @@ func GetRecommendersList(ctx RequestContext) ([]string, error) {
 }
 
 func ListTransactions(ctx RequestContext, itemid int64) ([]db_types.TransactionEntry, error) {
-	rows, err := QueryDB(fmt.Sprintf(`
-	SELECT rowid, * from transactions %s AND (? = 0 OR itemid = ?)
-	`, uidWhere(ctx, "uid", "itemid")), itemid, itemid)
-	if err != nil {
-		return []db_types.TransactionEntry{}, err
-	}
-
-	defer rows.Close()
-
-	out := []db_types.TransactionEntry{}
-	for rows.Next() {
-		cur := db_types.TransactionEntry{}
-		cur.ReadEntry(rows)
-		out = append(out, cur)
-	}
-	return out, nil
+	return Select(
+		ctx,
+		db_types.TransactionEntry{},
+		`SELECT rowid, * FROM transactions %s AND (? = 0 OR itemid = ?)`,
+		uidWhere(ctx, "uid", "itemid"), itemid, itemid,
+	)
 }
 
 func GetTransaction(ctx RequestContext, id int64) (db_types.TransactionEntry, error) {

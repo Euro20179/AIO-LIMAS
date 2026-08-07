@@ -202,17 +202,8 @@ func ListMetadata(ctx RequestContext) {
 		util.WError(w, 500, "Could not fetch data\n%s", err.Error())
 		return
 	}
-
 	w.WriteHeader(200)
-	for _, item := range items {
-		j, err := item.ToJson()
-		if err != nil {
-			logging.ELog(err)
-			continue
-		}
-		w.Write(j)
-		w.Write([]byte("\n"))
-	}
+	writeSQLRowResults(ctx.W, items)
 	w.Write([]byte("\n"))
 }
 
