@@ -190,7 +190,7 @@ func Select[T db_types.TableRepresentation](ctx RequestContext, scanTo T, statem
 	}
 
 	if len(out) == 0 {
-		return out, fmt.Errorf("no results for query: %s", statement)
+		return out, nil
 	}
 
 	return out, nil
@@ -277,7 +277,7 @@ func BuildEntryTree(ctx RequestContext, id int64) (map[int64]db_types.EntryTree,
 		cur.Copies = []string{}
 		cur.Children = []string{}
 
-		children, err = GetRelation(ctx, cur.EntryInfo.ItemId, db_types.R_Child)
+		children, err = GetRelation(ctx, cur.EntryInfo.ItemId, db_types.R_Child, false)
 		if err != nil {
 			log.ELog(err)
 			goto next
@@ -477,7 +477,7 @@ func ListType(ctx RequestContext, col string, ty db_types.MediaTypes) ([]string,
 }
 
 func GetCopiesOf(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
-	return GetRelation(ctx, id, db_types.R_Copy)
+	return GetRelation(ctx, id, db_types.R_Copy, true)
 }
 
 func mkRows(rows *sql.Rows) ([]db_types.InfoEntry, error) {
@@ -504,14 +504,21 @@ func GetRequires(ctx RequestContext, id int64) ([]db_types.InfoEntry, error) {
 	)
 }
 
-func GetRelation(ctx RequestContext, id int64, relation db_types.Relation) ([]db_types.InfoEntry, error) {
+func GetRelation(ctx RequestContext, id int64, relation db_types.Relation, reciprocal bool) ([]db_types.InfoEntry, error) {
+	subselect := `SELECT left FROM relations r
+		JOIN entryInfo ei
+		ON r.right = ei.itemid AND r.relation = ? %s AND ei.itemid = ?`
+	if reciprocal {
+		subselect = fmt.Sprintf(`
+				SELECT (CASE (left = %d) WHEN true THEN right ELSE left END) FROM relations r
+				JOIN entryInfo ei
+				ON (r.right = ei.itemid OR r.left = ei.itemid) AND r.relation = ? %%s AND ei.itemid = ?
+		`, id)
+	}
 	return Select(
 		ctx,
 		db_types.InfoEntry{},
-		`SELECT * FROM entryInfo
-		 WHERE entryInfo.itemId IN (
-			SELECT left FROM relations r JOIN entryInfo ei ON r.right = ei.itemid AND r.relation = ? %s AND ei.itemid = ?
-		)`,
+		`SELECT * FROM entryInfo WHERE entryInfo.itemid IN (` + subselect + `)`,
 		uidWhere(ctx, "ei.uid", "ei.itemid"),
 		relation, id)
 }
@@ -682,7 +689,7 @@ func getDescendants(ctx RequestContext, id int64, recurse uint64, maxRecurse uin
 		return out, nil
 	}
 
-	children, err := GetRelation(ctx, id, db_types.R_Child)
+	children, err := GetRelation(ctx, id, db_types.R_Child, false)
 	if err != nil {
 		return out, err
 	}

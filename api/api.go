@@ -210,8 +210,8 @@ func GetAllForEntry2(ctx RequestContext) {
 
 	trans, err := db.ListTransactions(actx2dctx(ctx), info.ItemId)
 
-	children, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Child)
-	copies, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Copy)
+	children, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Child, false)
+	copies, err := db.GetRelation(actx2dctx(ctx), info.ItemId, db_types.R_Copy, true)
 	requirements, err := db.GetRequires(actx2dctx(ctx), info.ItemId)
 
 	if events == nil {
