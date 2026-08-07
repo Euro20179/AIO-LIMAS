@@ -446,7 +446,7 @@ func (self MacroNode) ToString() (string, error) {
 					)
 				} else {
 					//extra ( because i want to encase the whole thing with ()
-					query = fmt.Sprintf("((argStyle & %d == %d)",
+					query = fmt.Sprintf("((artStyle & %d == %d)",
 						as_int,
 						as_int,
 					)

@@ -260,7 +260,7 @@ var mainEndpointList = []ApiEndPoint{
 		},
 		Methods: map[string]MethodSpec {
 			"GET": {
-				Description: `A path version of GET entry/{id} with a {kind} path param instead of query param
+				Description: `A path version of GET entry/{id} with a {kind} path param instead of query param <br>
 				Values for {kind}
 				<dl>
 					<dt> info
