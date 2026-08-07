@@ -92,3 +92,12 @@ func ListTransactions(ctx RequestContext) {
 		ctx.W.Write([]byte("\n"))
 	}
 }
+
+func TransactResource(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "PATCH":
+		EditTransaction(ctx)
+	case "DELETE":
+		DeleteTransaction(ctx)
+	}
+}

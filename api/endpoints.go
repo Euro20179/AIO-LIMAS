@@ -1356,6 +1356,28 @@ var Endpoints = map[string][]ApiEndPoint{
 	"/resource":   resourceEndpointList,
 	"/transact": {
 		{
+			EndPoint: "{id}",
+			Handler: TransactResource,
+			PathParams: QueryParams {
+				"id": MkQueryInfo(P_Int64, true),
+			},
+			Description: "perform operations on a transaction",
+			Methods: map[string]MethodSpec {
+				"PATCH": {
+					Description: "Modify a transaction",
+					Params: QueryParams {
+						"price": MkQueryInfo(P_Float64, false),
+						"currency": MkQueryInfo(P_NotEmpty, false),
+						"eventId": MkQueryInfo(P_Int64, false),
+						"itemId": MkQueryInfo(P_Int64, false),
+					},
+				},
+				"DELETE": {
+					Description: "Delete a transaction",
+				},
+			},
+		},
+		{
 			EndPoint: "list",
 			Handler: ListTransactions,
 			Deprecated: "use GET /entry?kind=transactions",
@@ -1388,6 +1410,7 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "edit",
 			Handler: EditTransaction,
+			Deprecated: "use PATCH /transact/{id}",
 			Methods: map[string]MethodSpec {
 				"GET": {
 					Params: QueryParams {
@@ -1403,6 +1426,7 @@ var Endpoints = map[string][]ApiEndPoint{
 		{
 			EndPoint: "delete",
 			Handler: DeleteTransaction,
+			Deprecated: "use DELETE /transact/{id}",
 			Methods: map[string]MethodSpec {
 				"GET": {
 					Params: QueryParams {
