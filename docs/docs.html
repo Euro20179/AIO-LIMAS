@@ -388,7 +388,7 @@
 </section>
 
 <script>
-    const endpoints = document.querySelectorAll(".endpoint")
+    const endpoints = document.querySelectorAll("article.endpoint")
     function filterEndpoints(inp) {
         const query = inp.value || ""
         for(let endp of endpoints) {
@@ -412,7 +412,9 @@
     for(let endp of endpoints) {
         const a = document.createElement("a")
         a.href = `#${endp.id}`
-        a.innerText = endp.id
+        if(endp.matches(":has(h2 del)")) {
+            a.innerHTML = `<s>${endp.id}</s>`
+        } else a.innerText = endp.id
 
         endplist.append(a)
     }
