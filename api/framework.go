@@ -160,15 +160,16 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 		methodHTML.WriteString(thisMthdHTML)
 	}
 
-	nameTitle := fmt.Sprintf("<h2>%s/%s</h2>", root, self.EndPoint)
+	name := fmt.Sprintf("%s/%s", root, self.EndPoint)
+	nameTitle := fmt.Sprintf("<h2>%s</h2>", name)
 
 	if self.Deprecated != "" {
-		nameTitle = fmt.Sprintf("<h2><del>%s/%s</del></h2>", root, self.EndPoint)
+		nameTitle = fmt.Sprintf("<h2><del>%s</del></h2>", name)
 		tags.WriteString("<div class='tag focus'>Deprecated</div>")
 	}
 
 	return fmt.Sprintf(`
-		<article>
+		<article class='endpoint' id='%s'>
 			<aside class="tags">%s</aside>
 			%s
 
@@ -183,7 +184,7 @@ func (self *ApiEndPoint) GenerateDocHTML(root string) string {
 			%s
 			</section>
 		</article>
-	`, tags.String(), nameTitle, self.Deprecated, self.Description, self.Returns, methodHTML.String())
+	`, name, tags.String(), nameTitle, self.Deprecated, self.Description, self.Returns, methodHTML.String())
 }
 
 

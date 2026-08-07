@@ -9,11 +9,25 @@
             padding: 2ch;
             border: 1px solid;
             border-radius: 2ch;
+
             margin-block: 2cap;
+        }
+
+        article.endpoint {
+            margin: 2cap auto;
+            width: 60%;
+        }
+
+        .methods article {
+            width: fit-content;
         }
 
         article > :where(h2, h3, h4) {
             margin: 0;
+        }
+
+        details.endpoint summary{
+            text-align: center;
         }
 
         .tags {
@@ -37,6 +51,26 @@
         .methods {
             list-style: none;
         }
+
+        #endpoint-list {
+            float: left;
+            display: flex;
+            justify-content: start;
+            flex-direction: column;
+            gap: 2cap;
+
+            position: sticky;
+            top: 0;
+
+            height: 100%;
+            overflow: auto;
+            background: var(--main);
+        }
+
+        #endpoint-list a[href="#"] {
+            display: none;
+        }
+
     </style>
 </head>
 <h1>Documentation</h1>
@@ -341,5 +375,45 @@
 
 <hr>
 
-<h3>Endpoints</h3>
-{{ .Endpoints }}
+<section>
+    <h3 style="text-align: center;">Endpoints</h3>
+    <aside id="endpoint-list">
+        <p>Endpoint list</p>
+        <search>
+            <input type="search" placeholder="filter endpoints" oninput="filterEndpoints(this)">
+        </search>
+    </aside>
+
+    {{ .Endpoints }}
+</section>
+
+<script>
+    const endpoints = document.querySelectorAll(".endpoint")
+    function filterEndpoints(inp) {
+        const query = inp.value || ""
+        for(let endp of endpoints) {
+            endp.hidden = false
+
+            let correspondingA = document.querySelector(`[href="#${endp.id}"]`)
+            if(correspondingA) {
+                correspondingA.hidden = false
+            }
+
+            if(!endp.innerText.toLowerCase().includes(query.toLowerCase())) {
+                endp.hidden = true
+                if(correspondingA) {
+                    correspondingA.hidden = true
+                }
+            }
+        }
+    }
+
+    const endplist = window['endpoint-list']
+    for(let endp of endpoints) {
+        const a = document.createElement("a")
+        a.href = `#${endp.id}`
+        a.innerText = endp.id
+
+        endplist.append(a)
+    }
+</script>

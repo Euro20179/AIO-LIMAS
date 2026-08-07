@@ -1523,7 +1523,7 @@ func DocHTML(ctx RequestContext) {
 				html := endP.GenerateDocHTML(root)
 				if endP.Deprecated != "" {
 					docsHTML += fmt.Sprintf(
-						"<details><summary><h3 style='display: inline'>deprecated %s/%s</h3></summary>%s</details>",
+						"<details class='endpoint'><summary><h3 style='display: inline'>deprecated %s/%s</h3></summary>%s</details>",
 						root, endP.EndPoint, html,
 					)
 				} else {
