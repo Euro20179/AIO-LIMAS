@@ -201,6 +201,7 @@ var IdentifyProviders IdentifiersMap = IdentifiersMap{
 	"gtdbswitch":   GTDBSwitchIdentify,
 	"gtdbds":   GTDBDSIdentify,
 	"gtdbwiiu":   GTDBWiiUIdentify,
+	"gtdbps3": GTDBPs3Identify,
 }
 
 type (
@@ -232,4 +233,5 @@ var IdIdentifiers IdIdentifiersMap = IdIdentifiersMap{
 	"gtdbswitch":   GTDBSwitchIdIdentify,
 	"gtdbds":   GTDBDSIdIdentify,
 	"gtdbwiiu":   GTDBWiiUIdIdentify,
+	"gtdbps3": GTDBPs3IdIdentify,
 }

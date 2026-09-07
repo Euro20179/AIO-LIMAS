@@ -550,3 +550,11 @@ func GTDBWiiUIdIdentify(id string, us settings.SettingsData) (db_types.MetadataE
 func GTDBWiiUIdentify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
 	return gtdbIdentify("wiiu", iinfo)
 }
+
+func GTDBPs3IdIdentify(id string, us settings.SettingsData) (db_types.MetadataEntry, error) {
+	return gtdbIdIdentify("ps3", id)
+}
+
+func GTDBPs3Identify(iinfo IdentifyMetadata) ([]db_types.MetadataEntry, error) {
+	return gtdbIdentify("ps3", iinfo)
+}
