@@ -94,7 +94,7 @@ func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) 
 	events, err := db.GetEvents(db.RequestContext{
 		UID: uid,
 		Auth: 0,
-	}, i)
+	}, i, 0)
 	if err != nil {
 		util.WError(w, 500, "Could not retrieve item events")
 		logging.ELog(err)

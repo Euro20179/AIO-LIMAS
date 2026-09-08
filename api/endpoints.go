@@ -128,6 +128,7 @@ var mainEndpointList = []ApiEndPoint{
 				Params: QueryParams {
 					"kind": MkQueryInfo(P_NotEmpty, true),
 					"sort-by": MkQueryInfo(P_SqlSafe, false),
+					"limit": MkQueryInfo(P_Int64, false),
 				},
 				UserIndependant: true,
 				GuestAllowed: true,
@@ -976,7 +977,9 @@ var engagementEndpointList = []ApiEndPoint{
 		Handler:      ListEvents,
 		Methods: map[string]MethodSpec {
 			"GET": {
-				Params:  QueryParams{},
+				Params:  QueryParams{
+					"limit": MkQueryInfo(P_Int64, false),
+				},
 				GuestAllowed: true,
 			},
 		},

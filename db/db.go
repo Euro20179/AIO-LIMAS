@@ -524,7 +524,7 @@ func GetRelation(ctx RequestContext, id int64, relation db_types.Relation, recip
 }
 
 // if id is -1, it lists all events
-func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error) {
+func GetEvents(ctx RequestContext, id int64, limit int64) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
 	whereClause := []string{}
@@ -542,7 +542,7 @@ func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error
 
 	var events *sql.Rows
 	var err error
-	events, err = QueryDB(fmt.Sprintf(`
+	query := fmt.Sprintf(`
 	SELECT *, rowid from userEventInfo
 	%s
 	ORDER BY
@@ -564,7 +564,17 @@ func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error
 			END
 		END
 	ELSE timestamp
-	END`, whereText), whereItems...)
+	END`, whereText)
+
+	if limit > 0 {
+		query += fmt.Sprintf(" DESC LIMIT %d", limit)
+	}
+
+	if limit < 0 {
+		query += fmt.Sprintf(" ASC LIMIT %d", limit * -1)
+	}
+
+	events, err = QueryDB(query, whereItems...)
 	if err != nil {
 		return out, err
 	}
