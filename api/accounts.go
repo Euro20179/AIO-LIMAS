@@ -202,13 +202,27 @@ func ListAccesses(ctx RequestContext) {
 func GetAccount(ctx RequestContext) {
 	if ctx.Req.Method == "RSS" || (ctx.Req.Method == "GET" && strings.Contains(ctx.Req.Header.Get("Accept"), "application/rss+xml")) {
 		dctx := actx2dctx(ctx)
-		events, _ := db.GetEvents(dctx, -1, 20)
+		events, err := db.GetEvents(dctx, -1, 20)
+		
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to get events: %s\n", err.Error())
+			return
+		}
+
+		aioPath := os.Getenv("AIO_DIR")
+		user, err := accounts.Id2Username(aioPath, ctx.PP["id"].(int64))
+
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to get username: %s\n", err.Error())
+			return
+		}
+
 		ctx.W.Header().Add("Content-Type", "application/rss+xml")
 		ctx.W.Write([]byte(fmt.Sprintf(`<?xml version="1.0"?>
 			<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 				<channel>
-					<title>%d's AIO feed</title>
-			`, ctx.PP["id"].(int64))))
+					<title>%s's AIO feed</title>
+			`, user)))
 		for _, event := range events {
 			info, err := db.GetInfoEntryById(dctx, event.ItemId)
 			if err != nil {

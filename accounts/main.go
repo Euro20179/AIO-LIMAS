@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"aiolimas/db"
+	"aiolimas/logging"
 	"aiolimas/settings"
 
 	"golang.org/x/crypto/argon2"
@@ -51,6 +52,35 @@ func Username2Id(aioPath string, username string) (uint64, error) {
 	err = res.Scan(&out)
 	if err != nil {
 		println(err.Error())
+	}
+	res.Close()
+	return out, nil
+}
+
+func Id2Username(aioPath string, id int64) (string, error) {
+	dbPath := AccountsDbPath(aioPath)
+	conn, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer conn.Close()
+
+	res, err := conn.Query("SELECT username FROM accounts WHERE rowid = ?", id)
+
+	if err != nil {
+		return "", err
+	}
+
+	if err = res.Err(); err != nil {
+		logging.ELog(err)
+		return "", err
+	}
+
+	var out string = ""
+	res.Next()
+	err = res.Scan(&out)
+	if err != nil {
+		logging.ELog(err)
 	}
 	res.Close()
 	return out, nil
