@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"aiolimas/db"
 	"aiolimas/accounts"
 	"aiolimas/util"
 )
@@ -196,4 +197,36 @@ func ListAccesses(ctx RequestContext) {
 
 	ctx.W.WriteHeader(200)
 	ctx.W.Write(out)
+}
+
+func GetAccount(ctx RequestContext) {
+	if ctx.Req.Method == "RSS" || (ctx.Req.Method == "GET" && strings.Contains(ctx.Req.Header.Get("Accept"), "application/rss+xml")) {
+		dctx := actx2dctx(ctx)
+		events, _ := db.GetEvents(dctx, -1, 20)
+		ctx.W.Header().Add("Content-Type", "application/rss+xml")
+		ctx.W.Write([]byte(fmt.Sprintf(`<?xml version="1.0"?>
+			<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+				<channel>
+					<title>%d's AIO feed</title>
+			`, ctx.PP["id"].(int64))))
+		for _, event := range events {
+			info, err := db.GetInfoEntryById(dctx, event.ItemId)
+			if err != nil {
+				continue
+			}
+
+			if event.Timestamp == 0 {
+				continue
+			}
+
+			date := time.UnixMilli(event.Timestamp)
+			
+			ctx.W.Write([]byte(fmt.Sprintf(`<item>
+				<title>%s</title>
+				<link>/html/by-id/%d</link>
+				<pubDate>%s</pubDate>
+			</item>`, event.Event + " " + info.En_Title, event.ItemId, date.Format(time.RFC822))))
+		}
+		ctx.W.Write([]byte("</channel></rss>"))
+	}
 }

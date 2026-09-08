@@ -1169,6 +1169,29 @@ var engagementEndpointList = []ApiEndPoint{
 // `/account` endpoints {{{
 var AccountEndPoints = []ApiEndPoint{
 	{
+		EndPoint: "{id}",
+		Handler: GetAccount,
+		PathParams: QueryParams {
+			"id": MkQueryInfo(P_UID, true),
+		},
+		Methods: map[string]MethodSpec {
+			"RSS": {
+				UserIndependant: true,
+				GuestAllowed: true,
+			},
+			"GET": {
+				UserIndependant: true,
+				GuestAllowed: true,
+			},
+		},
+
+		Description: `Get information about an account, <b>methods</b>
+			<ul>
+				<li>RSS: get the last 20 events for user</li>
+			</ul>`,
+	},
+
+	{
 		EndPoint:        "create",
 		Handler:         CreateAccount,
 		Methods:          map[string]MethodSpec{

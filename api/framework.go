@@ -527,6 +527,15 @@ func P_Uint64Array(ctx RequestContext, in string) (any, error) {
 	return arr, nil
 }
 
+func P_UID(ctx RequestContext, in string) (any, error) {
+	uidInt, err := strconv.ParseInt(in, 10, 64)
+
+	if err != nil {
+		return 0, err
+	}
+	return uidInt, nil
+}
+
 func P_Bool(ctx RequestContext, in string) (any, error) {
 	if in == "true" || in == "on" {
 		return true, nil
