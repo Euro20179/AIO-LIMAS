@@ -548,7 +548,21 @@ func GetEvents(ctx RequestContext, id int64) ([]db_types.UserViewingEvent, error
 	ORDER BY
 	CASE timestamp
 	WHEN 0 THEN
-	userEventInfo.after
+		CASE after
+		WHEN 0 THEN
+			CASE beforeTS
+			WHEN 0 THEN
+				0
+			ELSE beforeTS - 1
+			END
+		ELSE
+			CASE beforeTS
+			WHEN 0 THEN
+				after + 1
+			ELSE
+				(after + beforeTS) / 2
+			END
+		END
 	ELSE timestamp
 	END`, whereText), whereItems...)
 	if err != nil {
