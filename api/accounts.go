@@ -200,7 +200,7 @@ func ListAccesses(ctx RequestContext) {
 }
 
 func GetAccount(ctx RequestContext) {
-	if ctx.Req.Method == "RSS" || (ctx.Req.Method == "GET" && strings.Contains(ctx.Req.Header.Get("Accept"), "application/rss+xml")) {
+	if ctx.Req.Method == "RSS" || (ctx.Req.Method == "GET" && strings.Contains(ctx.Req.Header.Get("Accept"), "application/rss+xml")) || ctx.PP.Has("rss") {
 		dctx := actx2dctx(ctx)
 		dctx.UID = ctx.PP["id"].(int64)
 		events, err := db.GetEvents(dctx, -1, 20)

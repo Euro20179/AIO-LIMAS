@@ -1182,6 +1182,9 @@ var AccountEndPoints = []ApiEndPoint{
 			"GET": {
 				UserIndependant: true,
 				GuestAllowed: true,
+				Params: QueryParams {
+					"rss": MkQueryInfo(P_Bool, false),
+				},
 			},
 		},
 
