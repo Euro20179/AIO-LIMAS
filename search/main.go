@@ -490,6 +490,26 @@ func (self MacroNode) ToString() (string, error) {
 			genre := macro[2:]
 			return fmt.Sprintf("EXISTS (SELECT * FROM json_each(json_extract(genres, '$')) WHERE genres != '' AND json_each.value LIKE '%s')", genre), nil
 		},
+
+		"childof": func (macro string) (string, error) {
+			id := macro[8:]
+			return fmt.Sprintf("(entryInfo.itemid IN (SELECT left FROM relations WHERE right = %s AND relation = 1))", id), nil
+		},
+
+		"parentof": func (macro string) (string, error) {
+			id := macro[9:]
+			return fmt.Sprintf("(entryInfo.itemid IN (SELECT right FROM relations WHERE left = %s AND relation = 1))", id), nil
+		},
+
+		"requires": func (macro string) (string, error) {
+			id := macro[9:]
+			return fmt.Sprintf("(entryInfo.itemid IN (SELECT left FROM relations WHERE right = %s AND relation = 2))", id), nil
+		},
+
+		"requiredby": func (macro string) (string, error) {
+			id := macro[11:]
+			return fmt.Sprintf("(entryInfo.itemid IN (SELECT right FROM relations WHERE left = %s AND relation = 2))", id), nil
+		},
 	}
 
 	basicMacros := map[string]string{
@@ -505,6 +525,7 @@ func (self MacroNode) ToString() (string, error) {
 		"ep":      "CAST(json_extract(mediaDependant, format('$.%s-episodes', type)) as DECIMAL)",
 		"len":     "CAST(json_extract(mediaDependant, format('$.%s-length', type)) as DECIMAL)",
 		"epd":     "CAST(json_extract(mediaDependant, format('$.%s-episode-duration', type)) as DECIMAL)",
+		"iscopy":  "(SELECT EXISTS (SELECT 1 FROM relations WHERE (left = entryInfo.Itemid OR right = entryInfo.itemId) AND relation = 3))",
 	}
 
 	for _, item := range mediaTypes {
