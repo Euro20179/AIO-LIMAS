@@ -100,6 +100,18 @@ func Pause(uid int64, timezone string, entry *db_types.UserViewingEntry) error {
 // if entryInfo has an id, that id will be used
 func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadataEntry *db_types.MetadataEntry, userViewingEntry *db_types.UserViewingEntry) error {
 	id := entryInfo.ItemId
+	metadataId := metadataEntry.ItemId
+
+	if metadataId == 0 {
+		res, err := QueryDB("SELECT max(itemid) FROM metadata")
+		if err != nil || !res.Next() {
+			return errors.New("failed to add entry, could not determine metadata id")
+		}
+		res.Scan(&metadataId)
+		res.Close()
+		metadataId += 1
+	}
+
 	if id == 0 {
 		res, err := QueryDB("SELECT max(itemid) FROM entryInfo")
 		if err != nil || !res.Next() {
@@ -112,8 +124,9 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	entryInfo.Uid = uid
 	entryInfo.ItemId = id
+	entryInfo.MetadataId = metadataId
 	metadataEntry.Uid = uid
-	metadataEntry.ItemId = id
+	metadataEntry.ItemId = metadataId
 	userViewingEntry.Uid = uid
 	userViewingEntry.ItemId = id
 
@@ -181,7 +194,7 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	if timezone != "" {
 		event := "Added"
-		err := RegisterBasicUserEvent(uid, timezone, event, metadataEntry.ItemId)
+		err := RegisterBasicUserEvent(uid, timezone, event, entryInfo.ItemId)
 		if err != nil {
 			return err
 		}
@@ -316,7 +329,13 @@ func Delete(uid int64, id int64) error {
 	}
 
 	transact.Exec(`DELETE FROM entryInfo WHERE itemId = ? and entryInfo.uid = ?`, id, uid)
-	transact.Exec(`DELETE FROM metadata WHERE itemId = ? and metadata.uid = ?`, id, uid)
+	transact.Exec(`DELETE FROM metadata
+				JOIN entryInfo ON
+					entryInfo.itemid = ?
+					AND entryInfo.metadataid = metadata.itemid
+					WHERE
+					metadata.uid = ?
+					AND (SELECT COUNT(*) FROM entryInfo WHERE entryInfo.metadataid = metadata.itemid) = 1`, id, uid)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE itemId = ? and userViewingInfo.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM userEventInfo WHERE itemId = ? and userEventInfo.uid = ?`, id, uid)
 	transact.Exec(`DELETE FROM relations WHERE left = ? or right = ?`, id, id)
@@ -332,7 +351,7 @@ func DeleteByUID(uid int64) error {
 	}
 
 	transact.Exec(`DELETE FROM entryInfo WHERE entryInfo.uid = ?`, uid)
-	transact.Exec(`DELETE FROM metadata WHERE metadata.uid = ?`, uid)
+	transact.Exec(`DELETE FROM metadata JOIN entryinfo ON entryinfo.metadataid = metadata.itemid WHERE metadata.uid = ? AND (SELECT COUNT(*) FROM entryInfo WHERE entryInfo.metadataid = metadata.itemid) = 1`, uid)
 	transact.Exec(`DELETE FROM userViewingInfo WHERE userViewingInfo.uid = ?`, uid)
 	transact.Exec(`DELETE FROM userEventInfo WHERE userEventInfo.uid = ?`, uid)
 	transact.Exec(`DELETE FROM relations WHERE userEventInfo.uid = ?`, uid)

@@ -10,8 +10,7 @@ import (
 	"aiolimas/logging"
 	log "aiolimas/logging"
 	"aiolimas/search"
-
-	"aiolimas/types"
+	db_types "aiolimas/types"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -21,7 +20,7 @@ type RequestContext struct {
 	Auth int64 // authenticated uid
 }
 
-const DB_VERSION = 18
+const DB_VERSION = 19
 
 var DB *sql.DB
 
@@ -207,7 +206,7 @@ func BuildEntryTree(ctx RequestContext, id int64) (map[int64]db_types.EntryTree,
 
 	allRows, err := QueryDB(`
 	SELECT * FROM entryInfo
-	JOIN metadata ON entryInfo.itemid = metadata.itemid
+	JOIN metadata ON entryInfo.metadataid = metadata.itemid
 	JOIN userViewingInfo uvi ON entryInfo.itemid = uvi.itemid
 	` + whereClause)
 	if err != nil {
@@ -232,6 +231,7 @@ func BuildEntryTree(ctx RequestContext, id int64) (map[int64]db_types.EntryTree,
 			&cur.EntryInfo.RecommendedBy,
 			&cur.EntryInfo.Priority,
 			&cur.EntryInfo.Format_Modifiers,
+			&cur.EntryInfo.MetadataId,
 
 			&cur.MetaInfo.Uid,
 			&cur.MetaInfo.ItemId,
@@ -344,9 +344,22 @@ func GetUserEventEntryById(ctx RequestContext, id int64) (db_types.UserViewingEv
 	return res, getById(ctx, id, "userEventInfo", &res)
 }
 
-func GetMetadataEntryById(ctx RequestContext, id int64) (db_types.MetadataEntry, error) {
+func GetMetadataForItemId(ctx RequestContext, id int64) (db_types.MetadataEntry, error) {
 	var res db_types.MetadataEntry
-	return res, getById(ctx, id, "metadata", &res)
+
+	rows, err := QueryDB("SELECT metadata.* FROM metadata JOIN entryInfo ON entryInfo.itemid = " + fmt.Sprintf("%d", id) + " AND entryInfo.metadataid = metadata.itemid " + uidWhere(ctx, "entryinfo.uid", "entryInfo.itemid"))
+	if err != nil {
+		return db_types.MetadataEntry{}, err
+	}
+	defer rows.Close()
+
+	hasEntry := rows.Next()
+	if !hasEntry {
+		return db_types.MetadataEntry{}, fmt.Errorf("could not find metadata for id %d", id)
+	}
+
+	res2, err := res.ReadEntryCopy(rows)
+	return res2.(db_types.MetadataEntry), err
 }
 
 func ensureUserJsonNotEmpty(user *db_types.UserViewingEntry) {
@@ -371,7 +384,7 @@ func ensureMetadataJsonNotEmpty(metadata *db_types.MetadataEntry) {
 }
 
 func ListMetadata(ctx RequestContext) ([]db_types.MetadataEntry, error) {
-	return Select(ctx, db_types.MetadataEntry{}, "SELECT * FROM metadata %s", uidWhere(ctx, "metadata.uid", "metadata.itemid"))
+	return Select(ctx, db_types.MetadataEntry{}, "SELECT metadata.* FROM metadata JOIN entryInfo ON entryInfo.metadataid = metadata.itemid %s", uidWhere(ctx, "entryInfo.uid", "entryinfo.itemid"))
 }
 
 func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
@@ -382,7 +395,7 @@ func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 	JOIN userViewingInfo ON
 	entryInfo.itemId == userViewingInfo.itemId
 	JOIN metadata ON
-	entryInfo.itemId == metadata.itemId
+	entryInfo.metadataid == metadata.itemId
 	LEFT JOIN userEventInfo ON
 	entryInfo.itemId == userEventInfo.itemId ` +
 	uidWhere(ctx, "metadata.uid", "entryinfo.itemid") +
@@ -420,10 +433,10 @@ func Search4(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 	query := `SELECT DISTINCT entryInfo.*
 	FROM entryInfo
 	JOIN metadata ON
-	entryInfo.itemId == metadata.itemId
+	entryInfo.metadataid == metadata.itemId
 	JOIN userViewingInfo ON
 	entryInfo.itemId == userViewingInfo.itemId
-	` + uidWhere(ctx, "metadata.uid", "entryInfo.itemid") + ` AND (
+	` + uidWhere(ctx, "entryInfo.uid", "entryInfo.itemid") + ` AND (
 		En_Title LIKE ? or
 		Title LIKE ? or
 		entryInfo.Native_Title LIKE ? or

@@ -148,7 +148,7 @@ func _getAllForEntry(ctx RequestContext, info db_types.InfoEntry) {
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(actx2dctx(ctx), info.ItemId)
+	meta, err := db.GetMetadataForItemId(actx2dctx(ctx), info.ItemId)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get metadata info\n%s", err.Error())
 		return
@@ -202,7 +202,7 @@ func GetAllForEntry2(ctx RequestContext) {
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(actx2dctx(ctx), info.ItemId)
+	meta, err := db.GetMetadataForItemId(actx2dctx(ctx), info.ItemId)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get metadata info\n%s", err.Error())
 		return
@@ -1102,7 +1102,7 @@ func SpecificEntry(ctx RequestContext) {
 		case "info":
 			GetEntry(ctx)
 		case "meta":
-			meta, err := db.GetMetadataEntryById(actx2dctx(ctx), ctx.PP["id"].(db_types.InfoEntry).ItemId)
+			meta, err := db.GetMetadataForItemId(actx2dctx(ctx), ctx.PP["id"].(db_types.InfoEntry).ItemId)
 			if err != nil {
 				util.WError(ctx.W, 500, "Could not get corresponding meta info\n%s", err.Error())
 			}

@@ -427,7 +427,7 @@ func P_VerifyIdAndGetInfoEntry(ctx RequestContext, id string) (any, error) {
 }
 
 func P_VerifyIdAndGetMetaEntry(ctx RequestContext, id string) (any, error) {
-	return _verifyIdAndGet(ctx, id, db.GetMetadataEntryById)
+	return _verifyIdAndGet(ctx, id, db.GetMetadataForItemId)
 }
 
 func P_True(ctx RequestContext, in string) (any, error) {

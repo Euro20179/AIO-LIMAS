@@ -71,7 +71,7 @@ func handleById(w http.ResponseWriter, req *http.Request, id string, uid int64) 
 		return
 	}
 
-	meta, err := db.GetMetadataEntryById(db.RequestContext{
+	meta, err := db.GetMetadataForItemId(db.RequestContext{
 		UID: uid,
 		Auth: 0,
 	}, i)

@@ -55,7 +55,7 @@ func FetchMetadataForEntry(ctx RequestContext) {
 	req := ctx.Req
 	mainEntry := pp["id"].(db_types.InfoEntry)
 
-	metadataEntry, err := db.GetMetadataEntryById(actx2dctx(ctx), mainEntry.ItemId)
+	metadataEntry, err := db.GetMetadataForItemId(actx2dctx(ctx), mainEntry.ItemId)
 	if err != nil {
 		util.WError(w, 500, "%s\n", err.Error())
 		return
