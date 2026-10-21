@@ -812,7 +812,6 @@ func ListEntries(ctx RequestContext) {
 func QueryEntries4(ctx RequestContext) {
 	search := ctx.PP["search"].(string)
 	orderBy := ctx.PP.Get("order-by", "").(string)
-	println(orderBy)
 	results, err := db.Search4(actx2dctx(ctx), search, orderBy)
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not complete search\n%s", err.Error())
@@ -1019,6 +1018,8 @@ func EntrySettings(ctx RequestContext) {
 
 func EntryResource(ctx RequestContext) {
 	switch ctx.Req.Method {
+	case "POST":
+		AddEntry(ctx)
 	case "TREE":
 		GetTree(ctx)
 	case "QUERY":
@@ -1083,8 +1084,6 @@ func SpecificEntry(ctx RequestContext) {
 		actionMedia(ctx, FinishMedia)
 	case "TRANSACT":
 		Transact(ctx)
-	case "POST":
-		AddEntry(ctx)
 	case "PATCH":
 		SetEntry(ctx)
 	case "DELETE":

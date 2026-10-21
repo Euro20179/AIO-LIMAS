@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"maps"
 	"net/http"
 	"os"
 	"reflect"
 	"regexp"
 	"runtime"
-	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"aiolimas/logging"
 	"aiolimas/metadata"
 	"aiolimas/types"
+	"aiolimas/util"
 )
 
 func actx2dctx(ctx RequestContext) db.RequestContext {
@@ -78,6 +80,7 @@ type MethodSpec struct {
 	Description string
 	Returns string
 	Params QueryParams
+	ParamsFromBodyAllowed bool
 	// whether or not auth is required, false == auth required, true == auth not required
 	// it's named this way, so that by default, auth is intuitively required
 	// because by default this will be false
@@ -320,8 +323,28 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	jsonD := map[string]string{}
+	jsonAllowed := methodSpec.ParamsFromBodyAllowed && strings.ToLower(ctx.Req.Header.Get("Content-Type")) == "application/json"
+	if jsonAllowed {
+		defer ctx.Req.Body.Close()
+		jsonT, err := io.ReadAll(ctx.Req.Body)
+		if err != nil {
+			util.WError(w, 500, "could not read body: %s", err)
+			return
+		}
+
+		if len(jsonT) > 0 {
+			err = json.Unmarshal(jsonT, &jsonD)
+			if err != nil {
+				util.WError(w, 400, "invalid json: %s", err)
+				return
+			}
+		}
+	}
+
 	for name, info := range methodSpec.Params {
-		if !query.Has(name) {
+		jsonVal, jsonHas := jsonD[name]
+		if !query.Has(name) && !jsonHas {
 			if info.Required {
 				w.WriteHeader(400)
 				fmt.Fprintf(w, "Missing parameter: '%s'", name)
@@ -330,7 +353,12 @@ func (self *ApiEndPoint) Listener(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		queryVal := query.Get(name)
+		var queryVal string
+		if jsonHas {
+			queryVal = jsonVal
+		} else {
+			queryVal = query.Get(name)
+		}
 
 		val, err := info.Parser(ctx, queryVal)
 		if err != nil {

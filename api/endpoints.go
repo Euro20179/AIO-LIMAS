@@ -145,8 +145,9 @@ var mainEndpointList = []ApiEndPoint{
 				UserIndependant: true,
 			},
 			"POST": {
-				Description: "Create a new entry",
+				Description: "Create a new entry, information can also be provided as a json object in the body using the application/json Content-Type header (all values as strings)",
 				Returns: "InfoEntry",
+				ParamsFromBodyAllowed: true,
 				Params: QueryParams{
 					"title":             MkQueryInfo(P_NotEmpty, true),
 					"type":              MkQueryInfo(P_EntryType, true),
