@@ -241,6 +241,11 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 	if err != nil {
 		return out, err
 	}
+
+	if res.StatusCode != 200 {
+		return out, nil
+	}
+
 	text, err = io.ReadAll(res.Body)
 	if err != nil {
 		return out, err
