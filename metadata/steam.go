@@ -61,6 +61,10 @@ type IdAppData struct {
 		BackgroundRaw      string `json:"background_raw"`
 		ContentDescriptors any    `json:"content_descriptors"`
 		Ratins             any
+		Metacritic struct {
+			Score int64
+			Url string
+		}
 	}
 }
 
@@ -236,27 +240,30 @@ func SteamIdIdentifier(id string, us settings.SettingsData) (db_types.MetadataEn
 		out.ReleaseYear = yearI
 	}
 
-	reviewsUrl := fmt.Sprintf("https://store.steampowered.com/appreviews/%s?json=1", url.QueryEscape(id))
-	res, err = http.Get(reviewsUrl)
-	if err != nil {
-		return out, err
-	}
+	out.Rating = float64(mainData.Data.Metacritic.Score)
+	out.RatingMax = 100
 
-	if res.StatusCode != 200 {
-		return out, nil
-	}
-
-	text, err = io.ReadAll(res.Body)
-	if err != nil {
-		return out, err
-	}
-
-	var reviewsRespJson map[string]any
-	json.Unmarshal(text, &reviewsRespJson)
-	summary := reviewsRespJson["query_summary"].(map[string]any)
-	score := summary["review_score"].(float64)
-	out.Rating = score
-	out.RatingMax = 10
+	// reviewsUrl := fmt.Sprintf("https://store.steampowered.com/appreviews/%s?json=1", url.QueryEscape(id))
+	// res, err = http.Get(reviewsUrl)
+	// if err != nil {
+	// 	return out, err
+	// }
+	//
+	// if res.StatusCode != 200 {
+	// 	return out, nil
+	// }
+	//
+	// text, err = io.ReadAll(res.Body)
+	// if err != nil {
+	// 	return out, err
+	// }
+	//
+	// var reviewsRespJson map[string]any
+	// json.Unmarshal(text, &reviewsRespJson)
+	// summary := reviewsRespJson["query_summary"].(map[string]any)
+	// score := summary["review_score"].(float64)
+	// out.Rating = score
+	// out.RatingMax = 10
 
 	return out, nil
 }
