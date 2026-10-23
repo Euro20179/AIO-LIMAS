@@ -768,11 +768,11 @@ when using finalize-identify`,
 				Params: QueryParams{
 					"identified-id": MkQueryInfo(P_NotEmpty, true),
 					"provider":      MkQueryInfo(P_IdIdentifier, true),
-					"apply-to":      MkQueryInfo(P_VerifyIdAndGetMetaEntry, false),
+					"apply-to":      MkQueryInfo(P_VerifyIdAndGetInfoEntry, false),
 				},
 			},
 		},
-		Description: "Apply an identified id from /identify, to an entry using a provider",
+		Description: "Apply an identified id to an entry (?apply-to) (not metadata item) from /identify, to an entry using a provider",
 		Returns:     "none",
 	},
 

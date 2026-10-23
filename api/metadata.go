@@ -239,7 +239,7 @@ func IdentifyWithSearch(ctx RequestContext) {
 func FinalizeIdentification(ctx RequestContext) {
 	parsedParams := ctx.PP
 	w := ctx.W
-	itemToApplyTo := parsedParams.Get("apply-to", db_types.MetadataEntry{ItemId: 0, Title: "DOES NOT EXIST"}).(db_types.MetadataEntry)
+	itemToApplyTo := parsedParams.Get("apply-to", db_types.InfoEntry{ItemId: 0}).(db_types.InfoEntry)
 	id := parsedParams["identified-id"].(string)
 	provider := parsedParams["provider"].(string)
 
@@ -250,7 +250,7 @@ func FinalizeIdentification(ctx RequestContext) {
 	}
 
 	if itemToApplyTo.ItemId != 0 {
-		data.ItemId = itemToApplyTo.ItemId
+		data.ItemId = itemToApplyTo.MetadataId
 		data.Uid = itemToApplyTo.Uid
 		err = db.UpdateMetadataEntry(ctx.Uid, &data)
 		if err != nil {
