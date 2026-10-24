@@ -136,7 +136,7 @@ func DownloadDB(ctx RequestContext) {
 }
 
 func _getAllForEntry(ctx RequestContext, info db_types.InfoEntry) {
-	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId, 0)
+	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId, 0, "")
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get events\n%s", err.Error())
 		return
@@ -190,7 +190,7 @@ func _getAllForEntry(ctx RequestContext, info db_types.InfoEntry) {
 
 func GetAllForEntry2(ctx RequestContext) {
 	info := ctx.PP["id"].(db_types.InfoEntry)
-	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId, 0)
+	events, err := db.GetEvents(actx2dctx(ctx), info.ItemId, 0, "")
 	if err != nil {
 		util.WError(ctx.W, 500, "Could not get events\n%s", err.Error())
 		return

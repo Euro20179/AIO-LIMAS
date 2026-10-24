@@ -34,7 +34,7 @@ func CopyUserViewingEntry(ctx RequestContext) {
 		return
 	}
 
-	events, err := db.GetEvents(actx2dctx(ctx), oldId, 0)
+	events, err := db.GetEvents(actx2dctx(ctx), oldId, 0, "")
 	if err != nil {
 		util.WError(w, 500, "Failed to get events for item\n%s", err.Error())
 		return
@@ -364,7 +364,7 @@ func ListEvents(ctx RequestContext) {
 
 	limit := ctx.PP.Get("limit", int64(0)).(int64)
 
-	events, err := db.GetEvents(actx2dctx(ctx), -1, limit)
+	events, err := db.GetEvents(actx2dctx(ctx), -1, limit, "")
 	if err != nil {
 		util.WError(w, 500, "Could not fetch events\n%s", err.Error())
 		return
@@ -387,7 +387,7 @@ func GetEventsOf(ctx RequestContext) {
 	w := ctx.W
 	id := parsedParams["id"].(db_types.InfoEntry)
 
-	events, err := db.GetEvents(actx2dctx(ctx), id.ItemId, 0)
+	events, err := db.GetEvents(actx2dctx(ctx), id.ItemId, 0, "")
 	if err != nil {
 		util.WError(w, 400, "Could not get events\n%s", err.Error())
 		return

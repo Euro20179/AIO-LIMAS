@@ -537,7 +537,7 @@ func GetRelation(ctx RequestContext, id int64, relation db_types.Relation, recip
 }
 
 // if id is -1, it lists all events
-func GetEvents(ctx RequestContext, id int64, limit int64) ([]db_types.UserViewingEvent, error) {
+func GetEvents(ctx RequestContext, id int64, limit int64, evType string) ([]db_types.UserViewingEvent, error) {
 	var out []db_types.UserViewingEvent
 
 	whereClause := []string{}
@@ -545,6 +545,9 @@ func GetEvents(ctx RequestContext, id int64, limit int64) ([]db_types.UserViewin
 	if id > -1 {
 		whereClause = append(whereClause, "itemId == ?")
 		whereItems = append(whereItems, id)
+	}
+	if evType != "" {
+		whereClause = append(whereClause, fmt.Sprintf("event = '%s'", evType))
 	}
 	whereClause = append(whereClause, strings.TrimPrefix(uidWhere(ctx, "userEventInfo.uid", "userEventInfo.itemid"), " WHERE"))
 

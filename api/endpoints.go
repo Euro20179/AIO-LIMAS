@@ -1188,12 +1188,16 @@ var AccountEndPoints = []ApiEndPoint{
 			"RSS": {
 				UserIndependant: true,
 				GuestAllowed: true,
+				Params: QueryParams {
+					"type": MkQueryInfo(P_SqlSafe, false),
+				},
 			},
 			"GET": {
 				UserIndependant: true,
 				GuestAllowed: true,
 				Params: QueryParams {
 					"rss": MkQueryInfo(P_Bool, false),
+					"type": MkQueryInfo(P_SqlSafe, false),
 				},
 			},
 		},

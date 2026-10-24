@@ -1,7 +1,6 @@
 package api
 
 import (
-	"strings"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
@@ -9,10 +8,12 @@ import (
 	"math/big"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
-	"aiolimas/db"
 	"aiolimas/accounts"
+	"aiolimas/db"
+	db_types "aiolimas/types"
 	"aiolimas/util"
 )
 
@@ -203,7 +204,10 @@ func GetAccount(ctx RequestContext) {
 	if ctx.Req.Method == "RSS" || (ctx.Req.Method == "GET" && strings.Contains(ctx.Req.Header.Get("Accept"), "application/rss+xml")) || ctx.PP.Has("rss") {
 		dctx := actx2dctx(ctx)
 		dctx.UID = ctx.PP["id"].(int64)
-		events, err := db.GetEvents(dctx, -1, 20)
+
+		eventTy := ctx.PP.Get("type", "").(string)
+
+		events, err := db.GetEvents(dctx, -1, 20, eventTy)
 		
 		if err != nil {
 			util.WError(ctx.W, 500, "Failed to get events: %s\n", err.Error())
@@ -220,15 +224,39 @@ func GetAccount(ctx RequestContext) {
 
 		ctx.W.Header().Add("Content-Type", "application/rss+xml")
 		ctx.W.Write([]byte(fmt.Sprintf(`<?xml version="1.0"?>
-			<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<rss version="2.0">
 				<channel>
 					<title>%s's AIO feed</title>
 			`, user)))
+
+		items := map[int64]db_types.InfoEntry{}
+		userInfos := map[int64]db_types.UserViewingEntry{}
+
 		for _, event := range events {
-			info, err := db.GetInfoEntryById(dctx, event.ItemId)
-			if err != nil {
-				continue
+			var info db_types.InfoEntry
+			var user db_types.UserViewingEntry
+
+			if u, has := userInfos[event.ItemId]; has {
+				user = u
+			} else {
+				user, err = db.GetUserViewEntryById(dctx, event.ItemId)
+				if err != nil {
+					continue
+				}
+				userInfos[event.ItemId] = user
 			}
+
+			if i, has := items[event.ItemId]; has {
+				info = i
+			} else {
+				info, err = db.GetInfoEntryById(dctx, event.ItemId)
+				if err != nil {
+					continue
+				}
+				items[event.ItemId] = info
+			}
+
+			items[info.ItemId] = info
 
 			if event.Timestamp == 0 {
 				continue
@@ -236,11 +264,18 @@ func GetAccount(ctx RequestContext) {
 
 			date := time.UnixMilli(event.Timestamp)
 			
-			ctx.W.Write([]byte(fmt.Sprintf(`<item>
-				<title>%s</title>
-				<link>/html/by-id/%d</link>
-				<pubDate>%s</pubDate>
-			</item>`, event.Event + " " + info.En_Title, event.ItemId, date.Format(time.RFC822))))
+			ctx.W.Write([]byte(fmt.Sprintf(
+				`<item>
+					<title>%s</title>
+					<link>/html/by-id/%d</link>
+					<pubDate>%s</pubDate>
+					<description><![CDATA[%s]]></description>
+				</item>`,
+				event.Event + " " + info.En_Title,
+				event.ItemId,
+				date.Format("Mon, 02 Jan 2006 15:04:05 -0700"),
+				user.Notes,
+			)))
 		}
 		ctx.W.Write([]byte("</channel></rss>"))
 	}
