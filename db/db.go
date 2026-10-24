@@ -20,7 +20,7 @@ type RequestContext struct {
 	Auth int64 // authenticated uid
 }
 
-const DB_VERSION = 19
+const DB_VERSION = 20
 
 var DB *sql.DB
 

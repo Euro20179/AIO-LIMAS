@@ -221,7 +221,7 @@ const (
 	TY_LIBRARY     MediaTypes = "Library"
 	TY_VIDEO       MediaTypes = "Video"
 	TY_SHORTSTORY  MediaTypes = "ShortStory"
-	TY_ALBUMN      MediaTypes = "Albumn"
+	TY_ALBUMN      MediaTypes = "Album"
 	TY_SOUNDTRACK  MediaTypes = "Soundtrack"
 )
 
