@@ -83,7 +83,16 @@ var mainEndpointList = []ApiEndPoint{
 		EndPoint: "get-all-for-entries",
 		Handler:  GetAllForEntries,
 		Methods: map[string]MethodSpec {
+			"POST": {
+				ParamsFromBodyAllowed: true,
+				Params: QueryParams{
+					"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
+				},
+				GuestAllowed:    true,
+				UserIndependant: true,
+			},
 			"GET": {
+				ParamsFromBodyAllowed: true,
 				Params: QueryParams{
 					"ids": MkQueryInfo(P_TList(",", func(in string) string { return in }), true),
 				},
