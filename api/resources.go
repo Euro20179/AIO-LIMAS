@@ -53,7 +53,16 @@ func thumbnailResource(ctx RequestContext) {
 func ThumbnailResourceById(ctx RequestContext) {
 	meta := ctx.PP["id"].(db_types.MetadataEntry)
 
-	if meta.Thumbnail != "" {
+	if strings.HasPrefix(meta.Thumbnail, "data:") {
+		data := strings.Split(meta.Thumbnail, ",")
+		dest, err := base64.StdEncoding.DecodeString(data[1])
+		if err != nil {
+			ctx.W.WriteHeader(500)
+			return
+		}
+		ctx.W.Header().Add("Content-Type", strings.Replace(data[0], "data:", "", 1))
+		ctx.W.Write(dest)
+	} else if meta.Thumbnail != "" {
 		ctx.W.Header().Add("Location", meta.Thumbnail)
 		ctx.W.WriteHeader(303)
 	} else {
