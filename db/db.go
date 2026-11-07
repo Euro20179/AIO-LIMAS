@@ -172,7 +172,6 @@ func Select[T db_types.TableRepresentation](ctx RequestContext, scanTo T, statem
 	if uidwhere != "" {
 		statement = fmt.Sprintf(statement, uidwhere)
 	}
-	println(statement)
 	rows, err := QueryDB(statement, args...)
 	if err != nil {
 		return out, err
