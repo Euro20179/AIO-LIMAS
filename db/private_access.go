@@ -102,7 +102,9 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 	id := entryInfo.ItemId
 	metadataId := metadataEntry.ItemId
 
-	if metadataId == 0 {
+	needsMeta := false
+	if metadataId == 0 && entryInfo.MetadataId == 0{
+		needsMeta = true
 		res, err := QueryDB("SELECT max(itemid) FROM metadata")
 		if err != nil || !res.Next() {
 			return errors.New("failed to add entry, could not determine metadata id")
@@ -124,20 +126,30 @@ func AddEntry(uid int64, timezone string, entryInfo *db_types.InfoEntry, metadat
 
 	entryInfo.Uid = uid
 	entryInfo.ItemId = id
-	entryInfo.MetadataId = metadataId
-	metadataEntry.Uid = uid
-	metadataEntry.ItemId = metadataId
+
+	if needsMeta {
+		entryInfo.MetadataId = metadataId
+	}
+
 	userViewingEntry.Uid = uid
 	userViewingEntry.ItemId = id
 
-	ensureMetadataJsonNotEmpty(metadataEntry)
+	if needsMeta {
+		metadataEntry.Uid = uid
+		metadataEntry.ItemId = metadataId
+		ensureMetadataJsonNotEmpty(metadataEntry)
+	}
+
 	ensureUserJsonNotEmpty(userViewingEntry)
 	ensureRecommendedByNotEmpty(entryInfo)
 
 	entries := map[string]db_types.TableRepresentation{
 		"entryInfo":       *entryInfo,
-		"metadata":        *metadataEntry,
 		"userViewingInfo": *userViewingEntry,
+	}
+
+	if needsMeta {
+		entries["metadata"] = *metadataEntry
 	}
 
 	for entryName, entry := range entries {

@@ -404,6 +404,7 @@ var mainEndpointList = []ApiEndPoint{
 					"native-title":      MkQueryInfo(P_True, false),
 					"tags":              MkQueryInfo(P_True, false),
 					"location":          MkQueryInfo(P_True, false),
+					"metadata-id":       MkQueryInfo(P_Int64, false),
 					"metadata":          MkQueryInfo(P_NotEmpty, false), // user metadata
 					"get-metadata":      MkQueryInfo(P_Bool, false), // use heuristics (unless metadata-provider is given) to get metadata
 					"metadata-provider": MkQueryInfo(P_MetaProvider, false), // use this provider when using get-metadata

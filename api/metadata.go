@@ -143,9 +143,9 @@ func SetMetadataEntry(ctx RequestContext) {
 		return
 	}
 
-	entry, err := db.GetUserViewEntryById(actx2dctx(ctx), meta.ItemId)
+	entry, err := db.GetMetadataForItemId(actx2dctx(ctx), meta.ItemId)
 	if err != nil {
-		util.WError(w, 500, "Could not retrieve updated entry\n%s", err.Error())
+		util.WError(w, 500, "Could not retrieve updated entry (metadata)\n%s", err.Error())
 		return
 	}
 

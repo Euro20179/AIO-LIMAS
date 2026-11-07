@@ -734,6 +734,9 @@ func AddEntry(ctx RequestContext) {
 		newMeta.ItemId = entryInfo.ItemId
 		newMeta.Uid = ctx.Uid
 		metadata = newMeta
+		//FIXME: metadata-id is not in parsed params for some reason
+	} else if id, has := parsedParams["metadata-id"]; has {
+		entryInfo.MetadataId = id.(int64)
 	}
 
 	us, err := settings.GetUserSettings(ctx.Uid)
