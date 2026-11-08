@@ -483,7 +483,7 @@ func (self MacroNode) ToString() (string, error) {
 		},
 		"mdi": func(macro string) (string, error) {
 			name := macro[4:]
-			return fmt.Sprintf("mediaDependant != '' AND CAST(jsoN_extract(mediaDependant, '$.%s') as decimal)", name), nil
+			return fmt.Sprintf("(SELECT CAST(m.value as decimal) FROM json_each(mediaDependant) as m WHERE m.key LIKE '%%-%s')", name), nil
 		},
 
 		"g": func(macro string) (string, error) {
