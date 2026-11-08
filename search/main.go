@@ -479,7 +479,7 @@ func (self MacroNode) ToString() (string, error) {
 
 		"md": func(macro string) (string, error) {
 			name := macro[3:]
-			return fmt.Sprintf("mediaDependant != '' and json_extract(mediaDependant, '$.%s')", name), nil
+			return fmt.Sprintf("(SELECT m.value FROM json_each(mediaDependant) as m WHERE m.key LIKE '%%-%s')", name), nil
 		},
 		"mdi": func(macro string) (string, error) {
 			name := macro[4:]
