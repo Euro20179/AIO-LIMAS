@@ -111,6 +111,7 @@ func ListStatuses() []Status {
 		"Planned",
 		"ReViewing",
 		"Paused",
+		"Waiting",
 	}
 }
 
