@@ -385,7 +385,7 @@ func ModEntry(ctx RequestContext) {
 	}
 
 	info.ArtStyle = db_types.ArtStyle(parsedParams.Get("art-style", uint(0)).(uint))
-	info.Type = parsedParams.Get("type", info.Type).(db_types.MediaTypes)
+	info.Type = db_types.MediaTypes(parsedParams.Get("type", info.Type).(string))
 
 	err := db.UpdateInfoEntry(ctx.Uid, &info)
 	if err != nil {
@@ -679,7 +679,7 @@ func AddEntry(ctx RequestContext) {
 	entryInfo.Location = location
 	entryInfo.Format = db_types.Format(formatInt)
 	entryInfo.ArtStyle = db_types.ArtStyle(style)
-	entryInfo.Type = parsedParams["type"].(db_types.MediaTypes)
+	entryInfo.Type = db_types.MediaTypes(parsedParams["type"].(string))
 	entryInfo.Library = libraryId
 	entryInfo.Format_Modifiers = uint64(format_modifiers)
 

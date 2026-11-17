@@ -159,7 +159,7 @@ var mainEndpointList = []ApiEndPoint{
 				ParamsFromBodyAllowed: true,
 				Params: QueryParams{
 					"title":             MkQueryInfo(P_NotEmpty, true),
-					"type":              MkQueryInfo(P_EntryType, true),
+					"type":              MkQueryInfo(P_SqlSafe, true),
 					"format":            MkQueryInfo(P_EntryFormat, true),
 					"timezone":          MkQueryInfo(P_NotEmpty, false),
 					"price":             MkQueryInfo(P_Float64, false),
@@ -475,7 +475,7 @@ var mainEndpointList = []ApiEndPoint{
 					"tags":            MkQueryInfo(P_True, false),
 					// "is-anime":        MkQueryInfo(P_Bool, false),
 					"art-style": MkQueryInfo(P_ArtStyle, false),
-					"type":      MkQueryInfo(P_EntryType, false),
+					"type":      MkQueryInfo(P_SqlSafe, false),
 				},
 			},
 		},

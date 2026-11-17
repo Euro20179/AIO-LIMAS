@@ -479,10 +479,10 @@ func P_SqlSafe(ctx RequestContext, in string) (any, error) {
 	if in == "" {
 		return in, errors.New("Empty")
 	}
-	match, err := regexp.Match("[0-9A-Za-z-_\\.]", []byte(in))
+	match, err := regexp.Match("[^0-9A-Za-z-_\\.]", []byte(in))
 	if err != nil {
 		return "", err
-	} else if match {
+	} else if !match {
 		return in, nil
 	}
 	return in, fmt.Errorf("'%s' contains invalid characters", in)
