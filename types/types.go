@@ -215,6 +215,7 @@ const (
 	TY_BOARDGAME   MediaTypes = "BoardGame"
 	TY_SONG        MediaTypes = "Song"
 	TY_BOOK        MediaTypes = "Book"
+	TY_NOVEL       MediaTypes = "Novel"
 	TY_MANGA       MediaTypes = "Manga"
 	TY_COLLECTION  MediaTypes = "Collection"
 	TY_PICTURE     MediaTypes = "Picture"
@@ -229,7 +230,7 @@ const (
 func ListMediaTypes() []MediaTypes {
 	return []MediaTypes{
 		TY_SHOW, TY_MOVIE, TY_GAME,
-		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_MANGA,
+		TY_BOARDGAME, TY_SONG, TY_BOOK, TY_NOVEL, TY_MANGA,
 		TY_COLLECTION, TY_MOVIE_SHORT,
 		TY_PICTURE, TY_MEME, TY_LIBRARY,
 		TY_DOCUMENTARY, TY_EPISODE, TY_VIDEO,

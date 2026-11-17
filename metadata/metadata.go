@@ -53,6 +53,7 @@ func GetMetadata(info *GetMetadataInfo) (db_types.MetadataEntry, error) {
 	case db_types.TY_MANGA:
 		return AnilistManga(info)
 
+	case db_types.TY_NOVEL:
 	case db_types.TY_BOOK:
 		return GoogleBooksProvider(info)
 
