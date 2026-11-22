@@ -343,6 +343,11 @@ func GetUserEventEntryById(ctx RequestContext, id int64) (db_types.UserViewingEv
 	return res, getById(ctx, id, "userEventInfo", &res)
 }
 
+func GetMetadataById(ctx RequestContext, id int64) (db_types.MetadataEntry, error) {
+	var res db_types.MetadataEntry
+	return res, getById(ctx, id, "metadata", &res)
+}
+
 func GetMetadataForItemId(ctx RequestContext, id int64) (db_types.MetadataEntry, error) {
 	var res db_types.MetadataEntry
 
@@ -386,10 +391,9 @@ func ListMetadata(ctx RequestContext) ([]db_types.MetadataEntry, error) {
 	return Select(ctx, db_types.MetadataEntry{}, "SELECT metadata.* FROM metadata JOIN entryInfo ON entryInfo.metadataid = metadata.itemid %s", uidWhere(ctx, "entryInfo.uid", "entryinfo.itemid"))
 }
 
-func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {
-	var out []db_types.InfoEntry
+func Search3[T db_types.TableRepresentation](ctx RequestContext, searchQuery string, orderby string, outTable string, out T) ([]T, error) {
 
-	query := `SELECT DISTINCT entryInfo.*
+	query := `SELECT DISTINCT %s.*
 	FROM entryInfo
 	JOIN userViewingInfo ON
 	entryInfo.itemId == userViewingInfo.itemId
@@ -403,17 +407,17 @@ func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 	safeQuery, err := search.Search2String(searchQuery)
 	if err != nil {
 		log.ELog(err)
-		return out, err
+		return nil, err
 	}
 
-	fullQuery := fmt.Sprintf(query, safeQuery)
+	fullQuery := fmt.Sprintf(query, outTable, safeQuery)
 
 	if orderby != "" {
 		// TODO: make an option to toggle DESC
 		safeOrderBy, err := search.Search2String(fmt.Sprintf("{ORDER BY %s DESC}", orderby))
 		if err != nil {
 			log.ELog(err)
-			return out, err
+			return nil, err
 		}
 		fullQuery += " " + safeOrderBy
 		log.Info("god order by %s", safeOrderBy)
@@ -421,7 +425,7 @@ func Search3(ctx RequestContext, searchQuery string, orderby string) ([]db_types
 
 	log.Info("got query %s", safeQuery)
 
-	return Select(ctx, db_types.InfoEntry{}, fullQuery, "")
+	return Select(ctx, out, fullQuery, "")
 }
 
 func Search4(ctx RequestContext, searchQuery string, orderby string) ([]db_types.InfoEntry, error) {

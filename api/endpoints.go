@@ -739,6 +739,37 @@ var mainEndpointList = []ApiEndPoint{
 // `/metadata` endpoints {{{
 var metadataEndpointList = []ApiEndPoint{
 	{
+		EndPoint: "",
+		Handler: MetadataGeneral,
+		Methods: map[string]MethodSpec {
+			"QUERY": {
+				Description: "query for metadata",
+				UserIndependant: true,
+				GuestAllowed: true,
+				Params: QueryParams{
+					"v": MkQueryInfo(P_Int64, false),
+					"q": MkQueryInfo(P_NotEmpty, true),
+					"order-by": MkQueryInfo(P_NotEmpty, false),
+				},
+			},
+		},
+	},
+	{
+		EndPoint: "{id}",
+		PathParams: QueryParams{
+			"id": MkQueryInfo(P_MetadataId, true),
+		},
+		Handler: MetadataID,
+		Methods: map[string]MethodSpec {
+			"GET": {
+				Description: "Get a metadata object by id",
+				UserIndependant: true,
+				GuestAllowed: true,
+				Params: QueryParams{},
+			},
+		},
+	},
+	{
 		EndPoint: "fetch-location",
 		Handler:  FetchLocation,
 		Methods: map[string]MethodSpec {

@@ -458,6 +458,10 @@ func P_VerifyIdAndGetMetaEntry(ctx RequestContext, id string) (any, error) {
 	return _verifyIdAndGet(ctx, id, db.GetMetadataForItemId)
 }
 
+func P_MetadataId(ctx RequestContext, id string) (any, error) {
+	return _verifyIdAndGet(ctx, id, db.GetMetadataById)
+}
+
 func P_True(ctx RequestContext, in string) (any, error) {
 	if !utf8.ValidString(in) {
 		return in, errors.New("Invalid utf8")

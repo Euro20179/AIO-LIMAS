@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"aiolimas/db"
@@ -265,4 +266,51 @@ func FinalizeIdentification(ctx RequestContext) {
 		return
 	}
 	w.Write(j)
+}
+
+func MetadataID(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "GET":
+
+		b, err := ctx.PP["id"].(db_types.MetadataEntry).ToJson()
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed to serialize metadata: %s\n", err)
+			return
+		}
+		ctx.W.WriteHeader(200)
+		ctx.W.Write([]byte(b))
+	default:
+	}
+}
+
+func MetadataGeneral(ctx RequestContext) {
+	switch ctx.Req.Method {
+	case "QUERY":
+		results, err := db.Search3(actx2dctx(ctx), ctx.PP["q"].(string), ctx.PP.Get("order-by", "").(string), "metadata", db_types.MetadataEntry{})
+		if err != nil {
+			util.WError(ctx.W, 500, "Failed make metadata query: %s\n", err.Error())
+			return
+		}
+
+		ctx.W.WriteHeader(200)
+		for _, r := range results {
+			j, err := r.ToJson()
+			if err != nil {
+				logging.ELog(err)
+				m := db_types.MetadataEntry{
+					Title: "{FAILED}",
+					Description: fmt.Sprintf("Failed to serialize: %s\n", err.Error()),
+				}
+				j, err = m.ToJson()
+				if err != nil {
+					//no fallback or else we'll be here forever
+					logging.ELog(err)
+				} else {
+					ctx.W.Write([]byte(j))
+				}
+				continue
+			}
+			ctx.W.Write([]byte(j))
+		}
+	}
 }
