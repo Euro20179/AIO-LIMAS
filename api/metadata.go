@@ -307,10 +307,12 @@ func MetadataGeneral(ctx RequestContext) {
 					logging.ELog(err)
 				} else {
 					ctx.W.Write([]byte(j))
+					ctx.W.Write([]byte("\n"))
 				}
 				continue
 			}
 			ctx.W.Write([]byte(j))
+			ctx.W.Write([]byte("\n"))
 		}
 	}
 }
